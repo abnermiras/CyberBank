@@ -420,3 +420,53 @@ O CyberBank determina automaticamente a forma correspondente à operação.
 
 A forma utilizada deve ser registrada na movimentação para permitir sua
 identificação no extrato.
+
+### 6.5 Operações Sistêmicas
+
+Operações financeiras sistêmicas possuem regras próprias para definição
+da forma de pagamento ou recebimento.
+
+Nas seguintes operações, o usuário não seleciona manualmente a forma:
+
+- Transferência;
+- Saque;
+- Compra de Moeda.
+
+### 6.5.1 Transferência
+
+Uma transferência entre contas utiliza automaticamente:
+
+- `Débito` na movimentação de saída;
+- `Crédito` na movimentação de entrada.
+
+A transferência não utiliza as formas de pagamento e recebimento
+cadastradas pelo usuário.
+
+A própria relação entre as duas movimentações identifica que se trata de
+uma transferência e determina a conta de origem e a conta de destino.
+
+### 6.5.2 Saque
+
+Um saque utiliza automaticamente:
+
+- `Débito` na movimentação de saída da conta de origem;
+- `Crédito` na movimentação de entrada da conta `Carteira`.
+
+O saque não utiliza as formas de pagamento e recebimento cadastradas
+pelo usuário.
+
+A relação entre as duas movimentações identifica que se trata de um
+saque e determina a conta de origem e a `Carteira` de destino.
+
+### 6.5.3 Compra de Moeda
+
+Uma compra de moeda utiliza automaticamente:
+
+- `Débito` na movimentação de saída da moeda de origem;
+- `Crédito` na movimentação de entrada da moeda de destino.
+
+A compra de moeda não utiliza as formas de pagamento e recebimento
+cadastradas pelo usuário.
+
+A relação entre as duas movimentações identifica que se trata de uma
+compra de moeda e determina a moeda de origem e a moeda de destino.
