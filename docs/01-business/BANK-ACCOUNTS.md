@@ -100,7 +100,68 @@ Saldo` correspondente e recalcular os saldos e o patrimônio afetados.
 
 ---
 
-## 3. Compartilhamento entre Ambientes
+## 3. Moedas da Conta
+
+Uma conta bancária possui uma moeda principal, sendo `Real (BRL)` a
+moeda padrão.
+
+O usuário pode adicionar outras moedas à mesma conta.
+
+Cada moeda possui seu próprio saldo dentro da conta.
+
+Uma moeda adicional é identificada como uma sub-moeda da conta.
+
+### 3.1 Compra de Moeda
+
+O CyberBank permite realizar operações de compra de moeda dentro de uma
+conta.
+
+A compra de moeda utiliza a categoria sistêmica `Compra de Moeda`.
+
+A operação deve informar:
+
+- moeda de origem;
+- moeda de destino;
+- valor utilizado na moeda de origem;
+- valor recebido na moeda de destino.
+
+A compra de moeda gera movimentações relacionadas nos saldos das duas
+moedas.
+
+A movimentação na moeda de origem representa uma saída do valor utilizado.
+
+A movimentação na moeda de destino representa uma entrada do valor
+recebido.
+
+### 3.2 Exemplo
+
+Uma conta `Nubank` possui:
+
+- BRL: R$ 1.000,00;
+- USD: US$ 0,00.
+
+O usuário realiza uma compra de US$ 100,00 utilizando R$ 500,00.
+
+O resultado será:
+
+**Extrato BRL**
+
+- `Compra de Moeda USD`: -R$ 500,00.
+
+**Extrato USD**
+
+- `Compra de Moeda`: +US$ 100,00.
+
+Após a operação, os saldos serão:
+
+- BRL: R$ 500,00;
+- USD: US$ 100,00.
+
+As duas movimentações representam uma única operação de compra de moeda.
+
+---
+
+## 4. Compartilhamento entre Ambientes
 
 Quando uma conta bancária é compartilhada com outro ambiente financeiro,
 o ambiente de destino passa a ter acesso às informações financeiras da
@@ -126,7 +187,7 @@ ambientes que possuem acesso àquela conta.
 
 ---
 
-## 4. Acesso
+## 5. Acesso
 
 Todos os usuários que possuem acesso à conta podem realizar operações
 sobre ela de acordo com suas permissões.
