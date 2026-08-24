@@ -1,6 +1,4 @@
-# BUSINESS-RULES.md
-
-## Regras de Negócio
+# Regras de Negócio
 
 ## 1. Controle Financeiro
 
@@ -11,19 +9,16 @@ As informações financeiras são organizadas dentro de ambientes financeiros.
 
 ---
 
-## 2. Usuário
+## 2. Usuários
 
 Um usuário pode possuir ou participar de um ou mais ambientes financeiros.
 
 Um usuário pode possuir diferentes níveis de acesso dentro de um ambiente
 financeiro.
 
-As permissões de acesso podem determinar se o usuário pode apenas
-visualizar informações ou também alterá-las.
-
 ---
 
-## 3. Ambiente Financeiro
+## 3. Ambientes Financeiros
 
 O ambiente financeiro é o contexto no qual as informações financeiras são
 organizadas, controladas e compartilhadas.
@@ -37,16 +32,11 @@ e quais permissões cada usuário possui.
 
 ### 3.1 Permissões
 
-Um usuário pode possuir permissão de:
+Um usuário pode possuir as seguintes permissões:
 
-- `Leitura` — visualizar informações;
-- `Controle Total` — alterar informações.
-
-Usuários com permissão `Controle total` podem criar e alterar informações
-permitidas dentro do ambiente.
-
-Por exemplo, usuários com permissão `Controle total` podem criar categorias e
-subcategorias.
+- `Leitura` — permite visualizar informações;
+- `Controle Total` — permite visualizar, criar e alterar informações
+  permitidas dentro do ambiente.
 
 ---
 
