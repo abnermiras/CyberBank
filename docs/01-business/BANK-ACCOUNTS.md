@@ -1,4 +1,5 @@
-## 4. Contas Bancárias
+# 1. Contas Bancárias
+## BANK-ACCOUNTS.md
 
 Um usuário pode cadastrar uma ou mais contas bancárias.
 
@@ -8,14 +9,14 @@ Uma conta bancária pode ser compartilhada com outro ambiente financeiro.
 
 ---
 
-## 7. Formas de Pagamento e Recebimento
+## 2. Formas de Pagamento e Recebimento
 
 O usuário pode cadastrar formas de pagamento e recebimento.
 
 As formas de pagamento e recebimento podem ser associadas às contas
 bancárias.
 
-### 4.1 Compartilhamento de Conta entre Ambientes
+### 2.1 Compartilhamento de Conta entre Ambientes
 
 Quando uma conta bancária é compartilhada com outro ambiente financeiro,
 o ambiente de destino passa a ter acesso às informações financeiras da
@@ -39,7 +40,7 @@ Movimentações realizadas a partir de qualquer ambiente que tenha acesso
 Consequentemente, alterações no saldo e no histórico da conta são
 refletidas em todos os ambientes que possuem acesso àquela conta.
 
-### 4.2 Acesso à Conta
+### 2.2 Acesso à Conta
 
 Todos os usuários que possuem acesso à conta podem realizar operações
 sobre ela de acordo com suas permissões.
