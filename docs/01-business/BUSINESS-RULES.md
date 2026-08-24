@@ -1,5 +1,6 @@
-# Regras de Negócio
-## BUSINESS-RULES.md
+# BUSINESS-RULES.md
+
+## Regras de Negócio
 
 ## 1. Controle Financeiro
 
