@@ -104,3 +104,30 @@ ambiente.
 A permissão `Controle Total` concede controle operacional sobre os
 recursos do ambiente, mas não transfere a propriedade do ambiente nem o
 poder de administrar seus acessos.
+
+## 7. Desativação do Ambiente
+
+Um ambiente financeiro pode ser desativado pelo seu proprietário.
+
+A desativação remove o ambiente da utilização ativa do CyberBank.
+
+Quando um ambiente é desativado:
+
+- todos os usuários perdem o acesso ao ambiente;
+- todos os recursos do ambiente deixam de estar disponíveis para novas
+  operações;
+- contas associadas ao ambiente deixam de estar disponíveis naquele
+  ambiente;
+- categorias e subcategorias deixam de estar disponíveis;
+- lançamentos futuros associados ao ambiente são excluídos;
+- o ambiente deixa de compor os cálculos financeiros ativos.
+
+O histórico das operações realizadas no ambiente permanece armazenado.
+
+A desativação de um ambiente não transfere a propriedade dos recursos
+nem restaura o acesso aos usuários que possuíam acesso anteriormente.
+
+Um ambiente desativado não pode ser reativado.
+
+Para utilizar novamente as informações, o usuário deverá criar um novo
+ambiente e realizar novamente os cadastros e compartilhamentos necessários.
