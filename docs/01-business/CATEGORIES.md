@@ -43,6 +43,30 @@ A desativação impede que a categoria seja utilizada em novos lançamentos.
 As movimentações históricas permanecem associadas à categoria
 desativada e continuam apresentando sua classificação no histórico.
 
+### 1.4 Desativação de Categoria com Subcategorias
+
+Quando uma categoria é desativada, todas as suas subcategorias são
+desativadas automaticamente.
+
+A desativação impede que a categoria e suas subcategorias sejam utilizadas
+em novos lançamentos.
+
+Movimentações históricas permanecem associadas à categoria e às
+subcategorias originalmente utilizadas.
+
+### 1.5 Lançamentos Futuros
+
+Quando uma categoria ou subcategoria utilizada em um lançamento futuro
+for desativada, o lançamento futuro permanece existente.
+
+A classificação do lançamento futuro é substituída pela categoria
+sistêmica `Descategorizada`.
+
+A categoria `Descategorizada` permite identificar que o lançamento futuro
+precisa ser revisado e receber uma nova classificação pelo usuário.
+
+O lançamento futuro não é excluído em razão da desativação da categoria.
+
 
 ---
 
@@ -57,6 +81,28 @@ criadas pelo usuário.
 Categorias sistêmicas não podem ser criadas, alteradas ou excluídas
 pelos usuários.
 
+### 2.1 Categoria Descategorizada
+
+`Descategorizada` é uma categoria sistêmica utilizada pelo CyberBank
+quando um lançamento futuro perde sua categoria original.
+
+A categoria `Descategorizada`:
+
+- pode ser visualizada pelo usuário;
+- não pode ser alterada;
+- não pode ser excluída;
+- não pode ser desativada;
+- não possui subcategorias.
+
+Todos os lançamentos futuros que perderem sua categoria em razão da
+desativação da categoria original serão classificados como
+`Descategorizada`.
+
+O usuário deve editar cada lançamento individualmente para selecionar uma
+nova categoria e, opcionalmente, uma nova subcategoria.
+
+A alteração da classificação não modifica o histórico de outras
+movimentações.
 ---
 
 ## 3. Subcategorias
