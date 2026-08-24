@@ -131,3 +131,23 @@ Um ambiente desativado não pode ser reativado.
 
 Para utilizar novamente as informações, o usuário deverá criar um novo
 ambiente e realizar novamente os cadastros e compartilhamentos necessários.
+
+## 8. Ambiente Inicial
+
+Ao criar uma conta de usuário no CyberBank, o sistema cria
+automaticamente um ambiente financeiro inicial.
+
+O ambiente inicial é criado sem categorias ou subcategorias.
+
+O usuário deve criar suas próprias categorias e subcategorias.
+
+O usuário não pode excluir seu único ambiente financeiro.
+
+A desativação de um ambiente somente é permitida quando o usuário possui
+mais de um ambiente financeiro ativo.
+
+Um novo ambiente financeiro é criado sem categorias ou subcategorias.
+
+Categorias e subcategorias pertencentes a um ambiente desativado são
+desativadas juntamente com o ambiente e permanecem somente para fins de
+histórico.
