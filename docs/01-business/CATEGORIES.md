@@ -156,6 +156,24 @@ desativada.
 A subcategoria desativada pode ser reativada e voltar a ser utilizada em
 novos lançamentos.
 
+### 3.4 Desativação de Subcategoria
+
+Uma subcategoria pode ser desativada independentemente da categoria à
+qual pertence.
+
+A desativação impede que a subcategoria seja utilizada em novos
+lançamentos.
+
+Movimentações históricas permanecem associadas à subcategoria
+originalmente utilizada.
+
+Quando uma subcategoria utilizada em um lançamento futuro é desativada,
+o lançamento permanece associado à sua categoria, porém fica sem
+subcategoria.
+
+O usuário pode posteriormente editar o lançamento e selecionar uma nova
+subcategoria, caso deseje.
+
 ## 4. Escopo das Categorias
 
 Categorias e subcategorias são exclusivas do ambiente financeiro no qual
