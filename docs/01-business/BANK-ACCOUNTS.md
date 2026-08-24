@@ -1,13 +1,81 @@
 # Contas Bancárias
 
-## 1. Cadastro
+## 1. Cadastro da Conta
 
-Um usuário pode cadastrar uma ou mais contas bancárias.
+O usuário pode cadastrar uma conta bancária informando:
 
-Uma conta bancária pertence a um ambiente financeiro.
+- nome da conta;
+- descrição;
+- saldo inicial;
+- moeda;
+- formas de pagamento;
+- formas de recebimento.
 
-Uma conta bancária pode ser compartilhada com outro ambiente financeiro.
+Todos os campos são obrigatórios.
 
+O nome da conta é definido livremente pelo usuário e pode representar a
+instituição ou a forma como o usuário identifica o recurso, por exemplo:
+
+- Nubank;
+- C6;
+- Santander;
+- Carteira;
+- Bolsa;
+- Cofre.
+
+A descrição permite identificar a finalidade da conta, por exemplo:
+
+- Salário;
+- Família;
+- Financiamento.
+
+O CyberBank não exige o cadastro de dados bancários formais, como número
+da agência, número da conta ou dígito.
+
+### 1.1 Formas de Pagamento
+
+O usuário deve selecionar as formas de pagamento aceitas pela conta.
+
+As formas disponíveis são:
+
+- Débito;
+- Débito Automático;
+- PIX;
+- TED;
+- Desconto em Folha de Pagamento;
+- Dinheiro.
+
+### 1.2 Formas de Recebimento
+
+O usuário deve selecionar as formas de recebimento aceitas pela conta.
+
+As formas disponíveis são:
+
+- Crédito em Conta;
+- PIX;
+- Dinheiro.
+
+### 1.3 Conta de Dinheiro
+
+Quando a forma `Dinheiro` for selecionada para uma conta, a conta passa a
+representar dinheiro físico.
+
+Uma conta que representa dinheiro físico não pode utilizar outras formas
+de pagamento ou recebimento.
+
+Nesse caso, a conta aceita exclusivamente:
+
+- Pagamento: `Dinheiro`;
+- Recebimento: `Dinheiro`.
+
+Uma conta de dinheiro pode receber qualquer nome definido pelo usuário,
+como:
+
+- Carteira;
+- Bolsa;
+- Bolso;
+- Cofre;
+- Colchão.
 ---
 
 ## 2. Compartilhamento entre Ambientes
