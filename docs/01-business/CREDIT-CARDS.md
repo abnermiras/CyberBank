@@ -8,7 +8,7 @@ O usuário pode cadastrar cartões de crédito.
 Um cartão de crédito pode estar associado a uma conta bancária, mas essa
 associação não é obrigatória.
 
-O cartão de crédito pertence ao usuário titular do contrato.
+O contrato de cartão de crédito pertence ao usuário titular.
 
 O titular é responsável pelo contrato, limite global e faturas
 relacionadas ao cartão.
