@@ -213,27 +213,101 @@ durante a desativação.
 
 ## 5. Compartilhamento entre Ambientes
 
-Quando uma conta bancária é compartilhada com outro ambiente financeiro,
-o ambiente de destino passa a ter acesso às informações financeiras da
-mesma conta.
+Uma conta bancária pode ser compartilhada entre ambientes financeiros.
 
-O compartilhamento inclui:
+O compartilhamento pode ocorrer:
 
-- saldo;
-- extrato;
-- movimentações;
-- formas de pagamento e recebimento associadas à conta.
+- entre ambientes pertencentes ao mesmo usuário;
+- entre ambientes pertencentes a usuários diferentes.
 
-A conta continua sendo uma única conta bancária.
+### 5.1 Compartilhamento entre Ambientes do Mesmo Usuário
 
-O compartilhamento não cria uma nova conta nem duplica seus dados
-financeiros.
+O usuário pode compartilhar uma conta bancária de um de seus ambientes
+com outro ambiente de sua propriedade.
 
-Movimentações realizadas a partir de qualquer ambiente que tenha acesso
-à conta são contabilizadas na mesma conta bancária.
+A conta permanece única e passa a estar disponível nos dois ambientes.
 
-Alterações no saldo e no histórico da conta são refletidas em todos os
-ambientes que possuem acesso àquela conta.
+### 5.2 Compartilhamento com Outro Usuário
+
+Um usuário pode compartilhar uma conta bancária com outro usuário.
+
+O usuário que recebe o compartilhamento recebe um convite.
+
+O destinatário deve escolher em qual de seus ambientes financeiros a conta
+compartilhada será disponibilizada.
+
+A conta somente passa a estar disponível no ambiente escolhido após a
+aceitação do convite.
+
+### 5.3 Permissões do Compartilhamento
+
+O proprietário da conta define a permissão concedida ao usuário ou
+ambiente que receberá o compartilhamento.
+
+As permissões disponíveis são:
+
+- `Leitura` — permite visualizar o extrato da conta;
+- `Controle Total` — permite visualizar o extrato e realizar novos
+  lançamentos na conta.
+
+A permissão `Leitura` não permite criar, alterar ou excluir lançamentos.
+
+A permissão `Controle Total` permite realizar lançamentos de gastos e
+recebimentos na conta, utilizando as categorias e subcategorias
+existentes no ambiente do usuário que realizou o lançamento.
+
+### 5.4 Informações de Movimentações Compartilhadas
+
+O extrato da conta compartilhada é único e pode ser visualizado pelos
+usuários que possuem acesso à conta.
+
+As categorias e subcategorias pertencentes ao ambiente de origem de uma
+movimentação não são compartilhadas automaticamente.
+
+Quando um usuário visualizar uma movimentação realizada por outro
+usuário, as informações de categoria e subcategoria podem ser omitidas.
+
+O usuário ainda poderá visualizar informações gerais da movimentação,
+como:
+
+- valor;
+- data;
+- forma de pagamento ou recebimento;
+- usuário responsável pelo lançamento.
+
+### 5.5 Lançamentos em Conta Compartilhada
+
+Um usuário com permissão `Controle Total` pode realizar lançamentos na
+conta compartilhada.
+
+O lançamento é associado ao ambiente no qual foi realizado.
+
+O lançamento permanece visível no extrato da conta para todos os usuários
+que possuem acesso à conta.
+
+Cada usuário visualiza as informações de classificação do lançamento de
+acordo com as regras de acesso ao ambiente de origem.
+
+### 5.6 Patrimônio em Contas Compartilhadas
+
+Uma conta compartilhada não compõe o patrimônio do usuário ou ambiente
+que recebeu o compartilhamento.
+
+O saldo da conta compartilhada continua compondo somente o patrimônio do
+proprietário da conta e dos ambientes do proprietário aos quais a conta
+está vinculada.
+
+O acesso compartilhado permite visualizar e, quando autorizado, realizar
+lançamentos na conta, mas não concede propriedade sobre o saldo da conta.
+
+### 5.7 Revogação do Compartilhamento
+
+O proprietário da conta pode revogar o compartilhamento.
+
+A revogação remove o acesso do usuário ou ambiente ao recurso.
+
+A revogação não remove o histórico de movimentações realizadas enquanto
+o compartilhamento estava ativo.
 
 ---
 
