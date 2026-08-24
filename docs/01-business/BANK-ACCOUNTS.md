@@ -76,9 +76,31 @@ como:
 - Bolso;
 - Cofre;
 - Colchão.
+
+## 2. Saldo Inicial
+
+Ao cadastrar uma conta, o usuário deve informar o saldo inicial.
+
+O saldo inicial gera automaticamente uma movimentação sistêmica de
+`Ajuste de Saldo`.
+
+A movimentação possui o valor informado no cadastro da conta.
+
+O `Ajuste de Saldo`:
+
+- aparece no extrato da conta;
+- utiliza a categoria sistêmica `Ajuste de Saldo`;
+- compõe o patrimônio do ambiente;
+- representa o saldo existente na conta no momento de seu cadastro.
+
+O saldo inicial pode ser alterado posteriormente pelo usuário.
+
+A alteração do saldo inicial deve atualizar a movimentação de `Ajuste de
+Saldo` correspondente e recalcular os saldos e o patrimônio afetados.
+
 ---
 
-## 2. Compartilhamento entre Ambientes
+## 3. Compartilhamento entre Ambientes
 
 Quando uma conta bancária é compartilhada com outro ambiente financeiro,
 o ambiente de destino passa a ter acesso às informações financeiras da
@@ -104,7 +126,7 @@ ambientes que possuem acesso àquela conta.
 
 ---
 
-## 3. Acesso
+## 4. Acesso
 
 Todos os usuários que possuem acesso à conta podem realizar operações
 sobre ela de acordo com suas permissões.
