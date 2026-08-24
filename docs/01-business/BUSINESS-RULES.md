@@ -80,3 +80,27 @@ A desativação não remove:
 
 As informações históricas continuam disponíveis conforme as regras de
 acesso e compartilhamento aplicáveis.
+
+## 6. Administração do Ambiente Compartilhado
+
+O proprietário do ambiente mantém a propriedade e o controle sobre o
+compartilhamento do ambiente.
+
+Somente o proprietário pode:
+
+- enviar convites para novos usuários;
+- revogar o acesso de outros usuários;
+- administrar os usuários que possuem acesso ao ambiente.
+
+Um usuário que recebeu acesso ao ambiente, mesmo possuindo permissão
+`Controle Total`, não pode compartilhar o ambiente com outros usuários.
+
+Um usuário que recebeu acesso ao ambiente não pode revogar o acesso de
+outros usuários.
+
+O usuário que recebeu acesso pode revogar somente o próprio acesso ao
+ambiente.
+
+A permissão `Controle Total` concede controle operacional sobre os
+recursos do ambiente, mas não transfere a propriedade do ambiente nem o
+poder de administrar seus acessos.
