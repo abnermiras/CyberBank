@@ -1,4 +1,7 @@
-## 8. Cartões de Crédito
+
+# CREDIT-CARDS.md
+
+## 1. Cartões de Crédito
 
 O usuário pode cadastrar cartões de crédito.
 
@@ -10,7 +13,7 @@ O cartão de crédito pertence ao usuário titular do contrato.
 O titular é responsável pelo contrato, limite global e faturas
 relacionadas ao cartão.
 
-### 8.1 Limite de Crédito
+### 1.1 Limite de Crédito
 
 Um contrato de cartão de crédito possui um limite global.
 
@@ -21,7 +24,7 @@ limite disponível globalmente.
 
 ---
 
-## 9. Cartões Virtuais
+## 2. Cartões Virtuais
 
 O titular de um cartão de crédito pode criar cartões virtuais vinculados
 ao mesmo contrato.
@@ -35,7 +38,7 @@ Os cartões virtuais podem gerar faturas separadas.
 
 ---
 
-## 10. Cartões Adicionais
+## 3. Cartões Adicionais
 
 O titular de um cartão de crédito pode solicitar cartões adicionais para
 outros usuários.
@@ -57,7 +60,7 @@ As compras realizadas pelo cartão adicional:
 
 ---
 
-## 11. Compartilhamento de Cartão de Crédito
+## 4. Compartilhamento de Cartão de Crédito
 
 O titular de um cartão pode compartilhar o uso do cartão com outro
 usuário.
