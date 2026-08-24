@@ -68,7 +68,63 @@ cartões de crédito.
 As regras específicas de estorno serão definidas no documento
 `CREDIT-CARDS.md`.
 
+## 1.4 Lançamentos Futuros
+
+O CyberBank permite o registro de movimentações com data futura.
+
+Uma movimentação futura pode ser registrada antes da data em que o
+evento financeiro ocorrerá.
+
+A movimentação futura deve ser identificada como um lançamento ainda não
+realizado.
+
+Quando a data da movimentação for atingida, o lançamento passa a ser
+considerado realizado conforme as regras definidas pelo sistema.
+
 ---
+
+## 1.5 Lançamentos Recorrentes
+
+O CyberBank permite a criação de lançamentos que se repetem ao longo do
+tempo.
+
+Um lançamento recorrente pode possuir:
+
+- quantidade determinada de ocorrências;
+- data de início e data de término;
+- duração indefinida.
+
+A recorrência deve definir a periodicidade de repetição do lançamento.
+
+Cada ocorrência representa um lançamento financeiro individual.
+
+As ocorrências pertencentes a uma mesma recorrência devem permanecer
+relacionadas entre si.
+
+### 1.5.1 Alteração de Lançamentos Recorrentes
+
+Uma ocorrência de um lançamento recorrente pode ser alterada
+individualmente sem alterar as demais ocorrências da série.
+
+Também é possível alterar a série de lançamentos recorrentes.
+
+Quando uma alteração na série afetar uma ocorrência que já tenha sido
+realizada ou paga, o sistema deve alertar o usuário antes de confirmar a
+alteração.
+
+O usuário deve ser informado de que a alteração afetará uma ocorrência
+financeira que já foi realizada.
+
+### 1.5.2 Exclusão de Lançamentos Recorrentes
+
+Uma ocorrência de um lançamento recorrente pode ser excluída
+individualmente.
+
+A série de lançamentos recorrentes pode ser encerrada ou excluída,
+conforme a operação realizada pelo usuário.
+
+A exclusão ou alteração de ocorrências já realizadas deve seguir as
+mesmas regras de permissão aplicáveis às demais movimentações.
 
 ## 2. Movimentações Sistêmicas
 
