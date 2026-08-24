@@ -258,6 +258,25 @@ O patrimônio do ambiente `PJ` é de R$ 200.
 A conta Banco2 continua sendo uma única conta, com saldo de R$ 200,
 mesmo estando disponível nos dois ambientes.
 
+### 1.8.5 Patrimônio por Moeda
+
+O patrimônio de um ambiente financeiro é apresentado separadamente por
+moeda.
+
+O CyberBank não realiza conversão automática entre moedas para composição
+do patrimônio.
+
+Cada moeda possui seu próprio valor patrimonial.
+
+Por exemplo:
+
+- BRL: R$ 500,00;
+- USD: US$ 100,00;
+- EUR: € 50,00.
+
+Os valores permanecem separados e não são convertidos para uma moeda
+única.
+
 ## 1.9 Ambiente de Origem da Movimentação
 
 Toda movimentação financeira possui um ambiente financeiro de origem.
