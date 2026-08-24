@@ -55,3 +55,28 @@ do recurso permitir.
 
 As permissões determinam quais operações cada usuário pode realizar sobre
 os recursos compartilhados.
+
+---
+
+## 5. Exclusão de Dados
+
+O CyberBank não realiza exclusão física de dados financeiros ou de
+recursos que possuam histórico de utilização.
+
+A exclusão de um recurso é realizada de forma lógica.
+
+Um recurso excluído passa para o estado `Desativado` e não pode mais ser
+utilizado para novas operações.
+
+Os dados históricos relacionados ao recurso permanecem armazenados.
+
+A desativação não remove:
+
+- movimentações;
+- extratos;
+- históricos;
+- relacionamentos;
+- registros financeiros realizados anteriormente.
+
+As informações históricas continuam disponíveis conforme as regras de
+acesso e compartilhamento aplicáveis.
