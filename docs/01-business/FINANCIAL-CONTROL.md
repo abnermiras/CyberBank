@@ -9,9 +9,13 @@ Toda movimentação deve identificar:
 
 - tipo da movimentação: entrada ou saída;
 - valor;
-- data;
-- origem ou destino do dinheiro;
+- descrição;
+- data de lançamento;
+- data de efetivação;
+- conta bancária;
+- forma de pagamento ou recebimento;
 - categoria;
+- subcategoria, quando aplicável;
 - responsável pelo lançamento.
 
 ### 1.1 Entrada
@@ -20,10 +24,14 @@ Uma entrada representa dinheiro recebido pelo usuário.
 
 A entrada deve identificar:
 
-- por onde o dinheiro foi recebido;
-- quando ocorreu;
+- conta na qual o dinheiro será recebido;
+- forma de recebimento habilitada na conta;
 - valor recebido;
+- descrição;
+- data de lançamento;
+- data de efetivação;
 - categoria;
+- subcategoria, opcional;
 - responsável pelo lançamento.
 
 ### 1.2 Saída
@@ -32,13 +40,73 @@ Uma saída representa dinheiro utilizado ou pago pelo usuário.
 
 A saída deve identificar:
 
-- por onde o dinheiro foi utilizado;
-- quando ocorreu;
+- conta na qual o dinheiro será utilizado;
+- forma de pagamento habilitada na conta;
 - valor;
+- descrição;
+- data de lançamento;
+- data de efetivação;
 - categoria;
+- subcategoria, opcional;
 - responsável pelo lançamento.
 
-## 1.3 Ciclo de Vida da Movimentação
+### 1.3 Regras do Valor
+
+O usuário informa o valor da movimentação sempre como um valor positivo.
+
+O tipo da movimentação determina se o valor representa entrada ou saída.
+
+O sistema aplica internamente o efeito de crédito ou débito conforme o
+tipo da movimentação.
+
+O valor pode ser informado com ou sem separador de milhar, utilizando
+vírgula como separador decimal.
+
+Exemplos válidos:
+
+- `1.521,10`;
+- `1521,10`.
+
+### 1.4 Categoria e Subcategoria
+
+A categoria é obrigatória em movimentações normais.
+
+A categoria deve ser compatível com o tipo da movimentação:
+
+- categoria `Entrada` para movimentação de entrada;
+- categoria `Saída` para movimentação de saída.
+
+A subcategoria é opcional, mesmo quando a categoria possui subcategorias
+cadastradas.
+
+### 1.5 Forma de Pagamento e Recebimento
+
+A conta bancária deve ser selecionada para determinar onde a movimentação
+será efetivada.
+
+Para uma saída, o usuário deve selecionar uma forma de pagamento
+previamente habilitada na conta selecionada.
+
+Para uma entrada, o usuário deve selecionar uma forma de recebimento
+previamente habilitada na conta selecionada.
+
+O sistema não permite utilizar uma forma que não esteja habilitada na
+conta.
+
+Operações sistêmicas possuem regras próprias e não exigem seleção manual
+da forma de pagamento ou recebimento. Essas operações incluem:
+
+- Transferência;
+- Saque;
+- Compra de Moeda.
+
+Nessas operações, o sistema determina automaticamente a forma utilizada.
+
+Para operações sistêmicas que movimentam recursos entre contas ou moedas,
+a movimentação de saída utiliza `Débito` e a movimentação de entrada
+utiliza `Crédito`.
+
+### 1.6 Ciclo de Vida da Movimentação
 
 Uma movimentação financeira pode ser:
 
@@ -49,10 +117,11 @@ Uma movimentação financeira pode ser:
 A exclusão de uma movimentação é considerada o cancelamento da
 movimentação.
 
-Uma movimentação excluída deixa de compor os saldos, extratos e demais
-cálculos financeiros do ambiente.
+A exclusão é lógica. O registro histórico da operação permanece
+armazenado, mas a movimentação deixa de produzir efeitos financeiros e de
+compor os cálculos ativos.
 
-### 1.3.1 Permissões
+### 1.6.1 Permissões
 
 A criação, edição e exclusão de uma movimentação podem ser realizadas por
 qualquer usuário que possua permissão `Controle Total` no ambiente.
@@ -60,7 +129,7 @@ qualquer usuário que possua permissão `Controle Total` no ambiente.
 Usuários com permissão `Leitura` não podem criar, editar ou excluir
 movimentações.
 
-### 1.3.2 Estorno
+### 1.6.2 Estorno
 
 O estorno é uma operação exclusiva das movimentações relacionadas a
 cartões de crédito.
@@ -68,20 +137,17 @@ cartões de crédito.
 As regras específicas de estorno serão definidas no documento
 `CREDIT-CARDS.md`.
 
-## 1.4 Lançamentos Futuros
+## 1.7 Lançamentos Futuros
 
 O CyberBank permite o registro de movimentações com data futura.
 
 Uma movimentação futura pode ser registrada antes da data em que o
 evento financeiro ocorrerá.
 
-A movimentação futura deve ser identificada como um lançamento ainda não
-realizado.
+A movimentação futura permanece registrada e pode ser utilizada em
+projeções financeiras, planejamentos e dashboards.
 
-Quando a data da movimentação for atingida, o lançamento passa a ser
-considerado realizado conforme as regras definidas pelo sistema.
-
-## 1.5 Lançamentos Recorrentes
+## 1.8 Lançamentos Recorrentes
 
 O CyberBank permite a criação de lançamentos que se repetem ao longo do
 tempo.
@@ -99,7 +165,7 @@ Cada ocorrência representa um lançamento financeiro individual.
 As ocorrências pertencentes a uma mesma recorrência devem permanecer
 relacionadas entre si.
 
-### 1.5.1 Alteração de Lançamentos Recorrentes
+### 1.8.1 Alteração de Lançamentos Recorrentes
 
 Uma ocorrência de um lançamento recorrente pode ser alterada
 individualmente sem alterar as demais ocorrências da série.
@@ -113,7 +179,7 @@ alteração.
 O usuário deve ser informado de que a alteração afetará uma ocorrência
 financeira que já foi realizada.
 
-### 1.5.2 Exclusão de Lançamentos Recorrentes
+### 1.8.2 Exclusão de Lançamentos Recorrentes
 
 Uma ocorrência de um lançamento recorrente pode ser excluída
 individualmente.
@@ -124,20 +190,38 @@ conforme a operação realizada pelo usuário.
 A exclusão ou alteração de ocorrências já realizadas deve seguir as
 mesmas regras de permissão aplicáveis às demais movimentações.
 
-## 1.6 Datas da Movimentação
+## 1.9 Datas da Movimentação
 
 Uma movimentação financeira possui duas datas distintas:
 
 - **Data de lançamento:** data em que a movimentação foi registrada no CyberBank;
-- **Data de efetivação:** data em que a movimentação produz efeito financeiro.
+- **Data de efetivação:** data em que o movimento financeiro realmente ocorreu.
 
-A data de lançamento representa o momento do registro e não determina
-alteração de saldo.
+A data de lançamento é preenchida automaticamente com a data atual, mas
+o usuário pode alterá-la para informar a data em que o lançamento foi
+registrado.
 
-A data de efetivação determina quando a movimentação passa a produzir
-efeito financeiro.
+A data de efetivação representa o momento em que o dinheiro realmente
+entra ou sai do recurso financeiro.
 
-### 1.6.1 Situação da Movimentação
+### 1.9.1 Data de Efetivação por Forma de Pagamento
+
+Para formas de pagamento com efeito financeiro direto, como `PIX`, `TED`,
+`Débito`, `Saque` e `Desconto em Folha de Pagamento`, a data de efetivação
+é inicialmente preenchida com a data atual.
+
+O usuário pode alterar a data de efetivação para representar a data real
+em que o movimento financeiro ocorrerá.
+
+Exemplo: uma movimentação registrada no sábado pode possuir a segunda-feira
+como data de efetivação quando o débito ocorrer somente nesse dia.
+
+Para movimentações realizadas por cartão de crédito, a data de efetivação
+é inicialmente definida como a data de vencimento da fatura correspondente.
+
+O usuário pode alterar a data de efetivação quando necessário.
+
+### 1.9.2 Situação da Movimentação
 
 A situação da movimentação é determinada automaticamente pela comparação
 entre a data atual do sistema e a data de efetivação.
@@ -149,16 +233,20 @@ Uma movimentação pode possuir as seguintes situações:
 
 O usuário não define manualmente a situação da movimentação.
 
-### 1.6.2 Movimentação Prevista
+### 1.9.3 Movimentação Prevista
 
 Uma movimentação `Prevista`:
 
-- não altera o saldo atual da conta;
+- não altera o saldo atual da conta bancária;
 - não altera o patrimônio atual;
 - pode ser considerada em projeções financeiras;
 - pode ser utilizada em planejamentos e dashboards.
 
-### 1.6.3 Efetivação
+Uma movimentação de cartão de crédito constitui uma exceção quanto ao
+limite do cartão: mesmo enquanto `Prevista`, o lançamento consome o limite
+do cartão a partir da data de lançamento.
+
+### 1.9.4 Efetivação
 
 Quando a data de efetivação é atingida, a movimentação passa
 automaticamente de `Previsto` para `Efetivado`.
@@ -169,9 +257,11 @@ Nesse momento:
 - o saldo da conta relacionada é atualizado;
 - os cálculos patrimoniais passam a considerar a movimentação.
 
----
+No cartão de crédito, a efetivação corresponde ao pagamento da fatura.
+O pagamento reduz o saldo da conta bancária utilizada e libera o limite
+que estava comprometido pelo lançamento.
 
-## 1.7 Projeção Financeira
+## 1.10 Projeção Financeira
 
 O CyberBank deve permitir a análise da situação financeira considerando
 movimentações previstas e efetivadas.
@@ -189,11 +279,11 @@ As projeções podem ser utilizadas por:
 
 Uma projeção não altera os saldos financeiros efetivos.
 
-## 1.8 Saldos e Patrimônio
+## 1.11 Saldos e Patrimônio
 
 O CyberBank trabalha com diferentes visões de valor financeiro.
 
-### 1.8.1 Saldo da Conta
+### 1.11.1 Saldo da Conta
 
 O saldo da conta representa o valor financeiro efetivamente disponível
 em uma conta.
@@ -202,7 +292,7 @@ O saldo considera somente movimentações `Efetivadas`.
 
 Movimentações `Previstas` não alteram o saldo atual da conta.
 
-### 1.8.2 Patrimônio
+### 1.11.2 Patrimônio
 
 O patrimônio representa o conjunto de recursos financeiros e ativos
 pertencentes ao usuário.
@@ -218,7 +308,7 @@ O patrimônio pode incluir:
 Transferências entre recursos pertencentes ao mesmo patrimônio não
 alteram o valor patrimonial total.
 
-### 1.8.3 Saldo Projetado
+### 1.11.3 Saldo Projetado
 
 O saldo projetado representa uma estimativa futura dos recursos
 financeiros disponíveis.
@@ -228,7 +318,7 @@ saldos atuais.
 
 O saldo projetado não altera os saldos efetivos nem o patrimônio atual.
 
-### 1.8.4 Patrimônio por Ambiente
+### 1.11.4 Patrimônio por Ambiente
 
 O patrimônio é calculado individualmente para cada ambiente financeiro.
 
@@ -258,7 +348,7 @@ O patrimônio do ambiente `PJ` é de R$ 200.
 A conta Banco2 continua sendo uma única conta, com saldo de R$ 200,
 mesmo estando disponível nos dois ambientes.
 
-### 1.8.5 Patrimônio por Moeda
+### 1.11.5 Patrimônio por Moeda
 
 O patrimônio de um ambiente financeiro é apresentado separadamente por
 moeda.
@@ -277,7 +367,7 @@ Por exemplo:
 Os valores permanecem separados e não são convertidos para uma moeda
 única.
 
-## 1.9 Ambiente de Origem da Movimentação
+## 1.12 Ambiente de Origem da Movimentação
 
 Toda movimentação financeira possui um ambiente financeiro de origem.
 
@@ -289,14 +379,14 @@ associada ao ambiente no qual foi criada.
 
 ---
 
-## 1.10 Extrato e Mapa de Lançamentos
+## 1.13 Extrato e Mapa de Lançamentos
 
 O CyberBank possui duas visões distintas das movimentações:
 
 - Extrato;
 - Mapa de Lançamentos.
 
-### 1.10.1 Extrato
+### 1.13.1 Extrato
 
 O extrato pertence ao recurso financeiro, como uma conta bancária.
 
@@ -314,7 +404,7 @@ Nesse caso, a categoria e demais informações específicas do lançamento
 podem ser apresentadas em branco ou conforme as regras de
 compartilhamento.
 
-### 1.10.2 Mapa de Lançamentos
+### 1.13.2 Mapa de Lançamentos
 
 O mapa de lançamentos pertence ao ambiente financeiro.
 
@@ -323,7 +413,7 @@ Ele apresenta somente as movimentações cuja origem é o próprio ambiente.
 Uma movimentação realizada em outro ambiente, mesmo utilizando uma conta
 compartilhada, não aparece no mapa de lançamentos do ambiente atual.
 
-### 1.10.3 Exemplo
+### 1.13.3 Exemplo
 
 O Banco1 está compartilhado entre os ambientes `CLT` e `PJ`.
 
@@ -355,7 +445,7 @@ ser apresentadas.
 No extrato do ambiente `PJ`, ocorre o mesmo comportamento para a
 movimentação de R$ 10,00.
 
-## 1.11 Transferências entre Contas com Compartilhamento
+## 1.14 Transferências entre Contas com Compartilhamento
 
 Uma transferência entre contas somente pode ser registrada quando as
 contas de origem e destino estiverem acessíveis dentro do mesmo ambiente
@@ -370,7 +460,10 @@ registrada como uma única transferência composta por duas movimentações:
 As duas movimentações utilizam a categoria sistêmica `Transferência` e
 permanecem relacionadas.
 
-### 1.11.1 Contas sem Acesso Comum
+A movimentação de saída utiliza `Débito` e a movimentação de entrada
+utiliza `Crédito`.
+
+### 1.14.1 Contas sem Acesso Comum
 
 Quando duas contas não são acessíveis dentro do mesmo ambiente, não é
 possível realizar uma transferência entre elas.
@@ -383,7 +476,7 @@ independentes:
 
 Essas movimentações não são consideradas uma transferência sistêmica.
 
-### 1.11.2 Visibilidade da Transferência
+### 1.14.2 Visibilidade da Transferência
 
 Uma transferência pode envolver contas compartilhadas entre diferentes
 ambientes.
@@ -400,7 +493,7 @@ movimentação correspondente ao recurso ao qual possui acesso.
 Nesse caso, não é possível identificar pelo ambiente o recurso de destino
 ou origem que não está acessível.
 
-### 1.11.3 Exemplo
+### 1.14.3 Exemplo
 
 O usuário possui:
 
@@ -438,7 +531,7 @@ não está disponível nesse ambiente.
 
 O ambiente `PJ` não consegue identificar o destino da transferência.
 
-## 1.12 Alteração e Exclusão de Transferências
+## 1.15 Alteração e Exclusão de Transferências
 
 Uma transferência pode ser editada por um usuário com permissão
 `Controle Total`.
@@ -448,13 +541,13 @@ movimentações relacionadas à operação.
 
 Os saldos das contas envolvidas devem ser recalculados após a alteração.
 
-### 1.12.1 Exclusão de Transferência
+### 1.15.1 Exclusão de Transferência
 
 Uma transferência pode ser excluída por um usuário com permissão
 `Controle Total`.
 
-A exclusão da transferência deve excluir todas as movimentações
-relacionadas à operação.
+A exclusão da transferência deve excluir logicamente todas as
+movimentações relacionadas à operação.
 
 Os saldos das contas envolvidas devem ser atualizados após a exclusão.
 
@@ -463,7 +556,7 @@ exclusão.
 
 ---
 
-## 1.13 Histórico Financeiro
+## 1.16 Histórico Financeiro
 
 O histórico financeiro representa os acontecimentos que já ocorreram
 dentro do CyberBank.
@@ -507,6 +600,8 @@ Uma transferência gera duas movimentações financeiras relacionadas:
 As duas movimentações representam uma única transferência e utilizam a
 categoria sistêmica `Transferência`.
 
+A saída utiliza `Débito` e a entrada utiliza `Crédito`.
+
 #### 2.1.1 Atualização de Saldos
 
 A transferência deve atualizar:
@@ -529,6 +624,8 @@ Um saque gera duas movimentações financeiras relacionadas:
 - uma entrada na conta de destino.
 
 A conta de destino deve ser uma conta bancária do tipo `Carteira`.
+
+A saída utiliza `Débito` e a entrada utiliza `Crédito`.
 
 #### 2.2.1 Conta Carteira
 
@@ -581,7 +678,25 @@ O saque deve atualizar:
 O saque não altera o patrimônio global do usuário, pois apenas transforma
 a forma como o dinheiro está armazenado.
 
----
+### 2.3 Compra de Moeda
+
+A compra de moeda representa a conversão de um valor de uma moeda de
+origem para outra moeda dentro da mesma conta.
+
+A operação gera duas movimentações relacionadas:
+
+- uma saída na moeda de origem;
+- uma entrada na moeda de destino.
+
+A saída utiliza `Débito` e a entrada utiliza `Crédito`.
+
+A operação utiliza a categoria sistêmica `Compra de Moeda`.
+
+A compra de moeda deve registrar o valor utilizado na moeda de origem e o
+valor recebido na moeda de destino.
+
+A compra de moeda não exige que o sistema determine ou registre uma
+cotação para composição do patrimônio.
 
 ## 3. Extratos
 
@@ -597,6 +712,11 @@ Um saque deve aparecer:
 
 - como saída no extrato da conta de origem;
 - como entrada no extrato da conta `Carteira`.
+
+Uma compra de moeda deve aparecer no extrato separado de cada moeda:
+
+- como saída na moeda de origem;
+- como entrada na moeda de destino.
 
 ---
 
