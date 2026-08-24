@@ -161,7 +161,57 @@ As duas movimentações representam uma única operação de compra de moeda.
 
 ---
 
-## 4. Compartilhamento entre Ambientes
+## 4. Desativação da Conta
+
+Uma conta bancária pode ser desativada.
+
+A desativação impede novos lançamentos e operações financeiras na conta.
+
+A desativação não remove o histórico financeiro da conta.
+
+O histórico de movimentações, extratos e demais registros realizados
+antes da desativação permanecem disponíveis.
+
+### 4.1 Lançamentos Futuros
+
+Ao desativar uma conta, todos os lançamentos futuros associados à conta
+são excluídos.
+
+Esses lançamentos não fazem mais parte dos cálculos ou projeções do
+ambiente.
+
+Caso a conta seja reativada, os lançamentos futuros anteriormente
+excluídos não são restaurados e devem ser cadastrados novamente.
+
+### 4.2 Patrimônio
+
+Uma conta desativada deixa de compor o patrimônio do ambiente.
+
+O saldo que a conta possuía no momento da desativação deixa de ser
+considerado no patrimônio atual.
+
+O histórico financeiro da conta permanece disponível mesmo após sua
+desativação.
+
+### 4.3 Reativação
+
+Uma conta desativada pode ser reativada.
+
+Ao reativar uma conta, o usuário deve informar novamente o saldo atual.
+
+O saldo informado na reativação representa a situação financeira atual
+da conta.
+
+O CyberBank não assume que o saldo anterior à desativação permanece
+válido, pois podem ter ocorrido movimentações fora do sistema durante o
+período em que a conta esteve desativada.
+
+A reativação não restaura os lançamentos futuros que foram excluídos
+durante a desativação.
+
+---
+
+## 5. Compartilhamento entre Ambientes
 
 Quando uma conta bancária é compartilhada com outro ambiente financeiro,
 o ambiente de destino passa a ter acesso às informações financeiras da
@@ -187,7 +237,7 @@ ambientes que possuem acesso àquela conta.
 
 ---
 
-## 5. Acesso
+## 6. Acesso
 
 Todos os usuários que possuem acesso à conta podem realizar operações
 sobre ela de acordo com suas permissões.
