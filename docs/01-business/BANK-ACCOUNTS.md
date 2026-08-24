@@ -313,8 +313,63 @@ o compartilhamento estava ativo.
 
 ## 6. Acesso
 
-Todos os usuários que possuem acesso à conta podem realizar operações
-sobre ela de acordo com suas permissões.
+O proprietário da conta pode definir a permissão concedida ao usuário ou
+ambiente que recebeu o compartilhamento.
 
-Um usuário pode possuir acesso somente para visualização ou acesso para
-alteração, conforme a permissão concedida.
+As permissões disponíveis são:
+
+- `Leitura`;
+- `Controle Total`.
+
+### 6.1 Leitura
+
+A permissão `Leitura` permite visualizar o extrato da conta.
+
+O usuário com `Leitura` não pode:
+
+- criar movimentações;
+- editar movimentações;
+- excluir movimentações;
+- alterar configurações da conta.
+
+As categorias e subcategorias utilizadas nas movimentações pertencentes
+a outros ambientes não são disponibilizadas.
+
+O usuário pode visualizar informações básicas da movimentação, incluindo:
+
+- valor;
+- data;
+- forma de pagamento ou recebimento;
+- responsável pelo lançamento.
+
+### 6.2 Controle Total
+
+A permissão `Controle Total` permite realizar todas as operações
+financeiras permitidas sobre a conta.
+
+O usuário pode:
+
+- visualizar o extrato;
+- criar movimentações;
+- editar movimentações;
+- excluir movimentações;
+- realizar operações permitidas pela conta.
+
+O usuário pode utilizar suas próprias categorias e subcategorias nos
+lançamentos realizados por ele.
+
+Um usuário com `Controle Total` pode editar ou excluir movimentações
+realizadas por qualquer outro usuário que tenha acesso à conta.
+
+O proprietário da conta também pode editar ou excluir movimentações
+realizadas por usuários com `Controle Total`.
+
+### 6.3 Privacidade das Classificações
+
+As categorias e subcategorias utilizadas em um lançamento pertencem ao
+contexto do ambiente que realizou o lançamento.
+
+No extrato compartilhado, o lançamento pode ser visualizado por todos os
+usuários com acesso à conta, porém sua categoria e subcategoria somente
+são apresentadas quando o usuário possui acesso ao contexto que realizou
+a classificação.
