@@ -227,6 +227,241 @@ O cálculo pode considerar movimentações `Previstas` juntamente com os
 saldos atuais.
 
 O saldo projetado não altera os saldos efetivos nem o patrimônio atual.
+
+### 1.8.4 Patrimônio por Ambiente
+
+O patrimônio é calculado individualmente para cada ambiente financeiro.
+
+O patrimônio de um ambiente considera os recursos financeiros aos quais
+o ambiente possui acesso.
+
+Uma conta compartilhada entre ambientes continua representando um único
+recurso financeiro, mas pode compor o patrimônio de cada ambiente que
+possui acesso à conta.
+
+A mesma conta compartilhada não deve ser contabilizada mais de uma vez
+dentro do patrimônio de um mesmo ambiente.
+
+#### Exemplo
+
+O usuário possui o ambiente `CLT` com:
+
+- Banco1: R$ 100;
+- Banco2: R$ 200.
+
+O patrimônio do ambiente `CLT` é de R$ 300.
+
+O Banco2 é compartilhado com o ambiente `PJ`.
+
+O patrimônio do ambiente `PJ` é de R$ 200.
+
+A conta Banco2 continua sendo uma única conta, com saldo de R$ 200,
+mesmo estando disponível nos dois ambientes.
+
+## 1.9 Ambiente de Origem da Movimentação
+
+Toda movimentação financeira possui um ambiente financeiro de origem.
+
+O ambiente de origem é o ambiente no qual o usuário realizou o
+lançamento.
+
+Uma movimentação registrada em uma conta compartilhada permanece
+associada ao ambiente no qual foi criada.
+
+---
+
+## 1.10 Extrato e Mapa de Lançamentos
+
+O CyberBank possui duas visões distintas das movimentações:
+
+- Extrato;
+- Mapa de Lançamentos.
+
+### 1.10.1 Extrato
+
+O extrato pertence ao recurso financeiro, como uma conta bancária.
+
+Quando uma conta é compartilhada entre ambientes, todos os ambientes
+que possuem acesso à conta podem visualizar seu extrato.
+
+O extrato apresenta todas as movimentações realizadas na conta,
+independentemente do ambiente em que foram lançadas.
+
+Quando uma movimentação foi realizada em outro ambiente, as informações
+específicas daquele lançamento podem não estar disponíveis no ambiente
+que está consultando o extrato.
+
+Nesse caso, a categoria e demais informações específicas do lançamento
+podem ser apresentadas em branco ou conforme as regras de
+compartilhamento.
+
+### 1.10.2 Mapa de Lançamentos
+
+O mapa de lançamentos pertence ao ambiente financeiro.
+
+Ele apresenta somente as movimentações cuja origem é o próprio ambiente.
+
+Uma movimentação realizada em outro ambiente, mesmo utilizando uma conta
+compartilhada, não aparece no mapa de lançamentos do ambiente atual.
+
+### 1.10.3 Exemplo
+
+O Banco1 está compartilhado entre os ambientes `CLT` e `PJ`.
+
+No ambiente `CLT` é registrada uma movimentação:
+
+- R$ 10,00;
+- Pizza;
+- Categoria: Pessoal / Alimentação.
+
+No ambiente `PJ` é registrada outra movimentação:
+
+- R$ 150,00;
+- DIRPF;
+- Categoria: Empresa / Impostos.
+
+O extrato do Banco1 apresenta as duas movimentações para ambos os
+ambientes.
+
+O mapa de lançamentos do ambiente `CLT` apresenta somente a movimentação
+de R$ 10,00.
+
+O mapa de lançamentos do ambiente `PJ` apresenta somente a movimentação
+de R$ 150,00.
+
+No extrato do ambiente `CLT`, a movimentação de R$ 150,00 continua
+visível, porém suas informações específicas de classificação podem não
+ser apresentadas.
+
+No extrato do ambiente `PJ`, ocorre o mesmo comportamento para a
+movimentação de R$ 10,00.
+
+## 1.11 Transferências entre Contas com Compartilhamento
+
+Uma transferência entre contas somente pode ser registrada quando as
+contas de origem e destino estiverem acessíveis dentro do mesmo ambiente
+financeiro.
+
+Quando as duas contas são acessíveis pelo mesmo ambiente, a operação é
+registrada como uma única transferência composta por duas movimentações:
+
+- uma saída na conta de origem;
+- uma entrada na conta de destino.
+
+As duas movimentações utilizam a categoria sistêmica `Transferência` e
+permanecem relacionadas.
+
+### 1.11.1 Contas sem Acesso Comum
+
+Quando duas contas não são acessíveis dentro do mesmo ambiente, não é
+possível realizar uma transferência entre elas.
+
+Nesse caso, a movimentação deve ser registrada como duas operações
+independentes:
+
+- uma saída na conta de origem, com categoria definida pelo usuário;
+- uma entrada na conta de destino, com categoria definida pelo usuário.
+
+Essas movimentações não são consideradas uma transferência sistêmica.
+
+### 1.11.2 Visibilidade da Transferência
+
+Uma transferência pode envolver contas compartilhadas entre diferentes
+ambientes.
+
+Cada ambiente visualiza a transferência conforme os recursos aos quais
+possui acesso.
+
+Quando um ambiente possui acesso às contas de origem e destino, consegue
+visualizar os dois lados da transferência.
+
+Quando possui acesso somente a uma das contas, visualiza apenas a
+movimentação correspondente ao recurso ao qual possui acesso.
+
+Nesse caso, não é possível identificar pelo ambiente o recurso de destino
+ou origem que não está acessível.
+
+### 1.11.3 Exemplo
+
+O usuário possui:
+
+- ambiente `CLT`;
+- ambiente `PJ`;
+- Banco1 no `CLT`;
+- Banco2 no `CLT`, compartilhado com `PJ`;
+- Banco3 no `PJ`.
+
+O Banco1 e o Banco3 não são acessíveis pelo mesmo ambiente.
+
+Portanto, não é possível realizar uma transferência direta entre Banco1
+e Banco3.
+
+Já o Banco2 pode realizar uma transferência para Banco1 ou Banco3,
+pois o Banco2 é acessível pelo ambiente correspondente à operação.
+
+#### Banco2 → Banco1
+
+A transferência de R$ 100,00 gera:
+
+No ambiente `CLT`:
+
+- Banco2: -R$ 100,00;
+- Banco1: +R$ 100,00.
+
+O mapa de lançamentos do `CLT` apresenta os dois lançamentos.
+
+No ambiente `PJ`:
+
+- Banco2: -R$ 100,00.
+
+O mapa de lançamentos do `PJ` apresenta somente a saída, pois o Banco1
+não está disponível nesse ambiente.
+
+O ambiente `PJ` não consegue identificar o destino da transferência.
+
+## 1.12 Alteração e Exclusão de Transferências
+
+Uma transferência pode ser editada por um usuário com permissão
+`Controle Total`.
+
+A alteração do valor da transferência deve atualizar todas as
+movimentações relacionadas à operação.
+
+Os saldos das contas envolvidas devem ser recalculados após a alteração.
+
+### 1.12.1 Exclusão de Transferência
+
+Uma transferência pode ser excluída por um usuário com permissão
+`Controle Total`.
+
+A exclusão da transferência deve excluir todas as movimentações
+relacionadas à operação.
+
+Os saldos das contas envolvidas devem ser atualizados após a exclusão.
+
+Não deve existir apenas um dos lados de uma transferência após sua
+exclusão.
+
+---
+
+## 1.13 Histórico Financeiro
+
+O histórico financeiro representa os acontecimentos que já ocorreram
+dentro do CyberBank.
+
+A alteração de uma conta bancária não deve apagar as movimentações
+históricas relacionadas àquela conta.
+
+A perda de acesso de um usuário ou ambiente a uma conta compartilhada não
+deve apagar ou alterar as movimentações históricas realizadas enquanto o
+acesso existia.
+
+O histórico deve permanecer associado ao recurso financeiro no qual a
+movimentação ocorreu.
+
+O acesso às informações históricas deve respeitar as permissões e regras
+de compartilhamento vigentes.
+
 ---
 
 ## 2. Movimentações Sistêmicas
