@@ -38,6 +38,36 @@ A saída deve identificar:
 - categoria;
 - responsável pelo lançamento.
 
+## 1.3 Ciclo de Vida da Movimentação
+
+Uma movimentação financeira pode ser:
+
+- criada;
+- editada;
+- excluída.
+
+A exclusão de uma movimentação é considerada o cancelamento da
+movimentação.
+
+Uma movimentação excluída deixa de compor os saldos, extratos e demais
+cálculos financeiros do ambiente.
+
+### 1.3.1 Permissões
+
+A criação, edição e exclusão de uma movimentação podem ser realizadas por
+qualquer usuário que possua permissão `Controle Total` no ambiente.
+
+Usuários com permissão `Leitura` não podem criar, editar ou excluir
+movimentações.
+
+### 1.3.2 Estorno
+
+O estorno é uma operação exclusiva das movimentações relacionadas a
+cartões de crédito.
+
+As regras específicas de estorno serão definidas no documento
+`CREDIT-CARDS.md`.
+
 ---
 
 ## 2. Movimentações Sistêmicas
