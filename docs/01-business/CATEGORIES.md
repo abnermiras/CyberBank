@@ -1,19 +1,48 @@
 # Categorias
 
-## 1. Categorias do Usuário
+### 1.1 Tipo da Categoria
 
-O usuário pode criar categorias para classificar suas movimentações
-financeiras.
+Toda categoria deve possuir um único tipo:
 
-Uma categoria pode representar:
+- `Entrada`;
+- `Saída`.
 
-- entrada;
-- saída.
+Uma categoria de `Entrada` somente pode ser utilizada em movimentações
+de entrada.
 
-Uma categoria deve estar associada a um tipo de movimentação.
+Uma categoria de `Saída` somente pode ser utilizada em movimentações de
+saída.
 
-Em um ambiente compartilhado, usuários com permissão `Controle Total`
-podem criar e alterar categorias.
+O usuário pode criar categorias de entrada e saída com o mesmo nome.
+
+### 1.2 Subcategorias
+
+A criação de subcategorias é opcional.
+
+Uma categoria pode existir sem nenhuma subcategoria.
+
+Quando uma categoria possuir subcategorias, uma movimentação pode utilizar
+uma subcategoria para fornecer maior detalhamento da classificação.
+
+### 1.3 Alteração e Desativação
+
+O tipo de uma categoria não pode ser alterado após sua criação.
+
+Uma categoria `Entrada` não pode ser transformada em `Saída`, e uma
+categoria `Saída` não pode ser transformada em `Entrada`.
+
+Para utilizar o mesmo nome com outro tipo, o usuário deve desativar ou
+excluir logicamente a categoria existente e criar uma nova categoria com
+o tipo desejado.
+
+Uma categoria pode ser desativada mesmo possuindo movimentações
+associadas.
+
+A desativação impede que a categoria seja utilizada em novos lançamentos.
+
+As movimentações históricas permanecem associadas à categoria
+desativada e continuam apresentando sua classificação no histórico.
+
 
 ---
 
@@ -41,3 +70,117 @@ As subcategorias permitem maior detalhamento das receitas e despesas.
 
 Em um ambiente compartilhado, usuários com permissão `Controle Total`
 podem criar e alterar subcategorias.
+
+### 3.1 Hierarquia
+
+Uma subcategoria pertence obrigatoriamente a uma categoria.
+
+A subcategoria não possui tipo próprio.
+
+O tipo da subcategoria é determinado pela categoria à qual pertence.
+
+Uma subcategoria de uma categoria `Entrada` representa uma classificação
+de entrada.
+
+Uma subcategoria de uma categoria `Saída` representa uma classificação
+de saída.
+
+### 3.2 Alteração de Categoria
+
+Uma subcategoria não pode ser movida de uma categoria para outra.
+
+Para utilizar a subcategoria em outra categoria, o usuário deve
+desativar ou excluir logicamente a subcategoria existente e criar uma
+nova subcategoria na categoria desejada.
+
+A alteração da categoria pai não modifica o histórico das movimentações
+já realizadas.
+
+### 3.3 Desativação da Subcategoria
+
+Uma subcategoria pode ser desativada mesmo possuindo movimentações
+associadas.
+
+A desativação impede que a subcategoria seja utilizada em novos
+lançamentos.
+
+As movimentações históricas permanecem associadas à subcategoria
+desativada.
+
+A subcategoria desativada pode ser reativada e voltar a ser utilizada em
+novos lançamentos.
+
+## 4. Escopo das Categorias
+
+Categorias e subcategorias são exclusivas do ambiente financeiro no qual
+foram criadas.
+
+Uma categoria criada em um ambiente não pode ser utilizada em outro
+ambiente.
+
+Categorias e subcategorias também pertencem ao usuário que as criou.
+
+Usuários diferentes dentro do mesmo ambiente possuem suas próprias
+categorias e subcategorias.
+
+### 4.1 Compartilhamento do Ambiente
+
+Quando um ambiente financeiro é compartilhado integralmente com outro
+usuário, o usuário que recebeu acesso passa a visualizar as categorias e
+subcategorias existentes no ambiente compartilhado.
+
+O ambiente compartilhado é tratado como o ambiente do proprietário para
+fins de utilização dos recursos.
+
+O usuário que recebeu acesso pode utilizar as categorias e subcategorias
+do proprietário ao realizar lançamentos, conforme suas permissões.
+
+A movimentação permanece registrada no ambiente compartilhado e identifica
+o usuário responsável pela realização do lançamento.
+
+### 4.2 Exemplo
+
+O usuário A possui o ambiente `CLT` e as categorias:
+
+- Alimentação;
+- Moradia;
+- Transporte.
+
+O usuário B possui o ambiente `CASA`.
+
+O usuário A compartilha o ambiente `CLT` com o usuário B.
+
+O usuário B passa a visualizar:
+
+- `CASA`;
+- `CLT` compartilhado.
+
+Ao acessar o ambiente `CLT`, o usuário B pode utilizar os recursos
+disponíveis no ambiente, incluindo as categorias e subcategorias do
+usuário A, conforme sua permissão.
+
+Se o usuário B realizar um lançamento utilizando:
+
+- Banco do usuário A;
+- Categoria do usuário A;
+- Subcategoria do usuário A;
+
+o lançamento permanece no ambiente `CLT` e registra o usuário B como
+responsável pela operação.
+
+### 4.3 Criação por Usuário com Acesso ao Ambiente
+
+Quando um ambiente é compartilhado com `Controle Total`, o usuário que
+recebeu acesso pode criar categorias e subcategorias dentro do ambiente.
+
+A categoria ou subcategoria criada pertence ao proprietário do ambiente.
+
+O usuário que realizou a criação é registrado como responsável pela
+operação.
+
+O proprietário do ambiente mantém controle sobre as categorias e
+subcategorias criadas dentro de seu ambiente, inclusive podendo alterá-las
+ou desativá-las posteriormente.
+
+O compartilhamento não transfere a propriedade do ambiente ou de seus
+recursos para o usuário que recebeu acesso.
