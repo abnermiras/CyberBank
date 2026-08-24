@@ -1,4 +1,6 @@
-## 5. Categorias
+#CATEGORIES.md
+
+# 1. Categorias
 
 O usuário pode criar categorias para classificar suas movimentações
 financeiras.
@@ -19,7 +21,7 @@ criar uma transação de entrada ou saída sem precisar associar a uma categoria
 
 ---
 
-## 6. Subcategorias
+# 2. Subcategorias
 
 O usuário pode criar subcategorias para detalhar uma categoria em um
 segundo nível.
