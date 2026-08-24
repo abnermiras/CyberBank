@@ -1,5 +1,17 @@
 # Categorias
 
+## 1. Categorias do Usuário
+
+O usuário pode criar categorias para classificar suas movimentações
+financeiras.
+
+Uma categoria pode representar:
+
+- entrada;
+- saída.
+
+Uma categoria deve estar associada a um tipo de movimentação.
+
 ### 1.1 Tipo da Categoria
 
 Toda categoria deve possuir um único tipo:
@@ -54,19 +66,14 @@ em novos lançamentos.
 Movimentações históricas permanecem associadas à categoria e às
 subcategorias originalmente utilizadas.
 
-### 1.5 Lançamentos Futuros
+Lançamentos futuros que já utilizavam a categoria ou suas subcategorias
+permanecem com a classificação registrada.
 
-Quando uma categoria ou subcategoria utilizada em um lançamento futuro
-for desativada, o lançamento futuro permanece existente.
+O usuário pode editar esses lançamentos futuros posteriormente para
+alterar ou remover a classificação.
 
-A classificação do lançamento futuro é substituída pela categoria
-sistêmica `Descategorizada`.
-
-A categoria `Descategorizada` permite identificar que o lançamento futuro
-precisa ser revisado e receber uma nova classificação pelo usuário.
-
-O lançamento futuro não é excluído em razão da desativação da categoria.
-
+A reativação da categoria permite que os lançamentos futuros que já
+possuíam a classificação continuem válidos sem necessidade de recriação.
 
 ---
 
@@ -78,31 +85,11 @@ Categorias sistêmicas são utilizadas para registrar movimentações
 necessárias ao funcionamento do sistema sem depender de categorias
 criadas pelo usuário.
 
-Categorias sistêmicas não podem ser criadas, alteradas ou excluídas
-pelos usuários.
+Categorias sistêmicas não possuem subcategorias.
 
-### 2.1 Categoria Descategorizada
+As categorias sistêmicas podem ser visualizadas pelos usuários, mas não
+podem ser criadas, alteradas, excluídas ou desativadas pelos usuários.
 
-`Descategorizada` é uma categoria sistêmica utilizada pelo CyberBank
-quando um lançamento futuro perde sua categoria original.
-
-A categoria `Descategorizada`:
-
-- pode ser visualizada pelo usuário;
-- não pode ser alterada;
-- não pode ser excluída;
-- não pode ser desativada;
-- não possui subcategorias.
-
-Todos os lançamentos futuros que perderem sua categoria em razão da
-desativação da categoria original serão classificados como
-`Descategorizada`.
-
-O usuário deve editar cada lançamento individualmente para selecionar uma
-nova categoria e, opcionalmente, uma nova subcategoria.
-
-A alteração da classificação não modifica o histórico de outras
-movimentações.
 ---
 
 ## 3. Subcategorias
@@ -156,23 +143,11 @@ desativada.
 A subcategoria desativada pode ser reativada e voltar a ser utilizada em
 novos lançamentos.
 
-### 3.4 Desativação de Subcategoria
+Lançamentos futuros que já utilizavam a subcategoria permanecem com a
+classificação registrada.
 
-Uma subcategoria pode ser desativada independentemente da categoria à
-qual pertence.
-
-A desativação impede que a subcategoria seja utilizada em novos
-lançamentos.
-
-Movimentações históricas permanecem associadas à subcategoria
-originalmente utilizada.
-
-Quando uma subcategoria utilizada em um lançamento futuro é desativada,
-o lançamento permanece associado à sua categoria, porém fica sem
-subcategoria.
-
-O usuário pode posteriormente editar o lançamento e selecionar uma nova
-subcategoria, caso deseje.
+O usuário pode editar esses lançamentos futuros posteriormente para
+alterar ou remover a subcategoria.
 
 ## 4. Escopo das Categorias
 
