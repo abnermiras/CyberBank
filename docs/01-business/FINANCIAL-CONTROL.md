@@ -81,8 +81,6 @@ realizado.
 Quando a data da movimentação for atingida, o lançamento passa a ser
 considerado realizado conforme as regras definidas pelo sistema.
 
----
-
 ## 1.5 Lançamentos Recorrentes
 
 O CyberBank permite a criação de lançamentos que se repetem ao longo do
@@ -125,6 +123,52 @@ conforme a operação realizada pelo usuário.
 
 A exclusão ou alteração de ocorrências já realizadas deve seguir as
 mesmas regras de permissão aplicáveis às demais movimentações.
+
+## 1.6 Datas da Movimentação
+
+Uma movimentação financeira possui duas datas distintas:
+
+- **Data de lançamento:** data em que a movimentação foi registrada no CyberBank;
+- **Data de efetivação:** data em que a movimentação produz efeito financeiro.
+
+A data de lançamento representa o momento do registro e não determina
+alteração de saldo.
+
+A data de efetivação determina quando a movimentação passa a produzir
+efeito financeiro.
+
+### 1.6.1 Situação da Movimentação
+
+A situação da movimentação é determinada automaticamente pela comparação
+entre a data atual do sistema e a data de efetivação.
+
+Uma movimentação pode possuir as seguintes situações:
+
+- `Previsto` — quando a data de efetivação ainda não foi atingida;
+- `Pago` — quando a data de efetivação foi atingida.
+
+O usuário não define manualmente a situação da movimentação.
+
+### 1.6.2 Movimentação Prevista
+
+Uma movimentação `Prevista`:
+
+- não altera o saldo da conta;
+- não altera o patrimônio;
+- permanece registrada para acompanhamento e planejamento financeiro.
+
+### 1.6.3 Efetivação
+
+Quando a data de efetivação é atingida, a movimentação passa
+automaticamente de `Previsto` para `Pago`.
+
+Nesse momento:
+
+- a movimentação passa a produzir efeito financeiro;
+- o saldo da conta relacionada é atualizado;
+- os cálculos patrimoniais passam a considerar a movimentação.
+
+---
 
 ## 2. Movimentações Sistêmicas
 
