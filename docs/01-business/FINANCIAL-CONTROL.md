@@ -145,7 +145,7 @@ entre a data atual do sistema e a data de efetivação.
 Uma movimentação pode possuir as seguintes situações:
 
 - `Previsto` — quando a data de efetivação ainda não foi atingida;
-- `Pago` — quando a data de efetivação foi atingida.
+- `Efetivado` — quando a data de efetivação foi atingida.
 
 O usuário não define manualmente a situação da movimentação.
 
@@ -153,14 +153,15 @@ O usuário não define manualmente a situação da movimentação.
 
 Uma movimentação `Prevista`:
 
-- não altera o saldo da conta;
-- não altera o patrimônio;
-- permanece registrada para acompanhamento e planejamento financeiro.
+- não altera o saldo atual da conta;
+- não altera o patrimônio atual;
+- pode ser considerada em projeções financeiras;
+- pode ser utilizada em planejamentos e dashboards.
 
 ### 1.6.3 Efetivação
 
 Quando a data de efetivação é atingida, a movimentação passa
-automaticamente de `Previsto` para `Pago`.
+automaticamente de `Previsto` para `Efetivado`.
 
 Nesse momento:
 
@@ -168,6 +169,25 @@ Nesse momento:
 - o saldo da conta relacionada é atualizado;
 - os cálculos patrimoniais passam a considerar a movimentação.
 
+---
+
+## 1.7 Projeção Financeira
+
+O CyberBank deve permitir a análise da situação financeira considerando
+movimentações previstas e efetivadas.
+
+As movimentações previstas podem ser utilizadas para calcular projeções
+financeiras futuras.
+
+As projeções podem ser utilizadas por:
+
+- dashboards;
+- planejamentos financeiros;
+- metas;
+- projetos financeiros;
+- análises de fluxo de caixa.
+
+Uma projeção não altera os saldos financeiros efetivos.
 ---
 
 ## 2. Movimentações Sistêmicas
