@@ -188,6 +188,45 @@ As projeções podem ser utilizadas por:
 - análises de fluxo de caixa.
 
 Uma projeção não altera os saldos financeiros efetivos.
+
+## 1.8 Saldos e Patrimônio
+
+O CyberBank trabalha com diferentes visões de valor financeiro.
+
+### 1.8.1 Saldo da Conta
+
+O saldo da conta representa o valor financeiro efetivamente disponível
+em uma conta.
+
+O saldo considera somente movimentações `Efetivadas`.
+
+Movimentações `Previstas` não alteram o saldo atual da conta.
+
+### 1.8.2 Patrimônio
+
+O patrimônio representa o conjunto de recursos financeiros e ativos
+pertencentes ao usuário.
+
+O patrimônio pode incluir:
+
+- contas bancárias;
+- dinheiro físico;
+- investimentos;
+- criptomoedas;
+- outros ativos financeiros.
+
+Transferências entre recursos pertencentes ao mesmo patrimônio não
+alteram o valor patrimonial total.
+
+### 1.8.3 Saldo Projetado
+
+O saldo projetado representa uma estimativa futura dos recursos
+financeiros disponíveis.
+
+O cálculo pode considerar movimentações `Previstas` juntamente com os
+saldos atuais.
+
+O saldo projetado não altera os saldos efetivos nem o patrimônio atual.
 ---
 
 ## 2. Movimentações Sistêmicas
