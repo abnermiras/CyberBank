@@ -373,3 +373,50 @@ No extrato compartilhado, o lançamento pode ser visualizado por todos os
 usuários com acesso à conta, porém sua categoria e subcategoria somente
 são apresentadas quando o usuário possui acesso ao contexto que realizou
 a classificação.
+
+### 6.4 Formas de Pagamento e Recebimento
+
+As formas de pagamento e recebimento são definidas no cadastro da conta.
+
+Quando uma movimentação financeira é criada, o usuário deve primeiro
+selecionar a conta na qual a movimentação será efetivada.
+
+Para uma saída, o usuário deve selecionar uma das formas de pagamento
+habilitadas para a conta.
+
+Para uma entrada, o usuário deve selecionar uma das formas de recebimento
+habilitadas para a conta.
+
+O sistema não permite utilizar uma forma de pagamento ou recebimento que
+não esteja habilitada na conta.
+
+### 6.4.1 Exemplo
+
+Uma conta `Banco1` possui as seguintes formas de pagamento:
+
+- PIX;
+- TED;
+- Débito;
+- Desconto em Folha de Pagamento.
+
+Ao registrar uma saída utilizando o `Banco1`, o usuário poderá selecionar
+somente uma dessas formas de pagamento.
+
+Uma forma não habilitada na conta não pode ser utilizada na movimentação.
+
+### 6.5 Operações Sistêmicas
+
+Operações financeiras sistêmicas possuem regras próprias para definição
+da forma de pagamento ou recebimento.
+
+Nas seguintes operações, o usuário não seleciona manualmente a forma de
+pagamento ou recebimento:
+
+- Transferência;
+- Saque;
+- Compra de Moeda.
+
+O CyberBank determina automaticamente a forma correspondente à operação.
+
+A forma utilizada deve ser registrada na movimentação para permitir sua
+identificação no extrato.
