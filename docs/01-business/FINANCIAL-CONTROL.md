@@ -1,10 +1,4 @@
-## 1. Movimentações Financeiras
-
-As movimentações financeiras são registradas dentro de um ambiente
-financeiro.
-
-Uma movimentação pode utilizar elementos financeiros cadastrados ou
-compartilhados no ambiente, incluindo:a# Controle Financeiro
+# Controle Financeiro
 
 ## 1. Movimentação Financeira
 
@@ -48,17 +42,16 @@ A saída deve identificar:
 
 ## 2. Movimentações Sistêmicas
 
-O sistema pode criar movimentações utilizando categorias sistêmicas.
+O CyberBank pode gerar movimentações sistêmicas para representar
+operações realizadas pelo próprio sistema.
 
-Movimentações sistêmicas representam operações que precisam ser
-registradas para manter a consistência financeira do sistema.
+Movimentações sistêmicas podem utilizar categorias de uso exclusivo do
+sistema.
 
 As categorias sistêmicas são controladas pelo sistema e não dependem de
 categorias criadas pelo usuário.
 
----
-
-## 3. Transferência entre Contas
+### 2.1 Transferência entre Contas
 
 Uma transferência entre contas representa a movimentação de dinheiro de
 uma conta bancária para outra.
@@ -68,12 +61,10 @@ Uma transferência gera duas movimentações financeiras relacionadas:
 - uma saída na conta de origem;
 - uma entrada na conta de destino.
 
-As duas movimentações utilizam a categoria sistêmica `Transferência`.
+As duas movimentações representam uma única transferência e utilizam a
+categoria sistêmica `Transferência`.
 
-A transferência representa uma única operação financeira, mesmo sendo
-registrada através de duas movimentações.
-
-### 3.1 Atualização de Saldos
+#### 2.1.1 Atualização de Saldos
 
 A transferência deve atualizar:
 
@@ -84,9 +75,72 @@ A transferência deve atualizar:
 O valor transferido não representa aumento ou redução do patrimônio
 global, pois apenas altera a distribuição do dinheiro entre contas.
 
+### 2.2 Saque
+
+O saque representa a retirada de dinheiro de uma conta bancária para
+transformá-lo em dinheiro físico.
+
+Um saque gera duas movimentações financeiras relacionadas:
+
+- uma saída na conta de origem;
+- uma entrada na conta de destino.
+
+A conta de destino deve ser uma conta bancária do tipo `Carteira`.
+
+#### 2.2.1 Conta Carteira
+
+Uma conta `Carteira` representa dinheiro físico sob controle do usuário.
+
+O usuário pode criar uma ou mais contas do tipo `Carteira`.
+
+A conta `Carteira` pode receber qualquer nome definido pelo usuário,
+como:
+
+- Carteira;
+- Bolsa;
+- Colchão;
+- Bolso;
+- Cofre.
+
+Uma conta `Carteira` aceita exclusivamente a forma de pagamento e
+recebimento `Dinheiro`.
+
+Uma conta `Carteira` não pode utilizar formas de pagamento ou recebimento
+diferentes de `Dinheiro`.
+
+#### 2.2.2 Registro do Saque
+
+Ao registrar um saque, o usuário deve informar:
+
+- conta bancária de origem;
+- conta `Carteira` de destino;
+- valor;
+- data;
+- responsável pelo lançamento.
+
+O saque gera:
+
+- uma saída na conta de origem;
+- uma entrada na conta `Carteira`.
+
+As duas movimentações representam uma única operação de saque.
+
+O saque utiliza uma categoria sistêmica do tipo `Saque`.
+
+#### 2.2.3 Atualização de Saldos
+
+O saque deve atualizar:
+
+- o saldo da conta de origem;
+- o saldo da conta `Carteira`;
+- o saldo global do patrimônio.
+
+O saque não altera o patrimônio global do usuário, pois apenas transforma
+a forma como o dinheiro está armazenado.
+
 ---
 
-## 4. Extratos
+## 3. Extratos
 
 As movimentações financeiras devem estar disponíveis no extrato da conta
 bancária relacionada.
@@ -96,9 +150,14 @@ Uma transferência deve aparecer:
 - como saída no extrato da conta de origem;
 - como entrada no extrato da conta de destino.
 
+Um saque deve aparecer:
+
+- como saída no extrato da conta de origem;
+- como entrada no extrato da conta `Carteira`.
+
 ---
 
-## 5. Extrato de Lançamentos
+## 4. Extrato de Lançamentos
 
 O CyberBank disponibiliza um extrato consolidado de lançamentos.
 
@@ -108,6 +167,13 @@ do ambiente.
 
 As movimentações realizadas em contas bancárias compartilhadas também
 devem ser apresentadas conforme as regras de acesso ao recurso.
+
+---
+
+## 5. Elementos Financeiros da Movimentação
+
+Uma movimentação pode utilizar elementos financeiros cadastrados ou
+compartilhados no ambiente, incluindo:
 
 - conta bancária;
 - categoria;
@@ -119,24 +185,3 @@ devem ser apresentadas conforme as regras de acesso ao recurso.
 Quando uma movimentação utiliza uma conta bancária compartilhada entre
 ambientes, ela pertence à mesma conta independentemente do ambiente a
 partir do qual foi registrada.
-
----
-
-## 2. Movimentações Sistêmicas
-
-O CyberBank pode gerar movimentações sistêmicas para representar
-operações realizadas pelo próprio sistema.
-
-Movimentações sistêmicas podem utilizar categorias de uso exclusivo do
-sistema.
-
-### 2.1 Transferência entre Contas
-
-Uma transferência entre contas gera duas movimentações:
-
-- uma movimentação de débito na conta de origem;
-- uma movimentação de crédito na conta de destino.
-
-As duas movimentações representam uma única transferência.
-
-As movimentações utilizam uma categoria sistêmica do tipo `Transferência`.
