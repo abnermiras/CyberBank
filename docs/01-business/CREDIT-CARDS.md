@@ -16,7 +16,7 @@ Um cartão de crédito é um instrumento de pagamento vinculado a um contrato de
 
 O contrato de crédito é uma representação abstrata da relação de crédito estabelecida pelo usuário dentro de seu ambiente financeiro. Ele não representa necessariamente um contrato físico, um documento ou um número de contrato fornecido pela instituição financeira.
 
-O contrato é criado junto com o primeiro cartão de crédito e representa a relação de crédito daquele conjunto de cartões dentro do ambiente financeiro do usuário.
+O contrato é criado obrigatoriamente junto com o primeiro cartão de crédito, que sempre é um cartão principal físico.
 
 O cartão não possui limite de crédito independente do contrato. Todos os cartões vinculados ao mesmo contrato compartilham o limite global definido para esse contrato.
 
@@ -55,7 +55,7 @@ A titularidade do contrato não é transferida pela criação de cartões adicio
 
 O titular do contrato possui controle sobre todos os cartões vinculados ao contrato.
 
-Quando todos os cartões do contrato estiverem desativados, o contrato permanece preservado para fins históricos e financeiros, mas fica inerte para novas utilizações.
+Quando todos os cartões do contrato estiverem desativados, o contrato permanece preservado para fins históricos e financeiros, mas fica inerte para novas utilizações do usuário.
 
 ---
 
@@ -73,136 +73,112 @@ A ausência de um cadastro bancário não impede a existência ou utilização d
 
 Um contrato possui uma única instituição mantenedora e todos os cartões vinculados a esse contrato pertencem a essa mesma instituição.
 
-A mudança de instituição mantenedora ou a representação de uma nova relação de crédito com outra instituição exige a criação de um novo contrato. Um contrato existente não é migrado de uma instituição para outra.
+Se o usuário quiser representar uma mudança de instituição mantenedora ou de relação de crédito, deve criar um novo contrato. Um cartão existente não pode ser transferido para outro contrato ou instituição.
 
 ---
 
-## 5. Identidade e Cadastro do Cartão
+## 5. Cadastro e Identidade do Cartão
 
 Um cartão é criado dentro de um contrato de crédito existente ou durante a criação do primeiro cartão, quando o contrato ainda não existe.
 
-A identificação única de um cartão no domínio é composta pela combinação de:
+O CyberBank não armazena o número completo do cartão.
 
-- instituição financeira declarada ou banco associado ao contrato;
-- nome do contrato/produto, por exemplo `Ultravioleta`;
+A identificação única de negócio do cartão é composta por:
+
+- instituição financeira declarada ou mantenedora;
+- nome do contrato/produto;
 - últimos quatro dígitos do cartão (`last4`);
 - usuário titular do cartão.
 
-Essa composição garante a diferenciação entre cartões mesmo quando usuários diferentes possuam instituição, nome de contrato e `last4` iguais.
+Essa composição garante a diferenciação entre cartões mesmo quando usuários diferentes declararem a mesma instituição, o mesmo nome de contrato e os mesmos quatro últimos dígitos.
 
-Os últimos quatro dígitos são apenas uma parte da identidade composta e não devem ser tratados isoladamente como identificador único.
+Os quatro últimos dígitos são utilizados como componente da identificação do cartão e não devem ser tratados isoladamente como identificador único.
 
-O CyberBank não armazena o número completo do cartão.
+O cartão não possui data de validade ou data de emissão como parte de seu modelo de negócio.
 
-O cadastro do cartão deve registrar, conforme aplicável:
+O cartão não pode ser transferido de um contrato para outro. Sua associação com o contrato e com a instituição mantenedora permanece durante toda a existência do cartão.
 
-- referência ao contrato;
-- instituição mantenedora;
-- nome do contrato/produto;
-- `last4`;
-- usuário titular do cartão;
-- característica física ou virtual;
-- situação de compartilhamento;
-- usuários autorizados;
-- histórico de estados.
+O meio de existência do cartão é uma característica destinada à identificação do instrumento pelo usuário:
 
-O nome apresentado para identificação do cartão pode ser derivado do nome do contrato/produto e de uma descrição definida pelo usuário para cartões virtuais.
+- `Físico`;
+- `Virtual`.
 
-Exemplos:
-
-```text
-Ultravioleta ****-1234 — Físico
-Ultravioleta / Assinaturas ****-4567 — Virtual
-Ultravioleta / Compras ****-7890 — Virtual
-Ultravioleta / Adicional ****-0101 — Físico
-```
-
-Um cartão não possui data de validade ou data de emissão como parte de seu modelo de negócio.
-
-Um cartão não pode ser transferido de um contrato para outro. Sua associação com o contrato e com a instituição mantenedora permanece durante toda a existência do cartão.
+O meio de existência não representa um tipo independente de contrato ou limite.
 
 ---
 
-## 6. Tipos e Características do Cartão
+## 6. Tipos e Características de Cartão
 
-O domínio não trata `Físico` e `Virtual` como tipos de cartão. Eles são **características de identificação do meio de existência do cartão**, utilizadas principalmente para auxiliar o usuário na identificação do instrumento.
+Um contrato pode possuir cartões para diferentes finalidades.
 
-Os papéis de negócio considerados pelo domínio são:
+Os conceitos de cartão são:
 
 - cartão principal;
-- cartão adicional.
+- cartão virtual;
+- cartão adicional;
+- cartão compartilhado.
 
-O estado de compartilhamento é uma característica independente do papel do cartão. **Qualquer cartão elegível pode ser compartilhado**, exceto cartões adicionais, que possuem uso exclusivo entre o titular do contrato e o usuário titular do adicional.
+`Virtual/Físico` é uma característica do cartão, e não um tipo independente.
+
+`Compartilhado` também não constitui um tipo independente de cartão. É uma condição de autorização de uso que pode existir sobre cartões elegíveis ao compartilhamento.
 
 Todos os cartões permanecem vinculados ao contrato original e utilizam seu limite global.
 
 ### 6.1 Cartão Principal
 
-O contrato obrigatoriamente nasce com um cartão principal físico.
-
-O primeiro cartão físico criado para o contrato é o cartão principal inicial.
+Todo contrato obrigatoriamente nasce com um cartão principal físico.
 
 O cartão principal:
 
+- é criado junto com o contrato;
+- é sempre `Físico`;
 - pertence ao titular do contrato;
-- possui característica `Físico`;
 - utiliza o limite global do contrato;
-- pode ser utilizado pelo titular do contrato;
-- pode ser compartilhado com outros usuários;
-- pode ser substituído pela criação de um novo cartão físico principal.
+- é o cartão físico principal do titular do contrato.
 
 Um contrato possui somente um cartão principal ativo por vez.
 
-Quando o titular do contrato cria um novo cartão físico principal, o cartão físico principal anteriormente ativo é desativado e o novo cartão passa a ser o cartão principal ativo.
+O titular do contrato pode criar um novo cartão físico principal. Ao criar o novo cartão, o cartão físico principal anteriormente ativo do mesmo titular é automaticamente desativado e o novo cartão passa a ser o cartão físico ativo do titular.
 
 ### 6.2 Cartão Virtual
 
-Um cartão virtual é um cartão criado dentro de um contrato de crédito para utilização em meios digitais ou outras finalidades definidas pelo titular.
+Um cartão virtual é um cartão criado dentro de um contrato de crédito para utilização em meios digitais ou outras finalidades definidas pelo titular do contrato.
 
-A quantidade de cartões virtuais de um contrato é ilimitada.
+O contrato não possui limite de quantidade de cartões virtuais.
 
-Um cartão virtual:
+O cartão virtual:
 
+- possui característica `Virtual`;
 - não cria um novo contrato;
 - não possui limite global próprio;
 - compartilha o limite do contrato;
 - possui identidade própria;
-- possui característica `Virtual`;
-- pode possuir uma descrição definida pelo usuário, como `Assinaturas` ou `Compras`;
+- pertence ao titular que o criou;
 - pode ser compartilhado;
-- pode ser ativado, desativado ou bloqueado conforme as regras de estado.
+- pode ser desativado ou bloqueado conforme as regras deste documento.
 
-Cartões virtuais são derivados do contrato e não substituem o cartão principal físico.
+Um cartão virtual não substitui o cartão principal físico e não transforma o contrato em outro tipo de contrato.
 
 ### 6.3 Cartão Adicional
 
-Um cartão adicional é um novo cartão físico criado pelo titular do contrato para uso exclusivo de outro usuário.
+Um cartão adicional é um novo cartão físico criado pelo titular do contrato e concedido para uso de outro usuário.
 
 O cartão adicional:
 
+- é sempre `Físico`;
 - continua vinculado ao contrato do titular;
 - utiliza o limite global do contrato;
 - não cria um novo contrato;
 - possui identidade própria;
-- possui característica `Físico`;
 - possui um usuário titular próprio;
-- é destinado exclusivamente ao usuário escolhido pelo titular do contrato.
+- não pode ser compartilhado com terceiros;
+- é de uso do titular do cartão adicional e do titular do contrato.
 
-A quantidade de cartões adicionais é limitada a **um cartão adicional por usuário destinatário dentro do mesmo contrato**.
+Cada usuário pode possuir no máximo um cartão adicional dentro de um mesmo contrato.
 
-Exemplo:
+Um contrato pode possuir cartões adicionais para diferentes usuários.
 
-```text
-Contrato: Ultravioleta
-Titular do contrato: Usuário A
-
-Cartão adicional — Usuário B — ****-0101
-Cartão adicional — Usuário C — ****-0202
-```
-
-Um usuário não pode possuir dois cartões adicionais simultaneamente no mesmo contrato.
-
-Cartão adicional não pode ser compartilhado com terceiros. Seu uso é exclusivo entre o titular do contrato e o usuário titular do cartão adicional.
+Quando o titular do contrato cria um novo cartão adicional para determinado usuário, o cartão adicional físico anteriormente ativo daquele mesmo usuário é desativado e o novo cartão passa a ser o cartão físico ativo daquele usuário.
 
 #### 6.3.1 Recebimento
 
@@ -210,9 +186,9 @@ O usuário destinatário deve receber um convite e aceitá-lo antes de utilizar 
 
 Ao aceitar o convite, o usuário escolhe em qual de seus ambientes financeiros o cartão será disponibilizado.
 
-O usuário que recebe um cartão adicional pode visualizar as faturas do contrato e todos os lançamentos realizados no cartão adicional ao qual possui titularidade operacional.
+O usuário que recebe um cartão adicional pode visualizar e realizar lançamentos utilizando esse cartão, mas não recebe acesso aos demais cartões do contrato aos quais não tenha autorização própria.
 
-O usuário de um cartão adicional não recebe automaticamente autorização para consultar ou utilizar os demais cartões do contrato.
+O cartão adicional não é um empréstimo de um cartão existente. Ele possui titular operacional próprio e identidade própria.
 
 #### 6.3.2 Titularidade e Responsabilidade
 
@@ -220,48 +196,47 @@ O usuário que recebe o cartão adicional é o titular operacional daquele cart�
 
 O titular do contrato continua responsável pelo contrato e pelo limite global.
 
-O titular do contrato pode visualizar todas as faturas e realizar lançamentos em todos os cartões do contrato.
+O titular do contrato pode visualizar e utilizar todos os cartões vinculados ao seu contrato.
 
-O titular do cartão adicional pode utilizar o próprio cartão e pode desativá-lo ou reativá-lo conforme as regras de estado definidas neste documento.
+O titular do cartão adicional pode utilizar e desativar o próprio cartão adicional.
+
+O titular do cartão adicional não pode reativar o cartão. A reativação é uma operação exclusiva do titular do contrato.
 
 #### 6.3.3 Revogação do Cartão Adicional
 
 O titular do contrato pode revogar o cartão adicional concedido a outro usuário.
 
-A revogação impede novos lançamentos pelo usuário destinatário e desativa o cartão.
+A revogação remove a autorização para novos lançamentos pelo usuário destinatário e desativa o cartão adicional.
 
-A revogação não elimina o histórico financeiro do cartão nem os lançamentos já realizados.
-
-Após a revogação, o cartão permanece preservado para fins históricos e financeiros.
-
-Um cartão adicional revogado não pode ser reatribuído a outro usuário. Para outro usuário, deve ser criado um novo cartão adicional.
+O cartão adicional revogado não pode ser reatribuído a outro usuário. Para outro usuário, deve ser criado um novo cartão adicional.
 
 ### 6.4 Cartão Compartilhado
 
-O compartilhamento não é um tipo de cartão. É uma situação de uso que pode ser aplicada a cartões permitidos pelo domínio.
+Qualquer cartão elegível ao compartilhamento pode ter seu uso concedido a outro ou outros usuários.
 
-Um cartão compartilhado é o mesmo cartão original, cujo uso é concedido pelo titular do contrato a outro ou outros usuários.
+O compartilhamento não cria um novo cartão e não cria um novo contrato.
 
-O compartilhamento:
+Um mesmo cartão pode ser compartilhado com múltiplos usuários simultaneamente, sem limite de quantidade definido pelo domínio.
 
-- não cria um novo cartão;
-- não cria um novo contrato;
-- não transfere a titularidade do cartão;
-- não transfere a titularidade do contrato;
-- pode ser aplicado a cartões físicos e virtuais;
-- pode atingir múltiplos usuários simultaneamente;
-- possui quantidade ilimitada de usuários por cartão, conforme decisão do titular do contrato.
+O cartão compartilhado:
 
-Cartões adicionais não podem ser compartilhados.
+- mantém sua identidade original;
+- mantém seu titular original;
+- permanece vinculado ao contrato original;
+- utiliza o limite global do contrato;
+- pode ser físico ou virtual;
+- pode ser utilizado pelos usuários autorizados pelo compartilhamento.
 
-O usuário autorizado por compartilhamento pode:
+O cartão adicional não pode ser compartilhado.
+
+O usuário autorizado pelo compartilhamento pode:
 
 - visualizar os lançamentos do cartão compartilhado;
-- visualizar o extrato/fatura relacionada ao cartão compartilhado;
+- visualizar o extrato da fatura relacionado ao cartão compartilhado;
 - realizar lançamentos utilizando o cartão compartilhado;
-- participar das operações de pagamento relacionadas ao cartão, conforme as regras específicas de fatura.
+- sair do compartilhamento.
 
-O usuário que recebe um cartão compartilhado acessa somente o cartão compartilhado e os dados financeiros relacionados a ele. O compartilhamento não concede acesso aos demais cartões do contrato.
+O compartilhamento não transfere a titularidade do cartão nem a titularidade do contrato.
 
 #### 6.4.1 Recebimento
 
@@ -269,7 +244,7 @@ O usuário destinatário deve receber um convite e aceitá-lo antes de utilizar 
 
 Ao aceitar o convite, o usuário escolhe em qual de seus ambientes financeiros o cartão será disponibilizado.
 
-No ambiente escolhido, a instituição mantenedora pode ser apresentada como uma instituição compartilhada, identificando o usuário titular que concedeu o acesso.
+No ambiente escolhido, a instituição mantenedora é apresentada como uma instituição compartilhada, identificando o usuário titular que concedeu o acesso.
 
 Exemplo:
 
@@ -278,30 +253,67 @@ Instituição:
 Nubank compartilhado de Usuário A
 
 Forma de pagamento:
-Ultravioleta ****-1234
+Ultravioleta ****-4567
 ```
 
 O cartão continua pertencendo ao contrato e ao ambiente de origem. O ambiente do usuário receptor possui apenas uma referência autorizada para utilização do cartão.
 
-O mesmo usuário não pode receber o mesmo cartão por compartilhamento mais de uma vez simultaneamente.
+#### 6.4.2 Saída do Compartilhamento
 
-#### 6.4.2 Revogação do Compartilhamento
+O usuário que recebeu acesso a um cartão compartilhado pode sair do compartilhamento a qualquer momento.
 
-Somente o titular do contrato pode conceder ou remover compartilhamentos.
+Sair do compartilhamento remove somente a autorização de uso daquele usuário.
 
-A revogação impede novos lançamentos pelo usuário removido.
+A saída do compartilhamento:
 
-A revogação não desativa o cartão para o titular do contrato ou para outros usuários autorizados.
+- não desativa o cartão;
+- não altera o estado do cartão;
+- não afeta o titular original;
+- não afeta outros usuários autorizados;
+- impede novos lançamentos realizados pelo usuário que saiu.
 
-O histórico das operações realizadas pelo usuário removido deve ser preservado.
+A operação representa a devolução da autorização de uso concedida pelo titular, equivalente a deixar de utilizar um cartão que lhe foi emprestado.
 
-O lançamento realizado pelo usuário removido continua visível no histórico do próprio usuário mesmo após a revogação do acesso e após a quitação da obrigação correspondente.
+O titular do contrato pode remover o compartilhamento de qualquer usuário.
 
-O usuário removido deixa de possuir acesso operacional ao cartão para novos lançamentos.
+A remoção do compartilhamento pelo titular produz o mesmo efeito sobre o usuário removido: ele deixa de poder realizar novos lançamentos, sem alterar o estado do cartão para os demais usuários autorizados.
 
 ---
 
-## 7. Limite Global
+## 7. Criação e Substituição de Cartões Físicos
+
+Cada usuário pode possuir no máximo um cartão físico ativo dentro de um determinado contrato.
+
+Essa regra se aplica ao titular do contrato e aos titulares de cartões adicionais.
+
+Quando um novo cartão físico é criado para um usuário que já possui um cartão físico ativo naquele contrato:
+
+1. o cartão físico anterior é desativado;
+2. o novo cartão físico é criado;
+3. o novo cartão passa a ficar ativo;
+4. os cartões físicos de outros usuários do mesmo contrato não são afetados.
+
+Exemplo:
+
+```text
+Contrato: Ultravioleta
+
+Usuário A
+  ****-1234 — Físico — Desativado
+  ****-9999 — Físico — Ativo
+
+Usuário B
+  ****-5678 — Físico — Ativo
+
+Usuário C
+  ****-7777 — Físico — Ativo
+```
+
+A criação de um novo cartão físico pelo Usuário A não desativa o cartão físico ativo do Usuário B ou do Usuário C.
+
+---
+
+## 8. Limite Global
 
 O limite global pertence ao contrato de crédito e não a um cartão individual.
 
@@ -321,21 +333,17 @@ Cartão compartilhado:   utiliza o limite do contrato
 
 Não existe limite independente por cartão neste modelo.
 
-### 7.1 Alteração do Limite
+### 8.1 Alteração do Limite
 
 Somente o titular do contrato pode alterar o limite global.
 
-O limite global deve ser sempre maior ou igual a zero:
-
-```text
-Limite global >= 0
-```
+O limite global deve ser maior ou igual a zero.
 
 A alteração do limite não altera retroativamente os lançamentos já realizados.
 
 O limite global pode ser reduzido para valor inferior ao crédito atualmente comprometido.
 
-Nesse caso, o sistema deve preservar o estado financeiro existente e permitir que o limite disponível seja representado como negativo.
+Nesse caso, o sistema deve preservar o estado financeiro existente e permitir que a diferença seja representada como limite disponível negativo.
 
 Exemplo:
 
@@ -347,27 +355,29 @@ Limite disponível:    -R$ 5.000,00
 
 ---
 
-## 8. Consumo do Limite
+## 9. Consumo do Limite
 
 Um lançamento realizado com cartão de crédito compromete o limite global do contrato no momento em que o lançamento é registrado.
 
 O comprometimento do limite não depende de o lançamento estar marcado como `Previsto` ou `Realizado`.
 
-**Crédito comprometido** é a soma das operações de crédito ainda não liberadas.
+O crédito comprometido corresponde à soma das operações de crédito ainda não liberadas.
 
-Devem ser excluídas do crédito comprometido as operações:
+Não fazem parte do crédito comprometido:
 
-- canceladas;
-- estornadas;
-- cujo limite já foi liberado.
+- operações canceladas;
+- operações estornadas;
+- operações cujo limite já foi liberado.
 
-O limite comprometido representa o valor de crédito atualmente utilizado pelo contrato e será liberado conforme as regras financeiras aplicáveis ao lançamento e à fatura.
+Não existe, entretanto, uma operação específica de cancelamento ou estorno de cartão no domínio do CyberBank. Quando o usuário precisar corrigir um lançamento, o próprio lançamento poderá ser editado conforme as regras do domínio financeiro/fatura.
 
-### 8.1 Compra à Vista
+As regras detalhadas de liberação relacionadas à quitação de faturas serão definidas no documento de faturas.
+
+### 9.1 Compra à Vista
 
 Uma compra à vista compromete o valor total da operação.
 
-### 8.2 Compra Parcelada
+### 9.2 Compra Parcelada
 
 Uma compra parcelada compromete inicialmente o valor total da operação, e não apenas o valor da primeira parcela.
 
@@ -383,21 +393,13 @@ R$ 1.200,00
 
 A forma como parcelas futuras são apresentadas em faturas e a forma como o limite é liberado durante o ciclo financeiro pertencem ao domínio de faturas.
 
-### 8.3 Estorno e Cancelamento
-
-As regras de estorno, cancelamento parcial, cancelamento total e seus respectivos efeitos sobre o limite comprometido permanecem **pendentes de definição**.
-
-Este tema será definido em refinamento específico antes da consolidação final do domínio de cartões e faturas.
-
 ---
 
-## 9. Cartão como Forma de Pagamento
+## 10. Cartão como Forma de Pagamento
 
 O cartão de crédito pode ser utilizado como forma de pagamento em um lançamento de saída.
 
 O cartão selecionado identifica qual instrumento de crédito foi utilizado na operação.
-
-Todo lançamento com cartão deve registrar obrigatoriamente o usuário que realizou a operação.
 
 O lançamento financeiro permanece sendo uma única operação. O uso do cartão não cria uma segunda movimentação apenas por aparecer também na fatura.
 
@@ -409,116 +411,116 @@ Para cartões recebidos por adicional ou compartilhamento, a instituição pode 
 
 ---
 
-## 10. Ciclo de Vida do Cartão
+## 11. Ciclo de Vida do Cartão
 
-O cartão pode apresentar os estados operacionais:
+O cartão possui três estados operacionais:
 
 - `Ativo`;
-- `Desativado`;
-- `Bloqueado`.
+- `Bloqueado`;
+- `Desativado`.
 
-`Bloqueado` não substitui `Ativo` ou `Desativado` como estado de existência. Ele representa um **impeditivo temporário de lançamento sobre um cartão que permanece ativo**.
+`Bloqueado` é um estado de impedimento de utilização, mas o cartão continua ativo para fins de existência, titularidade, histórico e demais relações do domínio.
 
-### 10.1 Cartão Ativo
+### 11.1 Cartão Ativo
 
-Um cartão ativo permite novos lançamentos, desde que o usuário possua autorização para utilizá-lo e o cartão não esteja bloqueado.
+Um cartão ativo permite novos lançamentos, desde que o usuário possua autorização para utilizá-lo.
 
-### 10.2 Cartão Desativado
+O cartão ativo pode aparecer normalmente na lista de meios de pagamento do usuário.
+
+### 11.2 Cartão Bloqueado
+
+Um cartão bloqueado continua sendo um cartão ativo, porém fica impedido de receber novos lançamentos.
+
+O bloqueio não:
+
+- desativa o cartão;
+- altera sua titularidade;
+- exclui lançamentos históricos;
+- altera faturas existentes;
+- encerra obrigações financeiras;
+- remove o cartão do contrato.
+
+O bloqueio é um impedimento operacional de utilização.
+
+Um cartão bloqueado pode voltar ao estado `Ativo` mediante desbloqueio.
+
+O bloqueio não cancela automaticamente operações recorrentes. Se o usuário quiser impedir uma recorrência, deverá acessar a própria recorrência e cancelá-la conforme as regras desse domínio.
+
+### 11.3 Cartão Desativado
 
 A desativação impede novos lançamentos utilizando aquele cartão.
-
-A desativação é lógica e não exclui o cartão.
 
 A desativação não deve:
 
 - excluir o cartão;
 - excluir lançamentos históricos;
 - excluir faturas existentes;
+- eliminar obrigações financeiras já existentes;
 - remover o cartão do histórico do contrato;
 - alterar retroativamente o histórico financeiro.
 
-O cartão desativado permanece preservado para fins históricos e financeiros.
+A desativação encerra a utilização futura do cartão e cancela as recorrências vinculadas ao cartão, conforme as regras do domínio de recorrências.
 
-A desativação de um cartão encerra as recorrências de lançamentos associadas a esse cartão.
+Um cartão desativado pode continuar sendo visualizado para fins históricos e enquanto existirem obrigações ou lançamentos relacionados a ele.
 
-Após a desativação, o cartão não pode originar novos lançamentos.
-
-### 10.3 Cartão Bloqueado
-
-O bloqueio impede lançamentos no cartão, mas o cartão continua ativo.
-
-O bloqueio não representa desativação financeira e não encerra obrigações existentes.
-
-O bloqueio não cancela recorrências associadas ao cartão.
-
-Para cancelar uma recorrência de um cartão bloqueado, o usuário deve acessar a própria recorrência e efetuar seu cancelamento.
-
-Um cartão bloqueado continua pertencendo ao contrato, mantém seu histórico e pode voltar ao estado normal de utilização por meio da remoção do bloqueio.
-
-### 10.4 Transições
+### 11.4 Transições de Estado
 
 As transições permitidas são:
 
 ```text
-ATIVO -> DESATIVADO
-ATIVO -> BLOQUEADO
-
-BLOQUEADO -> ATIVO
-BLOQUEADO -> DESATIVADO
-
-DESATIVADO -> ATIVO
+                 ┌──────────────┐
+                 │    ATIVO     │
+                 └──────┬───────┘
+                        │
+             ┌──────────┴──────────┐
+             ▼                     ▼
+      ┌──────────────┐      ┌──────────────┐
+      │  BLOQUEADO   │      │ DESATIVADO   │
+      └──────┬───────┘      └──────┬───────┘
+             │                     │
+             └──────► ATIVO ◄──────┘
 ```
 
-Não existe necessidade de transição `DESATIVADO -> BLOQUEADO`, pois um cartão desativado já impede novos lançamentos.
+Regras:
 
-Somente cartões no estado `ATIVO` e sem bloqueio podem originar novos lançamentos.
+- `Ativo → Bloqueado`: permitido;
+- `Bloqueado → Ativo`: permitido;
+- `Ativo → Desativado`: permitido;
+- `Bloqueado → Desativado`: permitido;
+- `Desativado → Ativo`: permitido;
+- `Desativado → Bloqueado`: não permitido nem necessário.
 
-### 10.5 Desativação por Substituição de Cartão Físico
+Somente o titular do contrato pode reativar ou desbloquear um cartão.
 
-O titular do contrato pode criar um novo cartão físico para substituir o cartão físico anteriormente ativo.
+O titular de um cartão adicional pode desativar o próprio cartão adicional, mas não pode reativá-lo.
 
-Quando um novo cartão físico é criado dentro do contrato para substituir o cartão físico atualmente ativo daquele papel/titular, o cartão físico anterior é desativado e o novo cartão é ativado.
-
-Essa substituição preserva integralmente o histórico do cartão anterior.
-
-Para o titular do contrato, existe apenas um cartão físico principal ativo por vez.
-
-Quando um novo cartão físico adicional é criado para um usuário destinatário, o cartão físico adicional anteriormente ativo desse mesmo usuário é desativado e o novo passa a ser o ativo.
+Um usuário que recebeu um cartão compartilhado não altera o estado do cartão ao sair do compartilhamento. Ele apenas remove a própria autorização de uso.
 
 ---
 
-## 11. Permissões de Utilização
+## 12. Permissões de Utilização
 
 A posse do cartão e a autorização para utilização são conceitos distintos.
 
-O titular do contrato possui controle sobre todos os cartões vinculados ao contrato e é o único usuário autorizado a:
+O titular do contrato possui controle sobre todos os cartões vinculados ao contrato e pode criar, compartilhar, desativar, bloquear, desbloquear e reativar cartões conforme as regras deste documento.
 
-- criar cartões;
-- criar cartões virtuais;
-- criar cartões adicionais;
-- conceder compartilhamentos;
-- remover compartilhamentos;
-- reativar cartões.
+O titular de um cartão adicional possui autorização de utilização exclusivamente sobre o cartão adicional que recebeu.
 
-O titular do contrato pode visualizar todas as faturas e realizar lançamentos em todos os cartões do contrato.
+O titular de um cartão adicional pode desativar seu próprio cartão, mas não pode reativá-lo.
 
-O titular de um cartão adicional possui autorização de utilização exclusivamente sobre o cartão adicional que recebeu. Ele não pode criar, compartilhar ou reativar cartões.
+Um usuário que recebeu acesso por compartilhamento possui autorização para utilizar o cartão compartilhado conforme o acesso concedido.
 
-O usuário que recebeu acesso por compartilhamento possui autorização exclusivamente sobre o cartão compartilhado conforme o acesso concedido. Ele não pode criar, compartilhar ou reativar cartões.
+Um usuário compartilhado pode sair do compartilhamento, removendo somente sua própria autorização de uso.
 
 A autorização para utilização de um cartão não concede automaticamente acesso aos demais cartões do mesmo contrato.
 
-O cartão adicional possui acesso às faturas do contrato e aos lançamentos do próprio cartão adicional.
+Todo lançamento realizado com cartão deve registrar obrigatoriamente o usuário responsável pela sua realização.
 
-O usuário com cartão compartilhado possui acesso aos lançamentos e ao extrato/fatura relacionados ao cartão compartilhado.
-
-A remoção do acesso a um cartão adicional ou compartilhado impede novos lançamentos do usuário removido, mas não apaga o histórico das operações já realizadas por ele.
-
-As permissões específicas para consultar ou operar faturas serão detalhadas no documento de faturas.
+As permissões específicas para consultar ou operar faturas serão definidas no documento de faturas.
 
 ---
 
-## 12. Histórico
+## 13. Histórico
 
 O histórico financeiro do cartão deve ser preservado mesmo quando o cartão for desativado.
 
@@ -528,24 +530,21 @@ Devem permanecer rastreáveis, quando aplicável:
 
 - identidade do cartão;
 - vínculo com o contrato;
-- instituição mantenedora;
-- nome do contrato/produto;
-- `last4`;
 - usuário titular do cartão;
 - usuários autorizados;
 - alterações de estado;
 - concessões e revogações de acesso;
+- saídas de compartilhamento;
 - lançamentos realizados;
 - usuário responsável por cada lançamento;
 - operações relacionadas ao cartão;
-- referências a faturas;
-- substituições de cartões físicos.
+- referências a faturas.
 
-A remoção de acesso de um usuário não remove seu histórico de operações. Um lançamento realizado pelo usuário continua sendo histórico e permanece visível para esse usuário mesmo após a perda de acesso operacional ao cartão, inclusive após a quitação da obrigação correspondente.
+Quando um usuário perder o acesso a um cartão compartilhado ou adicional, os lançamentos históricos realizados por ele continuam preservados no histórico financeiro do contrato. A perda do acesso não apaga o histórico financeiro.
 
 ---
 
-## 13. Relação com Faturas
+## 14. Relação com Faturas
 
 A fatura pertence ao contrato de crédito e não a um cartão individual.
 
@@ -562,7 +561,7 @@ A fatura pode conter lançamentos realizados por:
 
 O valor da fatura corresponde à soma dos lançamentos que compõem aquele ciclo para o contrato.
 
-O titular do cartão e o usuário responsável por um lançamento são informações distintas e devem ser identificados individualmente dentro da fatura.
+O titular do cartão e o usuário responsável por um lançamento são informações distintas e podem ser identificados individualmente dentro da fatura.
 
 As regras detalhadas de criação, ciclo mensal, fechamento, vencimento, pagamento, quitação, créditos e demais regras de liquidação da fatura serão definidas em:
 
@@ -572,7 +571,7 @@ Este documento não deve duplicar as regras operacionais de faturas.
 
 ---
 
-## 14. Invariantes do Domínio do Cartão
+## 15. Invariantes do Domínio do Cartão
 
 As seguintes regras devem permanecer verdadeiras:
 
@@ -581,38 +580,50 @@ As seguintes regras devem permanecer verdadeiras:
 3. Todo contrato nasce obrigatoriamente com um cartão principal físico.
 4. Um contrato possui uma única instituição mantenedora.
 5. Todos os cartões de um contrato pertencem à mesma instituição mantenedora.
-6. A mudança de instituição mantenedora exige um novo contrato.
-7. O limite global pertence ao contrato, não ao cartão individual.
-8. Cartões vinculados ao mesmo contrato compartilham o limite global.
-9. Um contrato possui somente um cartão principal físico ativo por vez.
-10. A quantidade de cartões virtuais de um contrato é ilimitada.
-11. `Físico` e `Virtual` são características de identificação do cartão, não papéis de negócio independentes.
-12. Cartão adicional é sempre físico.
-13. Existe no máximo um cartão adicional ativo por usuário destinatário dentro de um contrato.
-14. Cartão adicional não pode ser compartilhado com terceiros.
-15. Qualquer cartão elegível pode ser compartilhado, e um cartão compartilhado pode ser utilizado por múltiplos usuários.
-16. O mesmo usuário não pode receber o mesmo cartão compartilhado mais de uma vez simultaneamente.
-17. Cartões adicionais e compartilhados não transferem a titularidade do contrato.
-18. Um cartão não pode ser transferido de um contrato para outro.
-19. O titular do contrato é o único usuário que pode criar cartões.
-20. O titular do contrato é o único usuário que pode conceder ou remover compartilhamentos.
-21. O titular do contrato é o único usuário que pode reativar cartões.
-22. O usuário de um cartão adicional pode utilizar e desativar/reativar o próprio cartão, mas não pode criar ou compartilhar cartões.
-23. O usuário de um cartão compartilhado pode utilizar o cartão conforme a autorização recebida, mas não pode criar, compartilhar ou reativar cartões.
-24. Um lançamento com cartão deve registrar obrigatoriamente o usuário que realizou a operação.
-25. Somente cartões `ATIVO` e não bloqueados podem originar novos lançamentos.
-26. `BLOQUEADO` impede novos lançamentos, mas o cartão continua ativo.
-27. Um cartão desativado não pode originar novos lançamentos.
-28. A desativação é lógica e preserva o histórico do cartão.
-29. A desativação de um cartão cancela suas recorrências de lançamentos.
-30. O bloqueio não cancela suas recorrências.
-31. O limite global deve ser maior ou igual a zero.
-32. O limite disponível pode ser negativo.
-33. Crédito comprometido é a soma das operações de crédito ainda não liberadas.
-34. Operações canceladas, estornadas ou já liberadas não compõem o crédito comprometido.
-35. A quantidade de usuários de compartilhamento por cartão não possui limite definido pelo domínio.
-36. O histórico das operações permanece preservado após revogação de acesso.
-37. O usuário removido de um compartilhamento continua podendo consultar o histórico das operações que realizou, inclusive após a quitação das obrigações correspondentes.
-38. A fatura pertence ao contrato e reúne os lançamentos dos cartões daquele contrato, não existindo uma fatura independente por cartão.
-39. As regras de estorno, cancelamento parcial, cancelamento total e efeitos desses eventos sobre o limite permanecem pendentes de definição.
-40. Regras de ciclo, fechamento, pagamento e quitação de faturas pertencem ao domínio de faturas e não devem ser duplicadas neste documento.
+6. Cartões vinculados a instituições mantenedoras diferentes pertencem a contratos diferentes.
+7. Um cartão não pode ser transferido de um contrato para outro.
+8. A identidade de negócio do cartão é composta por instituição, nome do contrato, `last4` e usuário titular.
+9. `Físico/Virtual` é uma característica do cartão, não um contrato ou limite independente.
+10. O limite global pertence ao contrato, não ao cartão individual.
+11. Cartões vinculados ao mesmo contrato compartilham o limite global.
+12. Um contrato possui somente um cartão principal físico ativo por vez.
+13. Cada usuário pode possuir no máximo um cartão físico ativo dentro de um contrato.
+14. A criação de novo cartão físico para um usuário desativa o cartão físico anterior daquele usuário.
+15. A quantidade de cartões virtuais de um contrato não possui limite definido pelo domínio.
+16. Cartão adicional é sempre físico.
+17. Cada usuário pode possuir no máximo um cartão adicional dentro de um contrato.
+18. Cartão adicional possui titular operacional próprio e não pode ser compartilhado.
+19. O titular do contrato pode criar cartões, compartilhar cartões e controlar os estados dos cartões do contrato.
+20. O titular de um cartão adicional pode utilizar e desativar o próprio cartão, mas não pode reativá-lo.
+21. Cartão compartilhado é o mesmo cartão do titular com autorização de uso concedida a outros usuários.
+22. Um cartão compartilhado pode ser utilizado por quantos usuários o titular do contrato autorizar.
+23. O usuário compartilhado pode sair do compartilhamento sem alterar o estado do cartão.
+24. Sair do compartilhamento impede novos lançamentos daquele usuário, mas não desativa o cartão para o titular ou demais usuários autorizados.
+25. Cartões virtuais podem ser compartilhados.
+26. Cartões adicionais não podem ser compartilhados.
+27. Cartões adicionais e compartilhados não transferem a titularidade do contrato.
+28. Todo lançamento com cartão deve registrar o usuário responsável pela realização.
+29. O lançamento continua preservado no histórico mesmo quando o usuário perde o acesso ao cartão.
+30. O número completo do cartão não é armazenado nem exibido pelo CyberBank.
+31. O cartão não possui data de validade ou data de emissão no modelo de negócio.
+32. `Ativo` permite novos lançamentos.
+33. `Bloqueado` mantém o cartão ativo, mas impede novos lançamentos.
+34. `Desativado` impede novos lançamentos e encerra a utilização futura do cartão.
+35. `Ativo → Bloqueado` é permitido.
+36. `Bloqueado → Ativo` é permitido.
+37. `Ativo → Desativado` é permitido.
+38. `Bloqueado → Desativado` é permitido.
+39. `Desativado → Ativo` é permitido.
+40. `Desativado → Bloqueado` não é permitido nem necessário.
+41. Somente o titular do contrato pode reativar ou desbloquear cartões.
+42. Desativação não exclui histórico financeiro.
+43. Bloqueio não cancela automaticamente recorrências.
+44. Desativação cancela as recorrências vinculadas ao cartão.
+45. O limite global somente pode ser alterado pelo titular do contrato.
+46. O limite global deve ser maior ou igual a zero.
+47. O limite disponível pode ser negativo.
+48. O crédito comprometido corresponde às operações de crédito ainda não liberadas.
+49. O comprometimento do limite independe de o lançamento estar `Previsto` ou `Realizado`.
+50. Não existe operação específica de estorno ou cancelamento de cartão no domínio; correções de lançamentos são realizadas pela edição do próprio lançamento.
+51. A fatura pertence ao contrato e reúne os lançamentos dos cartões daquele contrato, não existindo uma fatura independente por cartão.
+52. Regras de ciclo, fechamento, pagamento, quitação e créditos de fatura pertencem ao domínio de faturas e não devem ser duplicadas neste documento.
