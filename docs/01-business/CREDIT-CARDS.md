@@ -486,6 +486,7 @@ Exemplo:
 Limite global:       R$ 5.000
 Limite disponível:   R$ 5.000
 Crédito de fatura:   R$ 2.000
+```
 
 ### 14.4 Crédito de Cartão Desativado
 
