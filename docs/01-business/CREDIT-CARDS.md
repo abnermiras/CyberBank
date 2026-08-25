@@ -451,7 +451,7 @@ e o valor restante deve ser pago normalmente.
 
 Exemplo:
 
-```text
+
 Crédito anterior:   R$ 200
 Nova fatura:        R$ 500
 
