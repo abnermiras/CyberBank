@@ -826,6 +826,402 @@ operação financeira já foi efetivada.
 
 Nesse cenário, a operação original deve permanecer preservada no histórico.
 
+## 27.3 Alteração de Compra em Fatura Aberta
+
+Uma compra de cartão de crédito pertencente a uma fatura aberta pode ser
+alterada normalmente pelo usuário que possuir permissão para alterar o
+lançamento.
+
+A alteração deve atualizar:
+
+* o valor do lançamento;
+* o valor da fatura;
+* o valor comprometido no limite global do contrato;
+* os demais cálculos financeiros afetados.
+
+Quando o valor da compra for reduzido, a diferença deixa de comprometer o
+limite global.
+
+Quando o valor da compra for aumentado, a diferença passa a comprometer o
+limite global.
+
+### 27.3.1 Exemplo
+
+Uma compra de R$ 500 está em uma fatura aberta.
+
+O usuário altera o valor para R$ 300.
+
+Resultado:
+
+```text id="v40x9b"
+Valor original:        R$ 500
+Novo valor:            R$ 300
+Diferença:             R$ 200
+```
+
+Os R$ 200 deixam de comprometer o limite global.
+
+O valor da fatura é recalculado.
+
+A alteração permanece registrada no histórico do lançamento.
+
+### 27.3.2 Alteração para Valor Superior
+
+Uma compra de R$ 300 pode ser alterada para R$ 500 enquanto a fatura estiver
+aberta.
+
+Nesse caso:
+
+```text id="9k9v4q"
+Valor original:        R$ 300
+Novo valor:            R$ 500
+Diferença:             R$ 200
+```
+
+Os R$ 200 adicionais passam a comprometer o limite global.
+
+O valor da fatura é recalculado.
+
+### 27.3.3 Estorno
+
+Enquanto a fatura estiver aberta e a compra puder ser corrigida diretamente,
+não é necessário utilizar o processo de estorno para corrigir seu valor.
+
+O estorno é utilizado quando a operação financeira já não deve ser
+simplesmente alterada, conforme as regras específicas de estorno.
+
+## 27.4 Alteração de Compra em Fatura Fechada
+
+O fechamento de uma fatura não impede a alteração dos lançamentos que
+pertencem a ela.
+
+Uma compra pertencente a uma fatura fechada e ainda não quitada pode ser
+alterada normalmente pelo usuário que possuir permissão para alterar o
+lançamento.
+
+A alteração deve recalcular:
+
+* o valor do lançamento;
+* o valor devido da fatura;
+* o limite comprometido pelo contrato;
+* os demais valores financeiros afetados.
+
+### 27.4.1 Alteração do Valor
+
+Quando o valor da compra for reduzido, a diferença deixa de comprometer o
+limite global.
+
+Quando o valor da compra for aumentado, a diferença passa a comprometer o
+limite global.
+
+A alteração não transfere o lançamento para outra fatura.
+
+O lançamento continua pertencendo à fatura na qual foi originalmente
+registrado.
+
+### 27.4.2 Fechamento e Alteração
+
+O fechamento determina o encerramento do ciclo de inclusão automática de
+novos lançamentos.
+
+O fechamento não transforma os lançamentos em registros imutáveis.
+
+O titular ou usuário autorizado pode corrigir os lançamentos de uma fatura
+fechada antes de sua quitação.
+
+O CyberBank deve recalcular a fatura após cada alteração.
+
+### 27.4.3 Histórico
+
+A alteração do lançamento não elimina o valor anteriormente registrado.
+
+O histórico deve preservar a alteração realizada para fins de auditoria.
+
+---
+
+## 27.5 Alteração de Compra com Pagamento Parcial
+
+Uma fatura que recebeu pagamentos parciais permanece não quitada.
+
+Os lançamentos continuam `Previstos` até a quitação integral.
+
+Os lançamentos da fatura podem ser alterados enquanto a fatura permanecer
+não quitada, respeitando as permissões do usuário.
+
+Após uma alteração, o valor devido da fatura e o limite comprometido devem
+ser recalculados.
+
+O valor dos pagamentos já realizados permanece registrado.
+
+O CyberBank não atribui pagamentos parciais a lançamentos individuais.
+
+Exemplo:
+
+```text id="5clj78"
+Fatura original:       R$ 1.000
+Pagamento parcial:     R$ 300
+Saldo da fatura:       R$ 700
+```
+
+Uma compra de R$ 500 pode ser alterada para R$ 400.
+
+A fatura passa a ter:
+
+```text id="5g9r1z"
+Valor original:        R$ 1.000
+Novo valor:             R$ 900
+Pago:                   R$ 300
+Saldo:                  R$ 600
+```
+
+Os lançamentos continuam `Previstos` até que o total devido seja
+integralmente quitado.
+
+## 27.6 Alteração de Compra Parcelada
+
+Uma compra parcelada representa uma série única de parcelas.
+
+Quando o valor total da compra parcelada for alterado, o CyberBank
+recalcula a série de parcelas.
+
+O novo valor total é redistribuído entre as parcelas da série conforme a
+quantidade original de parcelas.
+
+### 27.6.1 Exemplo
+
+Compra original:
+
+```text id="3b2h4p"
+Valor:          R$ 1.200
+Parcelamento:   12x R$ 100
+```
+
+O usuário altera o valor total para:
+
+```text id="2q1z9c"
+Novo valor:     R$ 900
+```
+
+O CyberBank recalcula a série:
+
+```text id="q2p0m3"
+12x R$ 75
+```
+
+As parcelas futuras passam a utilizar o novo valor.
+
+### 27.6.2 Limite
+
+A alteração da compra parcelada recalcula o comprometimento do limite
+global do contrato.
+
+No exemplo:
+
+```text id="q8s1vc"
+Comprometimento original:  R$ 1.200
+Novo comprometimento:       R$   900
+Limite liberado:            R$   300
+```
+
+A alteração não cria um novo contrato nem um novo parcelamento.
+
+A mesma série continua existindo com seus dados recalculados.
+
+### 27.6.3 Parcelas já Quitadas
+
+Uma parcela pertencente a uma fatura quitada não pode ser alterada
+retroativamente por meio da alteração da série.
+
+Quando existir pelo menos uma parcela já quitada, qualquer alteração que
+modifique o valor financeiro já efetivado deve seguir as regras de estorno.
+
+As parcelas ainda não quitadas poderão ser recalculadas conforme o processo
+de alteração permitido pelo sistema.
+
+O valor já efetivado permanece preservado no histórico.
+
+### 27.6.4 Parcelas Não Quitadas
+
+Quando nenhuma parcela estiver em uma fatura quitada, o valor total da
+compra parcelada pode ser alterado normalmente.
+
+Todas as parcelas da série são recalculadas.
+
+As faturas que contêm as parcelas são atualizadas com os novos valores.
+
+O limite global é recalculado de acordo com o novo valor total da compra.
+
+### 27.6.5 Quantidade de Parcelas
+
+A alteração do valor da compra não altera automaticamente a quantidade de
+parcelas.
+
+Se a quantidade de parcelas também for alterada, o CyberBank deve
+recalcular a série utilizando o novo número de parcelas.
+
+As regras específicas para alteração da quantidade de parcelas devem
+respeitar as mesmas restrições aplicáveis à alteração do valor já
+efetivado.
+
+## 27.7 Distribuição das Parcelas
+
+O valor total das parcelas deve ser exatamente igual ao valor total da
+compra parcelada.
+
+Quando o valor da compra não puder ser dividido igualmente entre a
+quantidade de parcelas devido à precisão de centavos, o CyberBank deve
+distribuir a diferença de arredondamento entre as parcelas.
+
+A distribuição dos centavos não pode alterar o valor total da compra.
+
+### 27.7.1 Exemplo
+
+Uma compra de R$ 1.000,00 é parcelada em 3 vezes.
+
+A divisão matemática resulta em:
+
+```text
+R$ 1.000,00 / 3 = R$ 333,333333...
+```
+
+As parcelas podem ser distribuídas como:
+
+```text
+Parcela 1: R$ 333,34
+Parcela 2: R$ 333,33
+Parcela 3: R$ 333,33
+-----------------------
+Total:     R$ 1.000,00
+```
+
+Também é possível que a diferença de centavos seja distribuída em outra
+parcela, desde que a soma final seja exatamente igual ao valor total da
+compra.
+
+### 27.7.2 Regra de Integridade
+
+A soma de todas as parcelas deve ser sempre igual ao valor total da compra.
+
+O sistema não pode gerar um parcelamento no qual:
+
+```text
+Soma das parcelas != valor total da compra
+```
+
+A distribuição de diferenças de arredondamento é uma regra de cálculo e não
+altera o valor original da operação.
+
+### 27.7.3 Alteração do Valor da Compra
+
+Quando o valor total de uma compra parcelada for alterado, a nova série deve
+ser recalculada respeitando a mesma regra.
+
+Exemplo:
+
+```text
+Valor original: R$ 1.000,00
+3 parcelas
+
+R$ 333,34
+R$ 333,33
+R$ 333,33
+```
+
+Se o valor for alterado para R$ 1.001,00:
+
+```text
+R$ 333,67
+R$ 333,67
+R$ 333,66
+----------------
+R$ 1.001,00
+```
+
+A soma das parcelas permanece exatamente igual ao novo valor total da
+compra.
+
+## 27.8 Alteração da Quantidade de Parcelas
+
+A quantidade de parcelas de uma compra parcelada pode ser alterada enquanto
+nenhuma parcela do parcelamento tiver sido efetivada.
+
+Quando a quantidade de parcelas for alterada, o CyberBank deve recalcular a
+série utilizando:
+
+* o valor total original da compra;
+* a nova quantidade de parcelas;
+* as regras de distribuição de centavos.
+
+### 27.8.1 Exemplo
+
+Uma compra de R$ 1.200,00 foi registrada em 12 parcelas:
+
+```text id="w4a0p2"
+12x R$ 100,00
+```
+
+Nenhuma parcela foi efetivada.
+
+O usuário altera o parcelamento para 8 vezes.
+
+O CyberBank recalcula a série:
+
+```text id="n1q6lm"
+8x R$ 150,00
+```
+
+O valor total permanece:
+
+```text id="x2pq9u"
+R$ 1.200,00
+```
+
+O limite global continua comprometido pelo valor total da compra.
+
+### 27.8.2 Parcelamento com Parcela Efetivada
+
+Quando pelo menos uma parcela do parcelamento já tiver sido efetivada, a
+quantidade de parcelas não pode ser alterada diretamente.
+
+O CyberBank deve impedir a alteração e orientar o usuário a utilizar o
+processo de estorno.
+
+A alteração direta não pode modificar parcelas que já foram efetivadas.
+
+### 27.8.3 Estorno
+
+Quando o usuário precisar alterar a quantidade de parcelas depois que uma
+ou mais parcelas já tiverem sido efetivadas, deverá realizar o estorno da
+operação conforme as regras de estorno de compra parcelada.
+
+O estorno considera o valor restante do parcelamento.
+
+Após o estorno, o usuário poderá realizar uma nova compra com a quantidade
+de parcelas desejada, caso essa seja a operação financeira correta.
+
+As parcelas já efetivadas permanecem preservadas no histórico.
+
+## 27.9 Antecipação de Parcelas
+
+O CyberBank não possui funcionalidade de antecipação de parcelas.
+
+As parcelas de uma compra parcelada seguem normalmente seus respectivos
+ciclos de faturamento.
+
+O usuário não pode solicitar que parcelas futuras sejam antecipadas para
+uma fatura anterior.
+
+O CyberBank também não calcula ou concede descontos relacionados à
+antecipação de parcelas.
+
+O pagamento antecipado de parcelas, quando eventualmente realizado fora do
+CyberBank pela instituição mantenedora do cartão, não possui tratamento
+especial no sistema.
+
+O CyberBank mantém somente os lançamentos e pagamentos registrados de
+acordo com suas regras financeiras.
+
+
 ---
 
 ## 28. Estorno de Compra Parcelada
@@ -931,6 +1327,68 @@ A compra original permanece preservada no histórico financeiro.
 
 O lançamento positivo do estorno permanece registrado para representar a
 operação financeira realizada.
+
+## 28.6 Estorno após Quitação da Fatura
+
+Uma compra pode ser estornada mesmo após a fatura que contém a compra ter
+sido integralmente quitada.
+
+Nesse caso, o estorno não altera retroativamente o pagamento realizado.
+
+O estorno gera um crédito positivo no cartão.
+
+O crédito será utilizado automaticamente nas próximas faturas do mesmo
+cartão.
+
+### 28.6.1 Exemplo
+
+Uma compra de R$ 500 foi realizada e incluída em uma fatura.
+
+A fatura foi integralmente paga:
+
+```text id="j1oq5c"
+Compra:                 R$ 500
+Fatura:                 R$ 500
+Pagamento:              R$ 500
+Fatura:                 Quitada
+```
+
+Posteriormente, a compra é estornada em R$ 500.
+
+O CyberBank registra:
+
+```text id="q4i0pj"
+Estorno:                +R$ 500
+Crédito do cartão:       R$ 500
+```
+
+O crédito não altera o pagamento realizado anteriormente.
+
+O crédito permanece disponível para compensação automática nas próximas
+faturas do mesmo cartão.
+
+### 28.6.2 Limite
+
+O estorno libera o limite correspondente ao valor que ainda estiver
+comprometido pela compra.
+
+Se a compra já tiver sido integralmente quitada e todo o limite
+correspondente já tiver sido liberado, o estorno não gera uma segunda
+liberação de limite.
+
+Nesse cenário, o efeito financeiro do estorno é o crédito positivo no
+cartão.
+
+### 28.6.3 Histórico
+
+A compra original permanece preservada no histórico financeiro.
+
+O estorno também permanece registrado no histórico.
+
+A operação original não é apagada fisicamente.
+
+O Mapa de Lançamentos não deve apresentar a compra como gasto ativo após o
+estorno.
 
 
 ---
