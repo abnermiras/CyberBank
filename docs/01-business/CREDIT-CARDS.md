@@ -317,15 +317,17 @@ Quando uma saída é criada utilizando um cartão de crédito:
 
 O extrato e a fatura representam visões diferentes do mesmo lançamento. O lançamento não é duplicado.
 
-### 12.1 Data de Lançamento
-
-A data de lançamento é a data em que o item foi registrado no CyberBank.
-
 ### 12.2 Data de Efetivação
 
-A data de efetivação é a data do pagamento que completar a quitação integral da fatura à qual o lançamento pertence.
+A data de efetivação representa a data em que o lançamento foi considerado
+financeiramente realizado.
 
-O vencimento da fatura não determina automaticamente a data de efetivação.
+Para lançamentos de cartão de crédito, existem duas situações:
+
+#### 12.2.1 Quitação por Pagamento
+
+Quando a fatura é quitada por pagamento, a data de efetivação dos lançamentos
+é a data do pagamento que completou a quitação integral da fatura.
 
 Exemplo:
 
@@ -337,18 +339,6 @@ Pagamento final:         25/08
 
 Data de lançamento:      05/08
 Data de efetivação:      25/08
-```
-
-### 12.3 Situação dos Lançamentos
-
-Os lançamentos de cartão de crédito permanecem `Previstos` até que a fatura correspondente seja integralmente quitada.
-
-O fechamento da fatura não altera a situação do lançamento.
-
-Pagamento parcial não altera a situação dos lançamentos.
-
-Somente a quitação integral da fatura permite que os lançamentos correspondentes passem para `Realizados`.
-
 ---
 
 ## 13. Pagamento da Fatura
@@ -407,7 +397,10 @@ Quando a fatura for quitada:
 
 * a fatura passa para `Quitada`;
 * todos os lançamentos da fatura passam para `Realizados`;
-* a data de efetivação dos lançamentos é a data do pagamento ou compensação que completou a quitação;
+* a data de efetivação dos lançamentos é definida pelas regras de efetivação:
+  a data do pagamento que completou a quitação, quando houver pagamento, ou a
+  data de vencimento da própria fatura, quando a quitação ocorrer por
+  compensação de crédito;
 * o limite correspondente aos lançamentos quitados é liberado;
 * os efeitos financeiros do pagamento são refletidos na conta utilizada.
 
@@ -453,36 +446,18 @@ Os lançamentos da fatura são efetivados e o saldo excedente permanece como cr�
 
 O crédito é aplicado automaticamente à próxima fatura do mesmo cartão.
 
-Se o crédito for menor que a nova fatura:
+Se o crédito for menor que a nova fatura, o crédito é integralmente utilizado
+e o valor restante deve ser pago normalmente.
+
+Exemplo:
 
 ```text
 Crédito anterior:   R$ 200
 Nova fatura:        R$ 500
+
+Crédito aplicado:   R$ 200
 Valor líquido:      R$ 300
 Crédito restante:   R$ 0
-```
-
-Se o crédito for igual à nova fatura:
-
-```text
-Crédito:            R$ 500
-Nova fatura:        R$ 500
-Valor líquido:      R$ 0
-```
-
-A fatura fica integralmente compensada pelo crédito e os lançamentos são considerados `Realizados`, conforme as regras de quitação.
-
-Se o crédito for superior à nova fatura:
-
-```text
-Crédito anterior:   R$ 800
-Nova fatura:        R$ 500
-Valor compensado:   R$ 500
-Crédito restante:   R$ 300
-```
-
-O saldo restante continua vinculado ao mesmo cartão para o ciclo seguinte.
-
 ### 14.3 Crédito e Limite
 
 Crédito de fatura e limite de crédito são conceitos distintos.
@@ -492,6 +467,45 @@ O crédito representa valor já pago ou creditado em favor do usuário. O limite
 O crédito não aumenta o limite global configurado.
 
 Novas compras continuam consumindo o limite global normalmente.
+
+### 14.3 Crédito e Limite
+
+Crédito de fatura e limite de crédito são conceitos distintos.
+
+O limite representa a capacidade de crédito disponibilizada pelo contrato.
+
+O crédito representa um valor já pago ou creditado em favor do usuário e
+disponível para compensação de futuras faturas.
+
+O crédito de fatura nunca aumenta o limite global configurado para o contrato.
+
+Exemplo:
+
+```text
+Limite global:       R$ 5.000
+Limite disponível:   R$ 5.000
+Crédito de fatura:   R$ 2.000
+
+### 14.4 Crédito de Cartão Desativado
+
+O crédito de fatura permanece vinculado ao cartão que originou o crédito,
+mesmo quando esse cartão for desativado.
+
+A desativação do cartão não:
+
+* elimina o crédito;
+* transfere o crédito para outro cartão;
+* transfere o crédito para o contrato de forma genérica;
+* libera o crédito para utilização em outro cartão.
+
+O crédito permanece disponível para consulta no histórico do cartão
+desativado.
+
+Como o cartão desativado não aceita novos lançamentos, o crédito não será
+utilizado em novas compras realizadas nesse cartão.
+
+O crédito permanece vinculado ao cartão para preservação do histórico
+financeiro da operação.
 
 ---
 
@@ -786,7 +800,8 @@ Quando o encargo estiver relacionado a uma fatura, o usuário poderá associá-l
 
 ## 21. Histórico e Desativação
 
-Operações relacionadas ao cartão não devem remover permanentemente informações financeiras que possuam histórico.
+Operações relacionadas ao cartão não devem remover permanentemente
+informações financeiras que possuam histórico.
 
 Devem permanecer disponíveis para consulta:
 
@@ -796,14 +811,51 @@ Devem permanecer disponíveis para consulta:
 * parcelas;
 * pagamentos;
 * estornos;
+* créditos de fatura;
 * alterações de limite;
 * demais registros financeiros relacionados ao contrato.
 
-A exclusão de um lançamento ou a desativação de um cartão não elimina o histórico financeiro.
+A exclusão de um lançamento ou a desativação de um cartão não elimina o
+histórico financeiro.
 
-Um cartão desativado não pode receber novos lançamentos.
+### 21.1 Desativação do Cartão
 
-Compras parceladas existentes permanecem válidas e continuam sendo cobradas normalmente até sua conclusão ou estorno conforme as regras deste documento.
+Um cartão pode ser desativado pelo titular do contrato.
+
+A desativação impede novos lançamentos utilizando aquele cartão.
+
+A desativação não:
+
+* cancela faturas existentes;
+* cancela parcelas futuras;
+* remove lançamentos históricos;
+* altera pagamentos já realizados;
+* libera automaticamente limite comprometido;
+* elimina créditos existentes.
+
+### 21.2 Faturas de Cartão Desativado
+
+As faturas existentes continuam seguindo normalmente seu ciclo financeiro
+mesmo após a desativação do cartão.
+
+Uma fatura pendente continua podendo receber pagamentos.
+
+O usuário continua podendo quitar a fatura conforme as regras normais de
+pagamento.
+
+Quando a fatura for integralmente quitada, o limite correspondente aos seus
+lançamentos será liberado para o limite global do contrato.
+
+Exemplo:
+
+```text
+Cartão desativado
+
+Fatura:              R$ 1.000
+Pagamento parcial:   R$   400
+Saldo pendente:      R$   600
+
+Limite comprometido: R$ 1.000
 
 ---
 
