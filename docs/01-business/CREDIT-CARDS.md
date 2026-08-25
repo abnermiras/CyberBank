@@ -65,108 +65,209 @@ A empresa mantenedora deve ser informada no momento da criação do cartão.
 
 ---
 
-## 4. Associação com Banco
+## 4. Associação do Cartão
 
-O cartão de crédito pode possuir uma associação com um banco cadastrado no
-ambiente financeiro.
+Um cartão de crédito pode estar associado a um banco ou a uma empresa
+mantenedora que não seja um banco.
 
-Quando a empresa mantenedora for um banco e esse banco já estiver
-cadastrado no ambiente do usuário, o cartão de crédito pode ser associado
-diretamente ao banco existente.
+A associação determina qual entidade será apresentada ao usuário como
+origem do meio de pagamento durante a criação de uma movimentação.
 
-Nesse caso, o cartão utiliza o banco já cadastrado no ambiente como sua
-instituição associada.
+### 4.1 Cartão Associado a Banco
 
-A empresa mantenedora do contrato continua sendo identificada pelo banco
-associado.
-
-### 4.1 Banco não cadastrado
-
-Quando a empresa mantenedora for um banco que ainda não estiver cadastrado
-no ambiente do usuário, o cartão de crédito pode ser criado sem associação
-a uma conta bancária existente.
-
-Nesse caso, o CyberBank deve manter a informação da empresa mantenedora
-informada no cadastro do cartão.
-
-O cadastro do cartão não cria automaticamente uma conta bancária.
-
-Posteriormente, o usuário poderá cadastrar o banco e associar o cartão,
-conforme as regras de associação definidas pelo sistema.
-
----
-
-## 5. Empresa Mantenedora não Bancária
-
-Uma empresa não bancária também pode ser responsável por um contrato de
-cartão de crédito.
+Quando o cartão de crédito estiver associado a um banco cadastrado no
+ambiente financeiro, o banco será utilizado como entidade de seleção no
+lançamento.
 
 Exemplo:
 
-Um usuário cria um cartão de crédito `iFood`.
+O usuário cria o cartão:
 
-No momento da criação:
+* banco: `Nubank`;
+* cartão: `Ultravioleta`;
+* últimos quatro dígitos: `1234`;
+* limite: `R$ 50.000,00`.
 
-* empresa mantenedora: `iFood`;
+Ao criar uma saída financeira, o usuário seleciona:
+
+1. `Banco Nubank` como conta ou entidade de pagamento;
+2. `Ultravioleta ****-1234` como forma de pagamento.
+
+O cartão de crédito será apresentado como uma forma de pagamento
+disponível para a entidade selecionada.
+
+### 4.2 Cartão Associado a Empresa não Bancária
+
+Um cartão de crédito também pode ser mantido por uma empresa que não seja
+um banco.
+
+Nesse caso, a empresa mantenedora será utilizada como entidade de seleção
+durante a criação da movimentação.
+
+Exemplo:
+
+O usuário cria o cartão:
+
+* empresa mantenedora: `Lojas Marisa`;
 * banco associado: nenhum;
-* nome do cartão: definido pelo usuário;
-* últimos quatro dígitos: informados pelo usuário;
-* limite global: definido pelo usuário.
+* cartão: `Cartão Marisa`;
+* últimos quatro dígitos: `1234`;
+* limite: definido pelo usuário.
 
-O cartão permanece válido mesmo sem possuir um banco associado.
+Ao criar uma saída financeira, o usuário seleciona:
 
-A empresa mantenedora continua registrada como responsável pelo contrato.
+1. `Lojas Marisa` como entidade de pagamento;
+2. `Cartão Marisa ****-1234` como forma de pagamento.
+
+A empresa mantenedora passa a aparecer na seleção mesmo não sendo uma conta
+bancária.
+
+### 4.3 Entidade de Pagamento
+
+Para fins de criação de uma movimentação, o CyberBank considera como
+entidade de pagamento a instituição associada ao cartão de crédito.
+
+Essa entidade pode ser:
+
+* um banco;
+* uma empresa mantenedora não bancária.
+
+A entidade apresentada ao usuário depende da associação definida no
+cadastro do cartão.
+
+O cartão de crédito é apresentado como uma forma de pagamento vinculada à
+entidade.
 
 ---
 
-## 6. Cartão sem Banco Associado
+## 5. Cartão como Forma de Pagamento
 
-Um cartão de crédito não precisa obrigatoriamente estar associado a um
-banco cadastrado no ambiente.
+O cartão de crédito é uma forma de pagamento disponível durante a criação
+de uma movimentação de saída.
 
-São situações válidas:
+O usuário não seleciona diretamente o cartão como primeira opção de
+pagamento.
 
-* cartão mantido por um banco cadastrado no ambiente;
-* cartão mantido por um banco ainda não cadastrado no ambiente;
-* cartão mantido por uma empresa não bancária;
-* cartão sem banco associado.
+O fluxo de seleção ocorre em duas etapas:
 
-A ausência de banco associado não impede a utilização do cartão nem o
-controle de seu contrato de crédito.
+1. seleção da entidade de pagamento;
+2. seleção da forma de pagamento disponível para a entidade.
+
+Quando a entidade selecionada possuir cartões de crédito disponíveis para o
+ambiente, esses cartões devem aparecer como formas de pagamento.
+
+### 5.1 Exemplo — Cartão associado ao Nubank
+
+O usuário possui:
+
+* banco: `Nubank`;
+* cartão: `Ultravioleta ****-1234`;
+* limite: `R$ 50.000,00`.
+
+Durante o lançamento de uma saída:
+
+```text
+Entidade de pagamento
+└── Nubank
+
+Forma de pagamento
+└── Ultravioleta ****-1234
+```
+
+O lançamento utiliza o cartão `Ultravioleta ****-1234`.
+
+### 5.2 Exemplo — Cartão associado à Lojas Marisa
+
+O usuário possui:
+
+* empresa mantenedora: `Lojas Marisa`;
+* cartão: `Cartão Marisa ****-1234`;
+* limite: definido no cadastro.
+
+Durante o lançamento de uma saída:
+
+```text
+Entidade de pagamento
+└── Lojas Marisa
+
+Forma de pagamento
+└── Cartão Marisa ****-1234
+```
+
+A `Lojas Marisa` aparece na seleção mesmo não sendo uma conta bancária.
 
 ---
 
-## 7. Informações do Cartão
+## 6. Configuração do Faturamento
 
-O CyberBank deve manter as informações necessárias para identificar o
-cartão de crédito.
+O cartão de crédito deve possuir informações necessárias para determinar o
+ciclo de faturamento.
 
-As informações principais são:
+No momento da criação do cartão, o usuário deve informar:
 
-* empresa mantenedora;
-* banco associado, quando houver;
+* data de vencimento da fatura;
+* regra de fechamento da fatura.
+
+A data de vencimento representa o dia do mês no qual a fatura deve ser
+paga.
+
+O fechamento pode ser definido como uma quantidade de dias anterior ao
+vencimento.
+
+### 6.1 Exemplo
+
+O usuário cria o cartão:
+
+* vencimento: dia `18`;
+* fechamento: `5 dias antes do vencimento`.
+
+O CyberBank deverá determinar o fechamento da fatura de acordo com essa
+configuração.
+
+A configuração pertence ao contrato de cartão de crédito.
+
+As regras completas de geração, fechamento, vencimento e pagamento das
+faturas serão definidas nas seções específicas de faturamento.
+
+---
+
+## 7. Identificação no Lançamento
+
+Quando um cartão de crédito estiver disponível como forma de pagamento,
+o sistema deve apresentar informações suficientes para que o usuário
+identifique qual cartão está utilizando.
+
+A identificação deve conter:
+
 * nome do cartão;
-* últimos quatro dígitos;
-* limite global.
+* últimos quatro dígitos.
 
-O número completo do cartão não é armazenado pelo CyberBank.
+Exemplo:
+
+```text
+Ultravioleta ****-1234
+```
+
+O CyberBank não deve exibir ou armazenar o número completo do cartão.
 
 ---
 
-## 8. Limite Global
+## 8. Disponibilidade da Forma de Pagamento
 
-Todo contrato de cartão de crédito possui um limite global.
+Um cartão de crédito somente deve aparecer como forma de pagamento quando
+estiver disponível para utilização no ambiente financeiro do usuário.
 
-O limite global é definido pelo usuário no momento da criação do cartão.
+A disponibilidade deve considerar:
 
-O usuário pode alterar posteriormente o limite global do cartão.
+* vínculo do cartão com o ambiente;
+* situação do cartão;
+* permissões do usuário;
+* existência de limite disponível, conforme as regras de limite;
+* demais restrições de utilização definidas pelo contrato.
 
-O limite global representa o valor máximo de crédito disponível para o
-contrato, conforme as regras de consumo e comprometimento de limite
-definidas pelo CyberBank.
+Um cartão que não esteja disponível para utilização não deve ser
+apresentado como forma de pagamento válida no lançamento.
 
-As regras de consumo, comprometimento, liberação e cálculo do limite serão
-definidas nas seções específicas de utilização do cartão e faturamento.
 
 ---
 
