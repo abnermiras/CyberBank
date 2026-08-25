@@ -2,26 +2,19 @@
 
 ## 1. Conceito
 
-Um cartão de crédito representa um contrato de crédito criado pelo usuário
-dentro de um ambiente financeiro.
+Um cartão de crédito representa um contrato de crédito criado pelo usuário dentro de um ambiente financeiro.
 
-O contrato de cartão de crédito pertence ao usuário que realizou sua criação
-e ao ambiente financeiro no qual foi criado.
+O contrato pertence ao usuário que realizou sua criação e ao ambiente financeiro no qual foi criado.
 
-O cartão pode estar associado a um banco ou a uma empresa mantenedora que
-não seja um banco.
+O cartão pode estar associado a um banco ou ser mantido por uma empresa ou outra entidade não bancária.
 
-O contrato possui um limite global de crédito.
-
-O limite global pertence ao contrato e é compartilhado por todos os cartões
-vinculados ao contrato.
+O contrato possui um limite global de crédito. O limite pertence ao contrato e é compartilhado por todos os cartões vinculados a ele.
 
 ---
 
 ## 2. Cadastro do Cartão de Crédito
 
-O usuário pode criar um cartão de crédito dentro de seu ambiente
-financeiro.
+O usuário pode criar um cartão de crédito dentro de seu ambiente financeiro.
 
 No momento da criação devem ser informados:
 
@@ -31,55 +24,25 @@ No momento da criação devem ser informados:
 * empresa mantenedora;
 * banco associado, quando aplicável;
 * dia de vencimento da fatura;
-* quantidade de dias anteriores ao vencimento utilizada para fechamento
-  da fatura.
+* quantidade de dias anteriores ao vencimento utilizada para fechamento da fatura.
 
 O limite global pode ser alterado posteriormente pelo titular do contrato.
 
-Os últimos quatro dígitos são utilizados somente para identificação.
-
-O CyberBank não armazena o número completo do cartão.
+Os últimos quatro dígitos são utilizados somente para identificação. O CyberBank não armazena o número completo do cartão.
 
 ---
 
-## 3. Empresa Mantenedora
+## 3. Empresa Mantenedora e Associação com Banco
 
 Todo contrato de cartão de crédito possui uma empresa mantenedora.
 
-A empresa mantenedora representa a instituição responsável pelo contrato de
-crédito.
+A empresa mantenedora representa a instituição responsável pelo contrato de crédito e pode ser um banco, instituição financeira, empresa não bancária ou outra entidade responsável pelo contrato.
 
-A empresa mantenedora pode ser:
+A associação com um banco cadastrado no ambiente é opcional.
 
-* banco;
-* instituição financeira;
-* empresa não bancária;
-* outra entidade responsável pelo contrato.
+### 3.1 Mantenedora Bancária já Cadastrada
 
-Exemplos:
-
-* Nubank;
-* Santander;
-* Itaú;
-* Banco Inter;
-* Lojas Marisa;
-* iFood.
-
-A empresa mantenedora deve ser informada no cadastro do cartão.
-
----
-
-## 4. Associação com Banco
-
-Um cartão de crédito pode estar associado a um banco cadastrado no ambiente
-financeiro.
-
-A associação com banco é opcional.
-
-### 4.1 Cartão Associado a Banco
-
-Quando a empresa mantenedora for um banco e esse banco estiver cadastrado
-no ambiente do usuário, o cartão pode ser associado ao banco existente.
+Quando a empresa mantenedora for um banco e esse banco já estiver cadastrado no ambiente do usuário, o cartão deve ser associado ao banco existente.
 
 Exemplo:
 
@@ -89,27 +52,15 @@ Cartão: Ultravioleta ****-1234
 Limite: R$ 50.000,00
 ```
 
-Durante o lançamento de uma saída, o usuário seleciona:
+Durante o lançamento de uma saída, o usuário seleciona o banco e o cartão aparece como forma de pagamento.
 
-```text
-Entidade de pagamento
-└── Nubank
+### 3.2 Mantenedora Bancária não Cadastrada
 
-Forma de pagamento
-└── Ultravioleta ****-1234
-```
+Quando a empresa mantenedora for um banco que não estiver cadastrado no ambiente, o cartão pode ser criado sem associação a um banco cadastrado.
 
-### 4.2 Banco não Cadastrado
+A informação da empresa mantenedora permanece armazenada no contrato. O cadastro do cartão não cria automaticamente uma conta bancária.
 
-Quando a empresa mantenedora for um banco que não estiver cadastrado no
-ambiente, o usuário pode criar o cartão sem associá-lo a um banco
-cadastrado.
-
-A informação da empresa mantenedora permanece armazenada no contrato.
-
-O cadastro do cartão não cria automaticamente uma conta bancária.
-
-### 4.3 Empresa não Bancária
+### 3.3 Mantenedora não Bancária
 
 Um cartão pode ser mantido por uma empresa que não seja um banco.
 
@@ -121,33 +72,17 @@ Banco associado: nenhum
 Cartão: Cartão Marisa ****-1234
 ```
 
-Durante o lançamento:
-
-```text
-Entidade de pagamento
-└── Lojas Marisa
-
-Forma de pagamento
-└── Cartão Marisa ****-1234
-```
-
-A empresa mantenedora pode aparecer como entidade de pagamento mesmo não
-sendo uma conta bancária.
+Durante o lançamento, a empresa mantenedora pode aparecer como entidade de pagamento e o cartão como forma de pagamento.
 
 ---
 
-## 5. Cartão como Forma de Pagamento
+## 4. Cartão como Forma de Pagamento
 
-O cartão de crédito é uma forma de pagamento utilizada em lançamentos de
-saída.
+O cartão de crédito é uma forma de pagamento utilizada em lançamentos de saída.
 
-Durante a criação de uma saída, o usuário seleciona:
+Durante a criação de uma saída, o usuário seleciona a entidade de pagamento e a forma de pagamento disponível para essa entidade.
 
-1. a entidade de pagamento;
-2. a forma de pagamento disponível para a entidade.
-
-Quando a entidade possuir cartões de crédito disponíveis no ambiente, os
-cartões correspondentes aparecem como formas de pagamento.
+Quando a entidade possuir cartões de crédito disponíveis no ambiente, os cartões correspondentes aparecem como formas de pagamento.
 
 A identificação do cartão deve apresentar:
 
@@ -164,36 +99,23 @@ O número completo do cartão não é armazenado ou exibido.
 
 ---
 
-## 6. Limite Global
+## 5. Limite Global
 
 Todo contrato de cartão de crédito possui um limite global.
 
-O limite é definido pelo titular no momento da criação do contrato.
+O limite é definido pelo titular no momento da criação do contrato e pode ser alterado posteriormente pelo titular.
 
-O titular pode alterar o limite posteriormente.
-
-Todos os cartões vinculados ao contrato compartilham o mesmo limite global.
-
-Isso inclui:
-
-* cartão principal;
-* cartões virtuais;
-* cartões adicionais;
-* cartões compartilhados.
+Todos os cartões vinculados ao contrato compartilham o mesmo limite global, incluindo cartões principais, virtuais, adicionais e compartilhados.
 
 Não existe limite independente por cartão.
 
-### 6.1 Limite como Informação Financeira
+### 5.1 Limite como Informação Financeira
 
-O limite não é uma trava para novos lançamentos.
+O limite é uma informação financeira e não uma trava operacional.
 
-O CyberBank não impede uma nova compra quando o limite disponível for
-insuficiente.
+O CyberBank não impede uma nova compra quando o limite disponível for insuficiente.
 
-O sistema deve permitir que o limite disponível fique negativo.
-
-O limite disponível é calculado considerando o limite global e o valor
-comprometido pelo contrato.
+O limite disponível pode ficar negativo.
 
 Exemplo:
 
@@ -215,24 +137,17 @@ O sistema continua permitindo novos lançamentos.
 
 ---
 
-## 7. Consumo do Limite
+## 6. Consumo do Limite
 
-Um lançamento realizado com cartão de crédito consome o limite global do
-contrato imediatamente.
-
-O consumo ocorre no momento em que o lançamento é registrado.
+Um lançamento realizado com cartão de crédito compromete o limite global do contrato imediatamente, no momento em que é registrado.
 
 O consumo independe da situação `Prevista` ou `Realizada` do lançamento.
 
-O valor comprometido permanece associado ao contrato até que seja liberado
-pelas regras de pagamento da fatura ou por exclusão ou estorno da compra.
+O valor comprometido permanece associado ao contrato até ser liberado pelas regras de quitação, exclusão ou estorno.
 
----
+### 6.1 Compra à Vista
 
-## 8. Compra à Vista
-
-Uma compra à vista compromete imediatamente o valor total da compra no
-limite global do contrato.
+Uma compra à vista compromete imediatamente o valor total da compra.
 
 Exemplo:
 
@@ -243,12 +158,9 @@ Limite comprometido: R$ 1.000
 Limite disponível:   R$ 49.000
 ```
 
----
+### 6.2 Compra Parcelada
 
-## 9. Compra Parcelada
-
-Uma compra parcelada compromete imediatamente o valor total da compra no
-limite global do contrato.
+Uma compra parcelada compromete imediatamente o valor total da compra.
 
 Exemplo:
 
@@ -260,66 +172,49 @@ Comprometimento inicial do limite:
 R$ 1.200
 ```
 
-O limite é liberado progressivamente conforme as parcelas forem quitadas.
+O valor comprometido de uma parcela somente é liberado quando a fatura que contém aquela parcela for integralmente quitada.
 
-Nesse exemplo, a cada parcela integralmente paga, R$ 100 do limite
-comprometido é liberado.
+Nesse exemplo, a quitação da fatura contendo uma parcela de R$ 100 libera R$ 100 do limite comprometido.
 
-O parcelamento não cria um limite separado por cartão.
+Pagamento parcial da fatura não libera limite.
 
 ---
 
-## 10. Cartões Virtuais
+## 7. Cartões Virtuais
 
 O titular pode criar cartões virtuais vinculados ao contrato.
 
-O cartão virtual não constitui um novo contrato.
-
-O cartão virtual utiliza o limite global do contrato.
+O cartão virtual não constitui um novo contrato e utiliza o limite global do contrato.
 
 Cada cartão virtual possui sua própria identificação e sua própria fatura.
 
-Os lançamentos realizados no cartão virtual seguem as mesmas regras de
-lançamento, limite e faturamento dos demais cartões do contrato.
+Os lançamentos realizados no cartão virtual seguem as mesmas regras de lançamento, limite e faturamento dos demais cartões do contrato.
 
 ---
 
-## 11. Cartões Adicionais
+## 8. Cartões Adicionais
 
-O titular do contrato pode criar cartões adicionais para outros usuários
-do CyberBank.
+O titular do contrato pode criar cartões adicionais para outros usuários do CyberBank.
 
-O cartão adicional não constitui um novo contrato.
-
-O cartão adicional permanece vinculado ao contrato do titular.
-
-O cartão adicional utiliza o limite global do contrato.
+O cartão adicional não constitui um novo contrato, permanece vinculado ao contrato do titular e utiliza o limite global do contrato.
 
 Não existe limite individual para cartão adicional.
 
-### 11.1 Recebimento
+### 8.1 Recebimento
 
-Após a criação, o cartão adicional é disponibilizado ao usuário
-destinatário.
+Após a criação, o cartão adicional é disponibilizado ao usuário destinatário.
 
-O usuário destinatário deve aceitar o recebimento.
-
-Ao aceitar, o usuário escolhe em qual de seus ambientes financeiros o
-cartão adicional será disponibilizado.
+O usuário destinatário deve aceitar o recebimento e escolher em qual de seus ambientes financeiros o cartão será disponibilizado.
 
 O cartão passa a ser uma forma de pagamento disponível naquele ambiente.
 
-### 11.2 Propriedade
+### 8.2 Propriedade
 
-O usuário destinatário não se torna proprietário do contrato.
+O usuário destinatário não se torna proprietário do contrato. O titular continua sendo o proprietário do contrato e responsável por sua estrutura de limite.
 
-O titular continua sendo o proprietário do contrato e responsável por sua
-estrutura de limite.
+O usuário destinatário recebe apenas o direito de utilização do cartão adicional.
 
-O usuário destinatário recebe apenas o direito de utilização do cartão
-adicional.
-
-### 11.3 Lançamentos
+### 8.3 Lançamentos e Fatura
 
 Os lançamentos realizados pelo usuário do cartão adicional:
 
@@ -331,41 +226,27 @@ Os lançamentos realizados pelo usuário do cartão adicional:
 
 ---
 
-## 12. Cartões Compartilhados
+## 9. Cartões Compartilhados
 
-O titular pode compartilhar um cartão existente com outro usuário do
-CyberBank.
+O titular pode compartilhar um cartão existente com outro usuário do CyberBank.
 
-O compartilhamento não cria um novo contrato.
+O compartilhamento não cria um novo contrato. O cartão continua pertencendo ao contrato original e utiliza seu limite global.
 
-O cartão continua pertencendo ao contrato original.
+O usuário que recebe o compartilhamento deve aceitar o recebimento e escolher em qual de seus ambientes o cartão será disponibilizado.
 
-O usuário que recebe o compartilhamento deve aceitar o recebimento e
-escolher em qual de seus ambientes o cartão será disponibilizado.
+O compartilhamento representa a concessão de utilização do cartão a outro usuário, sem transferência de propriedade.
 
-O cartão compartilhado passa a estar disponível como forma de pagamento
-nesse ambiente.
-
-O compartilhamento pode ser entendido como a concessão de utilização do
-cartão a outro usuário, sem transferência de propriedade.
-
-O cartão continua possuindo sua própria fatura.
-
-Os lançamentos realizados pelo usuário compartilhado aparecem na fatura do
-mesmo cartão.
+O cartão compartilhado possui sua própria fatura. Os lançamentos realizados pelo usuário compartilhado aparecem na fatura desse mesmo cartão.
 
 ---
 
-## 13. Faturas
+## 10. Faturas
 
 Cada cartão possui suas próprias faturas.
 
-A fatura é vinculada a um cartão específico.
+A fatura é vinculada a um cartão específico. Cartões diferentes do mesmo contrato possuem faturas diferentes.
 
-Cartões diferentes do mesmo contrato possuem faturas diferentes.
-
-As faturas dos cartões pertencentes ao mesmo contrato ficam reunidas sob o
-mesmo contrato para fins de responsabilidade e visualização do titular.
+As faturas dos cartões pertencentes ao mesmo contrato ficam reunidas sob o mesmo contrato para fins de responsabilidade e visualização do titular.
 
 Exemplo:
 
@@ -385,12 +266,11 @@ Contrato
       └── Faturas
 ```
 
-O titular do contrato consegue visualizar todas as faturas de todos os
-cartões vinculados ao contrato.
+O titular do contrato consegue visualizar todas as faturas de todos os cartões vinculados ao contrato.
 
 ---
 
-## 14. Ciclo de Faturamento
+## 11. Ciclo de Faturamento
 
 O usuário define no cadastro do cartão:
 
@@ -401,207 +281,51 @@ O CyberBank calcula automaticamente a data de fechamento da fatura.
 
 As compras respeitam o ciclo de faturamento.
 
-Um lançamento realizado antes do fechamento pertence à fatura atual.
+Um lançamento registrado antes do fechamento pertence à fatura atual. Um lançamento registrado depois do fechamento pertence à próxima fatura.
 
-Um lançamento realizado depois do fechamento pertence à próxima fatura.
+### 11.1 Fechamento Automático
 
----
+Quando o sistema identificar que chegou a data configurada para fechamento, a fatura atual será fechada automaticamente e uma nova fatura será aberta para o próximo ciclo.
 
-## 15. Fechamento Automático
+Os lançamentos realizados posteriormente passam a pertencer à nova fatura.
 
-Quando o sistema identificar que chegou a data configurada para fechamento,
-a fatura atual será fechada automaticamente.
-
-Após o fechamento, uma nova fatura é aberta para o próximo ciclo.
-
-Os lançamentos realizados posteriormente passam a pertencer à nova
-fatura.
-
----
-
-## 16. Fechamento Manual
+### 11.2 Fechamento Manual
 
 O titular do contrato pode fechar manualmente a fatura a qualquer momento.
 
-O fechamento manual produz o mesmo efeito do fechamento automático.
+Os lançamentos registrados antes do fechamento permanecem na fatura que está sendo fechada. Os lançamentos registrados depois do fechamento passam para a próxima fatura.
 
-Os lançamentos registrados antes do fechamento permanecem na fatura que
-está sendo fechada.
+O usuário pode fechar novamente a fatura após realizar ajustes. O sistema não deve impor restrições artificiais que impeçam a correção operacional.
 
-Os lançamentos registrados depois do fechamento passam para a próxima
-fatura.
-
-O sistema não deve impedir o usuário de realizar novos fechamentos ou
-ajustes necessários ao controle da fatura.
-
----
-
-## 17. Reabertura da Fatura
+### 11.3 Reabertura
 
 O titular do contrato pode reabrir uma fatura fechada.
 
-Uma fatura reaberta pode receber novos lançamentos.
+Uma fatura reaberta pode receber novos lançamentos e pode ser fechada novamente pelo titular.
 
-O titular pode novamente fechar a fatura após realizar os ajustes
-necessários.
-
-O sistema deve permitir a correção operacional da fatura sem criar
-restrições artificiais que impeçam o usuário de ajustar seu controle
-financeiro.
-
-O pagamento parcial ou integral já realizado deve continuar registrado.
-
-A situação da fatura será determinada pela relação entre o valor devido e
-os pagamentos realizados.
+Pagamentos já registrados permanecem registrados. A situação financeira da fatura deve continuar sendo determinada pelos valores devidos, créditos e pagamentos existentes.
 
 ---
 
-## 18. Lançamentos na Fatura
+## 12. Lançamentos, Datas e Situação
 
 Quando uma saída é criada utilizando um cartão de crédito:
 
 1. o lançamento aparece no extrato de lançamentos;
-2. o lançamento aparece na fatura do cartão utilizado;
+2. o mesmo lançamento aparece na fatura do cartão utilizado;
 3. o valor compromete o limite global do contrato.
 
-O extrato e a fatura representam visões diferentes do mesmo lançamento.
+O extrato e a fatura representam visões diferentes do mesmo lançamento. O lançamento não é duplicado.
 
-O lançamento não é duplicado.
+### 12.1 Data de Lançamento
 
----
+A data de lançamento é a data em que o item foi registrado no CyberBank.
 
-## 19. Datas do Lançamento
+### 12.2 Data de Efetivação
 
-Uma movimentação realizada com cartão possui:
+A data de efetivação é a data do pagamento que completar a quitação integral da fatura à qual o lançamento pertence.
 
-* **Data de lançamento:** data em que o item foi registrado no CyberBank;
-* **Data de efetivação:** data de vencimento da fatura à qual o lançamento
-  pertence.
-
-A data de lançamento representa o registro da operação.
-
-A data de efetivação representa o vencimento da fatura.
-
----
-
-## 20. Situação dos Lançamentos
-
-Os lançamentos de cartão de crédito permanecem `Previstos` até que a
-fatura correspondente seja integralmente paga.
-
-O fechamento da fatura não altera a situação do lançamento.
-
-O pagamento parcial da fatura não altera a situação dos lançamentos.
-
-Somente o pagamento integral da fatura permite que os lançamentos
-correspondentes passem para `Realizados`.
-
----
-
-## 21. Pagamento da Fatura
-
-Uma fatura fechada pode ser paga utilizando qualquer banco cadastrado no
-ambiente financeiro.
-
-O usuário seleciona:
-
-1. o banco ou conta que realizará o pagamento;
-2. a forma de pagamento disponível para essa conta.
-
-O pagamento da fatura não pode utilizar outro cartão de crédito.
-
-O pagamento gera os efeitos financeiros correspondentes nos extratos e
-saldos da conta utilizada.
-
-O pagamento também atualiza o valor comprometido do contrato e o limite
-disponível.
-
-### 21.1 Pagamento Parcial
-
-O pagamento parcial é permitido.
-
-Quando ocorre um pagamento parcial:
-
-* o valor pago é registrado;
-* o valor devido da fatura é reduzido;
-* a fatura permanece não quitada;
-* os lançamentos permanecem `Previstos`;
-* o limite correspondente permanece comprometido.
-
-Pagamento parcial não libera limite.
-
-### 21.2 Pagamento Integral
-
-Quando o total pago atingir o valor devido da fatura:
-
-* a fatura é quitada;
-* os lançamentos da fatura passam para `Realizados`;
-* o limite correspondente é liberado;
-* os saldos das contas são atualizados conforme o pagamento realizado.
-
-  ## 21.3 Quitação da Fatura
-
-A quitação financeira ocorre no nível da fatura.
-
-Um pagamento parcial não determina quais lançamentos individuais foram
-pagos.
-
-Enquanto a fatura não estiver integralmente quitada:
-
-* a fatura permanece pendente;
-* todos os lançamentos da fatura permanecem `Previstos`;
-* todo o valor comprometido pelos lançamentos permanece comprometendo o
-  limite global do contrato;
-* os pagamentos parciais são apenas acumulados no histórico financeiro da
-  fatura.
-
-O CyberBank não distribui pagamentos parciais entre os lançamentos
-individuais da fatura.
-
-### 21.3.1 Exemplo
-
-Uma fatura possui dez lançamentos de R$ 10,00:
-
-```text
-Total da fatura: R$ 100,00
-```
-
-O usuário realiza um pagamento parcial de R$ 50,00.
-
-O resultado é:
-
-```text
-Valor da fatura:       R$ 100,00
-Valor pago:             R$ 50,00
-Valor pendente:         R$ 50,00
-Situação da fatura:     Pendente
-```
-
-Todos os dez lançamentos permanecem `Previstos`.
-
-Nenhum lançamento individual é considerado quitado.
-
-Os R$ 100,00 continuam comprometendo o limite global do contrato.
-
-Quando o usuário realizar um novo pagamento de R$ 50,00:
-
-```text
-Valor da fatura:       R$ 100,00
-Valor pago acumulado:  R$ 100,00
-Valor pendente:          R$ 0,00
-Situação da fatura:     Quitada
-```
-
-Nesse momento, todos os lançamentos da fatura são efetivados.
-
-### 21.3.2 Data de Efetivação
-
-Quando uma fatura é quitada, todos os lançamentos pertencentes à fatura
-passam para `Realizados` na data do pagamento que completou o valor total
-da fatura.
-
-A data de efetivação dos lançamentos corresponde, portanto, à data em que
-a fatura foi integralmente quitada.
+O vencimento da fatura não determina automaticamente a data de efetivação.
 
 Exemplo:
 
@@ -610,294 +334,207 @@ Data da compra:          05/08
 Vencimento da fatura:    18/08
 Pagamento parcial:       18/08
 Pagamento final:         25/08
-```
 
-O lançamento permanecerá:
-
-```text
-Data de lançamento:      05/08
-Situação:                 Prevista
-```
-
-até que o pagamento final seja realizado.
-
-Após o pagamento de 25/08:
-
-```text
 Data de lançamento:      05/08
 Data de efetivação:      25/08
-Situação:                 Realizada
 ```
 
-A data original de vencimento da fatura não determina a data de efetivação
-quando a fatura não foi quitada naquele vencimento.
+### 12.3 Situação dos Lançamentos
 
-### 21.3.3 Liberação do Limite
+Os lançamentos de cartão de crédito permanecem `Previstos` até que a fatura correspondente seja integralmente quitada.
 
-O limite comprometido pelos lançamentos de uma fatura somente é liberado
-quando a fatura estiver integralmente quitada.
+O fechamento da fatura não altera a situação do lançamento.
 
-Pagamentos parciais não liberam limite.
+Pagamento parcial não altera a situação dos lançamentos.
 
-Quando a fatura for quitada, o valor correspondente aos lançamentos
-quitados deixa de comprometer o limite global do contrato.
-
-Em compras parceladas, somente o valor das parcelas efetivamente quitadas
-na fatura é liberado conforme as regras de parcelamento.
-
+Somente a quitação integral da fatura permite que os lançamentos correspondentes passem para `Realizados`.
 
 ---
 
-## 22. Pagamento por Usuário de Cartão Adicional
+## 13. Pagamento da Fatura
 
-O usuário que recebeu um cartão adicional pode visualizar a fatura
-correspondente ao cartão.
+Uma fatura fechada pode ser paga utilizando qualquer banco ou conta disponível no ambiente que realizará o pagamento.
 
-Esse usuário pode realizar o pagamento da fatura.
+O usuário seleciona a conta ou banco de origem e a forma de pagamento permitida.
 
-O pagamento pode ser parcial ou integral.
+O pagamento de fatura não pode utilizar cartão de crédito.
 
-O usuário seleciona qualquer banco ou conta disponível em seu ambiente e
-uma forma de pagamento permitida.
+O pagamento gera os efeitos financeiros correspondentes no extrato e no saldo da conta utilizada.
 
-Quando o pagamento atingir o valor total devido da fatura:
+O titular ou usuário autorizado pelo cartão pode realizar pagamentos conforme suas permissões.
 
-* a fatura é quitada;
-* os lançamentos correspondentes passam para `Realizados`;
-* o limite correspondente é liberado.
+### 13.1 Pagamento Parcial
+
+O pagamento parcial é permitido.
+
+Quando ocorre um pagamento parcial:
+
+* o valor pago é registrado;
+* o pagamento permanece associado à fatura;
+* a fatura continua não quitada;
+* todos os lançamentos da fatura permanecem `Previstos`;
+* todo o limite comprometido pelos lançamentos permanece comprometido.
+
+O CyberBank não distribui um pagamento parcial entre lançamentos individuais.
+
+Exemplo:
+
+```text
+Fatura: R$ 100,00
+
+10 lançamentos de R$ 10,00
+
+Pagamento parcial: R$ 50,00
+```
+
+Resultado:
+
+```text
+Fatura:              Pendente
+Total da fatura:     R$ 100,00
+Total pago:          R$ 50,00
+Saldo pendente:      R$ 50,00
+
+Todos os lançamentos: Previsto
+Limite:                continua comprometido em R$ 100,00
+```
+
+### 13.2 Quitação da Fatura
+
+A fatura é quitada quando o total de pagamentos e créditos aplicáveis atingir ou superar o valor devido da fatura.
+
+Quando a fatura for quitada:
+
+* a fatura passa para `Quitada`;
+* todos os lançamentos da fatura passam para `Realizados`;
+* a data de efetivação dos lançamentos é a data do pagamento ou compensação que completou a quitação;
+* o limite correspondente aos lançamentos quitados é liberado;
+* os efeitos financeiros do pagamento são refletidos na conta utilizada.
+
+A unidade de quitação é a fatura. O CyberBank não tenta identificar quais lançamentos individuais foram pagos com cada pagamento parcial.
+
+### 13.3 Pagamento após o Vencimento
+
+Uma fatura pode permanecer pendente após o vencimento.
+
+O vencimento não gera automaticamente juros, multa, encargos, alteração da situação dos lançamentos ou liberação de limite.
+
+Enquanto a fatura não estiver integralmente quitada, os lançamentos permanecem `Previstos` e o limite permanece comprometido.
+
+A fatura pode ser quitada posteriormente. A data de efetivação será a data do pagamento que completar a quitação.
 
 ---
 
-## 23. Pagamento por Usuário de Cartão Compartilhado
+## 14. Crédito de Fatura
 
-O usuário que recebeu um cartão compartilhado pode visualizar a fatura
-daquele cartão.
+Uma fatura pode possuir saldo credor quando pagamentos ou créditos forem superiores ao valor devido.
 
-O usuário pode realizar pagamentos parciais ou integrais.
+O crédito não é perdido e não é devolvido automaticamente ao usuário. Ele é transportado para a próxima fatura do mesmo cartão.
 
-O pagamento pode ser realizado utilizando uma conta disponível em seu
-ambiente.
+O crédito pertence ao cartão e não ao contrato de forma independente. Não pode ser transferido para outro cartão do mesmo contrato.
 
-O pagamento integral quita a fatura e libera o limite correspondente.
+### 14.1 Pagamento Superior ao Valor da Fatura
+
+O CyberBank permite que os pagamentos acumulados superem o valor devido da fatura.
+
+Exemplo:
+
+```text
+Valor devido:       R$ 1.000
+Pagamento:          R$ 1.200
+
+Fatura:             Quitada
+Saldo credor:       R$ 200
+```
+
+Os lançamentos da fatura são efetivados e o saldo excedente permanece como crédito do cartão.
+
+### 14.2 Aplicação do Crédito na Próxima Fatura
+
+O crédito é aplicado automaticamente à próxima fatura do mesmo cartão.
+
+Se o crédito for menor que a nova fatura:
+
+```text
+Crédito anterior:   R$ 200
+Nova fatura:        R$ 500
+Valor líquido:      R$ 300
+Crédito restante:   R$ 0
+```
+
+Se o crédito for igual à nova fatura:
+
+```text
+Crédito:            R$ 500
+Nova fatura:        R$ 500
+Valor líquido:      R$ 0
+```
+
+A fatura fica integralmente compensada pelo crédito e os lançamentos são considerados `Realizados`, conforme as regras de quitação.
+
+Se o crédito for superior à nova fatura:
+
+```text
+Crédito anterior:   R$ 800
+Nova fatura:        R$ 500
+Valor compensado:   R$ 500
+Crédito restante:   R$ 300
+```
+
+O saldo restante continua vinculado ao mesmo cartão para o ciclo seguinte.
+
+### 14.3 Crédito e Limite
+
+Crédito de fatura e limite de crédito são conceitos distintos.
+
+O crédito representa valor já pago ou creditado em favor do usuário. O limite representa a capacidade de crédito disponibilizada pelo contrato.
+
+O crédito não aumenta o limite global configurado.
+
+Novas compras continuam consumindo o limite global normalmente.
 
 ---
 
-## 24. Visibilidade das Faturas
+## 15. Visibilidade e Permissões
 
-### 24.1 Titular do Contrato
+### 15.1 Titular do Contrato
 
 O titular consegue visualizar:
 
 * todas as faturas do contrato;
 * todas as faturas de todos os cartões;
 * todos os lançamentos das faturas;
-* lançamentos realizados pelo próprio titular;
-* lançamentos realizados por usuários adicionais;
-* lançamentos realizados por usuários com cartões compartilhados.
+* lançamentos realizados por qualquer usuário autorizado do contrato.
 
-### 24.2 Usuário de Cartão Adicional
+Somente o titular pode fechar ou reabrir uma fatura.
 
-O usuário que recebeu um cartão adicional pode visualizar a fatura
-específica daquele cartão.
+### 15.2 Usuário de Cartão Adicional
 
-O usuário visualiza somente os lançamentos realizados por ele próprio.
+O usuário que recebeu um cartão adicional pode visualizar a fatura específica daquele cartão.
 
-O usuário não visualiza os lançamentos realizados pelo titular ou por
-outros usuários.
+Ele visualiza somente os lançamentos realizados por ele próprio.
 
-O usuário não possui acesso às demais faturas do contrato.
+Ele pode realizar pagamentos parciais ou integrais da fatura, conforme as permissões do cartão.
 
-### 24.3 Usuário de Cartão Compartilhado
+Ele não visualiza as demais faturas do contrato e não pode fechar ou reabrir a fatura.
 
-O usuário que recebeu acesso compartilhado a um cartão pode visualizar a
-fatura daquele cartão.
+### 15.3 Usuário de Cartão Compartilhado
 
-O usuário visualiza somente os lançamentos realizados por ele próprio.
+O usuário que recebeu acesso compartilhado a um cartão pode visualizar a fatura daquele cartão.
 
-O usuário não visualiza os lançamentos realizados pelo titular ou por
-outros usuários.
+Ele visualiza somente os lançamentos realizados por ele próprio.
 
-O usuário não possui acesso às demais faturas do contrato.
+Ele pode realizar pagamentos parciais ou integrais da fatura, conforme as permissões do cartão.
+
+Ele não visualiza as demais faturas do contrato e não pode fechar ou reabrir a fatura.
 
 ---
 
-## 25. Fechamento e Reabertura — Permissões
+## 16. Alteração de Compras
 
-Somente o titular do contrato pode:
+O fechamento da fatura não congela os lançamentos.
 
-* fechar uma fatura;
-* reabrir uma fatura.
-
-Usuários que receberam cartões adicionais ou compartilhados não podem
-fechar ou reabrir faturas.
-
----
-
-## 26. Estorno
-
-O estorno de uma compra de cartão deve representar o comportamento de um
-cartão de crédito real.
-
-O estorno é registrado como um valor positivo na fatura.
-
-O estorno reduz o valor devido da fatura.
-
-O estorno libera o limite correspondente ao valor estornado.
-
-O estorno não representa uma nova compra.
-
-### 26.1 Estorno em Fatura Aberta
-
-Quando uma compra for estornada enquanto a fatura estiver aberta, o valor
-do estorno é registrado na própria fatura e reduz seu valor devido.
-
-O limite correspondente é liberado.
-
-### 26.2 Estorno em Fatura Fechada
-
-Uma compra pertencente a uma fatura fechada também pode ser estornada.
-
-O valor positivo do estorno é registrado na fatura correspondente.
-
-O valor devido da fatura é recalculado.
-
-O limite correspondente é liberado.
-
-As regras de estorno após o pagamento integral da fatura seguem o mesmo
-princípio financeiro: o valor devolvido deve ser reconhecido e o limite
-correspondente deve ser ajustado.
-
----
-
-## 27. Exclusão de Compra Parcelada
-
-Uma compra parcelada representa uma única operação financeira composta por
-múltiplas ocorrências de parcelas.
-
-A exclusão da compra parcelada deve considerar o estado das parcelas que
-compõem o parcelamento.
-
-### 27.1 Parcelamento sem Parcelas Quitadas
-
-Quando nenhuma parcela do parcelamento estiver em uma fatura quitada, o
-usuário pode excluir a compra parcelada.
-
-A exclusão:
-
-* remove o parcelamento do controle financeiro ativo;
-* exclui logicamente todas as parcelas ainda existentes;
-* remove as parcelas das faturas correspondentes;
-* libera o limite global comprometido pelo parcelamento;
-* recalcula os valores das faturas afetadas;
-* remove o gasto do Mapa de Lançamentos;
-* preserva o histórico da operação para fins de auditoria.
-
-Exemplo:
-
-```text id="f6wx8j"
-Compra: R$ 1.200
-Parcelamento: 12x de R$ 100
-
-Parcelas quitadas: 0
-Parcelas pendentes: 12
-```
-
-O usuário pode excluir o parcelamento.
-
-Após a exclusão:
-
-```text id="v2p2h9"
-Parcelas futuras: removidas
-Limite comprometido: -R$ 1.200
-Faturas futuras: recalculadas
-Mapa de Lançamentos: compra removida
-```
-
-### 27.2 Parcelamento com Parcelas Quitadas
-
-Quando pelo menos uma parcela do parcelamento estiver em uma fatura
-quitada, a compra parcelada não pode ser excluída.
-
-O CyberBank deve impedir a exclusão e orientar o usuário a utilizar o
-processo de estorno.
-
-A existência de qualquer parcela já quitada significa que parte da
-operação financeira já foi efetivada.
-
-Nesse cenário, a operação original deve permanecer preservada no histórico.
-
-## 27.3 Alteração de Compra em Fatura Aberta
-
-Uma compra de cartão de crédito pertencente a uma fatura aberta pode ser
-alterada normalmente pelo usuário que possuir permissão para alterar o
-lançamento.
-
-A alteração deve atualizar:
-
-* o valor do lançamento;
-* o valor da fatura;
-* o valor comprometido no limite global do contrato;
-* os demais cálculos financeiros afetados.
-
-Quando o valor da compra for reduzido, a diferença deixa de comprometer o
-limite global.
-
-Quando o valor da compra for aumentado, a diferença passa a comprometer o
-limite global.
-
-### 27.3.1 Exemplo
-
-Uma compra de R$ 500 está em uma fatura aberta.
-
-O usuário altera o valor para R$ 300.
-
-Resultado:
-
-```text id="v40x9b"
-Valor original:        R$ 500
-Novo valor:            R$ 300
-Diferença:             R$ 200
-```
-
-Os R$ 200 deixam de comprometer o limite global.
-
-O valor da fatura é recalculado.
-
-A alteração permanece registrada no histórico do lançamento.
-
-### 27.3.2 Alteração para Valor Superior
-
-Uma compra de R$ 300 pode ser alterada para R$ 500 enquanto a fatura estiver
-aberta.
-
-Nesse caso:
-
-```text id="9k9v4q"
-Valor original:        R$ 300
-Novo valor:            R$ 500
-Diferença:             R$ 200
-```
-
-Os R$ 200 adicionais passam a comprometer o limite global.
-
-O valor da fatura é recalculado.
-
-### 27.3.3 Estorno
-
-Enquanto a fatura estiver aberta e a compra puder ser corrigida diretamente,
-não é necessário utilizar o processo de estorno para corrigir seu valor.
-
-O estorno é utilizado quando a operação financeira já não deve ser
-simplesmente alterada, conforme as regras específicas de estorno.
-
-## 27.4 Alteração de Compra em Fatura Fechada
-
-O fechamento de uma fatura não impede a alteração dos lançamentos que
-pertencem a ela.
-
-Uma compra pertencente a uma fatura fechada e ainda não quitada pode ser
-alterada normalmente pelo usuário que possuir permissão para alterar o
-lançamento.
+Uma compra pertencente a uma fatura aberta ou fechada pode ser alterada enquanto a fatura não estiver quitada, respeitando as permissões do usuário.
 
 A alteração deve recalcular:
 
@@ -906,187 +543,128 @@ A alteração deve recalcular:
 * o limite comprometido pelo contrato;
 * os demais valores financeiros afetados.
 
-### 27.4.1 Alteração do Valor
-
-Quando o valor da compra for reduzido, a diferença deixa de comprometer o
-limite global.
-
-Quando o valor da compra for aumentado, a diferença passa a comprometer o
-limite global.
-
 A alteração não transfere o lançamento para outra fatura.
 
-O lançamento continua pertencendo à fatura na qual foi originalmente
-registrado.
+### 16.1 Redução do Valor
 
-### 27.4.2 Fechamento e Alteração
+Quando o valor for reduzido, a diferença deixa de comprometer o limite global.
 
-O fechamento determina o encerramento do ciclo de inclusão automática de
-novos lançamentos.
+### 16.2 Aumento do Valor
 
-O fechamento não transforma os lançamentos em registros imutáveis.
+Quando o valor for aumentado, a diferença passa a comprometer o limite global.
 
-O titular ou usuário autorizado pode corrigir os lançamentos de uma fatura
-fechada antes de sua quitação.
+### 16.3 Fatura com Pagamento Parcial
 
-O CyberBank deve recalcular a fatura após cada alteração.
+Uma fatura que recebeu pagamentos parciais continua não quitada.
 
-### 27.4.3 Histórico
+Os lançamentos podem ser alterados enquanto a fatura permanecer não quitada.
 
-A alteração do lançamento não elimina o valor anteriormente registrado.
-
-O histórico deve preservar a alteração realizada para fins de auditoria.
-
----
-
-## 27.5 Alteração de Compra com Pagamento Parcial
-
-Uma fatura que recebeu pagamentos parciais permanece não quitada.
-
-Os lançamentos continuam `Previstos` até a quitação integral.
-
-Os lançamentos da fatura podem ser alterados enquanto a fatura permanecer
-não quitada, respeitando as permissões do usuário.
-
-Após uma alteração, o valor devido da fatura e o limite comprometido devem
-ser recalculados.
-
-O valor dos pagamentos já realizados permanece registrado.
-
-O CyberBank não atribui pagamentos parciais a lançamentos individuais.
+O valor dos pagamentos já realizados permanece registrado. O CyberBank não atribui esses pagamentos a lançamentos individuais.
 
 Exemplo:
 
-```text id="5clj78"
-Fatura original:       R$ 1.000
-Pagamento parcial:     R$ 300
-Saldo da fatura:       R$ 700
+```text
+Fatura original:    R$ 1.000
+Pagamento parcial:  R$   300
+
+Compra alterada:
+R$ 500 -> R$ 400
+
+Nova fatura:        R$ 900
+Pago:               R$ 300
+Saldo:              R$ 600
 ```
 
-Uma compra de R$ 500 pode ser alterada para R$ 400.
+Todos os lançamentos continuam `Previstos` até a quitação integral.
 
-A fatura passa a ter:
+A alteração deve permanecer registrada no histórico para fins de auditoria.
 
-```text id="5g9r1z"
-Valor original:        R$ 1.000
-Novo valor:             R$ 900
-Pago:                   R$ 300
-Saldo:                  R$ 600
-```
+---
 
-Os lançamentos continuam `Previstos` até que o total devido seja
-integralmente quitado.
+## 17. Exclusão de Compra
 
-## 27.6 Alteração de Compra Parcelada
+A exclusão é utilizada para remover uma compra que ainda não deve permanecer como obrigação financeira ativa.
 
-Uma compra parcelada representa uma série única de parcelas.
+A exclusão não elimina fisicamente o histórico da operação.
 
-Quando o valor total da compra parcelada for alterado, o CyberBank
-recalcula a série de parcelas.
+Quando uma compra ainda puder ser corrigida por alteração, o usuário pode alterar o lançamento em vez de realizar um estorno.
 
-O novo valor total é redistribuído entre as parcelas da série conforme a
-quantidade original de parcelas.
+### 17.1 Exclusão de Compra Parcelada sem Parcela Quitada
 
-### 27.6.1 Exemplo
+Quando nenhuma parcela do parcelamento estiver em uma fatura quitada, o usuário pode excluir a compra parcelada.
 
-Compra original:
+A exclusão:
 
-```text id="3b2h4p"
-Valor:          R$ 1.200
-Parcelamento:   12x R$ 100
-```
+* remove logicamente o parcelamento ativo;
+* remove as parcelas ainda existentes das respectivas faturas;
+* libera o limite global comprometido pelo parcelamento;
+* recalcula as faturas afetadas;
+* remove o gasto do Mapa de Lançamentos;
+* preserva o histórico da operação.
 
-O usuário altera o valor total para:
+### 17.2 Parcelamento com Parcela Quitada
 
-```text id="2q1z9c"
-Novo valor:     R$ 900
-```
+Quando pelo menos uma parcela estiver em uma fatura quitada, a compra parcelada não pode ser excluída.
 
-O CyberBank recalcula a série:
+O CyberBank deve impedir a exclusão e orientar o usuário a utilizar o processo de estorno.
 
-```text id="q2p0m3"
-12x R$ 75
-```
+---
 
-As parcelas futuras passam a utilizar o novo valor.
+## 18. Alteração de Compra Parcelada
 
-### 27.6.2 Limite
+Uma compra parcelada representa uma única série de parcelas.
 
-A alteração da compra parcelada recalcula o comprometimento do limite
-global do contrato.
+### 18.1 Alteração do Valor
 
-No exemplo:
+Quando nenhuma parcela estiver em uma fatura quitada, o valor total da compra pode ser alterado.
 
-```text id="q8s1vc"
-Comprometimento original:  R$ 1.200
-Novo comprometimento:       R$   900
-Limite liberado:            R$   300
-```
+O CyberBank recalcula toda a série mantendo a quantidade original de parcelas.
 
-A alteração não cria um novo contrato nem um novo parcelamento.
-
-A mesma série continua existindo com seus dados recalculados.
-
-### 27.6.3 Parcelas já Quitadas
-
-Uma parcela pertencente a uma fatura quitada não pode ser alterada
-retroativamente por meio da alteração da série.
-
-Quando existir pelo menos uma parcela já quitada, qualquer alteração que
-modifique o valor financeiro já efetivado deve seguir as regras de estorno.
-
-As parcelas ainda não quitadas poderão ser recalculadas conforme o processo
-de alteração permitido pelo sistema.
-
-O valor já efetivado permanece preservado no histórico.
-
-### 27.6.4 Parcelas Não Quitadas
-
-Quando nenhuma parcela estiver em uma fatura quitada, o valor total da
-compra parcelada pode ser alterado normalmente.
-
-Todas as parcelas da série são recalculadas.
-
-As faturas que contêm as parcelas são atualizadas com os novos valores.
-
-O limite global é recalculado de acordo com o novo valor total da compra.
-
-### 27.6.5 Quantidade de Parcelas
-
-A alteração do valor da compra não altera automaticamente a quantidade de
-parcelas.
-
-Se a quantidade de parcelas também for alterada, o CyberBank deve
-recalcular a série utilizando o novo número de parcelas.
-
-As regras específicas para alteração da quantidade de parcelas devem
-respeitar as mesmas restrições aplicáveis à alteração do valor já
-efetivado.
-
-## 27.7 Distribuição das Parcelas
-
-O valor total das parcelas deve ser exatamente igual ao valor total da
-compra parcelada.
-
-Quando o valor da compra não puder ser dividido igualmente entre a
-quantidade de parcelas devido à precisão de centavos, o CyberBank deve
-distribuir a diferença de arredondamento entre as parcelas.
-
-A distribuição dos centavos não pode alterar o valor total da compra.
-
-### 27.7.1 Exemplo
-
-Uma compra de R$ 1.000,00 é parcelada em 3 vezes.
-
-A divisão matemática resulta em:
+Exemplo:
 
 ```text
-R$ 1.000,00 / 3 = R$ 333,333333...
+Original: R$ 1.200 em 12x R$ 100
+Novo valor: R$ 900
+
+Nova série: 12x R$ 75
 ```
 
-As parcelas podem ser distribuídas como:
+O limite comprometido passa de R$ 1.200 para R$ 900 e a diferença de R$ 300 é liberada.
+
+### 18.2 Parcela já Efetivada
+
+Quando pelo menos uma parcela já tiver sido efetivada, uma alteração que modifique o valor financeiro da operação não pode ser feita diretamente.
+
+O valor já efetivado deve permanecer preservado. A correção deve utilizar o processo de estorno.
+
+### 18.3 Alteração da Quantidade de Parcelas
+
+Quando nenhuma parcela tiver sido efetivada, o usuário pode alterar a quantidade de parcelas.
+
+O CyberBank recalcula a série usando o valor total da compra, a nova quantidade de parcelas e as regras de distribuição de centavos.
+
+Exemplo:
 
 ```text
+R$ 1.200 em 12x R$ 100
+
+Alteração para 8x:
+8x R$ 150
+```
+
+Quando pelo menos uma parcela tiver sido efetivada, a quantidade de parcelas não pode ser alterada diretamente. O usuário deve utilizar o processo de estorno e, se necessário, registrar uma nova compra com a quantidade desejada.
+
+### 18.4 Distribuição de Centavos
+
+A soma das parcelas deve ser exatamente igual ao valor total da compra.
+
+Quando a divisão não resultar em valores exatos de centavos, a diferença de arredondamento deve ser distribuída entre as parcelas sem alterar o total da operação.
+
+Exemplo:
+
+```text
+R$ 1.000,00 / 3
+
 Parcela 1: R$ 333,34
 Parcela 2: R$ 333,33
 Parcela 3: R$ 333,33
@@ -1094,527 +672,107 @@ Parcela 3: R$ 333,33
 Total:     R$ 1.000,00
 ```
 
-Também é possível que a diferença de centavos seja distribuída em outra
-parcela, desde que a soma final seja exatamente igual ao valor total da
-compra.
+A posição da diferença de centavos é uma regra de cálculo. A regra de negócio é que a soma das parcelas seja exatamente igual ao valor total da compra.
 
-### 27.7.2 Regra de Integridade
+### 18.5 Antecipação de Parcelas
 
-A soma de todas as parcelas deve ser sempre igual ao valor total da compra.
+O CyberBank não possui funcionalidade de antecipação de parcelas.
 
-O sistema não pode gerar um parcelamento no qual:
+As parcelas seguem normalmente seus respectivos ciclos de faturamento.
 
-```text
-Soma das parcelas != valor total da compra
-```
+O sistema não antecipa parcelas futuras para uma fatura anterior e não calcula ou concede descontos de antecipação.
 
-A distribuição de diferenças de arredondamento é uma regra de cálculo e não
-altera o valor original da operação.
+---
 
-### 27.7.3 Alteração do Valor da Compra
+## 19. Estorno
 
-Quando o valor total de uma compra parcelada for alterado, a nova série deve
-ser recalculada respeitando a mesma regra.
+O estorno representa o reconhecimento de um crédito decorrente da devolução ou correção de uma compra de cartão.
+
+O estorno é registrado como valor positivo na fatura ou como crédito do cartão, conforme o estado financeiro da operação.
+
+O estorno não apaga a operação original do histórico.
+
+O Mapa de Lançamentos não deve apresentar uma compra integralmente estornada como gasto ativo.
+
+### 19.1 Compra em Fatura Não Quitada
+
+Quando a fatura ainda não estiver quitada e o usuário estiver apenas corrigindo o valor da compra, deve alterar o próprio lançamento.
+
+O estorno não é necessário para uma simples correção de valor enquanto a operação puder ser editada.
+
+### 19.2 Estorno de Compra em Fatura Quitada
+
+Uma compra pode ser estornada mesmo depois de a fatura que a contém ter sido quitada.
+
+O estorno não desfaz retroativamente o pagamento da fatura.
+
+O estorno gera um crédito positivo no cartão.
 
 Exemplo:
 
 ```text
-Valor original: R$ 1.000,00
-3 parcelas
-
-R$ 333,34
-R$ 333,33
-R$ 333,33
-```
-
-Se o valor for alterado para R$ 1.001,00:
-
-```text
-R$ 333,67
-R$ 333,67
-R$ 333,66
-----------------
-R$ 1.001,00
-```
-
-A soma das parcelas permanece exatamente igual ao novo valor total da
-compra.
-
-## 27.8 Alteração da Quantidade de Parcelas
-
-A quantidade de parcelas de uma compra parcelada pode ser alterada enquanto
-nenhuma parcela do parcelamento tiver sido efetivada.
-
-Quando a quantidade de parcelas for alterada, o CyberBank deve recalcular a
-série utilizando:
-
-* o valor total original da compra;
-* a nova quantidade de parcelas;
-* as regras de distribuição de centavos.
-
-### 27.8.1 Exemplo
-
-Uma compra de R$ 1.200,00 foi registrada em 12 parcelas:
-
-```text id="w4a0p2"
-12x R$ 100,00
-```
-
-Nenhuma parcela foi efetivada.
-
-O usuário altera o parcelamento para 8 vezes.
-
-O CyberBank recalcula a série:
-
-```text id="n1q6lm"
-8x R$ 150,00
-```
-
-O valor total permanece:
-
-```text id="x2pq9u"
-R$ 1.200,00
-```
-
-O limite global continua comprometido pelo valor total da compra.
-
-### 27.8.2 Parcelamento com Parcela Efetivada
-
-Quando pelo menos uma parcela do parcelamento já tiver sido efetivada, a
-quantidade de parcelas não pode ser alterada diretamente.
-
-O CyberBank deve impedir a alteração e orientar o usuário a utilizar o
-processo de estorno.
-
-A alteração direta não pode modificar parcelas que já foram efetivadas.
-
-### 27.8.3 Estorno
-
-Quando o usuário precisar alterar a quantidade de parcelas depois que uma
-ou mais parcelas já tiverem sido efetivadas, deverá realizar o estorno da
-operação conforme as regras de estorno de compra parcelada.
-
-O estorno considera o valor restante do parcelamento.
-
-Após o estorno, o usuário poderá realizar uma nova compra com a quantidade
-de parcelas desejada, caso essa seja a operação financeira correta.
-
-As parcelas já efetivadas permanecem preservadas no histórico.
-
-## 27.9 Antecipação de Parcelas
-
-O CyberBank não possui funcionalidade de antecipação de parcelas.
-
-As parcelas de uma compra parcelada seguem normalmente seus respectivos
-ciclos de faturamento.
-
-O usuário não pode solicitar que parcelas futuras sejam antecipadas para
-uma fatura anterior.
-
-O CyberBank também não calcula ou concede descontos relacionados à
-antecipação de parcelas.
-
-O pagamento antecipado de parcelas, quando eventualmente realizado fora do
-CyberBank pela instituição mantenedora do cartão, não possui tratamento
-especial no sistema.
-
-O CyberBank mantém somente os lançamentos e pagamentos registrados de
-acordo com suas regras financeiras.
-
-
----
-
-## 28. Estorno de Compra Parcelada
-
-O estorno de uma compra parcelada deve considerar o valor total que ainda
-falta ser efetivado dentro do parcelamento.
-
-O estorno não altera retroativamente as parcelas que já foram quitadas.
-
-O CyberBank deve identificar:
-
-* valor original do parcelamento;
-* valor das parcelas já quitadas;
-* valor das parcelas ainda não quitadas.
-
-O valor restante do parcelamento representa o valor que deverá ser
-estornado.
-
-### 28.1 Exemplo
-
-Uma compra de:
-
-```text id="7k4yqd"
-R$ 1.200
-12x de R$ 100
-```
-
-possui:
-
-```text id="n7ynqf"
-Parcelas quitadas:       4
-Valor já quitado:        R$ 400
-
-Parcelas restantes:      8
-Valor restante:           R$ 800
-```
-
-O estorno será de:
-
-```text id="py9c0r"
-R$ 800
-```
-
-As quatro parcelas já quitadas permanecem no histórico.
-
-As parcelas ainda não quitadas são encerradas pelo processo de estorno.
-
-### 28.2 Lançamento Positivo do Estorno
-
-O estorno gera um lançamento positivo na fatura correspondente.
-
-O valor do lançamento positivo corresponde ao valor restante do
-parcelamento.
-
-Esse lançamento reduz o valor devido da fatura e representa o crédito
-concedido pelo estorno.
-
-O estorno também libera o limite correspondente ao valor restante do
-parcelamento.
-
-### 28.3 Limite
-
-O valor liberado pelo estorno corresponde ao valor que ainda estava
-comprometido pelo parcelamento.
-
-No exemplo de R$ 1.200 em 12 parcelas:
-
-```text id="h7ozl2"
-Valor original:             R$ 1.200
-Valor já quitado:           R$   400
-Valor ainda comprometido:   R$   800
-```
-
-O estorno libera:
-
-```text id="u9ubc4"
-R$ 800
-```
-
-Os R$ 400 já quitados não retornam ao limite porque já foram efetivamente
-pagos.
-
-### 28.4 Faturas
-
-As parcelas ainda não quitadas deixam de compor as faturas futuras.
-
-O lançamento positivo do estorno é registrado na fatura conforme as regras
-de faturamento do cartão.
-
-O valor devido das faturas afetadas é recalculado.
-
-### 28.5 Mapa de Lançamentos
-
-Uma compra parcelada estornada deixa de aparecer no Mapa de Lançamentos.
-
-O objetivo é evitar que uma despesa que não representa mais uma obrigação
-financeira ativa continue aparecendo como gasto no mapa.
-
-A retirada do Mapa de Lançamentos não representa exclusão física do
-registro.
-
-A compra original permanece preservada no histórico financeiro.
-
-O lançamento positivo do estorno permanece registrado para representar a
-operação financeira realizada.
-
-## 28.6 Estorno após Quitação da Fatura
-
-Uma compra pode ser estornada mesmo após a fatura que contém a compra ter
-sido integralmente quitada.
-
-Nesse caso, o estorno não altera retroativamente o pagamento realizado.
-
-O estorno gera um crédito positivo no cartão.
-
-O crédito será utilizado automaticamente nas próximas faturas do mesmo
-cartão.
-
-### 28.6.1 Exemplo
-
-Uma compra de R$ 500 foi realizada e incluída em uma fatura.
-
-A fatura foi integralmente paga:
-
-```text id="j1oq5c"
 Compra:                 R$ 500
 Fatura:                 R$ 500
 Pagamento:              R$ 500
 Fatura:                 Quitada
-```
 
-Posteriormente, a compra é estornada em R$ 500.
-
-O CyberBank registra:
-
-```text id="q4i0pj"
-Estorno:                +R$ 500
+Estorno posterior:     +R$ 500
 Crédito do cartão:       R$ 500
 ```
 
-O crédito não altera o pagamento realizado anteriormente.
+O crédito será aplicado automaticamente às próximas faturas do mesmo cartão.
 
-O crédito permanece disponível para compensação automática nas próximas
-faturas do mesmo cartão.
+Se a compra já estiver integralmente quitada e seu limite correspondente já tiver sido liberado, o estorno não gera uma segunda liberação de limite.
 
-### 28.6.2 Limite
+### 19.3 Estorno Parcial após Quitação
 
-O estorno libera o limite correspondente ao valor que ainda estiver
-comprometido pela compra.
+Quando uma compra já efetivada for parcialmente estornada, somente o valor estornado gera crédito.
 
-Se a compra já tiver sido integralmente quitada e todo o limite
-correspondente já tiver sido liberado, o estorno não gera uma segunda
-liberação de limite.
+O histórico preserva tanto a compra original quanto o estorno.
 
-Nesse cenário, o efeito financeiro do estorno é o crédito positivo no
-cartão.
+### 19.4 Estorno de Compra Parcelada
 
-### 28.6.3 Histórico
+Quando uma compra parcelada possuir parcelas já quitadas, o estorno considera o valor total que ainda falta ser efetivado no parcelamento.
 
-A compra original permanece preservada no histórico financeiro.
-
-O estorno também permanece registrado no histórico.
-
-A operação original não é apagada fisicamente.
-
-O Mapa de Lançamentos não deve apresentar a compra como gasto ativo após o
-estorno.
-
-
----
-
-## 29. Crédito de Fatura
-
-Uma fatura pode possuir saldo credor.
-
-O saldo credor ocorre quando o valor dos créditos registrados na fatura
-for superior ao valor das obrigações financeiras existentes na fatura.
-
-O crédito não é perdido e não é devolvido automaticamente ao usuário.
-
-O saldo credor é transportado para a próxima fatura do mesmo cartão.
-
-### 29.1 Pagamento Superior ao Valor da Fatura
-
-O CyberBank permite que o valor total dos pagamentos realizados seja
-superior ao valor devido da fatura.
+O estorno não altera retroativamente as parcelas já quitadas.
 
 Exemplo:
 
-```text id="c1ly4n"
-Valor devido:       R$ 1.000
-Pagamento:          R$ 1.200
+```text
+Compra: R$ 1.200 em 12x R$ 100
+
+Parcelas quitadas: 4
+Valor já quitado: R$ 400
+
+Parcelas restantes: 8
+Valor restante: R$ 800
 ```
 
-Resultado:
-
-```text id="5g3x4j"
-Fatura:
-Valor devido:       R$ 1.000
-Total pago:         R$ 1.200
-Saldo credor:       R$   200
-```
-
-A fatura é considerada quitada.
-
-Os lançamentos pertencentes à fatura passam para `Realizados`.
-
-O valor excedente de R$ 200 permanece como crédito do cartão.
-
-### 29.2 Crédito na Próxima Fatura
-
-O saldo credor de uma fatura é transportado para a próxima fatura do mesmo
-cartão.
-
-Exemplo:
-
-```text id="7wwp3w"
-Crédito da fatura anterior: R$ 200
-Nova fatura:                R$ 800
-```
-
-O valor líquido devido será:
-
-```text id="rb5ljo"
-R$ 800 - R$ 200 = R$ 600
-```
-
-O crédito pertence ao cartão e não ao contrato de forma independente.
-
-O crédito não pode ser transferido para outro cartão do mesmo contrato.
-
-### 29.3 Crédito Proveniente de Estorno
-
-Um estorno pode gerar crédito superior ao valor devido da fatura atual.
-
-Nesse caso, o valor excedente permanece como saldo credor do cartão e é
-transportado para a próxima fatura.
-
-Exemplo:
-
-```text id="l7j4h5"
-Fatura atual:
-Obrigações:          R$ 300
-
-Estorno:
-R$ 800
-
-Crédito resultante:
-R$ 500
-```
-
-A fatura atual é encerrada com saldo credor de R$ 500.
-
-A próxima fatura do mesmo cartão receberá esse crédito.
-
-### 29.4 Estorno de Compra Parcelada
-
-No estorno de uma compra parcelada, o valor total ainda não efetivado do
-parcelamento é creditado de uma única vez.
-
-O valor do estorno não é dividido entre as parcelas futuras.
-
-Exemplo:
-
-```text id="j91q3s"
-Compra original:          R$ 1.200
-Parcelamento:             12x R$ 100
-
-Parcelas já quitadas:      4
-Valor já quitado:          R$ 400
-
-Valor restante:             R$ 800
-```
-
-O estorno gera um crédito de:
-
-```text id="3r3d0n"
-R$ 800
-```
-
-Esse crédito é lançado de uma única vez.
+O estorno gera um crédito de R$ 800 de uma única vez.
 
 As parcelas futuras deixam de existir como obrigações financeiras.
 
-Se o valor do estorno for superior às obrigações existentes na fatura
-atual, o excedente permanece como crédito e será transportado para as
-próximas faturas.
+Os R$ 800 liberam o limite ainda comprometido pelo parcelamento.
 
-### 29.5 Crédito e Limite
+Se esse crédito for superior às obrigações da fatura atual, o excedente permanece como saldo credor para os próximos ciclos.
 
-O crédito de fatura e o limite de crédito são conceitos distintos.
+Os R$ 400 já quitados não retornam ao limite.
 
-O crédito de fatura representa um valor já pago ou creditado em favor do
-titular.
+### 19.5 Estorno e Mapa de Lançamentos
 
-O limite representa o valor de crédito disponibilizado pelo contrato.
+Uma compra integralmente estornada deixa de aparecer como gasto ativo no Mapa de Lançamentos.
 
-O crédito gerado por pagamento excedente ou estorno não altera o limite
-global configurado do contrato.
+A retirada do mapa não representa exclusão física do registro. A compra original e o estorno permanecem no histórico.
 
-O crédito deve ser considerado no cálculo do valor líquido devido das
-faturas futuras.
-## 30. Encargos por Atraso
+---
 
-O CyberBank não calcula automaticamente juros, multas ou outros encargos
-relacionados ao atraso no pagamento de uma fatura.
+## 20. Encargos por Atraso
 
-As regras de encargos podem variar de acordo com a instituição mantenedora
-do cartão e com o contrato de cada usuário.
+O CyberBank não calcula automaticamente juros, multas ou outros encargos relacionados ao atraso de uma fatura.
 
-O CyberBank não reproduz essas regras específicas.
+As regras de encargos podem variar de acordo com a instituição mantenedora e com o contrato de cada usuário. O CyberBank não reproduz essas regras específicas.
 
-## 29.6 Aplicação de Crédito em Fatura
-
-O saldo credor de um cartão é transportado automaticamente para a próxima
-fatura do mesmo cartão.
-
-O crédito é utilizado para reduzir o valor líquido devido da nova fatura.
-
-O crédito não é transferido para outros cartões do mesmo contrato.
-
-### 29.6.1 Crédito Inferior ao Valor da Nova Fatura
-
-Quando o crédito for menor que o valor da nova fatura, o crédito é
-integralmente utilizado.
-
-Exemplo:
-
-```text id="0xifc3"
-Crédito anterior:       R$ 200
-Nova fatura:            R$ 500
-
-Valor líquido devido:   R$ 300
-Crédito restante:       R$ 0
-```
-
-### 29.6.2 Crédito Igual ao Valor da Nova Fatura
-
-Quando o crédito for exatamente igual ao valor da nova fatura, a fatura
-fica integralmente compensada.
-
-Exemplo:
-
-```text id="n2g4w9"
-Crédito anterior:       R$ 500
-Nova fatura:            R$ 500
-
-Valor líquido devido:   R$ 0
-```
-
-A fatura é considerada quitada pela compensação do crédito.
-
-Os lançamentos da fatura passam para `Realizados` e o limite correspondente
-é liberado conforme as regras de quitação.
-
-### 29.6.3 Crédito Superior ao Valor da Nova Fatura
-
-Quando o crédito for superior ao valor da nova fatura, a fatura é
-integralmente compensada e o saldo excedente permanece como crédito para o
-ciclo seguinte.
-
-Exemplo:
-
-```text id="9e9f7g"
-Crédito anterior:       R$ 800
-Nova fatura:            R$ 500
-
-Valor compensado:       R$ 500
-Crédito restante:       R$ 300
-Valor líquido devido:   R$ 0
-```
-
-O saldo de R$ 300 permanece vinculado ao mesmo cartão.
-
-### 29.6.4 Crédito e Novas Compras
-
-Novas compras realizadas com o cartão continuam consumindo o limite global
-do contrato normalmente.
-
-O crédito da fatura não aumenta o limite global configurado.
-
-O crédito reduz o valor que deverá ser pago para quitar futuras faturas.
-
-
-### 30.1 Registro Manual
-
-Quando houver juros, multa ou outro encargo relacionado ao cartão, o usuário
-deve registrar o valor manualmente no CyberBank.
-
-O lançamento deve ser tratado como uma nova movimentação financeira.
-
-O usuário poderá utilizar suas categorias e subcategorias para identificar
-a natureza do encargo.
+Quando houver juros, multa ou outro encargo, o usuário deve registrar o valor manualmente como uma nova movimentação financeira, utilizando suas categorias e subcategorias.
 
 Exemplos:
 
@@ -1622,93 +780,13 @@ Exemplos:
 * `Multa de Cartão`;
 * `Encargos Financeiros`.
 
-### 30.2 Fatura
+Quando o encargo estiver relacionado a uma fatura, o usuário poderá associá-lo àquela fatura conforme as regras gerais de lançamento de cartão.
 
-Quando o encargo estiver relacionado a uma fatura, o usuário poderá
-registrá-lo como lançamento associado ao cartão e à fatura correspondente.
+---
 
-O valor registrado passa a fazer parte do controle financeiro da fatura
-conforme as regras gerais de lançamentos de cartão de crédito.
+## 21. Histórico e Desativação
 
-O CyberBank não calcula automaticamente o valor do encargo nem determina
-quando ele deve ser aplicado.
-
-### 30.3 Responsabilidade pelo Valor
-
-O valor do encargo informado no CyberBank é de responsabilidade do usuário.
-
-O sistema registra e controla o valor informado, mas não valida se o valor
-corresponde às regras comerciais da instituição mantenedora do cartão.
-
-## 31. Fatura em Atraso
-
-Uma fatura pode permanecer pendente após sua data de vencimento.
-
-O vencimento da fatura não gera automaticamente:
-
-* juros;
-* multa;
-* encargos;
-* alteração do valor devido;
-* alteração da situação dos lançamentos;
-* liberação de limite.
-
-Enquanto a fatura não estiver integralmente quitada:
-
-* a fatura permanece pendente;
-* os lançamentos permanecem `Previstos`;
-* o limite comprometido permanece comprometido;
-* pagamentos parciais continuam sendo acumulados;
-* o usuário pode realizar novos pagamentos.
-
-### 31.1 Quitação após o Vencimento
-
-A fatura pode ser quitada integralmente após a data de vencimento.
-
-A quitação ocorre quando o total dos pagamentos acumulados atingir o valor
-devido da fatura.
-
-A data de efetivação dos lançamentos será a data do pagamento que completar
-a quitação.
-
-Exemplo:
-
-```text id="njfx8d"
-Vencimento:             18/08
-Valor da fatura:        R$ 1.000
-
-18/08
-Pagamento:              R$ 0
-
-25/08
-Pagamento:              R$ 300
-
-30/08
-Pagamento:              R$ 700
-```
-
-Em 30/08:
-
-```text id="3vby3m"
-Total pago:             R$ 1.000
-Fatura:                 Quitada
-Limite:                 Liberado
-Lançamentos:            Realizados
-Data de efetivação:     30/08
-```
-
-O CyberBank não aplica automaticamente qualquer encargo decorrente do
-atraso.
-
-Caso existam juros, multa ou outros encargos cobrados pela instituição
-mantenedora, o usuário deverá registrá-los manualmente conforme as regras
-de `Encargos por Atraso`.
-
-
-## 32. Histórico
-
-Operações relacionadas ao cartão não devem remover permanentemente
-informações financeiras que possuam histórico.
+Operações relacionadas ao cartão não devem remover permanentemente informações financeiras que possuam histórico.
 
 Devem permanecer disponíveis para consulta:
 
@@ -1721,5 +799,33 @@ Devem permanecer disponíveis para consulta:
 * alterações de limite;
 * demais registros financeiros relacionados ao contrato.
 
-A exclusão de um lançamento ou a desativação de um cartão não elimina o
-histórico financeiro.
+A exclusão de um lançamento ou a desativação de um cartão não elimina o histórico financeiro.
+
+Um cartão desativado não pode receber novos lançamentos.
+
+Compras parceladas existentes permanecem válidas e continuam sendo cobradas normalmente até sua conclusão ou estorno conforme as regras deste documento.
+
+---
+
+## 22. Regras de Integridade do Domínio
+
+As seguintes invariantes devem ser preservadas pelo CyberBank:
+
+1. O limite global pertence ao contrato e é compartilhado por todos os cartões do contrato.
+2. O limite não bloqueia novos lançamentos e pode ficar negativo.
+3. Uma compra de cartão compromete o limite imediatamente.
+4. Pagamento parcial não libera limite.
+5. A quitação integral da fatura é a unidade de efetivação dos lançamentos.
+6. A data de efetivação é a data que completa a quitação da fatura.
+7. Um pagamento parcial nunca é atribuído a lançamentos individuais.
+8. Crédito de fatura pertence ao cartão e é transportado para os próximos ciclos desse cartão.
+9. Estorno de compra já quitada gera crédito e não desfaz retroativamente o pagamento.
+10. Uma compra parcelada compromete o valor total imediatamente.
+11. A soma das parcelas deve ser exatamente igual ao valor total da compra.
+12. Nenhuma parcela já efetivada pode ser alterada retroativamente.
+13. Uma compra parcelada com parcela efetivada não pode ser excluída; deve utilizar estorno.
+14. O CyberBank não antecipa parcelas nem calcula descontos de antecipação.
+15. Juros, multas e encargos por atraso não são calculados automaticamente.
+16. Fechar uma fatura não congela seus lançamentos.
+17. Somente o titular pode fechar ou reabrir uma fatura.
+18. Cartão desativado não aceita novos lançamentos, mas mantém histórico e parcelamentos existentes.
