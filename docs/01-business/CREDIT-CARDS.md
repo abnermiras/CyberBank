@@ -539,6 +539,113 @@ Quando o total pago atingir o valor devido da fatura:
 * o limite correspondente é liberado;
 * os saldos das contas são atualizados conforme o pagamento realizado.
 
+  ## 21.3 Quitação da Fatura
+
+A quitação financeira ocorre no nível da fatura.
+
+Um pagamento parcial não determina quais lançamentos individuais foram
+pagos.
+
+Enquanto a fatura não estiver integralmente quitada:
+
+* a fatura permanece pendente;
+* todos os lançamentos da fatura permanecem `Previstos`;
+* todo o valor comprometido pelos lançamentos permanece comprometendo o
+  limite global do contrato;
+* os pagamentos parciais são apenas acumulados no histórico financeiro da
+  fatura.
+
+O CyberBank não distribui pagamentos parciais entre os lançamentos
+individuais da fatura.
+
+### 21.3.1 Exemplo
+
+Uma fatura possui dez lançamentos de R$ 10,00:
+
+```text
+Total da fatura: R$ 100,00
+```
+
+O usuário realiza um pagamento parcial de R$ 50,00.
+
+O resultado é:
+
+```text
+Valor da fatura:       R$ 100,00
+Valor pago:             R$ 50,00
+Valor pendente:         R$ 50,00
+Situação da fatura:     Pendente
+```
+
+Todos os dez lançamentos permanecem `Previstos`.
+
+Nenhum lançamento individual é considerado quitado.
+
+Os R$ 100,00 continuam comprometendo o limite global do contrato.
+
+Quando o usuário realizar um novo pagamento de R$ 50,00:
+
+```text
+Valor da fatura:       R$ 100,00
+Valor pago acumulado:  R$ 100,00
+Valor pendente:          R$ 0,00
+Situação da fatura:     Quitada
+```
+
+Nesse momento, todos os lançamentos da fatura são efetivados.
+
+### 21.3.2 Data de Efetivação
+
+Quando uma fatura é quitada, todos os lançamentos pertencentes à fatura
+passam para `Realizados` na data do pagamento que completou o valor total
+da fatura.
+
+A data de efetivação dos lançamentos corresponde, portanto, à data em que
+a fatura foi integralmente quitada.
+
+Exemplo:
+
+```text
+Data da compra:          05/08
+Vencimento da fatura:    18/08
+Pagamento parcial:       18/08
+Pagamento final:         25/08
+```
+
+O lançamento permanecerá:
+
+```text
+Data de lançamento:      05/08
+Situação:                 Prevista
+```
+
+até que o pagamento final seja realizado.
+
+Após o pagamento de 25/08:
+
+```text
+Data de lançamento:      05/08
+Data de efetivação:      25/08
+Situação:                 Realizada
+```
+
+A data original de vencimento da fatura não determina a data de efetivação
+quando a fatura não foi quitada naquele vencimento.
+
+### 21.3.3 Liberação do Limite
+
+O limite comprometido pelos lançamentos de uma fatura somente é liberado
+quando a fatura estiver integralmente quitada.
+
+Pagamentos parciais não liberam limite.
+
+Quando a fatura for quitada, o valor correspondente aos lançamentos
+quitados deixa de comprometer o limite global do contrato.
+
+Em compras parceladas, somente o valor das parcelas efetivamente quitadas
+na fatura é liberado conforme as regras de parcelamento.
+
+
 ---
 
 ## 22. Pagamento por Usuário de Cartão Adicional
