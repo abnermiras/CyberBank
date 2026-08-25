@@ -769,48 +769,169 @@ correspondente deve ser ajustado.
 
 ---
 
-## 27. Exclusão de Compra
+## 27. Exclusão de Compra Parcelada
 
-A exclusão de uma compra de cartão é uma operação diferente de estorno.
+Uma compra parcelada representa uma única operação financeira composta por
+múltiplas ocorrências de parcelas.
 
-A exclusão remove o lançamento do controle ativo do sistema.
+A exclusão da compra parcelada deve considerar o estado das parcelas que
+compõem o parcelamento.
 
-Quando uma compra for excluída:
+### 27.1 Parcelamento sem Parcelas Quitadas
 
-* o lançamento deixa de participar dos cálculos ativos;
-* o valor correspondente deixa de comprometer o limite;
-* a fatura é recalculada;
-* os valores financeiros afetados são recalculados.
+Quando nenhuma parcela do parcelamento estiver em uma fatura quitada, o
+usuário pode excluir a compra parcelada.
 
-A exclusão segue as regras gerais de exclusão lógica do CyberBank.
+A exclusão:
 
-O histórico do lançamento permanece armazenado para fins de histórico e
-auditoria.
+* remove o parcelamento do controle financeiro ativo;
+* exclui logicamente todas as parcelas ainda existentes;
+* remove as parcelas das faturas correspondentes;
+* libera o limite global comprometido pelo parcelamento;
+* recalcula os valores das faturas afetadas;
+* remove o gasto do Mapa de Lançamentos;
+* preserva o histórico da operação para fins de auditoria.
+
+Exemplo:
+
+```text id="f6wx8j"
+Compra: R$ 1.200
+Parcelamento: 12x de R$ 100
+
+Parcelas quitadas: 0
+Parcelas pendentes: 12
+```
+
+O usuário pode excluir o parcelamento.
+
+Após a exclusão:
+
+```text id="v2p2h9"
+Parcelas futuras: removidas
+Limite comprometido: -R$ 1.200
+Faturas futuras: recalculadas
+Mapa de Lançamentos: compra removida
+```
+
+### 27.2 Parcelamento com Parcelas Quitadas
+
+Quando pelo menos uma parcela do parcelamento estiver em uma fatura
+quitada, a compra parcelada não pode ser excluída.
+
+O CyberBank deve impedir a exclusão e orientar o usuário a utilizar o
+processo de estorno.
+
+A existência de qualquer parcela já quitada significa que parte da
+operação financeira já foi efetivada.
+
+Nesse cenário, a operação original deve permanecer preservada no histórico.
 
 ---
 
-## 28. Desativação do Cartão
+## 28. Estorno de Compra Parcelada
 
-Um cartão de crédito pode ser desativado.
+O estorno de uma compra parcelada deve considerar o valor total que ainda
+falta ser efetivado dentro do parcelamento.
 
-A desativação impede novos lançamentos utilizando o cartão.
+O estorno não altera retroativamente as parcelas que já foram quitadas.
 
-A desativação não remove:
+O CyberBank deve identificar:
 
-* faturas existentes;
-* lançamentos históricos;
-* parcelas futuras;
-* pagamentos realizados;
-* estornos;
-* demais informações históricas relacionadas ao cartão.
+* valor original do parcelamento;
+* valor das parcelas já quitadas;
+* valor das parcelas ainda não quitadas.
 
-Compras parceladas existentes continuam válidas e suas parcelas continuam
-sendo cobradas normalmente.
+O valor restante do parcelamento representa o valor que deverá ser
+estornado.
 
-O cartão desativado permanece disponível para consulta histórica.
+### 28.1 Exemplo
 
-A desativação não encerra automaticamente as obrigações financeiras
-existentes.
+Uma compra de:
+
+```text id="7k4yqd"
+R$ 1.200
+12x de R$ 100
+```
+
+possui:
+
+```text id="n7ynqf"
+Parcelas quitadas:       4
+Valor já quitado:        R$ 400
+
+Parcelas restantes:      8
+Valor restante:           R$ 800
+```
+
+O estorno será de:
+
+```text id="py9c0r"
+R$ 800
+```
+
+As quatro parcelas já quitadas permanecem no histórico.
+
+As parcelas ainda não quitadas são encerradas pelo processo de estorno.
+
+### 28.2 Lançamento Positivo do Estorno
+
+O estorno gera um lançamento positivo na fatura correspondente.
+
+O valor do lançamento positivo corresponde ao valor restante do
+parcelamento.
+
+Esse lançamento reduz o valor devido da fatura e representa o crédito
+concedido pelo estorno.
+
+O estorno também libera o limite correspondente ao valor restante do
+parcelamento.
+
+### 28.3 Limite
+
+O valor liberado pelo estorno corresponde ao valor que ainda estava
+comprometido pelo parcelamento.
+
+No exemplo de R$ 1.200 em 12 parcelas:
+
+```text id="h7ozl2"
+Valor original:             R$ 1.200
+Valor já quitado:           R$   400
+Valor ainda comprometido:   R$   800
+```
+
+O estorno libera:
+
+```text id="u9ubc4"
+R$ 800
+```
+
+Os R$ 400 já quitados não retornam ao limite porque já foram efetivamente
+pagos.
+
+### 28.4 Faturas
+
+As parcelas ainda não quitadas deixam de compor as faturas futuras.
+
+O lançamento positivo do estorno é registrado na fatura conforme as regras
+de faturamento do cartão.
+
+O valor devido das faturas afetadas é recalculado.
+
+### 28.5 Mapa de Lançamentos
+
+Uma compra parcelada estornada deixa de aparecer no Mapa de Lançamentos.
+
+O objetivo é evitar que uma despesa que não representa mais uma obrigação
+financeira ativa continue aparecendo como gasto no mapa.
+
+A retirada do Mapa de Lançamentos não representa exclusão física do
+registro.
+
+A compra original permanece preservada no histórico financeiro.
+
+O lançamento positivo do estorno permanece registrado para representar a
+operação financeira realizada.
+
 
 ---
 
