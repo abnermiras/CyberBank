@@ -935,7 +935,140 @@ operação financeira realizada.
 
 ---
 
-## 29. Histórico
+## 29. Crédito de Fatura
+
+Uma fatura pode possuir saldo credor.
+
+O saldo credor ocorre quando o valor dos créditos registrados na fatura
+for superior ao valor das obrigações financeiras existentes na fatura.
+
+O crédito não é perdido e não é devolvido automaticamente ao usuário.
+
+O saldo credor é transportado para a próxima fatura do mesmo cartão.
+
+### 29.1 Pagamento Superior ao Valor da Fatura
+
+O CyberBank permite que o valor total dos pagamentos realizados seja
+superior ao valor devido da fatura.
+
+Exemplo:
+
+```text id="c1ly4n"
+Valor devido:       R$ 1.000
+Pagamento:          R$ 1.200
+```
+
+Resultado:
+
+```text id="5g3x4j"
+Fatura:
+Valor devido:       R$ 1.000
+Total pago:         R$ 1.200
+Saldo credor:       R$   200
+```
+
+A fatura é considerada quitada.
+
+Os lançamentos pertencentes à fatura passam para `Realizados`.
+
+O valor excedente de R$ 200 permanece como crédito do cartão.
+
+### 29.2 Crédito na Próxima Fatura
+
+O saldo credor de uma fatura é transportado para a próxima fatura do mesmo
+cartão.
+
+Exemplo:
+
+```text id="7wwp3w"
+Crédito da fatura anterior: R$ 200
+Nova fatura:                R$ 800
+```
+
+O valor líquido devido será:
+
+```text id="rb5ljo"
+R$ 800 - R$ 200 = R$ 600
+```
+
+O crédito pertence ao cartão e não ao contrato de forma independente.
+
+O crédito não pode ser transferido para outro cartão do mesmo contrato.
+
+### 29.3 Crédito Proveniente de Estorno
+
+Um estorno pode gerar crédito superior ao valor devido da fatura atual.
+
+Nesse caso, o valor excedente permanece como saldo credor do cartão e é
+transportado para a próxima fatura.
+
+Exemplo:
+
+```text id="l7j4h5"
+Fatura atual:
+Obrigações:          R$ 300
+
+Estorno:
+R$ 800
+
+Crédito resultante:
+R$ 500
+```
+
+A fatura atual é encerrada com saldo credor de R$ 500.
+
+A próxima fatura do mesmo cartão receberá esse crédito.
+
+### 29.4 Estorno de Compra Parcelada
+
+No estorno de uma compra parcelada, o valor total ainda não efetivado do
+parcelamento é creditado de uma única vez.
+
+O valor do estorno não é dividido entre as parcelas futuras.
+
+Exemplo:
+
+```text id="j91q3s"
+Compra original:          R$ 1.200
+Parcelamento:             12x R$ 100
+
+Parcelas já quitadas:      4
+Valor já quitado:          R$ 400
+
+Valor restante:             R$ 800
+```
+
+O estorno gera um crédito de:
+
+```text id="3r3d0n"
+R$ 800
+```
+
+Esse crédito é lançado de uma única vez.
+
+As parcelas futuras deixam de existir como obrigações financeiras.
+
+Se o valor do estorno for superior às obrigações existentes na fatura
+atual, o excedente permanece como crédito e será transportado para as
+próximas faturas.
+
+### 29.5 Crédito e Limite
+
+O crédito de fatura e o limite de crédito são conceitos distintos.
+
+O crédito de fatura representa um valor já pago ou creditado em favor do
+titular.
+
+O limite representa o valor de crédito disponibilizado pelo contrato.
+
+O crédito gerado por pagamento excedente ou estorno não altera o limite
+global configurado do contrato.
+
+O crédito deve ser considerado no cálculo do valor líquido devido das
+faturas futuras.
+
+
+## 30. Histórico
 
 Operações relacionadas ao cartão não devem remover permanentemente
 informações financeiras que possuam histórico.
