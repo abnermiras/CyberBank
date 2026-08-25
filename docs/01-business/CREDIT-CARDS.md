@@ -1110,8 +1110,72 @@ O valor do encargo informado no CyberBank é de responsabilidade do usuário.
 O sistema registra e controla o valor informado, mas não valida se o valor
 corresponde às regras comerciais da instituição mantenedora do cartão.
 
+## 31. Fatura em Atraso
 
-## 31. Histórico
+Uma fatura pode permanecer pendente após sua data de vencimento.
+
+O vencimento da fatura não gera automaticamente:
+
+* juros;
+* multa;
+* encargos;
+* alteração do valor devido;
+* alteração da situação dos lançamentos;
+* liberação de limite.
+
+Enquanto a fatura não estiver integralmente quitada:
+
+* a fatura permanece pendente;
+* os lançamentos permanecem `Previstos`;
+* o limite comprometido permanece comprometido;
+* pagamentos parciais continuam sendo acumulados;
+* o usuário pode realizar novos pagamentos.
+
+### 31.1 Quitação após o Vencimento
+
+A fatura pode ser quitada integralmente após a data de vencimento.
+
+A quitação ocorre quando o total dos pagamentos acumulados atingir o valor
+devido da fatura.
+
+A data de efetivação dos lançamentos será a data do pagamento que completar
+a quitação.
+
+Exemplo:
+
+```text id="njfx8d"
+Vencimento:             18/08
+Valor da fatura:        R$ 1.000
+
+18/08
+Pagamento:              R$ 0
+
+25/08
+Pagamento:              R$ 300
+
+30/08
+Pagamento:              R$ 700
+```
+
+Em 30/08:
+
+```text id="3vby3m"
+Total pago:             R$ 1.000
+Fatura:                 Quitada
+Limite:                 Liberado
+Lançamentos:            Realizados
+Data de efetivação:     30/08
+```
+
+O CyberBank não aplica automaticamente qualquer encargo decorrente do
+atraso.
+
+Caso existam juros, multa ou outros encargos cobrados pela instituição
+mantenedora, o usuário deverá registrá-los manualmente conforme as regras
+de `Encargos por Atraso`.
+
+
+## 32. Histórico
 
 Operações relacionadas ao cartão não devem remover permanentemente
 informações financeiras que possuam histórico.
