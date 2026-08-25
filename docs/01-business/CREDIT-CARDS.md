@@ -1076,6 +1076,78 @@ do cartão e com o contrato de cada usuário.
 
 O CyberBank não reproduz essas regras específicas.
 
+## 29.6 Aplicação de Crédito em Fatura
+
+O saldo credor de um cartão é transportado automaticamente para a próxima
+fatura do mesmo cartão.
+
+O crédito é utilizado para reduzir o valor líquido devido da nova fatura.
+
+O crédito não é transferido para outros cartões do mesmo contrato.
+
+### 29.6.1 Crédito Inferior ao Valor da Nova Fatura
+
+Quando o crédito for menor que o valor da nova fatura, o crédito é
+integralmente utilizado.
+
+Exemplo:
+
+```text id="0xifc3"
+Crédito anterior:       R$ 200
+Nova fatura:            R$ 500
+
+Valor líquido devido:   R$ 300
+Crédito restante:       R$ 0
+```
+
+### 29.6.2 Crédito Igual ao Valor da Nova Fatura
+
+Quando o crédito for exatamente igual ao valor da nova fatura, a fatura
+fica integralmente compensada.
+
+Exemplo:
+
+```text id="n2g4w9"
+Crédito anterior:       R$ 500
+Nova fatura:            R$ 500
+
+Valor líquido devido:   R$ 0
+```
+
+A fatura é considerada quitada pela compensação do crédito.
+
+Os lançamentos da fatura passam para `Realizados` e o limite correspondente
+é liberado conforme as regras de quitação.
+
+### 29.6.3 Crédito Superior ao Valor da Nova Fatura
+
+Quando o crédito for superior ao valor da nova fatura, a fatura é
+integralmente compensada e o saldo excedente permanece como crédito para o
+ciclo seguinte.
+
+Exemplo:
+
+```text id="9e9f7g"
+Crédito anterior:       R$ 800
+Nova fatura:            R$ 500
+
+Valor compensado:       R$ 500
+Crédito restante:       R$ 300
+Valor líquido devido:   R$ 0
+```
+
+O saldo de R$ 300 permanece vinculado ao mesmo cartão.
+
+### 29.6.4 Crédito e Novas Compras
+
+Novas compras realizadas com o cartão continuam consumindo o limite global
+do contrato normalmente.
+
+O crédito da fatura não aumenta o limite global configurado.
+
+O crédito reduz o valor que deverá ser pago para quitar futuras faturas.
+
+
 ### 30.1 Registro Manual
 
 Quando houver juros, multa ou outro encargo relacionado ao cartão, o usuário
