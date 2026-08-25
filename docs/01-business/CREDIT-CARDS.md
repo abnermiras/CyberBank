@@ -848,7 +848,6 @@ lançamentos será liberado para o limite global do contrato.
 
 Exemplo:
 
-```text
 Cartão desativado
 
 Fatura:              R$ 1.000
