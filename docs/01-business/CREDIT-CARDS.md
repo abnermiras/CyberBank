@@ -339,6 +339,7 @@ Pagamento final:         25/08
 
 Data de lançamento:      05/08
 Data de efetivação:      25/08
+```
 ---
 
 ## 13. Pagamento da Fatura
