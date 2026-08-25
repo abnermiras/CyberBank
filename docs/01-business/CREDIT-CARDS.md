@@ -97,9 +97,7 @@ Esses tipos não representam contratos de crédito independentes.
 
 Todos permanecem vinculados ao contrato original e utilizam seu limite global.
 
----
-
-## 7. Cartão Principal
+### 6.1 Cartão Principal
 
 O cartão principal é o instrumento originalmente associado ao contrato de crédito.
 
@@ -107,9 +105,7 @@ O titular pode utilizar o cartão principal para realizar compras e demais opera
 
 O cartão principal utiliza o limite global do contrato.
 
----
-
-## 8. Cartão Virtual
+### 6.2 Cartão Virtual
 
 Um cartão virtual é um cartão adicionalmente criado dentro de um contrato de crédito para utilização em meios digitais ou outras finalidades definidas pelo titular.
 
@@ -123,9 +119,7 @@ O cartão virtual:
 
 As regras de faturamento dos lançamentos realizados pelo cartão virtual pertencem ao domínio de faturas.
 
----
-
-## 9. Cartão Adicional
+### 6.3 Cartão Adicional
 
 Um cartão adicional é emitido pelo titular do contrato para utilização por outro usuário.
 
@@ -136,21 +130,19 @@ O cartão adicional:
 - não cria um novo contrato;
 - não transfere a titularidade do contrato.
 
-### 9.1 Recebimento
+#### 6.3.1 Recebimento
 
 O usuário destinatário deve aceitar o cartão adicional antes de utilizá-lo.
 
 Ao aceitar o cartão, o usuário escolhe em qual ambiente financeiro próprio o cartão ficará disponível, conforme as regras de compartilhamento e permissões do sistema.
 
-### 9.2 Responsabilidade
+#### 6.3.2 Responsabilidade
 
 O usuário que recebe o cartão adicional possui autorização para utilização do cartão, mas não se torna titular do contrato de crédito.
 
 A responsabilidade pelo contrato e pelo limite global permanece com o titular.
 
----
-
-## 10. Cartão Compartilhado
+### 6.4 Cartão Compartilhado
 
 O compartilhamento permite que outro usuário utilize um cartão já existente sem criar um novo contrato de crédito.
 
@@ -165,7 +157,7 @@ O compartilhamento não transfere a propriedade do cartão nem a titularidade do
 
 ---
 
-## 11. Limite Global
+## 7. Limite Global
 
 O limite global pertence ao contrato de crédito e não a um cartão individual.
 
@@ -185,7 +177,7 @@ Cartão compartilhado:   utiliza o limite do contrato
 
 Não existe limite independente por cartão neste modelo.
 
-### 11.1 Alteração do Limite
+### 7.1 Alteração do Limite
 
 O titular do contrato pode alterar o limite global conforme as permissões do sistema.
 
@@ -205,7 +197,7 @@ Limite disponível:    -R$ 5.000,00
 
 ---
 
-## 12. Consumo do Limite
+## 8. Consumo do Limite
 
 Um lançamento realizado com cartão de crédito compromete o limite global do contrato no momento em que o lançamento é registrado.
 
@@ -215,11 +207,11 @@ O limite comprometido representa o valor de crédito atualmente utilizado pelo c
 
 As regras detalhadas de liberação relacionadas à quitação de faturas serão definidas no documento de faturas.
 
-### 12.1 Compra à Vista
+### 8.1 Compra à Vista
 
 Uma compra à vista compromete o valor total da operação.
 
-### 12.2 Compra Parcelada
+### 8.2 Compra Parcelada
 
 Uma compra parcelada compromete inicialmente o valor total da operação, e não apenas o valor da primeira parcela.
 
@@ -237,7 +229,7 @@ A forma como parcelas futuras são apresentadas em faturas e a forma como o limi
 
 ---
 
-## 13. Cartão como Forma de Pagamento
+## 9. Cartão como Forma de Pagamento
 
 O cartão de crédito pode ser utilizado como forma de pagamento em um lançamento de saída.
 
@@ -255,7 +247,7 @@ O número completo do cartão não deve ser exibido no sistema.
 
 ---
 
-## 14. Ciclo de Vida do Cartão
+## 10. Ciclo de Vida do Cartão
 
 O cartão possui um estado operacional que determina se ele pode ser utilizado para novas operações.
 
@@ -264,11 +256,11 @@ Estados mínimos do domínio:
 - `Ativo`;
 - `Desativado`.
 
-### 14.1 Cartão Ativo
+### 10.1 Cartão Ativo
 
 Um cartão ativo pode ser utilizado para novos lançamentos, desde que o usuário possua permissão para utilizá-lo.
 
-### 14.2 Desativação
+### 10.2 Desativação
 
 O titular do contrato pode desativar um cartão conforme as permissões do sistema.
 
@@ -283,13 +275,13 @@ A desativação não deve:
 - remover o cartão do contrato;
 - alterar retroativamente o histórico financeiro.
 
-### 14.3 Cartão Desativado com Obrigações Existentes
+### 10.3 Cartão Desativado com Obrigações Existentes
 
 A desativação de um cartão não encerra automaticamente as obrigações financeiras já criadas.
 
 Parcelamentos existentes e demais compromissos financeiros continuam válidos conforme as regras do domínio de faturas.
 
-### 14.4 Reativação
+### 10.4 Reativação
 
 O titular pode reativar um cartão anteriormente desativado, quando permitido pelas regras do sistema.
 
@@ -305,7 +297,7 @@ Após a reativação, o cartão volta a poder ser utilizado para novos lançamen
 
 ---
 
-## 15. Permissões de Utilização
+## 11. Permissões de Utilização
 
 A posse do cartão e a autorização para utilização são conceitos distintos.
 
@@ -317,7 +309,7 @@ As permissões específicas para consultar ou operar faturas serão definidas no
 
 ---
 
-## 16. Histórico
+## 12. Histórico
 
 O histórico financeiro do cartão deve ser preservado mesmo quando o cartão for desativado.
 
@@ -334,7 +326,7 @@ Devem permanecer rastreáveis, quando aplicável:
 
 ---
 
-## 17. Relação com Faturas
+## 13. Relação com Faturas
 
 Cada cartão pode possuir faturas próprias.
 
@@ -350,7 +342,7 @@ A separação entre cartão e fatura é uma decisão de modelagem do domínio e 
 
 ---
 
-## 18. Invariantes do Domínio do Cartão
+## 14. Invariantes do Domínio do Cartão
 
 As seguintes regras devem permanecer verdadeiras:
 
