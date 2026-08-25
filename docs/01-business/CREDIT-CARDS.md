@@ -271,198 +271,289 @@ apresentado como forma de pagamento válida no lançamento.
 
 ---
 
-## 9. Cartões Virtuais
+## 9. Lançamento com Cartão de Crédito
 
-O usuário pode criar cartões virtuais vinculados ao seu contrato de cartão
-de crédito.
+Quando uma movimentação de saída utiliza um cartão de crédito como forma de
+pagamento, a movimentação passa a possuir uma relação com o cartão
+utilizado.
 
-O cartão virtual não constitui um novo contrato de crédito.
+O lançamento permanece registrado no extrato de lançamentos do ambiente
+financeiro.
 
-O cartão virtual utiliza o limite global do contrato ao qual está
-vinculado.
+Além do extrato de lançamentos, o lançamento também é apresentado na
+fatura do cartão utilizado.
 
-Cada cartão virtual possui sua própria identificação.
-
-As regras específicas de utilização, limite, faturamento e encerramento de
-cartões virtuais serão definidas nas seções correspondentes.
+O mesmo lançamento financeiro não é duplicado. O extrato e a fatura são
+visões diferentes do mesmo lançamento.
 
 ---
 
-## 10. Cartões Adicionais
+## 10. Faturas
 
-O titular do contrato de cartão de crédito pode criar cartões adicionais
-para outros usuários do CyberBank.
+Cada cartão de crédito possui suas próprias faturas.
 
-O cartão adicional não constitui um novo contrato de cartão de crédito.
+A fatura é vinculada a um cartão específico.
 
-O cartão adicional permanece vinculado ao contrato de cartão de crédito do
-usuário titular.
+Cartões diferentes do mesmo contrato possuem faturas diferentes.
 
-O usuário que recebe o cartão adicional não se torna proprietário do
-contrato nem do limite global.
+Exemplo:
 
-### 10.1 Criação do Cartão Adicional
+```text
+Contrato de Cartão
+│
+├── Ultravioleta ****-1234
+│     ├── Fatura Janeiro
+│     ├── Fatura Fevereiro
+│     └── Fatura Março
+│
+├── Ultravioleta Virtual ****-5678
+│     ├── Fatura Janeiro
+│     ├── Fatura Fevereiro
+│     └── Fatura Março
+│
+└── Cartão Adicional ****-9012
+      ├── Fatura Janeiro
+      ├── Fatura Fevereiro
+      └── Fatura Março
+```
 
-Somente o usuário titular do contrato pode criar um cartão adicional para
-outro usuário do CyberBank.
+As faturas dos cartões pertencentes ao mesmo contrato são consolidadas
+para fins de responsabilidade financeira do contrato.
 
-Para criar um cartão adicional, o titular deve informar o usuário que
-receberá o cartão.
+O titular do contrato consegue visualizar todas as faturas de todos os
+cartões vinculados ao contrato.
 
-O cartão adicional deve permanecer vinculado ao contrato original.
+---
 
-O titular pode possuir múltiplos cartões adicionais vinculados ao mesmo
+## 11. Limite de Crédito
+
+O limite de crédito pertence ao contrato de cartão de crédito e não a uma
+fatura individual.
+
+Todo lançamento realizado utilizando qualquer cartão vinculado ao contrato
+consome o limite global do contrato.
+
+Isso inclui:
+
+* cartão principal;
+* cartão virtual;
+* cartão adicional;
+* cartão compartilhado.
+
+O limite é consumido independentemente de o lançamento ser:
+
+* à vista;
+* parcelado;
+* realizado pelo titular;
+* realizado por um usuário adicional;
+* realizado por um usuário com cartão compartilhado.
+
+### 11.1 Compra à Vista
+
+Uma compra à vista consome o valor total da compra no limite global do
 contrato.
 
-Todos os cartões adicionais utilizam o limite global do contrato.
+### 11.2 Compra Parcelada
 
-### 10.2 Recebimento do Cartão Adicional
+Uma compra parcelada também compromete o limite global conforme as regras
+de limite do contrato.
 
-Após a criação, o cartão adicional é disponibilizado ao usuário
-destinatário.
+O parcelamento não cria um limite independente para cada cartão.
 
-O cartão adicional permanece com status `Pendente` até que o usuário
-destinatário aceite o recebimento.
-
-Enquanto o cartão estiver `Pendente`, ele não pode ser utilizado pelo
-usuário destinatário.
-
-O usuário destinatário pode aceitar ou recusar o cartão adicional.
-
-### 10.3 Aceitação
-
-Ao aceitar o cartão adicional, o usuário destinatário deve escolher em qual
-de seus ambientes financeiros o cartão será disponibilizado.
-
-O cartão adicional passa a estar disponível somente no ambiente escolhido
-pelo usuário destinatário.
-
-A escolha do ambiente determina o contexto no qual o usuário poderá utilizar
-o cartão como forma de pagamento.
-
-O recebimento do cartão adicional não cria um novo contrato de cartão de
-crédito no ambiente do usuário destinatário.
-
-### 10.4 Forma de Pagamento
-
-Após a aceitação e escolha do ambiente, o cartão adicional passa a ser
-disponibilizado nesse ambiente como uma forma de pagamento.
-
-O usuário destinatário poderá utilizar o cartão adicional nas
-movimentações financeiras permitidas pelo sistema.
-
-A movimentação realizada utilizando o cartão adicional pertence ao
-ambiente escolhido pelo usuário destinatário.
-
-A utilização do cartão adicional não transfere a propriedade do contrato
-nem do limite para o usuário destinatário.
-
-### 10.5 Responsabilidade pelo Contrato
-
-O usuário titular permanece responsável pelo contrato de cartão de crédito.
-
-O usuário destinatário possui apenas o direito de utilização concedido
-pelo cartão adicional.
-
-As compras realizadas pelo cartão adicional:
-
-* utilizam o limite global do contrato;
-* pertencem ao contrato do titular;
-* são realizadas pelo usuário destinatário;
-* são registradas no ambiente escolhido pelo usuário destinatário;
-* podem ser identificadas pelo cartão adicional utilizado.
-
-### 10.6 Visibilidade
-
-O cartão adicional deve aparecer para o usuário destinatário após sua
-aceitação.
-
-O usuário destinatário poderá visualizar as informações necessárias para
-identificar o cartão adicional.
-
-O acesso ao cartão adicional não concede acesso aos demais cartões
-vinculados ao contrato do titular.
-
-O usuário destinatário não recebe automaticamente acesso ao contrato
-principal nem às informações privadas do titular.
-
-### 10.7 Ambiente do Cartão Adicional
-
-O cartão adicional recebido pertence operacionalmente ao ambiente escolhido
-pelo usuário destinatário.
-
-O usuário destinatário pode utilizar suas categorias e subcategorias
-existentes nesse ambiente ao registrar movimentações com o cartão
-adicional.
-
-A movimentação permanece associada ao ambiente no qual foi realizada.
-
-O fato de o cartão pertencer ao contrato de outro usuário não altera a
-origem da movimentação dentro do CyberBank.
-
-### 10.8 Revogação
-
-O titular do contrato pode revogar um cartão adicional.
-
-A revogação impede novas utilizações do cartão adicional.
-
-A revogação não altera nem remove as movimentações realizadas
-anteriormente com o cartão.
-
-O histórico das movimentações permanece armazenado conforme as regras de
-histórico financeiro do CyberBank.
-
-O usuário destinatário deixa de possuir o cartão como forma de pagamento
-ativa em seu ambiente.
-
-### 10.9 Recusa
-
-O usuário destinatário pode recusar um cartão adicional recebido.
-
-Um cartão adicional recusado não pode ser utilizado pelo usuário
-destinatário.
-
-A recusa não cria qualquer vínculo do cartão com um ambiente do usuário
-destinatário.
-
-O titular poderá criar posteriormente um novo cartão adicional, caso
-deseje disponibilizar novamente um cartão para esse usuário.
-
-
-## 11. Responsabilidade pelo Contrato
-
-O usuário que cria o cartão de crédito é o titular do contrato dentro do
-CyberBank.
-
-A criação do cartão em um ambiente financeiro não transfere a propriedade
-do contrato para o banco ou para a empresa mantenedora.
-
-A instituição mantenedora representa a entidade responsável pelo contrato
-de crédito, enquanto o usuário permanece como titular do cadastro do
-contrato dentro do CyberBank.
+As regras específicas de comprometimento e liberação do limite das parcelas
+serão definidas na seção de parcelamento.
 
 ---
 
-## 12. Regras Futuras
+## 12. Datas do Lançamento com Cartão
 
-As seguintes regras ainda devem ser definidas:
+Um lançamento realizado com cartão de crédito possui duas datas distintas:
 
-* ciclo de faturamento;
-* data de fechamento da fatura;
-* data de vencimento;
-* criação e estados da fatura;
-* compras no cartão;
-* consumo do limite;
-* limite comprometido;
-* limite disponível;
-* compras parceladas;
-* parcelas;
-* pagamento da fatura;
-* liberação do limite;
-* estorno;
-* cancelamento de compras;
-* cartões adicionais;
-* compartilhamento do cartão;
-* encerramento do cartão;
-* alteração do limite;
-* histórico de alterações do limite.
+* **Data de lançamento:** data em que o lançamento foi registrado no
+  CyberBank;
+* **Data de efetivação:** data de vencimento da fatura à qual o lançamento
+  está associado.
+
+A data de lançamento representa o momento em que a operação foi registrada
+no sistema.
+
+A data de efetivação representa o momento em que o valor financeiro deverá
+ser considerado efetivado em função do pagamento da fatura.
+
+---
+
+## 13. Fechamento da Fatura
+
+Cada cartão possui uma configuração de vencimento da fatura.
+
+O usuário define:
+
+* dia de vencimento;
+* quantidade de dias anteriores ao vencimento para fechamento.
+
+O CyberBank calcula automaticamente a data de fechamento da fatura com
+base nessa configuração.
+
+### 13.1 Fechamento Automático
+
+Quando a data calculada de fechamento for atingida, a fatura deverá ser
+fechada conforme as regras do sistema.
+
+Somente o titular do contrato pode realizar o fechamento da fatura.
+
+### 13.2 Fechamento Manual
+
+O titular do contrato pode fechar manualmente uma fatura antes da data de
+fechamento calculada.
+
+O fechamento manual determina que os lançamentos incluídos até aquele
+momento façam parte da fatura fechada.
+
+Após o fechamento, novos lançamentos deverão ser direcionados para a
+próxima fatura daquele cartão.
+
+---
+
+## 14. Reabertura da Fatura
+
+O titular do contrato pode reabrir uma fatura fechada.
+
+A reabertura permite que a fatura volte ao estado anterior ao fechamento,
+conforme as regras de edição e inclusão de lançamentos.
+
+Somente o titular do contrato pode reabrir uma fatura.
+
+A reabertura não transfere a responsabilidade financeira da fatura nem
+altera a propriedade do contrato.
+
+---
+
+## 15. Situação dos Lançamentos de Cartão
+
+Um lançamento realizado com cartão de crédito permanece `Previsto` até que
+a fatura à qual ele pertence seja integralmente paga.
+
+O fechamento da fatura não altera a situação do lançamento para
+`Realizado`.
+
+O pagamento parcial da fatura também não altera a situação dos lançamentos
+para `Realizado`.
+
+Somente o pagamento integral do valor da fatura permite que os lançamentos
+correspondentes passem para `Realizado`.
+
+### 15.1 Pagamento Parcial
+
+O CyberBank permite o pagamento parcial de uma fatura.
+
+Quando ocorrer um pagamento parcial:
+
+* o pagamento é registrado;
+* o valor pago é abatido do saldo da fatura;
+* a fatura permanece pendente de quitação;
+* os lançamentos relacionados permanecem `Previstos`.
+
+O pagamento parcial não efetiva os lançamentos da fatura.
+
+### 15.2 Pagamento Integral
+
+Quando o valor total devido da fatura for pago:
+
+* a fatura é considerada quitada;
+* os lançamentos relacionados passam de `Previstos` para `Realizados`;
+* os efeitos financeiros correspondentes passam a ser considerados
+  efetivados conforme as regras financeiras do CyberBank.
+
+---
+
+## 16. Pagamento da Fatura
+
+Uma fatura fechada pode ser paga por usuários que possuam permissão para
+realizar o pagamento daquele cartão.
+
+O pagamento pode ser:
+
+* parcial;
+* integral.
+
+O pagamento integral quita a fatura.
+
+O pagamento parcial não quita a fatura.
+
+### 16.1 Pagamento pelo Titular
+
+O usuário titular do contrato pode visualizar e pagar as faturas de todos
+os cartões vinculados ao contrato.
+
+O titular pode realizar pagamentos parciais ou integrais.
+
+### 16.2 Pagamento por Usuário de Cartão Adicional ou Compartilhado
+
+Um usuário que recebeu um cartão adicional ou compartilhado pode visualizar
+a fatura correspondente ao cartão recebido.
+
+Esse usuário pode realizar o pagamento da fatura.
+
+O usuário pode realizar pagamento parcial ou integral.
+
+Quando o pagamento realizado pelo usuário for equivalente ao valor total
+devido da fatura daquele cartão, a fatura será quitada e os lançamentos
+correspondentes passarão para `Realizados`.
+
+---
+
+## 17. Visibilidade das Faturas
+
+A visibilidade das faturas depende da relação do usuário com o contrato e
+com o cartão.
+
+### 17.1 Titular do Contrato
+
+O titular do contrato pode visualizar:
+
+* todas as faturas do contrato;
+* todas as faturas de todos os cartões;
+* todos os lançamentos de todas as faturas;
+* lançamentos realizados pelo próprio titular;
+* lançamentos realizados por usuários de cartões adicionais;
+* lançamentos realizados por usuários com cartões compartilhados.
+
+### 17.2 Usuário de Cartão Adicional
+
+O usuário que recebeu um cartão adicional pode visualizar a fatura
+específica daquele cartão.
+
+O usuário não possui acesso às faturas dos demais cartões do contrato.
+
+Na fatura, o usuário visualiza somente os lançamentos realizados por ele
+próprio.
+
+Lançamentos realizados pelo titular ou por outros usuários não são
+apresentados ao usuário adicional.
+
+### 17.3 Usuário de Cartão Compartilhado
+
+O usuário que recebeu acesso compartilhado a um cartão possui as mesmas
+restrições de visualização dos lançamentos da fatura daquele cartão.
+
+Ele pode visualizar a fatura do cartão compartilhado, porém somente os
+lançamentos realizados pelo próprio usuário são apresentados.
+
+O compartilhamento não concede acesso às demais faturas do contrato.
+
+---
+
+## 18. Responsabilidade pelo Fechamento
+
+O fechamento da fatura é uma operação exclusiva do titular do contrato.
+
+Somente o usuário proprietário do contrato pode:
+
+* fechar uma fatura;
+* reabrir uma fatura.
+
+Usuários que receberam cartões adicionais ou compartilhados não podem
+fechar ou reabrir faturas.
+
+O fechamento da fatura pelo titular determina que novos lançamentos sejam
+direcionados para o próximo ciclo de faturamento daquele cartão.
