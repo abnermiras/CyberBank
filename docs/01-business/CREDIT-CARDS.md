@@ -1066,9 +1066,52 @@ global configurado do contrato.
 
 O crédito deve ser considerado no cálculo do valor líquido devido das
 faturas futuras.
+## 30. Encargos por Atraso
+
+O CyberBank não calcula automaticamente juros, multas ou outros encargos
+relacionados ao atraso no pagamento de uma fatura.
+
+As regras de encargos podem variar de acordo com a instituição mantenedora
+do cartão e com o contrato de cada usuário.
+
+O CyberBank não reproduz essas regras específicas.
+
+### 30.1 Registro Manual
+
+Quando houver juros, multa ou outro encargo relacionado ao cartão, o usuário
+deve registrar o valor manualmente no CyberBank.
+
+O lançamento deve ser tratado como uma nova movimentação financeira.
+
+O usuário poderá utilizar suas categorias e subcategorias para identificar
+a natureza do encargo.
+
+Exemplos:
+
+* `Juros de Cartão`;
+* `Multa de Cartão`;
+* `Encargos Financeiros`.
+
+### 30.2 Fatura
+
+Quando o encargo estiver relacionado a uma fatura, o usuário poderá
+registrá-lo como lançamento associado ao cartão e à fatura correspondente.
+
+O valor registrado passa a fazer parte do controle financeiro da fatura
+conforme as regras gerais de lançamentos de cartão de crédito.
+
+O CyberBank não calcula automaticamente o valor do encargo nem determina
+quando ele deve ser aplicado.
+
+### 30.3 Responsabilidade pelo Valor
+
+O valor do encargo informado no CyberBank é de responsabilidade do usuário.
+
+O sistema registra e controla o valor informado, mas não valida se o valor
+corresponde às regras comerciais da instituição mantenedora do cartão.
 
 
-## 30. Histórico
+## 31. Histórico
 
 Operações relacionadas ao cartão não devem remover permanentemente
 informações financeiras que possuam histórico.
