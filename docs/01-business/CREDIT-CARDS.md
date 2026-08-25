@@ -850,6 +850,7 @@ lançamentos será liberado para o limite global do contrato.
 
 Exemplo:
 
+```text
 Cartão desativado
 
 Fatura:              R$ 1.000
@@ -857,6 +858,82 @@ Pagamento parcial:   R$   400
 Saldo pendente:      R$   600
 
 Limite comprometido: R$ 1.000
+
+A desativação não libera os R$ 1.000.
+
+Após a quitação integral:
+
+Fatura:              Quitada
+Limite liberado:     R$ 1.000
+```
+
+O limite liberado retorna ao limite global do contrato e pode ser utilizado
+por outros cartões ativos do mesmo contrato.
+
+21.3 Parcelamentos de Cartão Desativado
+
+Compras parceladas existentes permanecem válidas após a desativação.
+
+As parcelas futuras continuam sendo incluídas nas respectivas faturas e
+seguem normalmente as regras de faturamento, pagamento e quitação.
+
+A desativação não encerra antecipadamente o parcelamento.
+
+21.4 Crédito de Cartão Desativado
+
+O crédito de fatura permanece vinculado ao cartão que originou o crédito,
+mesmo quando esse cartão for desativado.
+
+A desativação não:
+
+elimina o crédito;
+transfere o crédito para outro cartão;
+transfere o crédito para o contrato de forma genérica.
+
+O crédito permanece disponível para consulta no histórico do cartão
+desativado.
+
+Como o cartão desativado não aceita novos lançamentos, o crédito não será
+utilizado em novas compras realizadas nesse cartão.
+
+O crédito permanece vinculado ao cartão para preservação do histórico
+financeiro da operação.
+
+### 21.5 Reativação do Cartão
+
+O titular do contrato pode reativar um cartão anteriormente desativado.
+
+A reativação altera o estado operacional do cartão e permite novamente a
+criação de novos lançamentos utilizando aquele cartão.
+
+A reativação:
+
+* não cria um novo cartão;
+* não cria um novo contrato;
+* não altera o limite global do contrato;
+* não altera as faturas existentes;
+* não altera parcelas já existentes;
+* não elimina o histórico de desativação.
+
+Após a reativação, o cartão volta a participar normalmente das operações de
+pagamento e faturamento.
+
+Exemplo:
+
+```text
+Cartão:
+Ultravioleta ****-1234
+
+Estado:
+Desativado
+
+Após a reativação:
+
+Estado:
+Ativo
+```
+
+O histórico da desativação permanece registrado.
 
 ---
 
