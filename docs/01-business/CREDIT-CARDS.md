@@ -90,7 +90,7 @@ A identificação única de negócio do cartão é composta por:
 - últimos quatro dígitos do cartão (`last4`);
 - usuário titular do cartão.
 
-Essa composição garante a diferenciação entre cartões mesmo quando usuários diferentes declararem a mesma instituição, o mesmo nome de contrato e os mesmos quatro últimos dígitos.
+Essa composição diferencia cartões mesmo quando usuários diferentes declararem a mesma instituição, o mesmo nome de contrato e os mesmos quatro últimos dígitos.
 
 Os quatro últimos dígitos são utilizados como componente da identificação do cartão e não devem ser tratados isoladamente como identificador único.
 
