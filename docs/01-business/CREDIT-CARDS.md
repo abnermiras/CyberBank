@@ -187,7 +187,148 @@ cartões virtuais serão definidas nas seções correspondentes.
 
 ---
 
-## 10. Responsabilidade pelo Contrato
+## 10. Cartões Adicionais
+
+O titular do contrato de cartão de crédito pode criar cartões adicionais
+para outros usuários do CyberBank.
+
+O cartão adicional não constitui um novo contrato de cartão de crédito.
+
+O cartão adicional permanece vinculado ao contrato de cartão de crédito do
+usuário titular.
+
+O usuário que recebe o cartão adicional não se torna proprietário do
+contrato nem do limite global.
+
+### 10.1 Criação do Cartão Adicional
+
+Somente o usuário titular do contrato pode criar um cartão adicional para
+outro usuário do CyberBank.
+
+Para criar um cartão adicional, o titular deve informar o usuário que
+receberá o cartão.
+
+O cartão adicional deve permanecer vinculado ao contrato original.
+
+O titular pode possuir múltiplos cartões adicionais vinculados ao mesmo
+contrato.
+
+Todos os cartões adicionais utilizam o limite global do contrato.
+
+### 10.2 Recebimento do Cartão Adicional
+
+Após a criação, o cartão adicional é disponibilizado ao usuário
+destinatário.
+
+O cartão adicional permanece com status `Pendente` até que o usuário
+destinatário aceite o recebimento.
+
+Enquanto o cartão estiver `Pendente`, ele não pode ser utilizado pelo
+usuário destinatário.
+
+O usuário destinatário pode aceitar ou recusar o cartão adicional.
+
+### 10.3 Aceitação
+
+Ao aceitar o cartão adicional, o usuário destinatário deve escolher em qual
+de seus ambientes financeiros o cartão será disponibilizado.
+
+O cartão adicional passa a estar disponível somente no ambiente escolhido
+pelo usuário destinatário.
+
+A escolha do ambiente determina o contexto no qual o usuário poderá utilizar
+o cartão como forma de pagamento.
+
+O recebimento do cartão adicional não cria um novo contrato de cartão de
+crédito no ambiente do usuário destinatário.
+
+### 10.4 Forma de Pagamento
+
+Após a aceitação e escolha do ambiente, o cartão adicional passa a ser
+disponibilizado nesse ambiente como uma forma de pagamento.
+
+O usuário destinatário poderá utilizar o cartão adicional nas
+movimentações financeiras permitidas pelo sistema.
+
+A movimentação realizada utilizando o cartão adicional pertence ao
+ambiente escolhido pelo usuário destinatário.
+
+A utilização do cartão adicional não transfere a propriedade do contrato
+nem do limite para o usuário destinatário.
+
+### 10.5 Responsabilidade pelo Contrato
+
+O usuário titular permanece responsável pelo contrato de cartão de crédito.
+
+O usuário destinatário possui apenas o direito de utilização concedido
+pelo cartão adicional.
+
+As compras realizadas pelo cartão adicional:
+
+* utilizam o limite global do contrato;
+* pertencem ao contrato do titular;
+* são realizadas pelo usuário destinatário;
+* são registradas no ambiente escolhido pelo usuário destinatário;
+* podem ser identificadas pelo cartão adicional utilizado.
+
+### 10.6 Visibilidade
+
+O cartão adicional deve aparecer para o usuário destinatário após sua
+aceitação.
+
+O usuário destinatário poderá visualizar as informações necessárias para
+identificar o cartão adicional.
+
+O acesso ao cartão adicional não concede acesso aos demais cartões
+vinculados ao contrato do titular.
+
+O usuário destinatário não recebe automaticamente acesso ao contrato
+principal nem às informações privadas do titular.
+
+### 10.7 Ambiente do Cartão Adicional
+
+O cartão adicional recebido pertence operacionalmente ao ambiente escolhido
+pelo usuário destinatário.
+
+O usuário destinatário pode utilizar suas categorias e subcategorias
+existentes nesse ambiente ao registrar movimentações com o cartão
+adicional.
+
+A movimentação permanece associada ao ambiente no qual foi realizada.
+
+O fato de o cartão pertencer ao contrato de outro usuário não altera a
+origem da movimentação dentro do CyberBank.
+
+### 10.8 Revogação
+
+O titular do contrato pode revogar um cartão adicional.
+
+A revogação impede novas utilizações do cartão adicional.
+
+A revogação não altera nem remove as movimentações realizadas
+anteriormente com o cartão.
+
+O histórico das movimentações permanece armazenado conforme as regras de
+histórico financeiro do CyberBank.
+
+O usuário destinatário deixa de possuir o cartão como forma de pagamento
+ativa em seu ambiente.
+
+### 10.9 Recusa
+
+O usuário destinatário pode recusar um cartão adicional recebido.
+
+Um cartão adicional recusado não pode ser utilizado pelo usuário
+destinatário.
+
+A recusa não cria qualquer vínculo do cartão com um ambiente do usuário
+destinatário.
+
+O titular poderá criar posteriormente um novo cartão adicional, caso
+deseje disponibilizar novamente um cartão para esse usuário.
+
+
+## 11. Responsabilidade pelo Contrato
 
 O usuário que cria o cartão de crédito é o titular do contrato dentro do
 CyberBank.
@@ -201,7 +342,7 @@ contrato dentro do CyberBank.
 
 ---
 
-## 11. Regras Futuras
+## 12. Regras Futuras
 
 As seguintes regras ainda devem ser definidas:
 
