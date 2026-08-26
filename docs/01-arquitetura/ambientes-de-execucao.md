@@ -1,5 +1,5 @@
 ---
-id: 01-arquitetura/ambientes
+id: 01-arquitetura/ambientes-de-execucao
 titulo: Ambientes
 dono: quais ambientes existem, hosts, portas, diferencas de configuracao
 ler-junto: [07-operacao/deploy, 07-operacao/build-e-run]

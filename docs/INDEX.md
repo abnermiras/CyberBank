@@ -26,13 +26,13 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | [`glossario.md`](00-produto/glossario.md) | o significado canônico de cada termo do domínio | rascunho |
 | [`personas-jornadas.md`](00-produto/personas-jornadas.md) | quem sao os usuarios e o passo a passo das jornadas principais | stub |
 | [`roadmap.md`](00-produto/roadmap.md) | ordem de construcao e criterio de pronto de cada fase | stub |
-| [`visao.md`](00-produto/visao.md) | problema, proposta de valor, nao-objetivos, metricas de sucesso | stub |
+| [`visao.md`](00-produto/visao.md) | problema, aposta central, público, escopo da primeira versão e restrições | rascunho |
 
 ## Arquitetura — como o sistema e organizado
 
 | Documento | Dono do fato | Status |
 |---|---|---|
-| [`ambientes.md`](01-arquitetura/ambientes.md) | quais ambientes existem, hosts, portas, diferencas de configuracao | stub |
+| [`ambientes-de-execucao.md`](01-arquitetura/ambientes-de-execucao.md) | quais ambientes existem, hosts, portas, diferencas de configuracao | stub |
 | [`decisoes/ADR-0000-template.md`](01-arquitetura/decisoes/ADR-0000-template.md) | formato padrão de uma ADR | ativo |
 | [`decisoes/README.md`](01-arquitetura/decisoes/README.md) | índice das ADRs e regra de quando escrever uma | ativo |
 | [`estrutura-de-pastas.md`](01-arquitetura/estrutura-de-pastas.md) | onde cada tipo de arquivo mora no repositorio | stub |
@@ -118,5 +118,5 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 
 ---
 
-**53 documentos · 42 ainda em stub.**
+**53 documentos · 41 ainda em stub.**
 Stub = conteudo inexistente: pergunte, nao deduza.

@@ -1,0 +1,11 @@
+# Normaliza finais de linha: LF no repositorio e no working tree.
+# Evita que o repo apareça todo modificado ao ser editado de Windows, WSL,
+# do Raspberry Pi ou por ferramentas diferentes.
+* text=auto eol=lf
+
+# Binarios: nunca converter
+*.png binary
+*.jpg binary
+*.pdf binary
+*.zip binary
+*.jar binary

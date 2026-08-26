@@ -2,7 +2,7 @@
 id: 07-operacao/build-e-run
 titulo: Build e execucao local
 dono: comandos para compilar, rodar e subir dependencias
-ler-junto: [01-arquitetura/ambientes, 07-operacao/testes]
+ler-junto: [01-arquitetura/ambientes-de-execucao, 07-operacao/testes]
 status: stub
 ---
 

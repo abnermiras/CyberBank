@@ -2,7 +2,7 @@
 id: 07-operacao/deploy
 titulo: Deploy
 dono: como uma versao chega em producao
-ler-junto: [01-arquitetura/ambientes, 07-operacao/runbook]
+ler-junto: [01-arquitetura/ambientes-de-execucao, 07-operacao/runbook]
 status: stub
 ---
 
