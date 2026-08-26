@@ -97,6 +97,14 @@ As ações explicitamente descritas neste documento não constituem uma lista ex
 
 A responsabilidade pelo contrato não é transferida pela criação de cartões adicionais nem pelo compartilhamento de cartões.
 
+### 3.4 Encerramento e Preservação do Contrato
+
+O contrato é considerado **encerrado** quando todos os seus cartões estão no estado `Desativado`. O encerramento decorre automaticamente da desativação do último cartão vinculado e não é uma exclusão.
+
+O CyberBank não exclui fisicamente contratos nem cartões. Um contrato encerrado, junto de todos os seus cartões desativados, permanece preservado e apenas deixa de aparecer entre os contratos ativos, mantendo integralmente seu histórico financeiro.
+
+O contrato volta a ficar ativo quando qualquer um de seus cartões é reativado, conforme as regras de reativação do §11.4. Como o contrato sempre possui ao menos o cartão físico do responsável — que pode sempre ser reativado —, o contrato sempre pode ser retomado pelo responsável/dono.
+
 ---
 
 ## 4. Cadastro e Identidade do Cartão
@@ -270,6 +278,8 @@ O titular de utilização de um cartão adicional pode:
 O titular de utilização não possui autoridade administrativa sobre o contrato ou sobre outros cartões.
 
 Um cartão adicional desativado permanece preservado para fins históricos e não pode ser convertido em outro tipo de cartão. A criação de um novo cartão adicional é uma nova entidade de cartão e não transfere automaticamente o histórico do cartão anterior.
+
+**Titular de utilização removido do sistema.** Se o titular de utilização de um cartão adicional deixar de existir no sistema (por exemplo, remoção da conta ou do acesso), o cartão adicional passa a `Desativado` e deixa de estar disponível para uso. Como a titularidade aceita é imutável (§7.1), esse cartão não é transferido para outro usuário: ele permanece preservado para fins históricos, mantendo todo o seu histórico de movimentos, de modo a evidenciar o que ocorreu.
 
 ---
 
@@ -470,6 +480,14 @@ O pagamento parcial é permitido e não encerra a fatura: a fatura permanece em 
 
 As regras detalhadas sobre composição da fatura, pagamento, estados da fatura, efetivação e demais operações financeiras pertencem ao domínio de faturas (`CREDIT-CARDS-INVOICE.md`).
 
+### 12.1 Moeda
+
+O CyberBank é um sistema multimoeda. No domínio de cartões tratado neste documento, porém, o movimento financeiro é sempre lançado e registrado em **reais (BRL)**.
+
+Compras realizadas em moeda estrangeira são lançadas pelo usuário **já convertidas para real**, junto com os encargos aplicáveis, como impostos e IOF, lançados normalmente como movimentos financeiros. O usuário não precisa informar o valor em moeda estrangeira para que o sistema registre o movimento.
+
+O tratamento de cartões que operam diretamente em moeda estrangeira será definido em documento próprio e não faz parte deste documento.
+
 ---
 
 ## 13. Limite de Crédito
@@ -550,4 +568,7 @@ As seguintes regras não são detalhadas neste documento e pertencem exclusivame
 25. Movimentos de crédito compõem o extrato e abatem a fatura, mas não aumentam o limite global nem permitem que o limite disponível o supere.
 26. O responsável pode pagar a fatura integral ou parcialmente; usuários de cartões adicionais ou compartilhados podem pagar o extrato correspondente ao cartão que utilizam; pagamento parcial não encerra a fatura.
 27. O limite é do contrato, não do cartão; o limite disponível pode ficar negativo e um lançamento não é impedido automaticamente por limite insuficiente ou negativo.
-28. Regras detalhadas de faturas e pagamentos pertencem ao `CREDIT-CARDS-INVOICE.md`.
+28. O CyberBank é multimoeda, mas neste domínio o movimento é sempre lançado em BRL; compras em moeda estrangeira são lançadas já convertidas para real, com impostos e IOF lançados normalmente (§12.1).
+29. Se o titular de utilização de um cartão adicional for removido do sistema, o cartão passa a `Desativado`, não é transferido a outro usuário e permanece preservado para histórico (§7.3).
+30. O contrato é encerrado automaticamente quando todos os seus cartões estão desativados; contrato e cartões nunca são excluídos fisicamente e o contrato volta a ficar ativo ao reativar qualquer cartão (§3.4).
+31. Regras detalhadas de faturas e pagamentos pertencem ao `CREDIT-CARDS-INVOICE.md`.
