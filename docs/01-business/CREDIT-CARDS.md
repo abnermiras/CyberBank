@@ -227,8 +227,6 @@ A titularidade de utilização não altera a propriedade do cartão dentro do co
 
 O titular de utilização de um cartão adicional **não pode ser trocado**. A indicação de um usuário para um cartão adicional representa uma nova concessão que depende da aceitação do usuário.
 
-Quando outro usuário deve receber um cartão adicional, o responsável pode realizar uma nova concessão. O novo usuário deverá passar pelo processo de aceitação correspondente.
-
 ### 7.2 Criação e Aceitação
 
 Ao criar um cartão adicional, o responsável pelo contrato informa:
@@ -259,7 +257,7 @@ Se o usuário recusar a solicitação, o cartão adicional passa automaticamente
 
 O responsável/dono pode administrar a concessão enquanto ela estiver pendente, inclusive cancelá-la ou realizar nova indicação, pois é o dono do contrato e do cartão. Uma alteração da concessão não equivale à aceitação do novo usuário.
 
-Se o responsável indicar outro usuário para um cartão adicional desativado, o cartão volta para `Pendente de Aceitação` e o novo usuário deverá aceitar explicitamente a solicitação para que o cartão volte a `Ativo`.
+Se o responsável indicar outro usuário para um cartão adicional desativado, o cartão volta para `Pendente de Aceitação` e o novo usuário deverá aceitar explicitamente a solicitação para que o cartão volte a `Ativo`. esta ação só pode ocorrer se o cartão nunca foi aceito por ninguém.
 
 ### 7.3 Administração do Cartão Adicional
 
@@ -282,7 +280,7 @@ O titular de utilização de um cartão adicional pode:
 
 O titular de utilização não possui autoridade administrativa sobre o contrato ou sobre outros cartões.
 
-A titularidade de utilização do cartão adicional é imutável após a aceitação. Para conceder um cartão adicional a outro usuário, o responsável deve realizar uma nova concessão, utilizando outra entidade de cartão adicional ou uma nova concessão sobre um cartão adicional desativado, conforme as regras deste documento.
+A titularidade de utilização do cartão adicional é imutável após a aceitação. Para conceder um cartão adicional a outro usuário, o responsável deve realizar uma nova concessão somente se ninguém nuca aceitou esse cartão antes, conforme as regras deste documento.
 
 ### 7.4 Revogação e Substituição
 
@@ -290,9 +288,9 @@ Um cartão adicional desativado permanece preservado para fins históricos e nã
 
 A criação de um novo cartão adicional é uma nova entidade de cartão e não transfere automaticamente o histórico do cartão anterior.
 
-A troca de titular por cartão desativado só acontece se ninguem nunca aceitou esse cartão adicional 
+A troca de titular por cartão desativado só acontece se ninguém nunca aceitou esse cartão adicional 
 
-Se o responsável indicar outro usuário para um cartão adicional, que nunca recebeu nenhum resposável, que esteja `Desativado`, o estado deve ser alterado para `Pendente de Aceitação`. O novo usuário precisará aceitar explicitamente a solicitação.
+Se o responsável indicar outro usuário para um cartão adicional, que nunca recebeu nenhum responsável, que esteja `Desativado`, o estado deve ser alterado para `Pendente de Aceitação`. O novo usuário precisará aceitar explicitamente a solicitação.
 
 ---
 
@@ -456,7 +454,7 @@ Recusa:
 
 `Pendente de Aceitação → Desativado`
 
-Se o responsável indicar outro usuário para um cartão adicional que esteja `Desativado`, o cartão volta para `Pendente de Aceitação` e aguarda a aceitação explícita do novo usuário. esta ação só pode acontecer se ninguem nunca aceitou esse cartão antes.
+Se o responsável indicar outro usuário para um cartão adicional que esteja `Desativado`, o cartão volta para `Pendente de Aceitação` e aguarda a aceitação explícita do novo usuário. esta ação só pode acontecer se ninguém nunca aceitou esse cartão antes.
 
 ### 11.2 Ativo
 
@@ -501,7 +499,7 @@ Qualquer autorização de compartilhamento existente sobre o cartão é perdida 
 
 O responsável/dono do contrato pode ativar novamente um cartão desativado.
 
-No caso de cartão adicional desativado, uma nova concessão pelo responsável coloca o cartão em `Pendente de Aceitação`; o novo usuário precisa aceitar explicitamente para que o cartão volte a `Ativo`.
+No caso de cartão adicional desativado, uma nova concessão pelo responsável coloca o cartão em `Pendente de Aceitação`; o novo usuário precisa aceitar explicitamente para que o cartão volte a `Ativo`. Esta ação de troca de novo usuário só pode ser efetuado se nunca ninguém aceito este cartão.
 
 ### 11.5 Transições
 
@@ -648,7 +646,7 @@ Essas regras pertencem exclusivamente ao documento:
 20. Ao aceitar, o destinatário escolhe o ambiente financeiro no qual utilizará o cartão.
 21. Ao recusar, o adicional passa para `Desativado`.
 22. O responsável, como dono do contrato e do cartão, pode administrar ou cancelar uma concessão pendente.
-23. Um adicional desativado pode receber uma nova concessão pelo responsável, mas volta para `Pendente de Aceitação` e aguarda nova aceitação. Somente se ninguem nunca aceitou este cartao antes. A troca de titular por cartão desativado só acontece se ninguem nunca aceitou esse cartão adicional
+23. Um adicional desativado pode receber uma nova concessão pelo responsável, mas volta para `Pendente de Aceitação` e aguarda nova aceitação. Somente se ninguém nunca aceitou este cartão antes. A troca de titular por cartão desativado só acontece se ninguém nunca aceitou esse cartão adicional
 24. Cartões físicos e virtuais podem ser compartilhados.
 25. Um mesmo cartão físico ou virtual pode ser compartilhado simultaneamente com vários usuários.
 26. O compartilhamento não cria novo cartão nem novo contrato.
