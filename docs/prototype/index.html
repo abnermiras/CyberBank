@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CYBERBANK // Prototype</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Share+Tech+Mono&display=swap');
+
+    :root {
+      --bg: #050608;
+      --panel: rgba(10, 13, 17, .86);
+      --panel-2: rgba(16, 20, 25, .92);
+      --ink: #e8edf0;
+      --muted: #7e8b92;
+      --yellow: #f5e642;
+      --cyan: #00e5ff;
+      --pink: #ff2d8d;
+      --red: #ff3b3b;
+      --line: rgba(0,229,255,.28);
+      --mono: 'Share Tech Mono', monospace;
+      --display: 'Barlow Condensed', sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--ink); }
+    body { font-family: var(--display); overflow-x: hidden; }
+    button, input { font: inherit; }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0; pointer-events: none; z-index: 50;
+      background: repeating-linear-gradient(to bottom, rgba(255,255,255,.025) 0, rgba(255,255,255,.025) 1px, transparent 1px, transparent 4px);
+      mix-blend-mode: screen; opacity: .35;
+    }
+
+    .noise { position: fixed; inset: 0; pointer-events: none; opacity: .08; z-index: 49;
+      background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 5px 5px; }
+
+    .screen { min-height: 100vh; position: relative; isolation: isolate; }
+    .city {
+      position: absolute; inset: auto 0 0; height: 58%; z-index: -2; overflow: hidden;
+      background: linear-gradient(to top, rgba(0,229,255,.08), transparent 65%);
+    }
+    .city::before {
+      content: ''; position: absolute; inset: 30% -10% 0;
+      background:
+        linear-gradient(90deg, transparent 0 3%, #091116 3% 8%, transparent 8% 11%, #0b1015 11% 17%, transparent 17% 20%, #090d12 20% 29%, transparent 29% 32%, #0c1218 32% 38%, transparent 38% 41%, #090d12 41% 49%, transparent 49% 52%, #0c1117 52% 61%, transparent 61% 65%, #090e13 65% 72%, transparent 72% 76%, #0b1116 76% 83%, transparent 83% 87%, #090d12 87% 95%, transparent 95%),
+        linear-gradient(to top, #030405, transparent);
+      clip-path: polygon(0 38%, 5% 32%, 8% 45%, 12% 21%, 17% 31%, 22% 13%, 27% 35%, 31% 26%, 36% 44%, 41% 9%, 45% 30%, 51% 18%, 56% 40%, 62% 6%, 67% 28%, 73% 16%, 79% 35%, 84% 11%, 90% 28%, 95% 17%, 100% 34%, 100% 100%, 0 100%);
+      filter: drop-shadow(0 -10px 22px rgba(0,229,255,.08));
+    }
+    .city::after {
+      content: ''; position: absolute; inset: 42% 0 0;
+      background: repeating-linear-gradient(90deg, transparent 0 44px, rgba(0,229,255,.14) 45px, transparent 46px 88px);
+      transform: perspective(300px) rotateX(62deg) scale(1.8); transform-origin: bottom;
+      opacity: .45;
+    }
+
+    .ambient { position: absolute; border-radius: 50%; filter: blur(70px); pointer-events: none; }
+    .ambient.a { width: 420px; height: 420px; background: rgba(255,45,141,.12); top: 6%; left: 2%; }
+    .ambient.b { width: 500px; height: 500px; background: rgba(0,229,255,.10); right: -8%; top: 18%; }
+
+    .topbar {
+      height: 58px; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 28px; border-bottom: 1px solid rgba(245,230,66,.32);
+      background: rgba(4,6,8,.72); backdrop-filter: blur(12px); letter-spacing: .12em;
+    }
+    .brand { display:flex; gap:12px; align-items:center; font-weight: 700; font-size: 25px; }
+    .brand-mark { width: 27px; height: 27px; border: 3px solid var(--yellow); transform: skew(-12deg); position:relative; box-shadow: 0 0 14px rgba(245,230,66,.4); }
+    .brand-mark::after { content:''; position:absolute; width: 10px; height: 3px; background:var(--cyan); right:-6px; bottom:3px; box-shadow: 0 -8px var(--pink); }
+    .status { font: 12px var(--mono); color: var(--cyan); }
+    .status::before { content:'●'; margin-right:8px; text-shadow:0 0 10px var(--cyan); }
+
+    .login-wrap { min-height: calc(100vh - 58px); display:grid; place-items:center; padding: 44px 20px 90px; }
+    .terminal {
+      width: min(940px, 100%); display:grid; grid-template-columns: 1.05fr .95fr;
+      background: var(--panel); border: 1px solid var(--line); box-shadow: 0 0 0 1px rgba(255,45,141,.08), 0 28px 80px rgba(0,0,0,.65), 0 0 45px rgba(0,229,255,.08);
+      clip-path: polygon(0 0, 98% 0, 100% 4%, 100% 100%, 2% 100%, 0 96%);
+    }
+    .hero { padding: 50px 48px; border-right: 1px solid rgba(0,229,255,.2); position:relative; }
+    .hero::after { content:''; position:absolute; right:-1px; top:48px; width:2px; height:96px; background:var(--yellow); box-shadow:0 0 18px var(--yellow); }
+    .eyebrow { font: 12px var(--mono); color: var(--pink); letter-spacing:.22em; }
+    h1 { font-size: clamp(58px, 8vw, 104px); line-height:.78; margin:18px 0 24px; letter-spacing:-.035em; text-transform:uppercase; text-shadow: 4px 0 var(--pink), -2px 0 rgba(0,229,255,.65); }
+    .sub { max-width: 440px; font-size: 22px; line-height:1.05; color:#c7d0d4; text-transform:uppercase; }
+    .system-readout { margin-top:42px; display:grid; grid-template-columns:repeat(3,1fr); gap:10px; font:10px var(--mono); color:var(--muted); }
+    .readout { border-top:1px solid rgba(0,229,255,.25); padding-top:9px; }
+    .readout strong { display:block; color:var(--cyan); font-size:15px; margin-top:3px; }
+
+    .auth { padding: 42px 42px 34px; background: linear-gradient(135deg, rgba(255,255,255,.025), transparent 45%); }
+    .auth-head { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:34px; }
+    .auth-title { font-size:34px; text-transform:uppercase; line-height:.9; }
+    .auth-code { font:10px var(--mono); color:var(--muted); text-align:right; }
+    .field { margin-bottom:20px; }
+    label { display:block; font:11px var(--mono); color:var(--cyan); letter-spacing:.14em; margin-bottom:8px; }
+    .input-shell { position:relative; }
+    input { width:100%; border:1px solid #344149; background:#070a0d; color:#f4f7f8; padding:15px 14px; outline:none; border-radius:0; font:16px var(--mono); transition:.15s; }
+    input:focus { border-color:var(--yellow); box-shadow:inset 3px 0 var(--yellow), 0 0 18px rgba(245,230,66,.08); }
+    .corner { position:absolute; right:0; top:0; width:9px; height:9px; border-top:2px solid var(--yellow); border-right:2px solid var(--yellow); pointer-events:none; }
+    .remember { display:flex; align-items:center; gap:9px; color:var(--muted); font:11px var(--mono); margin:4px 0 25px; }
+    .remember input { width:14px; height:14px; accent-color:var(--yellow); }
+    .actions { display:grid; gap:10px; }
+    .btn { border:1px solid var(--yellow); background:var(--yellow); color:#08090a; padding:16px 18px; text-transform:uppercase; font-weight:700; letter-spacing:.14em; cursor:pointer; clip-path:polygon(0 0, 98% 0, 100% 20%, 100% 100%, 2% 100%, 0 80%); transition:.15s; }
+    .btn:hover { box-shadow:0 0 28px rgba(245,230,66,.28); transform:translateX(2px); }
+    .btn.secondary { background:transparent; color:var(--cyan); border-color:var(--cyan); }
+    .btn.secondary:hover { box-shadow:0 0 22px rgba(0,229,255,.18); }
+    .hint { margin-top:26px; padding-top:18px; border-top:1px dashed rgba(255,255,255,.13); font:10px/1.5 var(--mono); color:#67747b; }
+    .hint b { color:var(--pink); }
+
+    .view { display:none; min-height: calc(100vh - 58px); padding:38px; }
+    .view.active { display:block; }
+    .dash-grid { max-width:1200px; margin:auto; display:grid; grid-template-columns: 1fr 1fr 1fr; gap:14px; }
+    .panel { background:var(--panel); border:1px solid rgba(0,229,255,.24); padding:22px; position:relative; }
+    .panel::before { content:''; position:absolute; left:0; top:0; width:42px; height:2px; background:var(--yellow); }
+    .wide { grid-column:span 2; }
+    .full { grid-column:1/-1; }
+    .panel-title { font:11px var(--mono); color:var(--cyan); letter-spacing:.14em; text-transform:uppercase; }
+    .balance { font-size:58px; margin:12px 0 2px; line-height:1; }
+    .positive { color:var(--yellow); }
+    .muted { color:var(--muted); }
+    .metric { display:flex; justify-content:space-between; padding:11px 0; border-bottom:1px solid rgba(255,255,255,.07); font:13px var(--mono); }
+    .metric:last-child { border-bottom:0; }
+    .nav { display:flex; justify-content:space-between; align-items:center; margin:0 auto 26px; max-width:1200px; }
+    .nav h2 { font-size:42px; margin:0; text-transform:uppercase; }
+    .nav button { background:none; color:var(--cyan); border:1px solid rgba(0,229,255,.35); padding:9px 13px; cursor:pointer; font:11px var(--mono); }
+    .bars { height:120px; display:flex; align-items:end; gap:8px; margin-top:18px; }
+    .bar { flex:1; background:linear-gradient(to top, var(--cyan), rgba(0,229,255,.08)); min-height:10px; box-shadow:0 0 12px rgba(0,229,255,.12); }
+    .transaction { display:grid; grid-template-columns: 1fr auto auto; gap:16px; padding:12px 0; border-bottom:1px solid rgba(255,255,255,.07); font:12px var(--mono); }
+
+    .register { width:min(560px,100%); margin:40px auto; background:var(--panel); border:1px solid rgba(255,45,141,.4); padding:34px; }
+    .register h2 { font-size:46px; margin:0 0 24px; text-transform:uppercase; }
+    .notice { margin-bottom:20px; color:var(--muted); font:11px/1.5 var(--mono); }
+
+    .toast { position:fixed; right:20px; bottom:20px; padding:13px 16px; background:#090d10; border-left:3px solid var(--yellow); color:var(--ink); font:11px var(--mono); transform:translateY(100px); transition:.25s; z-index:100; }
+    .toast.show { transform:translateY(0); }
+    .footer { position:fixed; left:22px; bottom:18px; color:#455157; font:9px var(--mono); z-index:60; }
+
+    @media (max-width: 800px) {
+      .terminal { grid-template-columns:1fr; }
+      .hero { border-right:0; border-bottom:1px solid rgba(0,229,255,.2); padding:36px 28px; }
+      .auth { padding:30px 28px; }
+      .dash-grid { grid-template-columns:1fr; }
+      .wide, .full { grid-column:auto; }
+      .topbar { padding:0 16px; }
+      .system-readout { grid-template-columns:1fr 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="noise"></div>
+  <div class="screen">
+    <div class="ambient a"></div><div class="ambient b"></div><div class="city"></div>
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark"></span>CYBERBANK</div>
+      <div class="status">SECURE NODE // ONLINE</div>
+    </header>
+
+    <main id="login" class="view active">
+      <div class="login-wrap">
+        <section class="terminal" aria-label="Acesso ao CyberBank">
+          <div class="hero">
+            <div class="eyebrow">PRIVATE FINANCIAL NETWORK // LOCAL NODE</div>
+            <h1>YOUR<br>FUNDS.<br>YOUR<br>RULES.</h1>
+            <div class="sub">Controle financeiro pessoal para uma vida onde cada crédito, débito e limite importa.</div>
+            <div class="system-readout">
+              <div class="readout">NETWORK<strong>ENCRYPTED</strong></div>
+              <div class="readout">LEDGER<strong>SYNCED</strong></div>
+              <div class="readout">NODE<strong>CB-01</strong></div>
+            </div>
+          </div>
+          <div class="auth">
+            <div class="auth-head">
+              <div class="auth-title">Access<br>Terminal</div>
+              <div class="auth-code">AUTH/01<br>IDENTITY GATE</div>
+            </div>
+            <form id="loginForm">
+              <div class="field">
+                <label for="user">01 // USUÁRIO</label>
+                <div class="input-shell"><input id="user" autocomplete="username" placeholder="IDENTITY / ALIAS" required><span class="corner"></span></div>
+              </div>
+              <div class="field">
+                <label for="password">02 // SENHA</label>
+                <div class="input-shell"><input id="password" type="password" autocomplete="current-password" placeholder="ACCESS KEY" required><span class="corner"></span></div>
+              </div>
+              <label class="remember"><input type="checkbox" checked> manter sessão neste dispositivo</label>
+              <div class="actions">
+                <button class="btn" type="submit">Conectar ao CyberBank</button>
+                <button class="btn secondary" type="button" data-go="register">Cadastrar novo acesso</button>
+              </div>
+              <div class="hint"><b>PROTOCOLO DE PROTÓTIPO:</b> qualquer usuário e senha com 4+ caracteres entram no ambiente demonstrativo. Nenhum dado financeiro real é processado.</div>
+            </form>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <main id="register" class="view">
+      <div class="register">
+        <div class="eyebrow">IDENTITY PROVISIONING // DEMO</div>
+        <h2>Create Access</h2>
+        <div class="notice">Nesta primeira versão o cadastro é somente uma tela navegável para validar o fluxo. A regra de negócio real será definida na documentação de identidade e autenticação.</div>
+        <form id="registerForm">
+          <div class="field"><label for="newUser">01 // NOVO USUÁRIO</label><input id="newUser" placeholder="CHOOSE YOUR ALIAS" required></div>
+          <div class="field"><label for="newPass">02 // NOVA SENHA</label><input id="newPass" type="password" placeholder="CREATE ACCESS KEY" required></div>
+          <div class="field"><label for="newPass2">03 // CONFIRMAÇÃO</label><input id="newPass2" type="password" placeholder="REPEAT ACCESS KEY" required></div>
+          <div class="actions"><button class="btn" type="submit">Provisionar identidade</button><button class="btn secondary" type="button" data-go="login">Voltar ao login</button></div>
+        </form>
+      </div>
+    </main>
+
+    <main id="dashboard" class="view">
+      <div class="nav"><h2>Overview // 08.2026</h2><button data-go="login">TERMINAR SESSÃO</button></div>
+      <div class="dash-grid">
+        <section class="panel wide"><div class="panel-title">saldo consolidado</div><div class="balance positive">R$ 18.742,60</div><div class="muted">+ R$ 2.180,40 no mês</div><div class="bars"><span class="bar" style="height:38%"></span><span class="bar" style="height:52%"></span><span class="bar" style="height:44%"></span><span class="bar" style="height:68%"></span><span class="bar" style="height:58%"></span><span class="bar" style="height:82%"></span><span class="bar" style="height:73%"></span><span class="bar" style="height:94%"></span></div></section>
+        <section class="panel"><div class="panel-title">cartão principal</div><div class="balance">R$ 7.420</div><div class="muted">limite disponível</div><div class="metric"><span>Fatura atual</span><b>R$ 3.218,42</b></div><div class="metric"><span>Vencimento</span><b>10/09/2026</b></div></section>
+        <section class="panel"><div class="panel-title">movimentação</div><div class="metric"><span>Entradas</span><b class="positive">R$ 8.900,00</b></div><div class="metric"><span>Saídas</span><b>R$ 6.719,60</b></div><div class="metric"><span>Investimentos</span><b>R$ 4.500,00</b></div><div class="metric"><span>Comprometido</span><b>R$ 2.140,00</b></div></section>
+        <section class="panel wide"><div class="panel-title">últimos movimentos</div>
+          <div class="transaction"><span>Supermercado // Crédito</span><span class="muted">26/08</span><b>- R$ 286,42</b></div>
+          <div class="transaction"><span>Salário // Entrada</span><span class="muted">25/08</span><b class="positive">+ R$ 8.900,00</b></div>
+          <div class="transaction"><span>Combustível // Débito</span><span class="muted">24/08</span><b>- R$ 180,00</b></div>
+          <div class="transaction"><span>Cashback // Crédito</span><span class="muted">23/08</span><b class="positive">+ R$ 42,18</b></div>
+        </section>
+        <section class="panel"><div class="panel-title">sistema</div><div class="metric"><span>Database</span><b class="positive">ONLINE</b></div><div class="metric"><span>Ledger</span><b class="positive">SYNCED</b></div><div class="metric"><span>Security</span><b class="positive">NOMINAL</b></div></section>
+      </div>
+    </main>
+
+    <div id="toast" class="toast"></div>
+    <div class="footer">CYBERBANK // PERSONAL FINANCIAL SYSTEM // UI PROTOTYPE v0.1</div>
+  </div>
+
+  <script>
+    const views = [...document.querySelectorAll('.view')];
+    const toast = document.getElementById('toast');
+    function show(viewId) {
+      views.forEach(v => v.classList.toggle('active', v.id === viewId));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function notify(message) {
+      toast.textContent = message; toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2600);
+    }
+    document.querySelectorAll('[data-go]').forEach(btn => btn.addEventListener('click', () => show(btn.dataset.go)));
+    document.getElementById('loginForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const user = document.getElementById('user').value.trim();
+      const pass = document.getElementById('password').value;
+      if (user.length < 4 || pass.length < 4) return notify('AUTH ERROR // mínimo de 4 caracteres');
+      show('dashboard');
+      notify('IDENTITY VERIFIED // acesso concedido');
+    });
+    document.getElementById('registerForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const p1 = document.getElementById('newPass').value;
+      const p2 = document.getElementById('newPass2').value;
+      if (p1.length < 4) return notify('PROVISION ERROR // senha muito curta');
+      if (p1 !== p2) return notify('PROVISION ERROR // senhas não conferem');
+      document.getElementById('user').value = document.getElementById('newUser').value;
+      document.getElementById('password').value = p1;
+      show('login');
+      notify('IDENTITY PROVISIONED // faça o primeiro acesso');
+    });
+  </script>
+</body>
+</html>
