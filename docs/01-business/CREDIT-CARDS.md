@@ -290,7 +290,9 @@ Um cartão adicional desativado permanece preservado para fins históricos e nã
 
 A criação de um novo cartão adicional é uma nova entidade de cartão e não transfere automaticamente o histórico do cartão anterior.
 
-Se o responsável indicar outro usuário para um cartão adicional que esteja `Desativado`, o estado deve ser alterado para `Pendente de Aceitação`. O novo usuário precisará aceitar explicitamente a solicitação.
+A troca de titular por cartão desativado só acontece se ninguem nunca aceitou esse cartão adicional 
+
+Se o responsável indicar outro usuário para um cartão adicional, que nunca recebeu nenhum resposável, que esteja `Desativado`, o estado deve ser alterado para `Pendente de Aceitação`. O novo usuário precisará aceitar explicitamente a solicitação.
 
 ---
 
@@ -443,7 +445,7 @@ Enquanto estiver pendente:
 - o cartão não deve ser considerado meio de pagamento ativo para o destinatário;
 - o usuário destinatário pode aceitar ou recusar a solicitação;
 - o responsável/dono continua possuindo autoridade sobre o cartão e sobre a concessão de sua utilização;
-- o responsável pode cancelar a solicitação ou realizar nova concessão;
+- o responsável pode cancelar a solicitação ou realizar nova concessão (somente se ninguém nunca aceitou antes);
 - indicar o usuário não equivale à aceitação ou pré-aprovação da titularidade.
 
 Aceitação concluída:
@@ -454,7 +456,7 @@ Recusa:
 
 `Pendente de Aceitação → Desativado`
 
-Se o responsável indicar outro usuário para um cartão adicional que esteja `Desativado`, o cartão volta para `Pendente de Aceitação` e aguarda a aceitação explícita do novo usuário.
+Se o responsável indicar outro usuário para um cartão adicional que esteja `Desativado`, o cartão volta para `Pendente de Aceitação` e aguarda a aceitação explícita do novo usuário. esta ação só pode acontecer se ninguem nunca aceitou esse cartão antes.
 
 ### 11.2 Ativo
 
@@ -646,7 +648,7 @@ Essas regras pertencem exclusivamente ao documento:
 20. Ao aceitar, o destinatário escolhe o ambiente financeiro no qual utilizará o cartão.
 21. Ao recusar, o adicional passa para `Desativado`.
 22. O responsável, como dono do contrato e do cartão, pode administrar ou cancelar uma concessão pendente.
-23. Um adicional desativado pode receber uma nova concessão pelo responsável, mas volta para `Pendente de Aceitação` e aguarda nova aceitação.
+23. Um adicional desativado pode receber uma nova concessão pelo responsável, mas volta para `Pendente de Aceitação` e aguarda nova aceitação. Somente se ninguem nunca aceitou este cartao antes. A troca de titular por cartão desativado só acontece se ninguem nunca aceitou esse cartão adicional
 24. Cartões físicos e virtuais podem ser compartilhados.
 25. Um mesmo cartão físico ou virtual pode ser compartilhado simultaneamente com vários usuários.
 26. O compartilhamento não cria novo cartão nem novo contrato.
