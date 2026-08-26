@@ -526,7 +526,7 @@ ATIVO ─────────► BLOQUEADO
 
 DESATIVADO ──────► ATIVO
       │
-      └── nova concessão de adicional ──► PENDENTE DE ACEITAÇÃO
+      └── nova concessão de adicional [se nunca aceito] ──► PENDENTE DE ACEITAÇÃO
 ```
 
 O responsável/dono possui autoridade para administrar essas transições conforme as regras específicas de cada tipo de cartão.
