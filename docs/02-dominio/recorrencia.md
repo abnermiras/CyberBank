@@ -17,7 +17,10 @@ status: stub
 - [x] Quando as ocorrencias futuras sao geradas: **na criacao**. As N parcelas nascem no
       momento da compra, com `situacao = PREVISTO` (`docs/02-dominio/lancamento.md`)
 - [ ] Ate onde gerar uma recorrencia sem fim definido (12 meses? 24?) e quem estende
-- [ ] O que acontece ao editar/cancelar uma serie ja iniciada
+- [ ] **Debito automatico e atributo daqui** (decidido em 27/08): a serie se paga sozinha.
+      O meio continua sendo DEBITO (`docs/02-dominio/meio-de-pagamento.md`)
+- [ ] O que acontece ao editar/cancelar uma serie ja iniciada — inclusive o efeito nas
+      parcelas futuras, que ja existem como lancamento PREVISTO
 - [ ] Como uma ocorrencia gerada se casa com o lancamento real capturado
 
 ## Conteudo

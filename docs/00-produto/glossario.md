@@ -33,13 +33,15 @@ O glossário define **o que a palavra significa**. Quem define **as regras** é 
 | **Receita** | Lançamento de entrada de dinheiro. Existe como conceito próprio, **não** como despesa com sinal negativo. | `02-dominio/lancamento` |
 | **Conta** | Onde o dinheiro está. Corrente, poupança, carteira, aplicação, benefício. **Se tem saldo próprio que o sistema acompanha, é conta.** | `02-dominio/conta` |
 | **Saldo** | Soma dos lançamentos de uma conta até uma data. Nunca armazenado. Tem duas leituras: **realizado** (só o que aconteceu) e **projetado** (mais os previstos). | `02-dominio/conta` |
-| **Meio de pagamento** | *Como* a compra foi paga (débito, crédito, Pix, VR). Distinto de conta. | `02-dominio/meio-de-pagamento` |
+| **Meio de pagamento** | *Como* a compra foi paga (débito, crédito, Pix, dinheiro, benefício, boleto). Distinto de conta, e sempre apontando para uma. É ele que decide quando o dinheiro sai. | `02-dominio/meio-de-pagamento` |
+| **Débito automático** | **Não é meio de pagamento.** O meio é débito; "automático" é fato da recorrência, que se paga sem o usuário agir. | `02-dominio/recorrencia` |
 | **Transferência** | Movimento de dinheiro entre duas contas do mesmo ambiente. São **dois lançamentos** ligados pelo mesmo id, sentidos opostos. Não tem categoria e não é gasto. | `02-dominio/lancamento` |
 | **Correção** | Arrumar um registro errado (valor digitado errado, categoria errada). **Edita** o lançamento e guarda o histórico. | `02-dominio/lancamento` |
 | **Estorno** | O dinheiro voltou de verdade: compra cancelada, devolução, chargeback. É um **lançamento novo** de sentido oposto, não uma edição. | `02-dominio/lancamento` |
 | **Previsto / Realizado** | A situação de um lançamento: já aconteceu, ou vai acontecer (parcela futura, recorrência futura). | `02-dominio/lancamento` |
 | **Reabertura de fatura** | Destravar uma fatura já fechada para corrigir lançamento: reabre, edita, recalcula, ajusta o pagamento se houver, fecha de novo. | `02-dominio/fatura-cartao` |
-| **Categoria** | Classificação hierárquica do propósito do gasto (ex.: transporte → gasolina). | `02-dominio/categoria` |
+| **Categoria** | Para que serviu o dinheiro. Árvore de **exatamente dois níveis** (transporte → gasolina) e com um `sentido`: categoria de entrada não recebe lançamento de saída. | `02-dominio/categoria` |
+| **Sentido** | `ENTRADA` ou `SAIDA`. Atributo do lançamento e da categoria — é ele que dá o sinal, nunca o valor. | `02-dominio/lancamento` |
 | **Fatura** | Agrupamento de lançamentos de crédito em um ciclo, com fechamento e vencimento. | `02-dominio/fatura-cartao` |
 | **Parcelamento** | Compra única dividida em N lançamentos futuros. Distinto de recorrência. | `02-dominio/recorrencia` |
 | **Recorrência** | Série de lançamentos previstos que se repetem por regra de tempo. Distinto de parcelamento. | `02-dominio/recorrencia` |
@@ -105,6 +107,7 @@ Palavra ambígua vira modelo ambíguo. Não use:
 | "gasto" / "despesa" / "compra" como sinônimos soltos | **lançamento** (o sinal e o tipo são atributos dele) |
 | "cartão" para se referir ao meio | **meio de pagamento** |
 | "tag" | **categoria** |
+| "débito automático" como meio de pagamento | **débito** + recorrência automática |
 | "importar" para captura automática | **capturar** (importar é só arquivo/OFX) |
 | "ambiente" para dev/homologação/produção | **ambiente de execução** |
 | "investimento" como sinônimo solto | **aplicação** (investir é o ato, aplicação é a coisa) |

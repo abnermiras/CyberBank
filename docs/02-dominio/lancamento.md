@@ -27,7 +27,7 @@ par de lançamentos, não um lançamento com dois lados — ver Transferência.
 | `descricao` | sim | O que o usuário lê no extrato |
 | `situacao` | sim | `PREVISTO` ou `REALIZADO` |
 | `categoria` | não | Obrigatória para o lançamento deixar de ser pendência |
-| `meioDePagamento` | não | Ausente em transferência, aporte e lançamento de abertura |
+| `meioDePagamento` | não | Obrigatório em gasto e receita reais. Ausente em transferência, aporte, resgate, rendimento e lançamento de abertura |
 | `fatura` | não | Preenchido quando o meio é crédito. `docs/02-dominio/fatura-cartao.md` |
 | `transferenciaId` | não | Amarra os dois lançamentos de uma transferência |
 | `origemParcelamento` | não | A compra que gerou esta parcela. `docs/02-dominio/recorrencia.md` |

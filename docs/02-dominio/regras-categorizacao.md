@@ -17,6 +17,9 @@ status: stub
 - [ ] Ordem de precedencia entre regra explicita, historico e sugestao
 - [ ] Como o usuario corrige e como a correcao vira aprendizado
 - [ ] Nivel de confianca a partir do qual o sistema categoriza sozinho
+- [ ] A regra so pode sugerir categoria do **mesmo sentido** do lancamento, e a arvore
+      tem dois niveis: sugerir a raiz que tem filhos nao e resposta valida
+      (`docs/02-dominio/categoria.md`)
 
 ## Conteudo
 

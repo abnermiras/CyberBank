@@ -17,6 +17,8 @@ status: stub
 - [ ] Que lancamentos contam para o consumo do orcamento
 - [ ] O que acontece ao estourar o limite (bloqueia, alerta, so registra?)
 - [ ] Como o orcamento se comporta na virada de mes
+- [ ] Mover uma subcategoria de raiz muda o consumo de meses ja fechados. Aceitar, ou o
+      "mover" passa a valer so daqui pra frente? (`docs/02-dominio/categoria.md`)
 
 ## Conteudo
 

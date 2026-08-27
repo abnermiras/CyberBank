@@ -26,6 +26,8 @@ quem usa o RaspyBank hoje: é observação, não dedução.
 - [ ] **Jornada 4 — dividir um ambiente com outra pessoa:** convidar, ela lançar, e os
       dois entenderem quem lançou o quê.
 - [ ] Em cada jornada: em que passo exato o RaspyBank perde o usuário hoje?
+- [ ] Quais categorias aparecem de verdade no seu uso — é delas que sai o conjunto
+      inicial de `docs/02-dominio/categoria.md`, não de uma lista genérica de app
 
 A última pergunta é a que mais vale. Ela é o insumo de `06-interface/bot-conversas` e
 `06-interface/dashboard`, e é a diferença entre desenhar tela por intuição e desenhar

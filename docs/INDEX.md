@@ -50,12 +50,12 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 |---|---|---|
 | [`ambiente-financeiro.md`](02-dominio/ambiente-financeiro.md) | o ambiente como agregado dono do dado: papeis, acesso, convite, ciclo de vida e a regra de isolamento | rascunho |
 | [`aplicacao-patrimonio.md`](02-dominio/aplicacao-patrimonio.md) | aplicacao como conta, aporte e resgate, atualizacao do valor atual e o calculo do patrimonio | rascunho |
-| [`categoria.md`](02-dominio/categoria.md) | arvore de categorias, subcategorias e regras de uso | stub |
+| [`categoria.md`](02-dominio/categoria.md) | a arvore de categorias, o sentido, e o que acontece ao renomear, mover ou excluir | rascunho |
 | [`conta.md`](02-dominio/conta.md) | tipos de conta, saldo, a separacao entre fluxo de caixa e patrimonio, e o ciclo de vida | rascunho |
 | [`fatura-cartao.md`](02-dominio/fatura-cartao.md) | ciclo de fatura, fechamento, vencimento e relacao com lancamentos | stub |
 | [`importacao-conciliacao.md`](02-dominio/importacao-conciliacao.md) | como fontes externas viram lancamentos sem duplicar | stub |
 | [`lancamento.md`](02-dominio/lancamento.md) | campos, as duas datas, situacao, transferencia, correcao versus estorno e invariantes do lancamento | rascunho |
-| [`meio-de-pagamento.md`](02-dominio/meio-de-pagamento.md) | tipos de meio de pagamento, atributos de cada tipo e como o lançamento os referencia | rascunho |
+| [`meio-de-pagamento.md`](02-dominio/meio-de-pagamento.md) | tipos de meio, a regra que calcula a dataEfeito de cada tipo, e como o lancamento os referencia | rascunho |
 | [`orcamento.md`](02-dominio/orcamento.md) | limites por categoria/periodo e calculo de consumo | stub |
 | [`recorrencia.md`](02-dominio/recorrencia.md) | lancamentos recorrentes e parcelados: geracao e manutencao | stub |
 | [`regras-categorizacao.md`](02-dominio/regras-categorizacao.md) | como um lancamento recebe categoria automaticamente | stub |
@@ -122,5 +122,5 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 
 ---
 
-**57 documentos · 38 ainda em stub.**
+**57 documentos · 37 ainda em stub.**
 Stub = conteudo inexistente: pergunte, nao deduza.

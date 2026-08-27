@@ -28,11 +28,17 @@ dashboard mentir.
 | Tipo | O que é | Meio de pagamento próprio |
 |---|---|---|
 | `CORRENTE` | Conta bancária do dia a dia | débito, Pix, boleto |
-| `POUPANCA` | Poupança da mesma instituição | transferência |
+| `POUPANCA` | Poupança da mesma instituição | nenhum: não se paga com ela |
 | `CARTEIRA` | Dinheiro vivo | dinheiro |
 | `APLICACAO` | Dinheiro guardado ou investido — ver `docs/02-dominio/aplicacao-patrimonio.md` | nenhum: não se paga com ela |
 | `BENEFICIO` | Vale-refeição e afins, com saldo separado do banco | o cartão de benefício |
 
+> ☐ **`POUPANCA` e `APLICACAO` têm hoje o mesmo comportamento** — as duas ficam fora do
+> fluxo de caixa, nenhuma tem meio de pagamento, as duas rendem. Dois tipos com o mesmo
+> comportamento é o que este doc diz para não fazer. Ou `POUPANCA` some e uma poupança
+> vira uma conta `APLICACAO` chamada "Poupança do Itaú", ou aparece a regra que as separa.
+> Decidir junto com o subtipo de aplicação (`docs/02-dominio/aplicacao-patrimonio.md`).
+>
 > ☐ **Confirmar `BENEFICIO`.** É a resposta proposta para a pergunta aberta em
 > `docs/02-dominio/meio-de-pagamento.md`: o vale tem saldo próprio acompanhado, então é
 > conta, com um meio de pagamento apontando para ela. Se você preferir tratar o vale como
@@ -90,7 +96,8 @@ Quem pode: dono e editor. Leitor não mexe (`docs/02-dominio/ambiente-financeiro
 - Toda conta tem `tipo` e `entraNoFluxoDeCaixa`, os dois obrigatórios.
 - Conta inativa não recebe lançamento novo — nem previsto, nem por captura.
 - Uma conta com qualquer lançamento não pode ser excluída.
-- Conta `APLICACAO` não é origem de compra: nenhum meio de pagamento aponta para ela.
+- Conta com `entraNoFluxoDeCaixa = false` não é origem de compra: nenhum meio de
+  pagamento aponta para ela.
 - Saldo nunca é armazenado como total; é sempre derivado dos lançamentos.
 
 ## Fronteiras com outros docs
