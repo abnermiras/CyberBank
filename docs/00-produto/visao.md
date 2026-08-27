@@ -1,9 +1,9 @@
 ---
 id: 00-produto/visao
 titulo: Visão de produto
-dono: problema, aposta central, público, escopo da primeira versão e restrições
-ler-junto: [00-produto/glossario, 00-produto/roadmap]
-status: rascunho
+dono: problema, aposta central, público e restrições
+ler-junto: [00-produto/glossario, 00-produto/roadmap, 02-dominio/ambiente-financeiro]
+status: ativo
 ---
 
 # Visão de produto
@@ -21,25 +21,23 @@ O RaspyBank mostra gasto. O Cyberbank precisa responder também: quanto entrou, 
 está investido, quanto está guardado, e a que distância estão as metas. Se ao final o
 sistema só souber dizer para onde o dinheiro foi, ele não se justificou.
 
+Por isso a primeira versão já leva uma fatia de patrimônio, e não só o básico de gasto —
+o porquê e o tamanho exato dessa fatia estão em `docs/00-produto/roadmap.md`.
+
 ## O conceito estruturante: ambiente financeiro
 
 Um **ambiente financeiro** é um espaço de dados criado pelo usuário — com suas contas,
 lançamentos, categorias, orçamentos e metas. Um usuário pode ter vários ("Pessoal",
-"Casa", "Empresa") e pode **compartilhar** um ambiente com outros usuários segundo regras
-a definir.
+"Casa", "Empresa") e pode compartilhar um ambiente com outras pessoas.
 
-Isso muda o modelo inteiro e precisa valer desde a primeira linha de código:
+Duas frases que mudam o modelo inteiro e valem desde a primeira linha de código:
 
-| Consequência | Detalhe |
-|---|---|
-| O ambiente é o dono do dado | Conta, lançamento e orçamento pertencem a um **ambiente**, nunca diretamente a um usuário |
-| Usuário é quem tem acesso | A relação usuário↔ambiente é N:N e carrega um papel/permissão |
-| Toda consulta é filtrada por ambiente | Sem exceção. Consulta sem ambiente é bug de segurança, não de lógica |
-| Vazamento entre ambientes é falha crítica | Nenhum usuário pode ver dado de ambiente ao qual não tem acesso, nem por bug |
+- **O ambiente é o dono do dado.** Conta, lançamento e orçamento pertencem a um
+  ambiente, nunca diretamente a um usuário.
+- **Vazamento entre ambientes é falha crítica**, não bug de lógica.
 
-> ☐ **A definir:** quais papéis existem (dono, editor, leitor?), o que cada um pode fazer,
-> quem pode convidar, e o que acontece com o ambiente se o dono sair. Sem isso não há
-> como implementar compartilhamento.
+Papéis, convite, isolamento e invariantes: `docs/02-dominio/ambiente-financeiro.md`.
+O nome do conceito foi decidido em `ADR-0001`.
 
 ## O que o sistema precisa responder
 
@@ -63,33 +61,20 @@ O código, porém, é escrito desde já como se fosse aberto: nada pode depender
 Abner usa" nem de "roda no Pi". Migrar para nuvem deve ser mudança de infraestrutura,
 nunca de modelo.
 
-## Primeira versão
+## Escopo por fase
 
-O que precisa estar rodando para desligar o RaspyBank (~3 meses):
-
-- [ ] **Lançamentos corretos** — entrada, saída, edição e estorno sem erro de saldo
-- [ ] **Fatura de cartão e parcelas corretas** — gasto no crédito não debita na hora, cai
-      na fatura certa, parcela aparece nos meses seguintes
-- [ ] **Ambientes financeiros funcionando** — criação, isolamento garantido e
-      compartilhamento conforme as regras definidas
-- [ ] **Dashboard de gasto por categoria** — mês a mês, com comparação
-- [ ] **Cadastro e autenticação** — pré-requisito de tudo acima, já que há mais de um usuário
-
-Fora da primeira versão (mas **dentro** da visão): captura automática de compras,
-investimentos, metas, projeção de saldo, orçamento, entrada por voz, Open Finance.
-
-> ⚠ **Tensão a resolver:** a aposta é "vida financeira inteira", mas a primeira versão
-> não entrega nada de investimento, patrimônio ou meta — ela entrega um RaspyBank bem
-> feito e multiusuário. Ou a primeira versão precisa de uma fatia disso, ou a aposta é
-> outra. Decida em `docs/00-produto/roadmap.md` antes de começar a codar.
+A ordem de construção, o corte mínimo da primeira versão e o critério de pronto de cada
+fase vivem em `docs/00-produto/roadmap.md`. Este doc não repete a lista — ela mudaria
+nos dois lugares e divergiria em um.
 
 ## Não-objetivos
 
-Nada está permanentemente fora do escopo — a decisão é sempre *quando*, não *se*.
-As exclusões por fase vivem em `docs/00-produto/roadmap.md`.
+Um produto sem não-objetivo não tem foco: se nada pode ser recusado, todo pedido novo
+vira prioridade e nada termina.
 
-> ⚠ Um produto sem não-objetivo não tem foco. Revisite esta seção depois do roadmap:
-> se ao final nada puder ser recusado, todo pedido novo vira prioridade e nada termina.
+Os não-objetivos do Cyberbank são a coluna **"Sem fase"** da tabela de congelados em
+`docs/00-produto/roadmap.md`. A lista não é repetida aqui de propósito: repetida, ela
+diverge. Recusar um pedido é mover uma linha lá, nunca abrir uma exceção aqui.
 
 ## Restrições
 
@@ -102,8 +87,8 @@ As exclusões por fase vivem em `docs/00-produto/roadmap.md`.
 
 ## Decisões em aberto
 
-- [ ] Papéis e regras de compartilhamento de ambiente
-- [ ] Se a primeira versão inclui alguma fatia de investimento/meta (ver Tensão acima)
-- [ ] Quando abrir cadastro para além de você, e o que precisa estar pronto antes
-      (segurança, backup do dado de terceiros, LGPD)
-- [ ] Se "ambiente financeiro" é o termo final — ele vai aparecer em todo lugar do código
+- [ ] Quando abrir cadastro para além do círculo próximo. A Fase 4 do roadmap lista o
+      que precisa estar pronto antes (segurança, backup de dado de terceiro, LGPD), mas
+      o gatilho de "agora dá" ainda não existe.
+- [ ] Se o Cyberbank continua sendo software de uso pessoal ou vira produto para outros.
+      A resposta muda suporte, migração de dado e o que pode quebrar entre versões.

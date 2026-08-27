@@ -14,7 +14,7 @@ status: stub
 ## Perguntas que este documento precisa responder
 
 - [ ] Solucao adotada e o desenho de custodia das chaves
-- [ ] Como a aplicacao obtem um segredo em runtime
+- [ ] Como o sistema obtem um segredo em runtime
 - [ ] Procedimento de rotacao
 - [ ] O que fazer se o cofre estiver indisponivel no boot
 

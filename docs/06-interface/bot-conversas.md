@@ -2,7 +2,7 @@
 id: 06-interface/bot-conversas
 titulo: Fluxos de conversa do bot
 dono: roteiro das conversas: texto exato, opcoes e caminhos alternativos
-ler-junto: [05-integracoes/telegram-bot, 00-produto/personas-jornadas]
+ler-junto: [05-integracoes/telegram-bot, 00-produto/jornadas]
 status: stub
 ---
 

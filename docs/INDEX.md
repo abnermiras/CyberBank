@@ -23,10 +23,10 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 
 | Documento | Dono do fato | Status |
 |---|---|---|
-| [`glossario.md`](00-produto/glossario.md) | o significado canônico de cada termo do domínio | rascunho |
-| [`personas-jornadas.md`](00-produto/personas-jornadas.md) | quem sao os usuarios e o passo a passo das jornadas principais | stub |
-| [`roadmap.md`](00-produto/roadmap.md) | ordem de construcao e criterio de pronto de cada fase | stub |
-| [`visao.md`](00-produto/visao.md) | problema, aposta central, público, escopo da primeira versão e restrições | rascunho |
+| [`glossario.md`](00-produto/glossario.md) | o significado canônico de cada termo do domínio e onde vivem as regras de cada um | ativo |
+| [`jornadas.md`](00-produto/jornadas.md) | o passo a passo das jornadas principais e onde o sistema perde o usuario | stub |
+| [`roadmap.md`](00-produto/roadmap.md) | ordem de construcao, criterio de pronto de cada fase e o que fica congelado | ativo |
+| [`visao.md`](00-produto/visao.md) | problema, aposta central, público e restrições | ativo |
 
 ## Arquitetura — como o sistema e organizado
 
@@ -34,6 +34,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 |---|---|---|
 | [`ambientes-de-execucao.md`](01-arquitetura/ambientes-de-execucao.md) | quais ambientes existem, hosts, portas, diferencas de configuracao | stub |
 | [`decisoes/ADR-0000-template.md`](01-arquitetura/decisoes/ADR-0000-template.md) | formato padrão de uma ADR | ativo |
+| [`decisoes/ADR-0001-nome-ambiente-financeiro.md`](01-arquitetura/decisoes/ADR-0001-nome-ambiente-financeiro.md) | a decisão sobre a colisão do termo ambiente | ativo |
 | [`decisoes/README.md`](01-arquitetura/decisoes/README.md) | índice das ADRs e regra de quando escrever uma | ativo |
 | [`estrutura-de-pastas.md`](01-arquitetura/estrutura-de-pastas.md) | onde cada tipo de arquivo mora no repositorio | stub |
 | [`modulos.md`](01-arquitetura/modulos.md) | lista canonica dos modulos/bounded contexts e as dependencias permitidas entre eles | stub |
@@ -46,6 +47,8 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 
 | Documento | Dono do fato | Status |
 |---|---|---|
+| [`ambiente-financeiro.md`](02-dominio/ambiente-financeiro.md) | o ambiente como agregado dono do dado: papeis, acesso, convite, ciclo de vida e a regra de isolamento | rascunho |
+| [`aplicacao-patrimonio.md`](02-dominio/aplicacao-patrimonio.md) | aplicacao como entidade, aporte e resgate, e como o patrimonio e calculado | stub |
 | [`categoria.md`](02-dominio/categoria.md) | arvore de categorias, subcategorias e regras de uso | stub |
 | [`conta.md`](02-dominio/conta.md) | conceito de conta, tipos, saldo e ciclo de vida | stub |
 | [`fatura-cartao.md`](02-dominio/fatura-cartao.md) | ciclo de fatura, fechamento, vencimento e relacao com lancamentos | stub |
@@ -118,5 +121,5 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 
 ---
 
-**53 documentos · 41 ainda em stub.**
+**56 documentos · 41 ainda em stub.**
 Stub = conteudo inexistente: pergunte, nao deduza.

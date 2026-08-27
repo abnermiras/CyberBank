@@ -15,7 +15,7 @@ status: stub
 
 - [ ] Como um usuario se autentica e como a sessao/token e mantida
 - [ ] O que fica exposto na rede local e o que nunca sai do host
-- [ ] Onde ficam os segredos e como a aplicacao os le
+- [ ] Onde ficam os segredos e como o sistema os le
 - [ ] Regras de dados sensiveis (o que nao pode ir para log, o que e mascarado)
 - [ ] Como o bot do Telegram prova que a mensagem veio de quem diz ter vindo
 

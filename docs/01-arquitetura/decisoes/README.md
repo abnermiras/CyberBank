@@ -33,5 +33,6 @@ nome de variável, ou coisa que cabe no doc do módulo.
 | # | Decisão | Status | Data |
 |---|---|---|---|
 | 0000 | Template | — | — |
+| 0001 | [Manter o nome "ambiente financeiro"](ADR-0001-nome-ambiente-financeiro.md) | aceita | 2026-08-27 |
 
 _(adicione uma linha por ADR)_

@@ -16,7 +16,7 @@ status: stub
 - [ ] Como o bot recebe mensagens (polling x webhook) e a decisao atual
 - [ ] Lista de comandos e o que cada um faz
 - [ ] Como o bot identifica e autoriza o usuario
-- [ ] Tratamento de falha: o que acontece se a aplicacao estiver fora do ar
+- [ ] Tratamento de falha: o que acontece se o sistema estiver fora do ar
 
 ## Conteudo
 

@@ -1,8 +1,9 @@
 # Cyberbank
 
-App de finanças pessoais auto-hospedado. Evolução do RaspyBank — **não é refatoração**:
-modelo de domínio e arquitetura novos. Objetivo central: capturar o lançamento **no ato
-da compra**, extrair o máximo automaticamente e deixar para o usuário só a categorização.
+App de finanças pessoais auto-hospedado e **multiusuário**. Evolução do RaspyBank —
+**não é refatoração**: modelo de domínio e arquitetura novos. Aposta central: enxergar a
+vida financeira inteira — entrada, gasto, investido, guardado. O **ambiente financeiro**
+é o dono de todo dado; usuário só tem acesso a ambientes.
 
 **Stack:** Java 21 + Spring Boot · PostgreSQL · Docker · Raspberry Pi (self-hosted, custo externo zero).
 
@@ -28,6 +29,7 @@ localize a tarefa na tabela abaixo, leia **apenas** os docs listados e vá.
 | Nova integração externa (banco, extrato, canal) | `docs/08-fluxos/nova-integracao-externa.md` |
 | Novo endpoint / mudança de contrato de API | `docs/08-fluxos/novo-endpoint.md` |
 | Mudança de schema / nova migration | `docs/08-fluxos/nova-migration.md` |
+| Compartilhamento, papel ou permissão de ambiente | `docs/02-dominio/ambiente-financeiro.md` |
 | Nova regra de negócio ou mudança de invariante | `docs/08-fluxos/nova-regra-de-dominio.md` |
 | Corrigir bug | `docs/08-fluxos/correcao-de-bug.md` |
 | Mexer no bot do Telegram | `docs/05-integracoes/telegram-bot.md` + `docs/06-interface/bot-conversas.md` |

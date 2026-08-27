@@ -16,7 +16,7 @@ status: stub
 - [ ] Piramide adotada: o que e unitario, integracao e ponta a ponta
 - [ ] Comando para rodar cada suite
 - [ ] Regra de cobertura e o que e obrigatorio testar
-- [ ] Como testar caso de uso de dominio sem subir a aplicacao
+- [ ] Como testar caso de uso de dominio sem subir o sistema
 - [ ] Uso de Testcontainers/fixtures e dados de teste
 
 ## Conteudo
