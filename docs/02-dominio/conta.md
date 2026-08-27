@@ -1,23 +1,102 @@
 ---
 id: 02-dominio/conta
 titulo: Conta
-dono: conceito de conta, tipos, saldo e ciclo de vida
-ler-junto: [02-dominio/lancamento, 03-dados/modelo-de-dados]
-status: stub
+dono: tipos de conta, saldo, a separacao entre fluxo de caixa e patrimonio, e o ciclo de vida
+ler-junto: [02-dominio/lancamento, 02-dominio/meio-de-pagamento, 02-dominio/aplicacao-patrimonio]
+status: rascunho
 ---
 
 # Conta
 
-> **STUB** — conteudo ainda nao escrito. Ao preencher, siga `docs/CONVENTIONS.md`,
-> apague este bloco e troque `status: stub` por `status: ativo`.
+**Conta é onde o dinheiro está.** Se uma coisa tem saldo próprio e o sistema precisa
+acompanhar esse saldo, ela é uma conta — não um tipo novo de entidade.
 
-## Perguntas que este documento precisa responder
+Essa é a regra que resolve as três perguntas que apareceram separadas: aplicação é conta,
+vale-benefício é conta, carteira de dinheiro vivo é conta. Cada uma tem saldo, recebe e
+devolve dinheiro. O que muda entre elas é **comportamento**, e comportamento é `tipo`.
 
-- [ ] O que e uma conta no Cyberbank e quais tipos existem
-- [ ] Como o saldo e calculado (materializado ou derivado dos lancamentos?)
-- [ ] Regras de abertura, encerramento e conta inativa
-- [ ] O que acontece com os lancamentos quando uma conta e encerrada
+Toda conta pertence a um **ambiente financeiro** e nunca muda de ambiente
+(`docs/02-dominio/ambiente-financeiro.md`).
 
-## Conteudo
+## Os dois eixos
 
-_(vazio)_
+Uma conta tem duas classificações independentes. Confundi-las é o erro que faz o
+dashboard mentir.
+
+**Eixo 1 — `tipo`:** o que a conta é.
+
+| Tipo | O que é | Meio de pagamento próprio |
+|---|---|---|
+| `CORRENTE` | Conta bancária do dia a dia | débito, Pix, boleto |
+| `POUPANCA` | Poupança da mesma instituição | transferência |
+| `CARTEIRA` | Dinheiro vivo | dinheiro |
+| `APLICACAO` | Dinheiro guardado ou investido — ver `docs/02-dominio/aplicacao-patrimonio.md` | nenhum: não se paga com ela |
+| `BENEFICIO` | Vale-refeição e afins, com saldo separado do banco | o cartão de benefício |
+
+> ☐ **Confirmar `BENEFICIO`.** É a resposta proposta para a pergunta aberta em
+> `docs/02-dominio/meio-de-pagamento.md`: o vale tem saldo próprio acompanhado, então é
+> conta, com um meio de pagamento apontando para ela. Se você preferir tratar o vale como
+> saldo não acompanhado, este tipo some e a pergunta volta para lá.
+
+**Eixo 2 — `entraNoFluxoDeCaixa`:** se o movimento nessa conta é gasto/receita da vida,
+ou apenas dinheiro trocando de lugar dentro do próprio patrimônio.
+
+| Valor | Contas | Consequência |
+|---|---|---|
+| `true` | `CORRENTE`, `CARTEIRA`, `BENEFICIO` | Saída daqui é gasto; entrada é receita |
+| `false` | `APLICACAO`, `POUPANCA` | Mover dinheiro para cá **não é gasto** — é guardar |
+
+É esse campo, e não o tipo, que o dashboard de gasto por categoria consulta. Tipo novo no
+futuro só precisa responder a esta pergunta para o relatório continuar certo.
+
+## Saldo
+
+**Saldo = soma dos lançamentos da conta até uma data.** Sem exceção e sem campo
+denormalizado guardando o total — saldo guardado é saldo que diverge.
+
+Como o lançamento tem situação `PREVISTO` ou `REALIZADO`
+(`docs/02-dominio/lancamento.md`), o saldo tem duas leituras, e elas nunca se misturam
+na mesma tela sem rótulo:
+
+| Leitura | Como se calcula | Para que serve |
+|---|---|---|
+| **Saldo realizado** | Só lançamentos `REALIZADO`, até hoje | Quanto tem na conta agora |
+| **Saldo projetado** | Realizado + `PREVISTO` até uma data futura | Quanto sobra até o fim do mês |
+
+**Saldo inicial é um lançamento**, não um campo: ao criar a conta com saldo existente,
+nasce um lançamento de abertura naquele valor. Assim a frase "saldo é a soma dos
+lançamentos" continua verdadeira literalmente, sem um "mais o saldo inicial" grudado em
+cada cálculo.
+
+## Valores
+
+Todo valor é **inteiro em centavos**, em real. Sem `double`, sem multi-moeda — regra 5
+do `CLAUDE.md` e não-objetivo do roadmap.
+
+## Ciclo de vida
+
+| Momento | Regra |
+|---|---|
+| Criação | Nome, tipo e saldo inicial (que vira lançamento de abertura) |
+| Edição | Nome livre. **Tipo não muda** depois de existir lançamento — mudaria o significado do histórico |
+| Inativação | Não aceita lançamento novo; histórico e saldo continuam existindo e visíveis |
+| Exclusão | Só se a conta nunca teve lançamento. Com histórico, o caminho é inativar |
+
+Quem pode: dono e editor. Leitor não mexe (`docs/02-dominio/ambiente-financeiro.md`).
+
+## Invariantes
+
+- Toda conta pertence a exatamente um ambiente, e nunca muda de ambiente.
+- Toda conta tem `tipo` e `entraNoFluxoDeCaixa`, os dois obrigatórios.
+- Conta inativa não recebe lançamento novo — nem previsto, nem por captura.
+- Uma conta com qualquer lançamento não pode ser excluída.
+- Conta `APLICACAO` não é origem de compra: nenhum meio de pagamento aponta para ela.
+- Saldo nunca é armazenado como total; é sempre derivado dos lançamentos.
+
+## Fronteiras com outros docs
+
+- **Conta ≠ meio de pagamento.** A conta é *de onde* o dinheiro sai; o meio é *como* ele
+  saiu. As regras do meio ficam em `docs/02-dominio/meio-de-pagamento.md`.
+- Como o dinheiro anda **entre** contas (transferência, aporte, resgate):
+  `docs/02-dominio/lancamento.md`.
+- Como o patrimônio soma as contas: `docs/02-dominio/aplicacao-patrimonio.md`.

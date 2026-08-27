@@ -14,7 +14,9 @@ status: stub
 ## Perguntas que este documento precisa responder
 
 - [ ] Diferenca entre recorrente e parcelado no modelo
-- [ ] Quando as ocorrencias futuras sao geradas (na criacao ou sob demanda?)
+- [x] Quando as ocorrencias futuras sao geradas: **na criacao**. As N parcelas nascem no
+      momento da compra, com `situacao = PREVISTO` (`docs/02-dominio/lancamento.md`)
+- [ ] Ate onde gerar uma recorrencia sem fim definido (12 meses? 24?) e quem estende
 - [ ] O que acontece ao editar/cancelar uma serie ja iniciada
 - [ ] Como uma ocorrencia gerada se casa com o lancamento real capturado
 

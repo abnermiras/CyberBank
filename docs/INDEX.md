@@ -35,6 +35,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | [`ambientes-de-execucao.md`](01-arquitetura/ambientes-de-execucao.md) | quais ambientes existem, hosts, portas, diferencas de configuracao | stub |
 | [`decisoes/ADR-0000-template.md`](01-arquitetura/decisoes/ADR-0000-template.md) | formato padrão de uma ADR | ativo |
 | [`decisoes/ADR-0001-nome-ambiente-financeiro.md`](01-arquitetura/decisoes/ADR-0001-nome-ambiente-financeiro.md) | a decisão sobre a colisão do termo ambiente | ativo |
+| [`decisoes/ADR-0002-isolamento-por-ambiente.md`](01-arquitetura/decisoes/ADR-0002-isolamento-por-ambiente.md) | como o isolamento entre ambientes financeiros e imposto | ativo |
 | [`decisoes/README.md`](01-arquitetura/decisoes/README.md) | índice das ADRs e regra de quando escrever uma | ativo |
 | [`estrutura-de-pastas.md`](01-arquitetura/estrutura-de-pastas.md) | onde cada tipo de arquivo mora no repositorio | stub |
 | [`modulos.md`](01-arquitetura/modulos.md) | lista canonica dos modulos/bounded contexts e as dependencias permitidas entre eles | stub |
@@ -48,12 +49,12 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | Documento | Dono do fato | Status |
 |---|---|---|
 | [`ambiente-financeiro.md`](02-dominio/ambiente-financeiro.md) | o ambiente como agregado dono do dado: papeis, acesso, convite, ciclo de vida e a regra de isolamento | rascunho |
-| [`aplicacao-patrimonio.md`](02-dominio/aplicacao-patrimonio.md) | aplicacao como entidade, aporte e resgate, e como o patrimonio e calculado | stub |
+| [`aplicacao-patrimonio.md`](02-dominio/aplicacao-patrimonio.md) | aplicacao como conta, aporte e resgate, atualizacao do valor atual e o calculo do patrimonio | rascunho |
 | [`categoria.md`](02-dominio/categoria.md) | arvore de categorias, subcategorias e regras de uso | stub |
-| [`conta.md`](02-dominio/conta.md) | conceito de conta, tipos, saldo e ciclo de vida | stub |
+| [`conta.md`](02-dominio/conta.md) | tipos de conta, saldo, a separacao entre fluxo de caixa e patrimonio, e o ciclo de vida | rascunho |
 | [`fatura-cartao.md`](02-dominio/fatura-cartao.md) | ciclo de fatura, fechamento, vencimento e relacao com lancamentos | stub |
 | [`importacao-conciliacao.md`](02-dominio/importacao-conciliacao.md) | como fontes externas viram lancamentos sem duplicar | stub |
-| [`lancamento.md`](02-dominio/lancamento.md) | a entidade central: campos, estados, transicoes e invariantes | stub |
+| [`lancamento.md`](02-dominio/lancamento.md) | campos, as duas datas, situacao, transferencia, correcao versus estorno e invariantes do lancamento | rascunho |
 | [`meio-de-pagamento.md`](02-dominio/meio-de-pagamento.md) | tipos de meio de pagamento, atributos de cada tipo e como o lançamento os referencia | rascunho |
 | [`orcamento.md`](02-dominio/orcamento.md) | limites por categoria/periodo e calculo de consumo | stub |
 | [`recorrencia.md`](02-dominio/recorrencia.md) | lancamentos recorrentes e parcelados: geracao e manutencao | stub |
@@ -121,5 +122,5 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 
 ---
 
-**56 documentos · 41 ainda em stub.**
+**57 documentos · 38 ainda em stub.**
 Stub = conteudo inexistente: pergunte, nao deduza.

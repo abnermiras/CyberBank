@@ -35,8 +35,9 @@ Preencha a tabela decidindo o comportamento de cada tipo. Os valores abaixo são
 
 ## Perguntas em aberto
 
-- [ ] Vale-benefício tem saldo próprio que o sistema acompanha, ou é conta separada?
-      (Se o saldo é acompanhado, talvez seja uma **conta** com meio próprio — decida.)
+- [ ] Vale-benefício: proposta em `docs/02-dominio/conta.md` é que seja uma **conta** de
+      tipo `BENEFICIO`, com um meio de pagamento apontando para ela — pela regra "tem
+      saldo próprio acompanhado, então é conta". Confirmar ou recusar lá, não aqui.
 - [ ] Cartão virtual é instância de crédito ou tipo próprio?
 - [ ] Um meio pode existir sem conta vinculada? (dinheiro, vale)
 - [ ] O que acontece com o histórico quando um cartão é cancelado?

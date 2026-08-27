@@ -13,6 +13,9 @@ status: stub
 
 ## Perguntas que este documento precisa responder
 
+- [x] **Como o isolamento por ambiente e imposto** — decidido em `ADR-0002`: filtro no
+      repositorio + Row Level Security no Postgres. As regras de acesso e papeis ficam em
+      `docs/02-dominio/ambiente-financeiro.md`
 - [ ] Como um usuario se autentica e como a sessao/token e mantida
 - [ ] O que fica exposto na rede local e o que nunca sai do host
 - [ ] Onde ficam os segredos e como o sistema os le

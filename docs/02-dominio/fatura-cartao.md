@@ -17,6 +17,12 @@ status: stub
 - [ ] A que fatura um lancamento pertence, incluindo casos de borda na virada
 - [ ] Como o pagamento da fatura e representado sem contar o gasto duas vezes
 - [ ] Como parcelamento aparece nas faturas seguintes
+- [ ] **Reabertura de fatura** (decidido em 27/08, falta escrever a regra): corrigir um
+      lancamento ja faturado e reabrir -> editar -> recalcular -> ajustar o pagamento se
+      ja houver -> fechar de novo. Enquanto fechada, os lancamentos da fatura estao
+      congelados (`docs/02-dominio/lancamento.md`)
+- [ ] Fatura em aberto entra no calculo de patrimonio como divida?
+      (`docs/02-dominio/aplicacao-patrimonio.md`)
 
 ## Conteudo
 

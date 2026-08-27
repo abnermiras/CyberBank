@@ -31,9 +31,14 @@ O glossário define **o que a palavra significa**. Quem define **as regras** é 
 |---|---|---|
 | **Lançamento** | Um evento financeiro individual que altera o saldo de uma conta. Unidade central do sistema. | `02-dominio/lancamento` |
 | **Receita** | Lançamento de entrada de dinheiro. Existe como conceito próprio, **não** como despesa com sinal negativo. | `02-dominio/lancamento` |
-| **Conta** | Onde o dinheiro está ou de onde ele sai: conta corrente, carteira, poupança. | `02-dominio/conta` |
-| **Saldo** | Resultado dos lançamentos de uma conta até uma data. | `02-dominio/conta` |
+| **Conta** | Onde o dinheiro está. Corrente, poupança, carteira, aplicação, benefício. **Se tem saldo próprio que o sistema acompanha, é conta.** | `02-dominio/conta` |
+| **Saldo** | Soma dos lançamentos de uma conta até uma data. Nunca armazenado. Tem duas leituras: **realizado** (só o que aconteceu) e **projetado** (mais os previstos). | `02-dominio/conta` |
 | **Meio de pagamento** | *Como* a compra foi paga (débito, crédito, Pix, VR). Distinto de conta. | `02-dominio/meio-de-pagamento` |
+| **Transferência** | Movimento de dinheiro entre duas contas do mesmo ambiente. São **dois lançamentos** ligados pelo mesmo id, sentidos opostos. Não tem categoria e não é gasto. | `02-dominio/lancamento` |
+| **Correção** | Arrumar um registro errado (valor digitado errado, categoria errada). **Edita** o lançamento e guarda o histórico. | `02-dominio/lancamento` |
+| **Estorno** | O dinheiro voltou de verdade: compra cancelada, devolução, chargeback. É um **lançamento novo** de sentido oposto, não uma edição. | `02-dominio/lancamento` |
+| **Previsto / Realizado** | A situação de um lançamento: já aconteceu, ou vai acontecer (parcela futura, recorrência futura). | `02-dominio/lancamento` |
+| **Reabertura de fatura** | Destravar uma fatura já fechada para corrigir lançamento: reabre, edita, recalcula, ajusta o pagamento se houver, fecha de novo. | `02-dominio/fatura-cartao` |
 | **Categoria** | Classificação hierárquica do propósito do gasto (ex.: transporte → gasolina). | `02-dominio/categoria` |
 | **Fatura** | Agrupamento de lançamentos de crédito em um ciclo, com fechamento e vencimento. | `02-dominio/fatura-cartao` |
 | **Parcelamento** | Compra única dividida em N lançamentos futuros. Distinto de recorrência. | `02-dominio/recorrencia` |
@@ -44,10 +49,11 @@ O glossário define **o que a palavra significa**. Quem define **as regras** é 
 
 | Termo | Definição | Regras em |
 |---|---|---|
-| **Aplicação** | Dinheiro guardado ou investido. **Não é gasto:** sai do fluxo de caixa e entra no patrimônio. | `02-dominio/aplicacao-patrimonio` |
-| **Aporte** | Lançamento que move dinheiro de uma conta para uma aplicação. | `02-dominio/aplicacao-patrimonio` |
-| **Resgate** | Lançamento que move dinheiro de uma aplicação de volta para uma conta. | `02-dominio/aplicacao-patrimonio` |
-| **Patrimônio** | Quanto a pessoa tem, somando contas e aplicações. Distinto de fluxo de caixa. | `02-dominio/aplicacao-patrimonio` |
+| **Aplicação** | Dinheiro guardado ou investido. É uma **conta** de tipo `APLICACAO`, fora do fluxo de caixa. Não se paga com ela: para gastar, resgata-se antes. | `02-dominio/aplicacao-patrimonio` |
+| **Aporte** | Transferência de uma conta para uma aplicação. Não é gasto. | `02-dominio/aplicacao-patrimonio` |
+| **Resgate** | Transferência de uma aplicação de volta para uma conta. | `02-dominio/aplicacao-patrimonio` |
+| **Rendimento** | O quanto uma aplicação valorizou. Nasce quando o usuário informa o valor atual: o sistema lança a diferença. Não é receita da vida. | `02-dominio/aplicacao-patrimonio` |
+| **Patrimônio** | Quanto a pessoa tem: soma do saldo de todas as contas do ambiente. Distinto de fluxo de caixa — aporte muda o fluxo do mês e **não** muda o patrimônio. | `02-dominio/aplicacao-patrimonio` |
 | **Meta** | Objetivo financeiro com valor-alvo, prazo e progresso (ex.: R$ 20 mil de reserva até dezembro). | ⚠ sem doc — Fase 3 |
 
 ## Entrada automática
@@ -56,7 +62,7 @@ O glossário define **o que a palavra significa**. Quem define **as regras** é 
 |---|---|---|
 | **Captura** | O ato de o sistema obter um lançamento automaticamente, sem digitação (notificação push, OFX, voz). | `05-integracoes/captura-notificacao` |
 | **Notificação de compra** | O texto bruto recebido do banco ou do cartão, antes de virar lançamento. É a matéria-prima da captura, não um lançamento. | `05-integracoes/captura-notificacao` |
-| **Pendência** | Lançamento capturado que ainda não tem categoria confirmada pelo usuário. | `02-dominio/lancamento` |
+| **Pendência** | Lançamento sem categoria. **Não é um estado próprio** — é a consulta por lançamentos sem categoria. | `02-dominio/lancamento` |
 | **Categorização** | Atribuir categoria a um lançamento. Única etapa que o sistema aceita exigir do usuário. | `02-dominio/regras-categorizacao` |
 | **Regra de categorização** | O mapeamento que faz um estabelecimento virar categoria automaticamente. | `02-dominio/regras-categorizacao` |
 | **Estabelecimento** | Contraparte da compra, como veio da fonte externa: **texto bruto, antes de normalizar**. | `02-dominio/regras-categorizacao` |
@@ -103,3 +109,5 @@ Palavra ambígua vira modelo ambíguo. Não use:
 | "ambiente" para dev/homologação/produção | **ambiente de execução** |
 | "investimento" como sinônimo solto | **aplicação** (investir é o ato, aplicação é a coisa) |
 | "aplicação" para se referir ao software | **o sistema** (aplicação é dinheiro investido) |
+| "estorno" para corrigir digitação errada | **correção** (estorno é o dinheiro voltando de verdade) |
+| valor com sinal negativo | **valor positivo + `sentido`** (ENTRADA ou SAIDA) |
