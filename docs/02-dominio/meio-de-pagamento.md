@@ -34,7 +34,8 @@ vale-refeição aponta para uma `BENEFICIO`. Não existe meio órfão.
 | `BENEFICIO` | `BENEFICIO` | = `dataEvento` | não | não | ☐ a definir |
 | `BOLETO` | `CORRENTE` | data do pagamento | não | não | OFX ou manual |
 
-`APLICACAO` e `POUPANCA` não aparecem nesta tabela: não se paga com elas, resgata-se antes
+Conta `APLICACAO` não aparece nesta tabela — e poupança é uma `APLICACAO`
+(`docs/02-dominio/conta.md`). Não se paga com ela: resgata-se antes
 (`docs/02-dominio/aplicacao-patrimonio.md`).
 
 ## A regra da `dataEfeito`
@@ -89,7 +90,7 @@ não foi "pago" de jeito nenhum, só mudou de lugar.
 ## Invariantes
 
 - Todo meio pertence a um ambiente e aponta para uma conta **do mesmo ambiente**.
-- Nenhum meio aponta para conta `APLICACAO` nem `POUPANCA`: não se paga com elas.
+- Nenhum meio aponta para conta `APLICACAO`: não se paga com ela.
 - O tipo de um meio não muda depois de existir lançamento.
 - Só `CREDITO` tem fatura e só `CREDITO` parcela.
 - Meio inativo não recebe lançamento novo, nem por captura.

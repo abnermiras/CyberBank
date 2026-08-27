@@ -28,17 +28,15 @@ dashboard mentir.
 | Tipo | O que é | Meio de pagamento próprio |
 |---|---|---|
 | `CORRENTE` | Conta bancária do dia a dia | débito, Pix, boleto |
-| `POUPANCA` | Poupança da mesma instituição | nenhum: não se paga com ela |
 | `CARTEIRA` | Dinheiro vivo | dinheiro |
 | `APLICACAO` | Dinheiro guardado ou investido — ver `docs/02-dominio/aplicacao-patrimonio.md` | nenhum: não se paga com ela |
 | `BENEFICIO` | Vale-refeição e afins, com saldo separado do banco | o cartão de benefício |
 
-> ☐ **`POUPANCA` e `APLICACAO` têm hoje o mesmo comportamento** — as duas ficam fora do
-> fluxo de caixa, nenhuma tem meio de pagamento, as duas rendem. Dois tipos com o mesmo
-> comportamento é o que este doc diz para não fazer. Ou `POUPANCA` some e uma poupança
-> vira uma conta `APLICACAO` chamada "Poupança do Itaú", ou aparece a regra que as separa.
-> Decidir junto com o subtipo de aplicação (`docs/02-dominio/aplicacao-patrimonio.md`).
->
+**Não existe tipo `POUPANCA`.** Poupança é uma aplicação: fica fora do fluxo de caixa, não
+tem meio de pagamento e rende — comportamento idêntico ao de `APLICACAO`. Uma poupança é
+uma conta `APLICACAO` chamada "Poupança do Itaú". Dois tipos com o mesmo comportamento é
+exatamente o que a regra desta seção manda não criar.
+
 > ☐ **Confirmar `BENEFICIO`.** É a resposta proposta para a pergunta aberta em
 > `docs/02-dominio/meio-de-pagamento.md`: o vale tem saldo próprio acompanhado, então é
 > conta, com um meio de pagamento apontando para ela. Se você preferir tratar o vale como
@@ -50,7 +48,7 @@ ou apenas dinheiro trocando de lugar dentro do próprio patrimônio.
 | Valor | Contas | Consequência |
 |---|---|---|
 | `true` | `CORRENTE`, `CARTEIRA`, `BENEFICIO` | Saída daqui é gasto; entrada é receita |
-| `false` | `APLICACAO`, `POUPANCA` | Mover dinheiro para cá **não é gasto** — é guardar |
+| `false` | `APLICACAO` | Mover dinheiro para cá **não é gasto** — é guardar |
 
 É esse campo, e não o tipo, que o dashboard de gasto por categoria consulta. Tipo novo no
 futuro só precisa responder a esta pergunta para o relatório continuar certo.

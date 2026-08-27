@@ -31,7 +31,7 @@ O glossário define **o que a palavra significa**. Quem define **as regras** é 
 |---|---|---|
 | **Lançamento** | Um evento financeiro individual que altera o saldo de uma conta. Unidade central do sistema. | `02-dominio/lancamento` |
 | **Receita** | Lançamento de entrada de dinheiro. Existe como conceito próprio, **não** como despesa com sinal negativo. | `02-dominio/lancamento` |
-| **Conta** | Onde o dinheiro está. Corrente, poupança, carteira, aplicação, benefício. **Se tem saldo próprio que o sistema acompanha, é conta.** | `02-dominio/conta` |
+| **Conta** | Onde o dinheiro está. Corrente, carteira, aplicação, benefício. **Se tem saldo próprio que o sistema acompanha, é conta.** Poupança é uma aplicação, não um tipo à parte. | `02-dominio/conta` |
 | **Saldo** | Soma dos lançamentos de uma conta até uma data. Nunca armazenado. Tem duas leituras: **realizado** (só o que aconteceu) e **projetado** (mais os previstos). | `02-dominio/conta` |
 | **Meio de pagamento** | *Como* a compra foi paga (débito, crédito, Pix, dinheiro, benefício, boleto). Distinto de conta, e sempre apontando para uma. É ele que decide quando o dinheiro sai. | `02-dominio/meio-de-pagamento` |
 | **Débito automático** | **Não é meio de pagamento.** O meio é débito; "automático" é fato da recorrência, que se paga sem o usuário agir. | `02-dominio/recorrencia` |

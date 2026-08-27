@@ -28,9 +28,13 @@ O que a distingue das outras contas:
   gastar, resgata-se primeiro.
 - Mover dinheiro para ela **não é gasto**.
 
-> ☐ **A definir:** se `APLICACAO` precisa de subtipo (poupança, CDB, ação, reserva) ou se
-> isso é rótulo livre. Só vale virar campo se alguma **regra** mudar por subtipo — se for
-> só para o usuário se organizar, é nome da conta e pronto.
+**Poupança é uma aplicação**, não um tipo de conta à parte: mesmo comportamento em tudo
+que o sistema modela. O mesmo vale para CDB, reserva de emergência e afins — o que muda
+entre eles (liquidez, imposto, risco) o Cyberbank não acompanha na Fase 1.
+
+> ☐ **A definir:** se `APLICACAO` precisa de um campo `subtipo` ou se o nome da conta
+> basta. A regra é a mesma de `conta.md`: só vira campo se alguma **regra do sistema**
+> mudar por subtipo. Hoje nenhuma muda — então, até aparecer uma, é o nome da conta.
 
 ## Aporte e resgate
 
