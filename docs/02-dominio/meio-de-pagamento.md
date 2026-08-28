@@ -45,9 +45,9 @@ cálculo de uma delas. É esta a regra, e é o coração deste doc:
 
 - **À vista** (`DEBITO`, `PIX`, `DINHEIRO`, `BENEFICIO`): `dataEfeito = dataEvento`.
   Comprou, saiu.
-- **`CREDITO`**: `dataEfeito` = o **vencimento da fatura** em que a compra caiu. Qual
-  fatura é ela, incluindo o caso de borda na virada do fechamento, é assunto de
-  `docs/02-dominio/fatura-cartao.md`.
+- **`CREDITO`**: `dataEfeito` = o **vencimento da fatura** em que a compra caiu, e passa a
+  ser a **data do pagamento** quando a fatura é paga. Qual fatura recebe a compra é decidido
+  pelo **status** da fatura, não pela data — `docs/02-dominio/fatura-cartao.md`.
 - **`BOLETO`**: o boleto tem duas datas próprias, e é por isso que ele encaixa direto no
   `PREVISTO`/`REALIZADO`:
 
@@ -61,7 +61,9 @@ conta a conta de luz que ainda vai ser paga — sem nunca mentir no saldo realiz
 
 ## Limite
 
-**Disponível = limite − tudo que foi comprado e ainda não foi pago.**
+**Disponível = limite − dívida do cartão**, e dívida do cartão é tudo que foi comprado e
+ainda não foi pago, **parcelas futuras inclusive** (`docs/02-dominio/fatura-cartao.md`). É o
+mesmo número que o patrimônio desconta, com o sinal trocado.
 
 Parcela futura **segura limite**, como na vida real: R$ 5.000 em 10x come R$ 5.000 do
 limite na hora e libera R$ 500 a cada fatura paga. Não é detalhe de exibição — é o
@@ -89,7 +91,7 @@ que a série se paga sozinha, sem o usuário agir — e isso é fato da **recorr
 
 | Momento | Regra |
 |---|---|
-| Criação | Tipo, conta vinculada e nome. Tipo não muda depois |
+| Criação | Tipo, conta vinculada e nome. Tipo não muda depois. `CREDITO` pede também limite, dia do vencimento e quantos dias antes a fatura fecha (`docs/02-dominio/fatura-cartao.md`) |
 | Inativação | Cartão cancelado, conta encerrada: some da escolha, o histórico fica |
 | Cartão de crédito inativado | A **fatura em aberto continua viva** até fechar e ser paga. Cancelar cartão não perdoa dívida |
 | Exclusão | Só se nunca teve lançamento. Com histórico, o caminho é inativar |

@@ -77,22 +77,26 @@ receita da vida, é a aplicação valendo mais.
 
 ## Patrimônio
 
-**Patrimônio = soma do saldo realizado de todas as contas do ambiente**, aplicações
-inclusive. É consulta, não entidade: nada é armazenado.
+**Patrimônio = soma do saldo realizado de todas as contas do ambiente − dívida de cartão**,
+aplicações inclusive. É consulta, não entidade: nada é armazenado.
+
+A dívida de cartão é definida em `docs/02-dominio/fatura-cartao.md`: tudo que foi comprado
+no crédito e ainda não foi pago, **inclusive as parcelas futuras**. Quem parcelou R$ 5.000
+em 10x deve os R$ 5.000 hoje, não R$ 500 — patrimônio que ignora parcela futura mente para
+cima justo quando importa.
 
 A distinção que dá sentido a tudo:
 
 | Leitura | O que responde |
 |---|---|
 | **Fluxo de caixa** | Só contas com `entraNoFluxoDeCaixa = true`. "Quanto entrou e saiu da minha vida este mês" |
-| **Patrimônio** | Todas as contas. "Quanto eu tenho" |
+| **Patrimônio** | Todas as contas, menos a dívida de cartão. "Quanto eu tenho de verdade" |
 
 Um aporte muda o fluxo de caixa do mês e **não muda o patrimônio** — o dinheiro só trocou
 de bolso. Se um aporte alterar o patrimônio, é bug.
 
-> ☐ **A definir:** patrimônio desconta dívida? Fatura de cartão em aberto é dinheiro que
-> já não é seu. Descontar dá o número honesto; não descontar dá o número que o usuário
-> espera ver. Decidir junto com `docs/02-dominio/fatura-cartao.md`.
+**Pagar uma fatura também não muda o patrimônio**: a dívida some e o saldo da conta cai no
+mesmo valor. Se mudar, é bug — pelo mesmo motivo do aporte.
 
 ## Invariantes
 
@@ -100,7 +104,8 @@ de bolso. Se um aporte alterar o patrimônio, é bug.
 - Nenhum meio de pagamento aponta para uma conta `APLICACAO`.
 - Aporte e resgate são sempre um par de lançamentos com o mesmo `transferenciaId`.
 - Aporte, resgate e rendimento não têm categoria e nunca entram no relatório de gasto.
-- Patrimônio nunca é armazenado; é sempre derivado dos saldos.
+- Patrimônio nunca é armazenado; é sempre derivado dos saldos e da dívida.
+- Pagar fatura não altera o patrimônio.
 - Aporte e resgate não alteram o patrimônio total. Só rendimento altera.
 
 ## Fora da Fase 1

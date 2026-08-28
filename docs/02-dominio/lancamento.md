@@ -28,9 +28,10 @@ par de lançamentos, não um lançamento com dois lados — ver Transferência.
 | `situacao` | sim | `PREVISTO` ou `REALIZADO` |
 | `categoria` | não | Obrigatória para o lançamento deixar de ser pendência |
 | `meioDePagamento` | não | Obrigatório em gasto e receita reais. Ausente em transferência, aporte, resgate, rendimento e lançamento de abertura |
-| `fatura` | não | Preenchido quando o meio é crédito. `docs/02-dominio/fatura-cartao.md` |
+| `fatura` | não | Preenchido quando o meio é crédito, sempre com a fatura **aberta** do cartão. Editável: mover de fatura recalcula a `dataEfeito`. `docs/02-dominio/fatura-cartao.md` |
 | `transferenciaId` | não | Amarra os dois lançamentos de uma transferência |
 | `origemParcelamento` | não | A compra que gerou esta parcela. `docs/02-dominio/recorrencia.md` |
+| `rolagemDeFatura` | não | Amarra o par de lançamentos do que ficou devendo num pagamento parcial. `docs/02-dominio/fatura-cartao.md` |
 | `estabelecimento` | não | Texto bruto da captura, antes de normalizar |
 | `autor` | sim | Qual usuário criou. Em ambiente compartilhado, "quem lançou isso?" é a primeira pergunta |
 
@@ -47,7 +48,7 @@ tratar como uma é o bug que faz o saldo mentir o mês inteiro.
 - **`dataEfeito`** — quando o dinheiro sai da conta. É por ela que o saldo se calcula.
 
 No débito, Pix e dinheiro as duas são iguais. No crédito, `dataEfeito` é o vencimento da
-fatura em que a compra caiu. **A regra que calcula `dataEfeito` por tipo de meio vive em
+fatura em que a compra caiu — e vira a data do pagamento quando a fatura é paga. **A regra que calcula `dataEfeito` por tipo de meio vive em
 `docs/02-dominio/meio-de-pagamento.md`** — aqui só fica o fato de que os dois campos existem.
 
 ## Dois eixos independentes
@@ -68,7 +69,7 @@ glossário. Não existe estado `PENDENTE` separado: pendência é uma **consulta
 estado a menos é um estado que não dessincroniza.
 
 A consulta não é "sem categoria" — é **"sem categoria e que espera uma"**. Ficam de fora
-transferência, aporte, resgate, rendimento, ajuste de fatura e lançamento de abertura:
+transferência, aporte, resgate, rendimento, rolagem de fatura e lançamento de abertura:
 esses não têm categoria por natureza, e não são trabalho pendente para ninguém.
 *(A definição larga foi corrigida depois que o protótipo mostrou a abertura de conta
 aparecendo na fila de pendências.)*

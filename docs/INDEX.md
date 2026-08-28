@@ -52,7 +52,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | [`aplicacao-patrimonio.md`](02-dominio/aplicacao-patrimonio.md) | aplicacao como conta, aporte e resgate, atualizacao do valor atual e o calculo do patrimonio | rascunho |
 | [`categoria.md`](02-dominio/categoria.md) | a arvore de categorias, o sentido, e o que acontece ao renomear, mover ou excluir | rascunho |
 | [`conta.md`](02-dominio/conta.md) | tipos de conta, saldo, a separacao entre fluxo de caixa e patrimonio, e o ciclo de vida | rascunho |
-| [`fatura-cartao.md`](02-dominio/fatura-cartao.md) | ciclo de fatura, fechamento, vencimento e relacao com lancamentos | stub |
+| [`fatura-cartao.md`](02-dominio/fatura-cartao.md) | ciclo e datas da fatura, estados, a que fatura um lancamento pertence, fechamento, pagamento, reabertura e divida de cartao | ativo |
 | [`importacao-conciliacao.md`](02-dominio/importacao-conciliacao.md) | como fontes externas viram lancamentos sem duplicar | stub |
 | [`lancamento.md`](02-dominio/lancamento.md) | campos, as duas datas, situacao, transferencia, correcao versus estorno e invariantes do lancamento | rascunho |
 | [`meio-de-pagamento.md`](02-dominio/meio-de-pagamento.md) | tipos de meio, a regra que calcula a dataEfeito de cada tipo, e como o lancamento os referencia | rascunho |
