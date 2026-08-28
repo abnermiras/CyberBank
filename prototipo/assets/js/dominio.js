@@ -326,61 +326,95 @@
      Parcelamento: UMA compra dividida. Nunca pergunta — altera todas.
      Regras em docs/02-dominio/recorrencia.md
      ==================================================================== */
-  const HORIZONTE_MESES = 12; // recorrencia sem fim mantem ~12 meses rolantes a frente
+  /* Recorrencia NAO tem horizonte. Um previsto nao e so item de tela: ele segura
+     limite do cartao e sugere que a assinatura acaba. Assinatura nao acaba e nao
+     reserva limite de mes que nao chegou.
+
+     A geracao segue o CICLO, uma ocorrencia por vez:
+       - recorrencia no cartao  -> quando a fatura fecha, a proxima abre e ganha a sua
+       - recorrencia fora dele  -> na virada do mes
+     Resultado: no maximo UMA ocorrencia nao-acontecida por recorrencia. */
 
   const lancamentosDaSerie = (sid) => S.lancamentos.filter((l) => l.serie === sid);
   const serie = (sid) => S.series.find((x) => x.id === sid);
+  const noCartao = (r) => !!(r.meio && meio(r.meio) && meio(r.meio).tipo === 'CREDITO');
+
+  // o ciclo que esta aberto agora: a fatura aberta do cartao, ou o mes corrente
+  function cicloAberto(r) {
+    if (!noCartao(r)) return D.mes(S.hoje);
+    return faturaPara(r.meio, S.hoje).referencia;  // a fatura que uma compra de hoje pegaria
+  }
 
   function criarRecorrencia(o) {
     const r = {
       id: id('ser'), ambiente: o.ambiente || S.ambienteAtivo, tipo: 'RECORRENCIA',
       descricao: o.descricao, valor: o.valor, dia: o.dia || D.diaDoMes(S.hoje),
       conta: o.conta, meio: o.meio || null, categoria: o.categoria || null,
-      inicio: o.inicio || S.hoje, fim: o.fim || null, ativa: true,
+      inicio: o.inicio || S.hoje, ativa: true,
       automatico: !!o.automatico   // "debito automatico" e atributo daqui, nao meio
     };
     S.series.push(r);
-    gerarOcorrencias(r.id);
+    sincronizarRecorrencia(r.id);
     registrar(`recorrência criada: ${r.descricao} — ${M.fmt(r.valor)}/mês`, 'novo');
     return r;
   }
 
-  // mantem o horizonte: gera o que falta ate ~12 meses a frente, sem duplicar
-  function gerarOcorrencias(sid) {
+  /* Garante que existe uma ocorrencia para cada ciclo desde o inicio ATE o ciclo
+     aberto — e nenhuma alem dele. Idempotente: rodar de novo nao duplica. */
+  function sincronizarRecorrencia(sid) {
     const r = serie(sid);
     if (!r || r.tipo !== 'RECORRENCIA' || !r.ativa) return [];
-    const limite = D.addMeses(S.hoje, HORIZONTE_MESES);
+    const alvo = cicloAberto(r);
     const jaTem = {};
-    lancamentosDaSerie(sid).forEach((l) => { jaTem[D.mes(l.dataEvento)] = true; });
+    lancamentosDaSerie(sid).forEach((l) => {
+      const f = l.fatura ? S.faturas.find((x) => x.id === l.fatura) : null;
+      jaTem[f ? f.referencia : D.mes(l.dataEvento)] = true;
+    });
+
     const criados = [];
-    let cursor = r.inicio;
-    // alinha o cursor no dia da recorrencia
-    cursor = cursor.slice(0, 8) + String(Math.min(r.dia, 28)).padStart(2, '0');
+    let cursor = r.inicio.slice(0, 8) + String(Math.min(r.dia, 28)).padStart(2, '0');
     let guarda = 0;
-    while (cursor <= limite && guarda++ < 400) {
-      if ((!r.fim || cursor <= r.fim) && !jaTem[D.mes(cursor)]) {
-        const meioR = r.meio ? meio(r.meio) : null;
-        if (meioR && meioR.tipo === 'CREDITO') {
-          criados.push(comprarNoCredito({ cartao: r.meio, valor: r.valor, data: cursor,
-            descricao: r.descricao, categoria: r.categoria })[0]);
-          criados[criados.length - 1].serie = sid;
+    while (guarda++ < 400) {
+      const ciclo = noCartao(r) ? faturaPara(r.meio, cursor).referencia : D.mes(cursor);
+      if (ciclo > alvo) break;                       // nunca passa do ciclo aberto
+      if (!jaTem[ciclo]) {
+        if (noCartao(r)) {
+          const l = comprarNoCredito({ cartao: r.meio, valor: r.valor, data: cursor,
+            descricao: r.descricao, categoria: r.categoria })[0];
+          l.serie = sid;
+          criados.push(l);
         } else {
           const l = lancar({ ambiente: r.ambiente, conta: r.conta, sentido: 'SAIDA', valor: r.valor,
             dataEvento: cursor, dataEfeito: cursor, descricao: r.descricao,
             situacao: cursor <= S.hoje ? 'REALIZADO' : 'PREVISTO',
-            categoria: r.categoria, meio: r.meio });
-          l.serie = sid;
+            categoria: r.categoria, meio: r.meio, serie: sid });
           criados.push(l);
         }
-        jaTem[D.mes(cursor)] = true;
+        jaTem[ciclo] = true;
       }
       cursor = D.addMeses(cursor, 1);
     }
     return criados;
   }
 
-  const estenderTodasAsRecorrencias = () => S.series.filter((r) => r.tipo === 'RECORRENCIA' && r.ativa)
-    .forEach((r) => gerarOcorrencias(r.id));
+  const sincronizarRecorrencias = (filtro) => S.series
+    .filter((r) => r.tipo === 'RECORRENCIA' && r.ativa && (!filtro || filtro(r)))
+    .forEach((r) => sincronizarRecorrencia(r.id));
+
+  /* ---------- limite do cartao ----------
+     Disponivel = limite - tudo que foi comprado e ainda nao foi pago. Parcela futura
+     SEGURA limite (5.000 em 10x come 5.000 e libera 500 por mes), e por isso mesmo
+     recorrencia nao pode gerar previsto: seguraria limite de mes que nao chegou. */
+  function limiteDisponivel(cartaoId) {
+    const c = meio(cartaoId);
+    if (!c || !c.limite) return null;
+    const preso = S.lancamentos.filter((l) => {
+      if (l.meio !== cartaoId || !l.fatura) return false;
+      const f = S.faturas.find((x) => x.id === l.fatura);
+      return f && f.status !== 'PAGA';
+    }).reduce((s, l) => s + l.valor, 0);
+    return { limite: c.limite, preso, disponivel: c.limite - preso };
+  }
 
   /* ---------- quais faturas precisam ser reabertas para esta edicao ----------
      O usuario ve isso ANTES de confirmar: reabrir fatura paga de dois meses atras
@@ -466,12 +500,19 @@
           registrar(`${l.descricao} realizado`, 'auto');
         }
       });
-      estenderTodasAsRecorrencias();
+      // GATILHO 1 — virada do mes: recorrencia fora do cartao ganha a ocorrencia do mes
+      if (D.diaDoMes(S.hoje) === 1) sincronizarRecorrencias((r) => !noCartao(r));
       // fatura fecha sozinha no dia do fechamento
       S.faturas.forEach((f) => {
         if (f.status === 'ABERTA' && f.fechamento <= S.hoje && totalFatura(f.id) > 0) {
           fecharFatura(f.id);
           eventos.push(`${D.br(S.hoje)} — fatura ${f.referencia} fechou: ${M.fmt(totalFatura(f.id))}`);
+          // GATILHO 2 — a fatura fechou, a proxima abriu: as recorrencias ativas entram nela
+          const antes = S.lancamentos.length;
+          sincronizarRecorrencias((r) => noCartao(r) && r.meio === f.cartao);
+          if (S.lancamentos.length > antes) {
+            eventos.push(`${D.br(S.hoje)} — ${S.lancamentos.length - antes} recorrência(s) lançada(s) na fatura nova`);
+          }
         }
       });
     }
@@ -487,8 +528,9 @@
     gastoPorCategoria, guardadoNoMes, receitaDoMes, pendencias, esperaCategoria, extrato,
     faturaPara, totalFatura, lancamentosDaFatura, fecharFatura, reabrirFatura, pagarFatura,
     faturaAberta, comprarNoCredito, registrarBoleto, avancar,
-    series, serie, lancamentosDaSerie, criarRecorrencia, gerarOcorrencias,
+    series, serie, lancamentosDaSerie, criarRecorrencia,
+    sincronizarRecorrencia, sincronizarRecorrencias, cicloAberto, noCartao, limiteDisponivel,
     editarParcelamento, editarRecorrencia, previaEdicaoRecorrencia, cancelarSerie,
-    faturasAfetadas, HORIZONTE_MESES
+    faturasAfetadas
   };
 })(window);

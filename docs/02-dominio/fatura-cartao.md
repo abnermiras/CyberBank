@@ -21,6 +21,9 @@ status: stub
       os vira de PREVISTO para REALIZADO, com a dataEfeito na data do pagamento. Um
       lancamento de pagamento por cima contaria o gasto duas vezes. Falta escrever a regra
 - [ ] Como parcelamento aparece nas faturas seguintes
+- [ ] **Ao fechar, a fatura seguinte recebe as recorrencias ativas** do cartao: e o
+      gatilho de geracao da recorrencia, e o motivo de ela nao ter horizonte
+      (`docs/02-dominio/recorrencia.md`)
 - [ ] **Reabertura de fatura** (decidido, falta escrever a regra): reabrir -> editar ->
       fechar de novo. Se a fatura ja estava paga, o valor do pagamento e **reescrito** na
       data original — sem lancamento de ajuste no extrato, porque o saldo e derivado dos

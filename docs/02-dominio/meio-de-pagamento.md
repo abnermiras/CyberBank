@@ -59,6 +59,21 @@ cálculo de uma delas. É esta a regra, e é o coração deste doc:
 Assim o boleto em aberto já entra no saldo projetado — "quanto sobra até o fim do mês"
 conta a conta de luz que ainda vai ser paga — sem nunca mentir no saldo realizado.
 
+## Limite
+
+**Disponível = limite − tudo que foi comprado e ainda não foi pago.**
+
+Parcela futura **segura limite**, como na vida real: R$ 5.000 em 10x come R$ 5.000 do
+limite na hora e libera R$ 500 a cada fatura paga. Não é detalhe de exibição — é o
+comportamento do cartão.
+
+É exatamente por isso que **recorrência não gera lançamento futuro**
+(`docs/02-dominio/recorrencia.md`): se gerasse, seguraria limite de um mês que não chegou.
+Uma assinatura pesa no limite um ciclo por vez.
+
+> ☐ **A definir:** o limite é dado informado pelo usuário ou capturado do banco? Enquanto
+> for informado à mão, ele envelhece — e limite errado é pior que limite ausente.
+
 ## Cartão virtual
 
 É **instância** de `CREDITO`, não tipo novo. Nada no comportamento muda: mesma fatura,

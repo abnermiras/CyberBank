@@ -75,15 +75,30 @@ em 10. O estorno é outro fato, com data própria. Um não edita o outro.
 
 Nasce de uma regra: valor, periodicidade e dia. Normalmente **sem data de fim**.
 
-### Geração: 12 meses rolantes
+### Geração: uma ocorrência por ciclo. **Nunca um horizonte.**
 
-O sistema mantém sempre **~12 meses de lançamentos previstos à frente** e estende sozinho
-conforme o tempo passa. Assim "quanto vou gastar de assinatura até o meio do ano que vem"
-é consulta, não conta.
+**Recorrência não gera previstos futuros.** Um lançamento previsto não é só um item de
+tela: ele **segura limite do cartão** e sugere que a assinatura tem fim. Assinatura não
+acaba e não reserva o limite de um mês que não chegou. Gerar doze meses de Netflix
+comeria doze mensalidades do limite e faria a assinatura parecer um contrato de um ano.
 
-Doze e não infinito porque previsto é lançamento que ainda não aconteceu, e base cheia de
-lançamento fantasma envelhece mal. Doze e não dois porque a projeção de saldo é uma das
-perguntas que o produto promete responder.
+A geração segue o **ciclo**, uma ocorrência por vez, com dois gatilhos:
+
+| Recorrência | Gatilho | Momento |
+|---|---|---|
+| **No cartão** | A fatura fecha e a seguinte abre | O sistema varre as recorrências ativas daquele cartão e lança a ocorrência na fatura recém-aberta |
+| **Fora do cartão** (débito, boleto) | Virada do mês | Não existe fatura para disparar; o mês é o ciclo |
+
+O resultado é a invariante que importa: **existe no máximo uma ocorrência ainda não
+acontecida por recorrência** — a do ciclo que está aberto agora.
+
+Isso não custa a promessa do produto. "Quanto sobra até o fim do mês" continua respondida,
+porque a ocorrência do ciclo corrente existe. Projeção mais longa (Fase 3) se calcula a
+partir da **regra** da recorrência, não de lançamentos pré-criados.
+
+> **Cuidado ao ler `PREVISTO` no crédito.** Ele significa "ainda não mexeu no saldo", não
+> "ainda não aconteceu". Uma compra de ontem no cartão é `PREVISTO` até a fatura ser paga.
+> Quem responde "já aconteceu?" é a `dataEvento`.
 
 ### Editar
 

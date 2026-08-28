@@ -61,7 +61,7 @@
   const cSust = arvore(PESSOAL, 'SAIDA', 'SUSTENTO', '#5cff9d', ['Mercado', 'Restaurante', 'Delivery']);
   const cTran = arvore(PESSOAL, 'SAIDA', 'TRÂNSITO', '#00f0ff', ['Combustível', 'Corrida', 'Estacionamento']);
   const cMora = arvore(PESSOAL, 'SAIDA', 'MORADIA', '#ff6b35', ['Aluguel', 'Energia', 'Rede']);
-  const cLaze = arvore(PESSOAL, 'SAIDA', 'LAZER', '#ff1f91', ['Bar', 'Streaming', 'Jogos']);
+  const cLaze = arvore(PESSOAL, 'SAIDA', 'LAZER', '#ff1f91', ['Bar', 'Streaming', 'Jogos', 'Academia']);
   const cEqui = arvore(PESSOAL, 'SAIDA', 'EQUIPAMENTO', '#f7f13c', ['Hardware', 'Software']);
   const cRend = arvore(PESSOAL, 'ENTRADA', 'RENDA', '#5cff9d', ['Salário', 'Freela']);
   arvore(PESSOAL, 'ENTRADA', 'OUTROS', '#5f7688', ['Reembolso', 'Presente']);
@@ -104,8 +104,12 @@
   if (fatAgo) CB.fecharFatura(fatAgo.id);
 
   // --- recorrencia: N eventos independentes, sem data de fim (a "Netflix") ---
-  CB.criarRecorrencia({ conta: cc, meio: mDeb, valor: 3990, dia: 12, inicio: '2026-05-12',
+  // no cartao: a ocorrencia nova nasce quando a fatura fecha e a proxima abre
+  CB.criarRecorrencia({ conta: cc, meio: mCard, valor: 3990, dia: 12, inicio: '2026-05-12',
     descricao: 'SYNTH-WAVE PREMIUM', categoria: sub(cLaze, 'Streaming') });
+  // fora do cartao: a ocorrencia nova nasce na virada do mes
+  CB.criarRecorrencia({ conta: cc, meio: mDeb, valor: 12000, dia: 5, inicio: '2026-06-05',
+    descricao: 'ACADEMIA IRONWORKS', categoria: sub(cLaze, 'Academia') });
 
   // --- aporte: nao e gasto, e o dinheiro trocando de bolso ---
   CB.aportar({ de: cc, para: cold, valor: 50000, data: '2026-08-06', descricao: 'Aporte — reserva' });
@@ -129,6 +133,13 @@
     descricao: 'Mercado do mês', categoria: sub(kCasa, 'Mercado'), meio: mDebC });
   LC({ conta: ccc, sentido: 'SAIDA', valor: 22000, dataEvento: '2026-08-21', dataEfeito: '2026-08-21',
     descricao: 'Conserto do purificador', categoria: null, meio: mDebC });
+
+  // historia paga: fatura com vencimento no passado ja foi fechada e quitada.
+  // Sem isso o passado inteiro fica PREVISTO e a leitura do modelo mente.
+  S.faturas.filter((f) => f.vencimento < HOJE).forEach((f) => {
+    if (f.status === 'ABERTA') CB.fecharFatura(f.id);
+    if (f.status === 'FECHADA') CB.pagarFatura(f.id);
+  });
 
   S.ambienteAtivo = PESSOAL;
   S.hoje = HOJE;

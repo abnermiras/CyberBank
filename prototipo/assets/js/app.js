@@ -192,18 +192,34 @@
     const f = fs.find((x) => x.id === faturaSel);
     const ls = CB.lancamentosDaFatura(f.id);
     const congelada = f.status !== 'ABERTA'
-      ? '<div class="explica">FATURA ' + f.status + ' // os lan&ccedil;amentos est&atilde;o congelados. Para corrigir algo, reabra a fatura — ao fechar de novo, a diferen&ccedil;a vira um lan&ccedil;amento de ajuste.</div>' : '';
+      ? '<div class="explica">FATURA ' + f.status + ' // os lan&ccedil;amentos est&atilde;o congelados. Para corrigir algo, reabra a fatura, edite e feche de novo. Se ela j&aacute; estava paga, o valor do pagamento &eacute; <b>reescrito</b> na data original — sem lan&ccedil;amento de ajuste no extrato.</div>' : '';
     $('#fatDetalhe').innerHTML =
       '<div class="fatgrid">' +
       '<div class="panel hot metric"><span class="lbl">Total</span><span class="val ac">' + M.fmt(CB.totalFatura(f.id)) + '</span><span class="sub">' + ls.length + ' LAN\u00c7AMENTOS</span></div>' +
       '<div class="panel metric"><span class="lbl">Situa&ccedil;&atilde;o</span><span class="val" style="font-size:26px"><span class="stbadge st-' + f.status + '">' + f.status + '</span></span><span class="sub">' + (f.pagoEm ? 'PAGA EM ' + D.br(f.pagoEm) : 'AGUARDANDO') + '</span></div>' +
       '<div class="panel metric"><span class="lbl">Fechamento</span><span class="val cy" style="font-size:26px">' + D.br(f.fechamento) + '</span><span class="sub">DIA ' + CB.meio(f.cartao).diaFechamento + '</span></div>' +
       '<div class="panel metric"><span class="lbl">Vencimento</span><span class="val pk" style="font-size:26px">' + D.br(f.vencimento) + '</span><span class="sub">EFEITO NO SALDO</span></div>' +
-      '</div><div class="panel"><div class="panel-head"><h3>Lançamentos da fatura</h3>' +
+      '</div>' + limiteHTML(f.cartao) + '<div class="panel"><div class="panel-head"><h3>Lançamentos da fatura</h3>' +
       '<div class="fatacoes" style="margin:0">' + acoesFatura(f) + '</div></div>' + congelada +
       '<div style="margin:0 -20px">' + (ls.map(itemHTML).join('') || '<div class="vazio">FATURA VAZIA</div>') + '</div></div>';
   }
   $('#fSel').addEventListener('change', (e) => { faturaSel = e.target.value; renderFatura(); });
+
+  // Limite = tudo que foi comprado e ainda nao foi pago. Parcela futura SEGURA limite
+  // (5.000 em 10x come 5.000 e libera 500/mes) — e e por isso que recorrencia nao
+  // pode gerar previsto: seguraria limite de mes que nao chegou.
+  function limiteHTML(cartaoId) {
+    const L = CB.limiteDisponivel(cartaoId);
+    if (!L) return '';
+    const pct = Math.min(100, Math.round((L.preso / L.limite) * 100));
+    return '<div class="panel mt18" style="margin-bottom:14px">' +
+      '<div class="panel-head"><h3>Limite</h3><span class="tele">PARCELA FUTURA SEGURA LIMITE &middot; RECORRÊNCIA NÃO</span></div>' +
+      '<div class="hstack between wrap gap14">' +
+      '<div class="metric"><span class="lbl">Disponível</span><span class="val lm" style="font-size:30px">' + M.fmt(L.disponivel) + '</span></div>' +
+      '<div class="metric" style="text-align:right"><span class="lbl">Preso em compras não pagas</span>' +
+      '<span class="val" style="font-size:20px">' + M.fmt(L.preso) + ' <span style="color:var(--dim);font-size:13px">de ' + M.fmt(L.limite) + '</span></span></div>' +
+      '</div><div class="bar mt10"><i style="width:' + pct + '%"></i></div></div>';
+  }
 
   /* ================= PATRIMONIO ================= */
   function renderPatrimonio() {
@@ -254,14 +270,20 @@
       const prev = ls.filter((l) => l.situacao === 'PREVISTO');
       const real = ls.filter((l) => l.situacao === 'REALIZADO');
       const rec = r.tipo === 'RECORRENCIA';
-      const proxima = prev.sort((a, b) => a.dataEvento.localeCompare(b.dataEvento))[0];
+      const proxima = ls.filter((l) => l.dataEvento > S.hoje)
+        .sort((a, b) => a.dataEvento.localeCompare(b.dataEvento))[0];
       const travadas = CB.faturasAfetadas(ls);
+      // Recorrencia NAO mostra "N previstas": ela nao tem fim e nao gera futuro.
+      // Olha para tras (o que existe de verdade) e para a proxima cobranca, so.
+      const gasto = ls.reduce((acc, l) => acc + l.valor, 0);
+      const desde = ls.length ? ls.map((l) => l.dataEvento).sort()[0] : null;
       const corpo = rec
         ? '<div class="metric mt10"><span class="lbl">valor por ocorrência</span>' +
           '<span class="val ac" style="font-size:26px">' + M.fmt(r.valor) + '</span>' +
           '<span class="sub">TODO DIA ' + r.dia + ' &middot; SEM DATA DE FIM</span></div>' +
-          '<div class="tele mt10">' + real.length + ' JÁ ACONTECERAM &middot; <b>' + prev.length + '</b> PREVISTAS À FRENTE' +
-          (proxima ? ' &middot; PRÓXIMA ' + D.br(proxima.dataEvento) : '') + '</div>'
+          '<div class="tele mt10">ATIVA DESDE <b>' + (desde ? desde.slice(5, 7) + '/' + desde.slice(0, 4) : '—') +
+          '</b> &middot; <b>' + ls.length + '</b> COBRANÇA(S) &middot; <b>' + M.fmt(gasto) + '</b> NO TOTAL</div>' +
+          (proxima ? '<div class="tele" style="color:var(--acid)">PRÓXIMA COBRANÇA ' + D.br(proxima.dataEvento) + '</div>' : '')
         : '<div class="metric mt10"><span class="lbl">valor total da compra</span>' +
           '<span class="val cy" style="font-size:26px">' + M.fmt(r.valorTotal) + '</span>' +
           '<span class="sub">' + r.parcelas + 'x DE ' + M.fmt(Math.round(r.valorTotal / r.parcelas)) + '</span></div>' +
@@ -270,8 +292,8 @@
         '<div class="hstack between"><span class="cta-tipo">' + (rec ? 'RECORRÊNCIA' : 'PARCELAMENTO') + '</span>' +
         '<span class="tag ' + (rec ? 'prev' : 'transf') + '">' + (rec ? 'PERGUNTA AO EDITAR' : 'ALTERA TODAS') + '</span></div>' +
         '<div class="desc mt10" style="font:600 16px var(--disp)">' + esc(r.descricao) + '</div>' + corpo +
-        (travadas.length ? '<div class="tele mt10" style="color:var(--pink)">' + travadas.length +
-          ' FATURA(S) FECHADA(S) SERÃO REABERTAS: ' + travadas.map((f) => f.referencia).join(', ') + '</div>' : '') +
+        (!rec && travadas.length ? '<div class="tele mt10" style="color:var(--pink)">ALTERAR REABRE ' + travadas.length +
+          ' FATURA(S): ' + travadas.map((f) => f.referencia).join(', ') + '</div>' : '') +
         '<div class="fatacoes"><button class="btn sm" data-serie="' + r.id + '">ALTERAR VALOR</button></div></div>';
     }).join('') + '</div>';
   }
