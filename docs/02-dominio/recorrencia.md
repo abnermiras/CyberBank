@@ -36,8 +36,8 @@ O procedimento, parcela a parcela:
 
 1. Parcela em fatura **aberta** → altera direto.
 2. Parcela em fatura **fechada** e não paga → altera direto; o total se reapura.
-3. Parcela em fatura **paga** → altera, e o pagamento acompanha: paga integralmente, o valor
-   é reescrito na data original; paga em parte, o valor pago fica e a **rolagem** ajusta
+3. Parcela em fatura **paga** → altera, e o sistema pergunta o que fazer com a diferença:
+   ajustar o pagamento, ou deixá-la como saldo da conta `CARTAO`
    (`docs/02-dominio/fatura-cartao.md`).
 
 O passo 3 não custa nada além do óbvio: como saldo é sempre a soma dos lançamentos e
@@ -97,9 +97,9 @@ Isso não custa a promessa do produto. "Quanto sobra até o fim do mês" continu
 porque a ocorrência do ciclo corrente existe. Projeção mais longa (Fase 3) se calcula a
 partir da **regra** da recorrência, não de lançamentos pré-criados.
 
-> **Cuidado ao ler `PREVISTO` no crédito.** Ele significa "ainda não mexeu no saldo", não
-> "ainda não aconteceu". Uma compra de ontem no cartão é `PREVISTO` até a fatura ser paga.
-> Quem responde "já aconteceu?" é a `dataEvento`.
+> **No crédito, `PREVISTO` significa "ainda não aconteceu"**, como em todo lugar. A compra
+> de ontem no cartão é `REALIZADO`: a dívida existe desde a compra (`ADR-0003`). `PREVISTO`
+> no cartão é só a **parcela de um mês que ainda não chegou**.
 
 ### Editar
 
@@ -136,10 +136,9 @@ do que o caso comum, e o caso comum não deve pagar o preço do raro.
 - Editar uma série pode, portanto, **mudar o valor de várias faturas de uma vez** —
   inclusive pagas. O sistema mostra **quais** antes de confirmar: mexer numa fatura paga de
   dois meses atrás é permitido, mas nunca pode ser efeito colateral silencioso.
-- Corrigir uma fatura já paga **reescreve o passado**: o lançamento e o pagamento passam a
-  valer o valor novo, na data original. O extrato fica igual ao documento do banco, e a
-  memória do que mudou vive no histórico de alteração do lançamento, não numa linha de
-  ajuste no extrato.
+- Corrigir uma fatura já paga **pergunta** o que fazer com a diferença: ajustar o pagamento
+  ou deixá-la como saldo da conta `CARTAO`. A memória do que mudou vive no histórico de
+  alteração do lançamento, não numa linha de ajuste no extrato.
 
 ## Invariantes
 
@@ -164,3 +163,7 @@ do que o caso comum, e o caso comum não deve pagar o preço do raro.
 
 > ☐ **A definir:** débito automático é atributo da recorrência (já decidido), mas falta
 > escrever o que ele muda no comportamento — se nada muda além de rótulo, ele é rótulo.
+
+> ☐ **A definir:** a parcela futura tem `dataEvento` da compra ou do mês dela? Todas na data
+> da compra jogam os R$ 5.000 inteiros no relatório de gasto daquele mês; cada uma no seu
+> mês espalha. Decidir com uma jornada real na mão.

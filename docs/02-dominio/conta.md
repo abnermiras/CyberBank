@@ -11,12 +11,16 @@ status: rascunho
 **Conta é onde o dinheiro está.** Se uma coisa tem saldo próprio e o sistema precisa
 acompanhar esse saldo, ela é uma conta — não um tipo novo de entidade.
 
-Essa é a regra que resolve as três perguntas que apareceram separadas: aplicação é conta,
-vale-benefício é conta, carteira de dinheiro vivo é conta. Cada uma tem saldo, recebe e
-devolve dinheiro. O que muda entre elas é **comportamento**, e comportamento é `tipo`.
+Essa é a regra que resolve quatro perguntas que apareceram separadas: aplicação é conta,
+vale-benefício é conta, carteira de dinheiro vivo é conta — e **o contrato de cartão de
+crédito também é conta**, porque a dívida dele é um saldo que o sistema acompanha
+(`ADR-0003`). Cada uma tem saldo, recebe e devolve dinheiro. O que muda entre elas é
+**comportamento**, e comportamento é `tipo`.
 
 Toda conta pertence a um **ambiente financeiro** e nunca muda de ambiente
-(`docs/02-dominio/ambiente-financeiro.md`).
+(`docs/02-dominio/ambiente-financeiro.md`). Ela pode ser **usada** por outros ambientes, se
+for compartilhada: o que atravessa é o uso, nunca a posse
+(`docs/02-dominio/compartilhamento.md`).
 
 ## Os dois eixos
 
@@ -31,6 +35,7 @@ dashboard mentir.
 | `CARTEIRA` | Dinheiro vivo | dinheiro |
 | `APLICACAO` | Dinheiro guardado ou investido — ver `docs/02-dominio/aplicacao-patrimonio.md` | nenhum: não se paga com ela |
 | `BENEFICIO` | Vale-refeição e afins, com saldo separado do banco | o cartão de benefício |
+| `CARTAO` | O **contrato** de cartão de crédito. O saldo é a dívida — `ADR-0003` | os cartões do contrato: físico, virtual, adicional |
 
 **Não existe tipo `POUPANCA`.** Poupança é uma aplicação: fica fora do fluxo de caixa, não
 tem meio de pagamento e rende — comportamento idêntico ao de `APLICACAO`. Uma poupança é
@@ -47,11 +52,15 @@ ou apenas dinheiro trocando de lugar dentro do próprio patrimônio.
 
 | Valor | Contas | Consequência |
 |---|---|---|
-| `true` | `CORRENTE`, `CARTEIRA`, `BENEFICIO` | Saída daqui é gasto; entrada é receita |
+| `true` | `CORRENTE`, `CARTEIRA`, `BENEFICIO`, `CARTAO` | Saída daqui é gasto; entrada é receita |
 | `false` | `APLICACAO` | Mover dinheiro para cá **não é gasto** — é guardar |
 
 É esse campo, e não o tipo, que o dashboard de gasto por categoria consulta. Tipo novo no
 futuro só precisa responder a esta pergunta para o relatório continuar certo.
+
+`CARTAO` entra como `true` porque **comprar no cartão é gasto da vida**. Pagar a fatura não
+conta de novo: pagamento é transferência, e transferência nunca entra no relatório de gasto
+(`docs/02-dominio/fatura-cartao.md`).
 
 ## Saldo
 
@@ -82,6 +91,7 @@ do `CLAUDE.md` e não-objetivo do roadmap.
 | Momento | Regra |
 |---|---|
 | Criação | Nome, tipo e saldo inicial (que vira lançamento de abertura) |
+| Criação de uma `CARTAO` | Mais limite, dia do vencimento, quantos dias antes fecha e conta pagadora padrão (`docs/02-dominio/fatura-cartao.md`) |
 | Edição | Nome livre. **Tipo não muda** depois de existir lançamento — mudaria o significado do histórico |
 | Inativação | Não aceita lançamento novo; histórico e saldo continuam existindo e visíveis |
 | Exclusão | Só se a conta nunca teve lançamento. Com histórico, o caminho é inativar |
@@ -96,6 +106,9 @@ Quem pode: dono e editor. Leitor não mexe (`docs/02-dominio/ambiente-financeiro
 - Uma conta com qualquer lançamento não pode ser excluída.
 - Conta com `entraNoFluxoDeCaixa = false` não é origem de compra: nenhum meio de
   pagamento aponta para ela.
+- Só meio `CREDITO` aponta para conta `CARTAO`, e todo `CREDITO` aponta para uma.
+- Conta `CARTAO` nunca é compartilhada inteira — só os cartões dela
+  (`docs/02-dominio/compartilhamento.md`).
 - Saldo nunca é armazenado como total; é sempre derivado dos lançamentos.
 
 ## Fronteiras com outros docs

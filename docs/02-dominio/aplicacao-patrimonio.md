@@ -77,26 +77,34 @@ receita da vida, é a aplicação valendo mais.
 
 ## Patrimônio
 
-**Patrimônio = soma do saldo realizado de todas as contas do ambiente − dívida de cartão**,
-aplicações inclusive. É consulta, não entidade: nada é armazenado.
+**Patrimônio = soma do saldo de todas as contas do ambiente**, aplicações e cartões
+inclusive. É consulta, não entidade: nada é armazenado.
 
-A dívida de cartão é definida em `docs/02-dominio/fatura-cartao.md`: tudo que foi comprado
-no crédito e ainda não foi pago, **inclusive as parcelas futuras**. Quem parcelou R$ 5.000
-em 10x deve os R$ 5.000 hoje, não R$ 500 — patrimônio que ignora parcela futura mente para
-cima justo quando importa.
+Dívida de cartão não é mais um termo separado nesta conta: o contrato de cartão **é** uma
+conta `CARTAO` de saldo negativo (`ADR-0003`), e somar as contas já desconta.
+
+**Qual saldo entra:** o **realizado** de todas as contas, e o **projetado** da `CARTAO`. A
+regra por trás cabe numa frase: **dívida futura já é sua; receita futura ainda não.** Quem
+parcelou R$ 5.000 em 10x deve os R$ 5.000 hoje, não R$ 500 — mas o salário do mês que vem
+não é patrimônio.
+
+Conta compartilhada entra no patrimônio de **todos** os ambientes que a usam
+(`docs/02-dominio/compartilhamento.md`). Isso é conta conjunta, não bug — e é por isso que
+somar os patrimônios de vários ambientes não é uma tela que o sistema oferece.
 
 A distinção que dá sentido a tudo:
 
 | Leitura | O que responde |
 |---|---|
 | **Fluxo de caixa** | Só contas com `entraNoFluxoDeCaixa = true`. "Quanto entrou e saiu da minha vida este mês" |
-| **Patrimônio** | Todas as contas, menos a dívida de cartão. "Quanto eu tenho de verdade" |
+| **Patrimônio** | Todas as contas, com a `CARTAO` negativa. "Quanto eu tenho de verdade" |
 
 Um aporte muda o fluxo de caixa do mês e **não muda o patrimônio** — o dinheiro só trocou
 de bolso. Se um aporte alterar o patrimônio, é bug.
 
-**Pagar uma fatura também não muda o patrimônio**: a dívida some e o saldo da conta cai no
-mesmo valor. Se mudar, é bug — pelo mesmo motivo do aporte.
+**Pagar uma fatura também não muda o patrimônio**, e não por regra: pagamento de fatura é
+uma transferência (`docs/02-dominio/fatura-cartao.md`), e transferência move dinheiro de
+bolso sem criar nem destruir nada.
 
 ## Invariantes
 
@@ -104,8 +112,8 @@ mesmo valor. Se mudar, é bug — pelo mesmo motivo do aporte.
 - Nenhum meio de pagamento aponta para uma conta `APLICACAO`.
 - Aporte e resgate são sempre um par de lançamentos com o mesmo `transferenciaId`.
 - Aporte, resgate e rendimento não têm categoria e nunca entram no relatório de gasto.
-- Patrimônio nunca é armazenado; é sempre derivado dos saldos e da dívida.
-- Pagar fatura não altera o patrimônio.
+- Patrimônio nunca é armazenado; é sempre derivado dos saldos.
+- Pagar fatura não altera o patrimônio, pelo mesmo motivo do aporte.
 - Aporte e resgate não alteram o patrimônio total. Só rendimento altera.
 
 ## Fora da Fase 1

@@ -29,7 +29,8 @@ localize a tarefa na tabela abaixo, leia **apenas** os docs listados e vá.
 | Nova integração externa (banco, extrato, canal) | `docs/08-fluxos/nova-integracao-externa.md` |
 | Novo endpoint / mudança de contrato de API | `docs/08-fluxos/novo-endpoint.md` |
 | Mudança de schema / nova migration | `docs/08-fluxos/nova-migration.md` |
-| Compartilhamento, papel ou permissão de ambiente | `docs/02-dominio/ambiente-financeiro.md` |
+| Papel, convite ou permissão de ambiente | `docs/02-dominio/ambiente-financeiro.md` |
+| Compartilhar conta ou cartão entre ambientes | `docs/02-dominio/compartilhamento.md` |
 | Nova regra de negócio ou mudança de invariante | `docs/08-fluxos/nova-regra-de-dominio.md` |
 | Corrigir bug | `docs/08-fluxos/correcao-de-bug.md` |
 | Mexer no bot do Telegram | `docs/05-integracoes/telegram-bot.md` + `docs/06-interface/bot-conversas.md` |

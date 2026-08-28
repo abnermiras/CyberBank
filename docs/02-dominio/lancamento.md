@@ -11,14 +11,16 @@ status: rascunho
 A unidade central do sistema: **um evento financeiro que altera o saldo de uma conta.**
 Tudo que o Cyberbank sabe sobre dinheiro é soma de lançamento.
 
-Um lançamento pertence a um ambiente e a **uma** conta. Movimento entre duas contas é um
-par de lançamentos, não um lançamento com dois lados — ver Transferência.
+Um lançamento pertence a um ambiente e a **uma** conta. O ambiente é o de **quem lançou**,
+e a conta pode ser de outro ambiente, se compartilhada
+(`docs/02-dominio/compartilhamento.md`). Movimento entre duas contas é um par de
+lançamentos, não um lançamento com dois lados — ver Transferência.
 
 ## Campos
 
 | Campo | Obrigatório | Nota |
 |---|:--:|---|
-| `ambiente` | sim | Nunca muda. `docs/02-dominio/ambiente-financeiro.md` |
+| `ambiente` | sim | O ambiente de **quem lançou**, nunca o da conta. Nunca muda. `docs/02-dominio/ambiente-financeiro.md` |
 | `conta` | sim | A conta cujo saldo este lançamento move |
 | `sentido` | sim | `ENTRADA` ou `SAIDA` |
 | `valor` | sim | Inteiro em centavos, **sempre positivo**. O sinal vem do `sentido`, nunca do valor |
@@ -31,7 +33,6 @@ par de lançamentos, não um lançamento com dois lados — ver Transferência.
 | `fatura` | não | Preenchido quando o meio é crédito. **Nasce** na fatura aberta do cartão; editável para qualquer fatura, aberta ou não. Mover recalcula a `dataEfeito`. `docs/02-dominio/fatura-cartao.md` |
 | `transferenciaId` | não | Amarra os dois lançamentos de uma transferência |
 | `origemParcelamento` | não | A compra que gerou esta parcela. `docs/02-dominio/recorrencia.md` |
-| `rolagemDeFatura` | não | Amarra o par de lançamentos do que ficou devendo num pagamento parcial. `docs/02-dominio/fatura-cartao.md` |
 | `estabelecimento` | não | Texto bruto da captura, antes de normalizar |
 | `autor` | sim | Qual usuário criou. Em ambiente compartilhado, "quem lançou isso?" é a primeira pergunta |
 
@@ -40,15 +41,16 @@ relatório em `SUM(CASE WHEN ...)` e faz um sinal trocado passar despercebido.
 
 ## As duas datas
 
-Comprar no crédito dia 3 e a fatura vencer dia 10 do mês seguinte são **duas datas**, e
-tratar como uma é o bug que faz o saldo mentir o mês inteiro.
+Registrar um boleto que vence dia 10 e pagá-lo dia 14 são **duas datas**, e tratar como uma
+é o bug que faz o saldo mentir o mês inteiro.
 
 - **`dataEvento`** — quando a compra aconteceu. É por ela que o usuário procura e é ela
   que o relatório de gasto por categoria usa: o mercado de terça foi gasto de terça.
 - **`dataEfeito`** — quando o dinheiro sai da conta. É por ela que o saldo se calcula.
 
-No débito, Pix e dinheiro as duas são iguais. No crédito, `dataEfeito` é o vencimento da
-fatura em que a compra caiu — e vira a data do pagamento quando a fatura é paga. **A regra que calcula `dataEfeito` por tipo de meio vive em
+Em quase todo meio as duas são iguais, **crédito incluído**: comprar no cartão cria dívida
+na hora, na conta `CARTAO` (`ADR-0003`). O boleto é a exceção que faz os dois campos
+existirem — e o `PREVISTO` é a outra. **A regra que calcula `dataEfeito` por tipo de meio vive em
 `docs/02-dominio/meio-de-pagamento.md`** — aqui só fica o fato de que os dois campos existem.
 
 ## Dois eixos independentes
@@ -69,7 +71,7 @@ glossário. Não existe estado `PENDENTE` separado: pendência é uma **consulta
 estado a menos é um estado que não dessincroniza.
 
 A consulta não é "sem categoria" — é **"sem categoria e que espera uma"**. Ficam de fora
-transferência, aporte, resgate, rendimento, rolagem de fatura e lançamento de abertura:
+transferência, aporte, resgate, rendimento, pagamento de fatura e lançamento de abertura:
 esses não têm categoria por natureza, e não são trabalho pendente para ninguém.
 *(A definição larga foi corrigida depois que o protótipo mostrou a abertura de conta
 aparecendo na fila de pendências.)*
@@ -80,8 +82,9 @@ Ela nunca volta atrás: realizado não vira previsto.
 
 ## Transferência
 
-Mover dinheiro entre duas contas — inclusive **aporte e resgate**
-(`docs/02-dominio/aplicacao-patrimonio.md`) — cria **dois lançamentos** com o mesmo
+Mover dinheiro entre duas contas — inclusive **aporte, resgate**
+(`docs/02-dominio/aplicacao-patrimonio.md`) e o **pagamento de fatura de cartão**
+(`docs/02-dominio/fatura-cartao.md`) — cria **dois lançamentos** com o mesmo
 `transferenciaId`: uma `SAIDA` na conta de origem e uma `ENTRADA` na de destino.
 
 Por que dois e não um com origem e destino: o saldo de uma conta continua sendo a soma
@@ -91,7 +94,8 @@ a perguntar "sou a origem ou o destino?" — em toda consulta, para sempre.
 Regras do par:
 
 - Os dois lançamentos existem juntos ou não existem. Não há metade de transferência.
-- Mesmo valor, sentidos opostos, contas **diferentes** do **mesmo ambiente**.
+- Mesmo valor, sentidos opostos, contas **diferentes** — ambas acessíveis ao ambiente do
+  lançamento, próprias ou compartilhadas (`docs/02-dominio/compartilhamento.md`).
 - Editar ou apagar um lado age no par inteiro.
 - Transferência **não tem categoria** e não aparece no relatório de gasto: o dinheiro não
   saiu da vida do usuário, mudou de bolso.
@@ -126,9 +130,9 @@ qualquer outro, e o campo `fatura` aponta para qualquer fatura do cartão, abert
 Fatura fechada não congela nada — o sistema não tem a palavra final sobre o dinheiro do
 usuário; o que ele deve é mostrar a consequência antes e guardar quem mudou o quê.
 
-O que muda conforme a fatura é o **aviso** e o que acompanha o valor novo: fatura paga
-integralmente tem o pagamento reescrito na data original; fatura paga em parte mantém o
-valor pago — que o usuário digitou — e ajusta a rolagem. As regras estão em
+O que muda conforme a fatura é o **aviso**: corrigir lançamento de fatura já paga faz o
+sistema nomear o pagamento e a diferença, e **perguntar** se o pagamento deve ser ajustado
+ou se a diferença fica como saldo da conta `CARTAO`. As regras estão em
 `docs/02-dominio/fatura-cartao.md`. Aqui vale o princípio: **ação retroativa mostra o
 impacto antes de confirmar e vai para o histórico**, sem lançamento de ajuste no extrato.
 Nada precisa ser recalculado: como saldo é sempre a soma dos lançamentos
@@ -145,7 +149,8 @@ Nada precisa ser recalculado: como saldo é sempre a soma dos lançamentos
 - Nenhum estado de fatura impede a edição de um lançamento (`docs/02-dominio/fatura-cartao.md`).
 - `REALIZADO` não volta para `PREVISTO`.
 - Lançamento de conta inativa não é criado (`docs/02-dominio/conta.md`).
-- Categoria e conta são sempre do mesmo ambiente do lançamento.
+- A **categoria** é sempre do mesmo ambiente do lançamento.
+- A **conta** é do mesmo ambiente, ou de um que a compartilhou com ele.
 
 ## Fronteiras com outros docs
 

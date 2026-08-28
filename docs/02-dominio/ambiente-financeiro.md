@@ -15,6 +15,9 @@ Uma frase que resume tudo: **o ambiente é o dono do dado; o usuário só tem ac
 ambientes.** Nenhuma conta, lançamento, categoria, orçamento, aplicação ou meta pertence
 diretamente a um usuário.
 
+Isso continua verdade depois do compartilhamento de conta e cartão: lá o que atravessa é o
+**uso** de um objeto, nunca a posse (`docs/02-dominio/compartilhamento.md`, `ADR-0004`).
+
 > **Ambiente financeiro ≠ ambiente de execução.** Dev, homologação e produção são
 > *ambientes de execução* e vivem em `docs/01-arquitetura/ambientes-de-execucao.md`.
 > A convivência dos dois nomes foi decidida — ver `ADR-0001`.
@@ -33,6 +36,11 @@ Por que três: o **editor** é o casal que divide as contas de casa; o **leitor*
 acompanha sem mexer (um contador, um filho, você olhando o ambiente de outra pessoa).
 Sem o leitor, todo convite vira permissão de escrita — e aí compartilhar assusta.
 
+Na tela isso aparece como duas opções, não três: **autorização completa** e **somente
+leitura**. Autorização completa é o **editor** — faz tudo com o dinheiro e não convida
+ninguém nem exclui o ambiente. Convidar e excluir ficam só com o dono, que é o que impede o
+ambiente de ficar órfão.
+
 **Invariante:** todo ambiente tem **exatamente um** dono, sempre. Não existe ambiente
 sem dono nem com dois.
 
@@ -41,7 +49,9 @@ sem dono nem com dois.
 | Situação | Regra |
 |---|---|
 | Quem convida | Só o dono |
-| Como | Por e-mail do convidado, com o papel já definido no convite |
+| Como | O dono digita o **e-mail** do convidado — que é o identificador de login — e o papel |
+| Por onde chega | **Dentro do sistema**, na área de perfil da pessoa: aceitar ou recusar |
+| O sistema manda e-mail? | **Não.** Não há serviço de e-mail no Pi, e custo externo zero é restrição. O e-mail identifica a pessoa; o convite vive no app |
 | Convidado sem cadastro | O convite fica pendente; ao se cadastrar com aquele e-mail, ele aparece |
 | Antes do aceite | O convidado **não vê nada** do ambiente. Convite pendente não é acesso |
 | Trocar o papel de alguém | Só o dono, a qualquer momento, com efeito imediato |
@@ -64,9 +74,10 @@ Esta é a regra de segurança do sistema inteiro:
    falha clássica, e é falha crítica.
 4. Vazamento entre ambientes é incidente de segurança, não bug de lógica.
 
-> ☐ **A definir com a arquitetura:** onde o filtro é aplicado de forma que não dê para
-> esquecer — filtro global no repositório, `Row Level Security` no Postgres, ou os dois.
-> Decidir em `docs/01-arquitetura/seguranca.md` antes do primeiro repositório existir.
+Como o filtro é imposto — repositório-base e Row Level Security — está no `ADR-0002`. O que
+o compartilhamento mudou nele está no `ADR-0004`: o critério deixou de ser
+`ambiente_id = corrente` e passou a ser *"o ambiente corrente, ou um objeto compartilhado com
+ele"*.
 
 ## Ciclo de vida
 
