@@ -97,6 +97,7 @@
       fatura: o.fatura || null,
       transferenciaId: o.transferenciaId || null,
       pagamentoDeFatura: o.pagamentoDeFatura || null,
+      rolagemDeFatura: o.rolagemDeFatura || null,
       serie: o.serie || null,
       origemParcelamento: o.origemParcelamento || null,
       estabelecimento: o.estabelecimento || null,
@@ -214,7 +215,7 @@
     const alvo = mes || D.mes(S.hoje);
     const mapa = {};
     lancamentos().forEach((l) => {
-      if (l.transferenciaId || l.rendimento) return;
+      if (l.transferenciaId || l.rendimento || l.rolagemDeFatura) return;
       if (l.sentido !== 'SAIDA') return;
       if (!D.noMes(l.dataEvento, alvo)) return;
       const c = conta(l.conta); if (!c || !c.entraNoFluxoDeCaixa) return;
@@ -241,7 +242,7 @@
   }
 
   // PENDENCIA: lancamento sem categoria QUE ESPERA UMA.
-  const esperaCategoria = (l) => !l.transferenciaId && !l.rendimento && !l.abertura;
+  const esperaCategoria = (l) => !l.transferenciaId && !l.rendimento && !l.abertura && !l.rolagemDeFatura;
   const pendencias = () => lancamentos().filter((l) => !l.categoria && esperaCategoria(l));
 
   const extrato = (filtro) => lancamentos()
@@ -305,8 +306,16 @@
     return faturasDe(cc).find((f) => f.referencia === ref) || novaFatura(cc, ref, 'FUTURA');
   }
 
+  const ehRolagem = (l) => !!l.rolagemDeFatura;
+  // O total historico da fatura NAO cai quando ela rola: agosto continua tendo sido
+  // R$ 1.610,60. A linha que credita a fatura de origem fica de fora do total dela;
+  // a que debita a fatura de destino entra, porque e o "saldo anterior" a pagar.
   const totalFatura = (fid) => S.lancamentos
-    .filter((l) => l.fatura === fid).reduce((s, l) => s + sinal(l) * -1 * l.valor, 0);
+    .filter((l) => l.fatura === fid && !(ehRolagem(l) && l.sentido === 'ENTRADA'))
+    .reduce((s, l) => s + sinal(l) * -1 * l.valor, 0);
+  const roladoDaFatura = (fid) => S.lancamentos
+    .filter((l) => l.fatura === fid && ehRolagem(l) && l.sentido === 'ENTRADA')
+    .reduce((s, l) => s + l.valor, 0);
   const lancamentosDaFatura = (fid) => S.lancamentos.filter((l) => l.fatura === fid);
 
   /* ---------- pagamento: EIXO DERIVADO, nao estado salvo ---------- */
@@ -316,10 +325,12 @@
     .filter((l) => l.situacao === 'REALIZADO').reduce((s, l) => s + l.valor, 0);
 
   function situacaoPagamento(fid) {
-    const total = totalFatura(fid), pago = pagoDaFatura(fid);
+    const total = totalFatura(fid), pago = pagoDaFatura(fid), rolado = roladoDaFatura(fid);
+    if (rolado > 0) return pago > 0 ? 'PARCIAL · ROLADA' : 'ROLADA';
     if (pago <= 0) return 'EM ABERTO';
     return pago >= total ? 'QUITADA' : 'PARCIAL';
   }
+  const faltaNaFatura = (fid) => totalFatura(fid) - pagoDaFatura(fid) - roladoDaFatura(fid);
 
   // Enquanto o pagamento previsto nao foi feito, ele acompanha o total da fatura.
   function sincronizarPagamentoPrevisto(fid) {
@@ -328,7 +339,7 @@
     const total = totalFatura(fid);
     const pendentes = pagamentosDaFatura(fid).filter((l) => l.situacao === 'PREVISTO');
     const jaPago = pagoDaFatura(fid);
-    const falta = total - jaPago;
+    const falta = faltaNaFatura(fid);
     if (!pendentes.length) return null;
     const par = parDaTransferencia(pendentes[0].transferenciaId);
     if (falta <= 0) { S.lancamentos = S.lancamentos.filter((l) => par.indexOf(l) < 0); return null; }
@@ -338,7 +349,7 @@
 
   function criarPagamentoPrevisto(f) {
     const c = conta(f.contaCartao);
-    const total = totalFatura(f.id) - pagoDaFatura(f.id);
+    const total = faltaNaFatura(f.id);
     if (total <= 0 || !c.contaPagadora) return null;
     if (pagamentosDaFatura(f.id).some((l) => l.situacao === 'PREVISTO')) return null;
     const par = transferir({ de: c.contaPagadora, para: f.contaCartao, valor: total,
@@ -398,7 +409,7 @@
     if (!f || f.status === 'ABERTA') return null;
     o = o || {};
     const c = conta(f.contaCartao);
-    const falta = totalFatura(fid) - pagoDaFatura(fid);
+    const falta = faltaNaFatura(fid);
     const valor = o.valor || falta;
     const de = o.conta || c.contaPagadora;
     const data = o.data || S.hoje;
@@ -420,6 +431,41 @@
     if (sit === 'PARCIAL') criarPagamentoPrevisto(f);
     registrar(`fatura ${f.referencia}: pago ${M.fmt(valor)} de ${conta(de).apelido || conta(de).nome} — ${sit}`, 'fatura');
     return f;
+  }
+
+  /* ================= ROLAGEM: o que venceu e nao foi pago =================
+     Cada fatura e paga na tela dela. Se ela vence sem ser quitada, o que sobrou
+     NAO fica preso num vencimento que passou: ele vira uma LINHA na fatura aberta.
+
+     E um PAR dentro da propria conta CARTAO — credito na fatura velha, debito na
+     nova — entao a soma e ZERO e a divida do cartao nao muda. A rolagem move a
+     divida de periodo, nao cria divida. Mesma forma da transferencia, aplicada
+     entre faturas em vez de entre contas.
+     ==================================================================== */
+  const lancamentosDeRolagem = (rid) => S.lancamentos.filter((l) => l.rolagemDeFatura === rid);
+
+  function rolarSaldo(fid) {
+    const f = S.faturas.find((x) => x.id === fid);
+    if (!f || f.status === 'ABERTA') return null;
+    const falta = faltaNaFatura(fid);
+    if (falta <= 0) return null;
+    const destino = faturaAberta(f.contaCartao);
+    if (!destino || destino.id === fid) return null;
+    // o pagamento previsto que sobrou nao faz mais sentido: a cobranca mudou de fatura
+    pagamentosDaFatura(fid).filter((l) => l.situacao === 'PREVISTO').forEach((l) => {
+      const par = parDaTransferencia(l.transferenciaId);
+      S.lancamentos = S.lancamentos.filter((x) => par.indexOf(x) < 0);
+    });
+    const rid = id('rol');
+    const base = { conta: f.contaCartao, valor: falta, dataEvento: f.vencimento,
+      dataEfeito: f.vencimento, situacao: 'REALIZADO', categoria: null, meio: null,
+      rolagemDeFatura: rid };
+    lancar(Object.assign({}, base, { sentido: 'ENTRADA', fatura: fid,
+      descricao: 'Rolado para a fatura ' + destino.referencia }));
+    lancar(Object.assign({}, base, { sentido: 'SAIDA', fatura: destino.id,
+      descricao: 'Saldo da fatura ' + f.referencia }));
+    registrar(`fatura ${f.referencia}: ${M.fmt(falta)} rolado para ${destino.referencia}`, 'fatura');
+    return rid;
   }
 
   /* ---------- correcao em fatura paga: o sistema PERGUNTA ----------
@@ -659,6 +705,13 @@
       });
       // GATILHO 1 — virada do mes: recorrencia fora do cartao ganha a ocorrencia
       if (D.diaDoMes(S.hoje) === 1) sincronizarRecorrencias((r) => !noCartao(r));
+      // GATILHO 3 — venceu e nao foi quitada: o que sobrou rola para a fatura aberta
+      S.faturas.slice().forEach((f) => {
+        if (f.status === 'FECHADA' && f.vencimento < S.hoje && faltaNaFatura(f.id) > 0) {
+          const v = faltaNaFatura(f.id);
+          if (rolarSaldo(f.id)) eventos.push(`${D.br(S.hoje)} — fatura ${f.referencia} venceu com ${M.fmt(v)} em aberto: rolado para a fatura seguinte`);
+        }
+      });
       // GATILHO 2 — a fatura fecha sozinha; abre a seguinte, lanca recorrencias
       // e cria o pagamento previsto. Idempotente e recupera atraso.
       S.faturas.slice().forEach((f) => {
@@ -685,7 +738,8 @@
     dividaCartao, dividaTotal,
     gastoPorCategoria, guardadoNoMes, receitaDoMes, pendencias, esperaCategoria, extrato,
     faturasDe, faturaAberta, faturaNaPosicao, faturaDaReferencia, datasDaRef,
-    totalFatura, lancamentosDaFatura, pagamentosDaFatura, pagoDaFatura, situacaoPagamento,
+    totalFatura, roladoDaFatura, faltaNaFatura, ehRolagem, lancamentosDaFatura,
+    pagamentosDaFatura, pagoDaFatura, situacaoPagamento, rolarSaldo, lancamentosDeRolagem,
     fecharFatura, abrirFatura, podeAbrir, ultimaFechada, pagarFatura,
     previaCorrecaoFatura, ajustarPagamento, criarPagamentoPrevisto, sincronizarPagamentoPrevisto,
     comprarNoCredito, registrarBoleto, avancar,

@@ -48,7 +48,7 @@ conta `CARTAO`, pagar a fatura é transferência, e o que não foi pago fica com
 | Formulário completo → CRÉDITO, 3 parcelas | A compra cai na fatura **ABERTA** pelo status, não pela data; debita a conta `CARTAO` na hora |
 | Formulário completo → TRANSFERÊNCIA para a Reserva | Aporte que não é gasto e não muda o patrimônio |
 | Fatura → **PAGAR** | O pagamento é uma **transferência** da conta pagadora para o cartão. Compare o extrato da corrente com o do cartão |
-| Fatura → **PAGAR PARTE** | O que não foi pago **fica como saldo do cartão** — não existe lançamento de rolagem |
+| Fatura → **PAGAR PARTE**, depois `+30D` | O que não foi pago vira a linha **"Saldo da fatura anterior"** no topo da fatura seguinte, quando esta vencer. É um par dentro da própria conta do cartão: soma zero, a dívida não muda |
 | Fatura → **ABRIR** | Só aparece na última fechada; a seguinte volta a `FUTURA` mantendo o que tinha |
 | Editar lançamento de fatura fechada | **Nada congela**: edita direto. Em fatura paga, `AJUSTAR PAGAMENTO` é a resposta "o banco cobrou o valor novo" |
 | Reserva → informar valor atual | Rendimento como lançamento, não como sobrescrita |
@@ -83,6 +83,11 @@ Pagar a fatura **não pode mudar o patrimônio** — se mudar, é bug.
 - **`entraNoFluxoDeCaixa` não responde "isso é caixa?".** A conta `CARTAO` é a primeira em
   que as duas perguntas divergem: os movimentos dela são gasto, mas o saldo é dívida. "Em
   caixa" passou a somar as contas de fluxo **menos as de dívida** (`docs/02-dominio/conta.md`).
+- **O que não foi pago ficava preso numa fatura vencida.** Pagando R$ 800 de R$ 1.610,60 e
+  avançando o relógio, os R$ 810,60 continuavam na dívida (certo) mas não apareciam na
+  fatura seguinte — que exibia R$ 1.100,10 quando o banco ia cobrar R$ 1.910,70. O erro era
+  tratar o pagamento como sendo *da fatura* enquanto a dívida era *da conta*. Nasceu a
+  rolagem (`ADR-0005`).
 
 Achado novo trabalhando aqui? Ele vale mais no doc dono da regra do que neste README.
 

@@ -37,6 +37,7 @@ localize a tarefa na tabela abaixo, leia **apenas** os docs listados e vá.
 | Mexer na captura de notificação de compra | `docs/05-integracoes/captura-notificacao.md` + `docs/02-dominio/lancamento.md` |
 | Categorização automática | `docs/02-dominio/regras-categorizacao.md` + `docs/02-dominio/categoria.md` |
 | Fatura, parcelamento, recorrência | `docs/02-dominio/fatura-cartao.md` + `docs/02-dominio/recorrencia.md` |
+| Pagar fatura, rolagem, corrigir fatura paga | `docs/02-dominio/fatura-pagamento.md` |
 | Dashboard / relatórios | `docs/06-interface/dashboard.md` + `docs/04-api/endpoints-relatorios.md` |
 | Deploy, ambiente, incidente | `docs/07-operacao/deploy.md` ou `docs/07-operacao/runbook.md` |
 | Escrever/ajustar testes | `docs/07-operacao/testes.md` |

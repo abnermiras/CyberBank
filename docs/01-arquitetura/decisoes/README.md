@@ -37,5 +37,6 @@ nome de variável, ou coisa que cabe no doc do módulo.
 | 0002 | [Isolamento por ambiente em duas camadas](ADR-0002-isolamento-por-ambiente.md) | aceita | 2026-08-27 |
 | 0003 | [O contrato de cartão de crédito é uma conta](ADR-0003-cartao-de-credito-e-conta.md) | aceita | 2026-08-28 |
 | 0004 | [Conta e cartão podem ser compartilhados entre ambientes](ADR-0004-compartilhamento-entre-ambientes.md) | aceita | 2026-08-28 |
+| 0005 | [O que vence sem ser pago rola para a fatura seguinte](ADR-0005-rolagem-entre-faturas.md) | aceita · substitui uma consequência da 0003 | 2026-08-28 |
 
 _(adicione uma linha por ADR)_

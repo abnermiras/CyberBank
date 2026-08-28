@@ -33,6 +33,7 @@ lançamentos, não um lançamento com dois lados — ver Transferência.
 | `fatura` | não | Preenchido quando o meio é crédito. **Nasce** na fatura aberta do cartão; editável para qualquer fatura, aberta ou não. Mover recalcula a `dataEfeito`. `docs/02-dominio/fatura-cartao.md` |
 | `transferenciaId` | não | Amarra os dois lançamentos de uma transferência |
 | `origemParcelamento` | não | A compra que gerou esta parcela. `docs/02-dominio/recorrencia.md` |
+| `rolagemDeFatura` | não | Amarra o par que move o saldo não pago de uma fatura para a seguinte. `ADR-0005` |
 | `estabelecimento` | não | Texto bruto da captura, antes de normalizar |
 | `autor` | sim | Qual usuário criou. Em ambiente compartilhado, "quem lançou isso?" é a primeira pergunta |
 
@@ -71,7 +72,7 @@ glossário. Não existe estado `PENDENTE` separado: pendência é uma **consulta
 estado a menos é um estado que não dessincroniza.
 
 A consulta não é "sem categoria" — é **"sem categoria e que espera uma"**. Ficam de fora
-transferência, aporte, resgate, rendimento, pagamento de fatura e lançamento de abertura:
+transferência, aporte, resgate, rendimento, pagamento de fatura, rolagem e lançamento de abertura:
 esses não têm categoria por natureza, e não são trabalho pendente para ninguém.
 *(A definição larga foi corrigida depois que o protótipo mostrou a abertura de conta
 aparecendo na fila de pendências.)*
@@ -146,6 +147,7 @@ Nada precisa ser recalculado: como saldo é sempre a soma dos lançamentos
   apagar em um e criar no outro, para o saldo dos dois continuar verdadeiro.
 - `dataEfeito` nunca é anterior à `dataEvento`.
 - `transferenciaId`, quando existe, aparece em exatamente dois lançamentos.
+- `rolagemDeFatura`, quando existe, aparece em exatamente dois — na mesma conta, somando zero.
 - Nenhum estado de fatura impede a edição de um lançamento (`docs/02-dominio/fatura-cartao.md`).
 - `REALIZADO` não volta para `PREVISTO`.
 - Lançamento de conta inativa não é criado (`docs/02-dominio/conta.md`).

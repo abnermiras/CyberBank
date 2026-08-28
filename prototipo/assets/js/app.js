@@ -129,7 +129,7 @@
     const b = [];
     if (f.status === 'ABERTA') b.push('<button class="btn sm" data-fat="fechar" data-id="' + f.id + '">FECHAR FATURA</button>');
     if (f.status === 'FECHADA') {
-      const falta = CB.totalFatura(f.id) - CB.pagoDaFatura(f.id);
+      const falta = CB.faltaNaFatura(f.id);
       const pago = CB.pagoDaFatura(f.id);
       if (falta > 0) {
         b.push('<button class="btn sm primary" data-fat="pagar" data-id="' + f.id + '">PAGAR ' + M.fmt(falta) + '</button>');
@@ -148,8 +148,8 @@
     if (acao === 'fechar') { CB.fecharFatura(fid); toast('FECHADA // PRÓXIMA ABERTA · RECORRÊNCIAS LANÇADAS · PAGAMENTO PREVISTO CRIADO'); }
     if (acao === 'pagar') { CB.pagarFatura(fid); toast('PAGA // TRANSFERÊNCIA DA CONTA PAGADORA PARA O CARTÃO'); }
     if (acao === 'parcial') {
-      const falta = CB.totalFatura(fid) - CB.pagoDaFatura(fid);
-      const txt = prompt('Quanto pagar agora? Falta ' + M.fmt(falta) + '.', (falta / 100).toFixed(2).replace('.', ','));
+      const falta = CB.faltaNaFatura(fid);
+      const txt = prompt('Quanto pagar agora? Falta ' + M.fmt(falta) + '.\nO que sobrar rola para a fatura seguinte quando esta vencer.', (falta / 100).toFixed(2).replace('.', ','));
       if (!txt) return;
       const v = M.parse(txt);
       if (!v || v <= 0) { toast('VALOR INVÁLIDO', true); return; }
@@ -212,19 +212,26 @@
     const f = fs.find((x) => x.id === faturaSel);
     const cc = CB.conta(f.contaCartao);
     const ls = CB.lancamentosDaFatura(f.id);
-    const pago = CB.pagoDaFatura(f.id), falta = CB.totalFatura(f.id) - pago;
+    const pago = CB.pagoDaFatura(f.id), falta = CB.faltaNaFatura(f.id), rolado = CB.roladoDaFatura(f.id);
+    // o "saldo anterior" e um lancamento de rolagem, e vai no TOPO — como na fatura de
+    // papel. O credito que rolou ESTA fatura para a seguinte vai no fim, como carimbo.
+    const ordenados = ls.slice().sort((a, b) => {
+      const pa = CB.ehRolagem(a) ? (a.sentido === 'SAIDA' ? -1 : 1) : 0;
+      const pb = CB.ehRolagem(b) ? (b.sentido === 'SAIDA' ? -1 : 1) : 0;
+      return pa !== pb ? pa - pb : a.dataEvento.localeCompare(b.dataEvento);
+    });
     // NADA CONGELA: a explicacao mudou de "reabra para editar" para "edite direto"
     const nota = f.status !== 'ABERTA'
-      ? '<div class="explica">FATURA ' + f.status + ' // os lan&ccedil;amentos <b>continuam edit&aacute;veis</b> — nada congela. Se ela j&aacute; foi paga, corrigir um valor faz o sistema <b>perguntar</b>: ajustar o pagamento, ou deixar a diferen&ccedil;a como saldo da conta do cart&atilde;o. Pagar &eacute; <b>transfer&ecirc;ncia</b>, e o que n&atilde;o foi pago simplesmente fica no saldo — sem rolagem.</div>' : '';
+      ? '<div class="explica">FATURA ' + f.status + ' // os lan&ccedil;amentos <b>continuam edit&aacute;veis</b> — nada congela. Pagar &eacute; <b>transfer&ecirc;ncia</b> da conta pagadora para o cart&atilde;o, e cada fatura &eacute; paga na tela dela. Se esta vencer sem ser quitada, o que sobrar vira uma <b>linha de saldo anterior</b> na fatura seguinte — um par dentro da pr&oacute;pria conta do cart&atilde;o, que soma zero: a d&iacute;vida n&atilde;o muda, s&oacute; troca de per&iacute;odo.</div>' : '';
     $('#fatDetalhe').innerHTML =
       '<div class="fatgrid">' +
       '<div class="panel hot metric"><span class="lbl">Total</span><span class="val ac">' + M.fmt(CB.totalFatura(f.id)) + '</span><span class="sub">' + ls.length + ' LAN\u00c7AMENTOS</span></div>' +
-      '<div class="panel metric"><span class="lbl">' + (falta > 0 ? 'Falta pagar' : 'Pago') + '</span><span class="val pk" style="font-size:26px">' + M.fmt(falta > 0 ? falta : pago) + '</span><span class="sub"><span class="stbadge st-' + f.status + '">' + f.status + '</span> &middot; ' + CB.situacaoPagamento(f.id) + '</span></div>' +
+      '<div class="panel metric"><span class="lbl">' + (falta > 0 ? 'Falta pagar' : (rolado > 0 ? 'Rolado' : 'Pago')) + '</span><span class="val pk" style="font-size:26px">' + M.fmt(falta > 0 ? falta : (rolado > 0 ? rolado : pago)) + '</span><span class="sub"><span class="stbadge st-' + f.status + '">' + f.status + '</span> &middot; ' + CB.situacaoPagamento(f.id) + '</span></div>' +
       '<div class="panel metric"><span class="lbl">Fechamento</span><span class="val cy" style="font-size:26px">' + D.br(f.fechamento) + '</span><span class="sub">' + cc.diasAntesFechamento + ' DIAS ANTES DO VENCIMENTO</span></div>' +
       '<div class="panel metric"><span class="lbl">Vencimento</span><span class="val pk" style="font-size:26px">' + D.br(f.vencimento) + '</span><span class="sub">DIA ' + cc.diaVencimento + ' &middot; PAGA POR ' + esc((CB.conta(cc.contaPagadora) || {}).apelido || '—') + '</span></div>' +
       '</div>' + limiteHTML(f.contaCartao) + '<div class="panel"><div class="panel-head"><h3>Lançamentos da fatura</h3>' +
       '<div class="fatacoes" style="margin:0">' + acoesFatura(f) + '</div></div>' + nota +
-      '<div style="margin:0 -20px">' + (ls.map(itemHTML).join('') || '<div class="vazio">FATURA VAZIA</div>') + '</div></div>';
+      '<div style="margin:0 -20px">' + (ordenados.map(itemHTML).join('') || '<div class="vazio">FATURA VAZIA</div>') + '</div></div>';
   }
   $('#fSel').addEventListener('change', (e) => { faturaSel = e.target.value; renderFatura(); });
 

@@ -1,8 +1,8 @@
 ---
 id: 02-dominio/fatura-cartao
 titulo: Fatura de cartão
-dono: ciclo e datas da fatura, estados, a que fatura um lancamento pertence, fechamento, pagamento e correcao
-ler-junto: [02-dominio/conta, 02-dominio/meio-de-pagamento, 02-dominio/compartilhamento]
+dono: ciclo e datas da fatura, estados, a que fatura um lancamento pertence, fechamento e abertura
+ler-junto: [02-dominio/fatura-pagamento, 02-dominio/conta, 02-dominio/meio-de-pagamento]
 status: ativo
 ---
 
@@ -15,6 +15,10 @@ seguinte, com uma data para pagar.
 Isso é o que faz a fatura ser barata: ela não move dinheiro, não guarda total e não muda
 lançamento de lugar. Quem move dinheiro é a compra (que aumenta a dívida) e o pagamento
 (que a diminui).
+
+**Pagamento, rolagem e correção do passado vivem em
+`docs/02-dominio/fatura-pagamento.md`.** Aqui fica o ciclo: datas, estados, a que fatura um
+lançamento pertence, fechamento e abertura.
 
 ## Por que a fatura é entidade e o valor dela não
 
@@ -155,45 +159,6 @@ dia diferente, a rotina não rodou quando devia.
 **Fatura sem nenhum lançamento fecha do mesmo jeito**, com total zero, e não gera pagamento
 previsto — não há o que pagar.
 
-## Pagamento
-
-**Pagar a fatura é uma transferência** da conta pagadora para a conta `CARTAO`
-(`docs/02-dominio/lancamento.md`): `SAIDA` na conta que paga, `ENTRADA` na do cartão, mesmo
-`transferenciaId`. A dívida cai porque o saldo da conta `CARTAO` é a soma dos lançamentos
-dela.
-
-Não há duplo cômputo, e não é preciso nenhuma regra dizendo que não há: **transferência não
-tem categoria e não entra no relatório de gasto**, igual a aporte e resgate. O gasto foi
-contado uma vez, na compra.
-
-| Caso | O que acontece |
-|---|---|
-| Pagar tudo | O pagamento previsto vira `REALIZADO`, com a data e a conta reais |
-| **Pagar menos** | O valor do pagamento é o que foi pago. O resto **simplesmente fica** como saldo da conta `CARTAO`, e continua devido |
-| **Pagar de outra conta** | Troca-se a conta de origem do pagamento. Qualquer conta que o ambiente acesse serve |
-| **Pagar em dois ou mais pedaços** | Duas transferências. A soma quita (`docs/02-dominio/compartilhamento.md`) |
-| Pagar mais que a fatura | A conta `CARTAO` fica com saldo a favor. É crédito no cartão, e existe na vida real |
-
-Não existe "saldo da fatura anterior" como lançamento: a dívida que ficou **é** o saldo da
-conta. Nada rola de uma fatura para a outra porque nada precisava rolar.
-
-### O sistema não calcula mínimo nem juros
-
-**Não existe percentual mínimo definido por norma.** Os ~15% que todo mundo repete são
-prática de mercado, e cada emissor monta a própria fórmula — o Nubank, por exemplo, cobra
-15% das compras do mês, 15% do saldo de faturas anteriores, **100%** dos encargos (juros,
-IOF, multa, saque) e as parcelas em curso. Calcular isso aqui seria errar em quase todo
-cartão real.
-
-Então o Cyberbank faz o que já faz com o estorno parcelado: **não decide, observa.** Juros,
-IOF e multa entram como **lançamentos comuns** na fatura seguinte, quando aparecerem, com
-categoria própria. O app nunca inventa uma taxa.
-
-Duas regras de mercado que valem como contexto, não como cálculo: o rotativo dura no máximo
-até o vencimento da fatura seguinte, quando o saldo tem que ser quitado ou parcelado
-(Resolução CMN 4.549/2017); e juros mais encargos não podem passar de 100% da dívida
-original (Lei 14.690/2023).
-
 ## Abrir a fatura
 
 Serve para uma coisa só: **o ciclo ainda está correndo e o sistema achou que tinha acabado.**
@@ -210,35 +175,6 @@ acabou de fechar.
 | Compras que caíram nela por engano | O usuário move, uma a uma, pela edição do lançamento |
 | O pagamento previsto que já tinha nascido | Volta a acompanhar o total, enquanto não tiver sido pago |
 
-## Corrigir o passado
-
-**O sistema não congela nada.** Fatura fechada não trava seus lançamentos, e nenhuma
-correção exige abrir fatura: edita-se o lançamento, escolhendo inclusive **em que fatura ele
-fica**, com ela aberta ou não. O sistema não tem a palavra final sobre o dinheiro do
-usuário — o que ele deve é mostrar a consequência antes de aplicar e guardar quem mudou o
-quê.
-
-| Fatura do lançamento | O que acontece |
-|---|---|
-| `ABERTA`, ou `FECHADA` não paga | O total é reapurado, e o pagamento previsto acompanha. Nada além disso |
-| **Já paga** | O sistema **avisa antes**, nomeando o pagamento, a data e a diferença, e **pergunta** o que fazer com ela |
-
-A pergunta na fatura paga tem duas respostas legítimas, e é por isso que ela existe — a
-mesma razão da pergunta ao editar recorrência:
-
-| Resposta | Quando é a certa |
-|---|---|
-| **Ajustar o pagamento** | O banco cobrou o valor novo e o registro é que estava errado. O pagamento passa a valer o valor novo, na data original |
-| **Deixar como saldo** | O pagamento foi o que foi, e a diferença é dívida (ou crédito) que continua na conta `CARTAO` |
-
-Nada disso dispara recálculo: saldo é sempre soma de lançamento, então reescrever um valor
-**já refaz tudo que deriva dele**. A memória do que mudou vive no histórico de alteração
-(`docs/02-dominio/lancamento.md`), não numa linha de ajuste no extrato.
-
-**Editar uma série pode mudar o valor de várias faturas de uma vez** — inclusive pagas. O
-sistema **mostra quais** antes de confirmar (`docs/02-dominio/recorrencia.md`): mexer no
-passado é permitido, mas nunca silencioso.
-
 ## Dívida e limite
 
 A dívida do cartão deixou de ser um cálculo com regra própria: **é o saldo da conta
@@ -248,7 +184,7 @@ A dívida do cartão deixou de ser um cálculo com regra própria: **é o saldo 
 |---|---|
 | **Limite disponível** | `limite − dívida`. A dívida já inclui as parcelas futuras — parcela segura limite, como na vida (`docs/02-dominio/meio-de-pagamento.md`) |
 | **Patrimônio** | Soma a conta `CARTAO` como qualquer outra, e ela é negativa — pela **dívida**, não pelo projetado (`docs/02-dominio/aplicacao-patrimonio.md`) |
-| **Quanto devo desta fatura** | O total dela menos o que já foi pago apontando para ela |
+| **Quanto devo desta fatura** | O total dela menos o que já foi pago **e menos o que já rolou** |
 
 ## Quem pode
 
@@ -267,8 +203,6 @@ mexe.
 - **Nenhum estado de fatura impede edição de lançamento.** Fatura fechada não congela nada.
 - Só a **última fatura fechada** pode ser aberta, e abrir devolve a seguinte para `FUTURA`
   sem mexer no que ela já contém.
-- Pagamento de fatura é **sempre** uma transferência, nunca um lançamento solto.
-- Nenhum lançamento de "saldo da fatura anterior" é criado: a dívida que fica é saldo.
 - O fechamento nunca lança a mesma recorrência duas vezes na mesma fatura.
 - Fatura sem lançamento fecha com total zero e não gera pagamento previsto.
 - Cartão inativado **mantém a fatura em aberto viva** até fechar e ser paga.
@@ -283,6 +217,7 @@ mexe.
 | Como as parcelas nascem e o que muda ao editar a compra | `02-dominio/recorrencia` |
 | Estados do lançamento, transferência e histórico | `02-dominio/lancamento` |
 | Como a fatura real do banco se casa com os lançamentos | `02-dominio/importacao-conciliacao` |
+| Pagamento, rolagem e correção do passado | `02-dominio/fatura-pagamento` |
 
 ## Ainda em aberto
 

@@ -38,6 +38,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | [`decisoes/ADR-0002-isolamento-por-ambiente.md`](01-arquitetura/decisoes/ADR-0002-isolamento-por-ambiente.md) | como o isolamento entre ambientes financeiros e imposto | ativo |
 | [`decisoes/ADR-0003-cartao-de-credito-e-conta.md`](01-arquitetura/decisoes/ADR-0003-cartao-de-credito-e-conta.md) | como a divida de cartao e representada e o que isso faz com o pagamento de fatura | ativo |
 | [`decisoes/ADR-0004-compartilhamento-entre-ambientes.md`](01-arquitetura/decisoes/ADR-0004-compartilhamento-entre-ambientes.md) | o que o compartilhamento faz com a regra de isolamento do ADR-0002 | ativo |
+| [`decisoes/ADR-0005-rolagem-entre-faturas.md`](01-arquitetura/decisoes/ADR-0005-rolagem-entre-faturas.md) | como o saldo nao pago de uma fatura chega na fatura seguinte | ativo |
 | [`decisoes/README.md`](01-arquitetura/decisoes/README.md) | índice das ADRs e regra de quando escrever uma | ativo |
 | [`estrutura-de-pastas.md`](01-arquitetura/estrutura-de-pastas.md) | onde cada tipo de arquivo mora no repositorio | stub |
 | [`modulos.md`](01-arquitetura/modulos.md) | lista canonica dos modulos/bounded contexts e as dependencias permitidas entre eles | stub |
@@ -55,7 +56,8 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | [`categoria.md`](02-dominio/categoria.md) | a arvore de categorias, o sentido, e o que acontece ao renomear, mover ou excluir | rascunho |
 | [`compartilhamento.md`](02-dominio/compartilhamento.md) | o vinculo que da uso de uma conta ou cartao a outro ambiente, o mascaramento de categoria e as partes da fatura | ativo |
 | [`conta.md`](02-dominio/conta.md) | tipos de conta, saldo, a separacao entre fluxo de caixa e patrimonio, e o ciclo de vida | rascunho |
-| [`fatura-cartao.md`](02-dominio/fatura-cartao.md) | ciclo e datas da fatura, estados, a que fatura um lancamento pertence, fechamento, pagamento e correcao | ativo |
+| [`fatura-cartao.md`](02-dominio/fatura-cartao.md) | ciclo e datas da fatura, estados, a que fatura um lancamento pertence, fechamento e abertura | ativo |
+| [`fatura-pagamento.md`](02-dominio/fatura-pagamento.md) | como a fatura e paga, a rolagem do que venceu sem ser pago e a correcao de fatura ja paga | ativo |
 | [`importacao-conciliacao.md`](02-dominio/importacao-conciliacao.md) | como fontes externas viram lancamentos sem duplicar | stub |
 | [`lancamento.md`](02-dominio/lancamento.md) | campos, as duas datas, situacao, transferencia, correcao versus estorno e invariantes do lancamento | rascunho |
 | [`meio-de-pagamento.md`](02-dominio/meio-de-pagamento.md) | tipos de meio, a regra da dataEfeito, os cartoes de um contrato e o limite | rascunho |
