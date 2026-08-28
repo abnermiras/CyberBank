@@ -67,7 +67,7 @@ em algo aprendível.
 |---|---|
 | **Home** | Quanto tenho, quanto sobra, o que está pendente, como está a fatura |
 | **Extrato** | Todo movimento do ambiente, filtrável por conta e por pendência |
-| **Fatura** | O ciclo do cartão e as ações de fechar, pagar e reabrir |
+| **Fatura** | O ciclo do cartão e as ações de fechar, pagar e abrir (só na última fechada) |
 | **Reserva** | Contas, aplicações e a diferença entre fluxo de caixa e patrimônio |
 
 Ainda não existem: cadastro de contas, categorias e meios; convite de pessoas para um

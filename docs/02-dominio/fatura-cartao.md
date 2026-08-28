@@ -54,12 +54,11 @@ num estado só. Aqui, **ciclo** e **pagamento** também não.
 
 ### Eixo 1 — ciclo (salvo)
 
-| Estado | Recebe lançamento novo | Editável | Significa |
-|---|:--:|:--:|---|
-| `FUTURA` | **não** | sim | Existe só para segurar parcela de mês que ainda não chegou |
-| `ABERTA` | **sim** | sim | O ciclo corrente. **Exatamente uma por cartão** |
-| `FECHADA` | não | **não** | Congelada. O que está dentro dela não muda |
-| `REABERTA` | **não** | sim | Destravada para correção. Não volta a ser a que recebe compra |
+| Estado | Recebe compra nova | Significa |
+|---|:--:|---|
+| `FUTURA` | não | Existe só para segurar parcela de mês que ainda não chegou |
+| `ABERTA` | **sim** | O ciclo corrente. **Exatamente uma por cartão** |
+| `FECHADA` | não | O ciclo acabou. **Não congela nada** — ver Corrigir o passado |
 
 Transições:
 
@@ -67,12 +66,11 @@ Transições:
 |---|---|---|
 | `FUTURA` | `ABERTA` | A fatura anterior fechou |
 | `ABERTA` | `FECHADA` | Chegou a `dataFechamento` — ou o usuário fechou à mão |
-| `FECHADA` | `REABERTA` | O usuário reabriu, ou uma edição de série exigiu |
-| `REABERTA` | `FECHADA` | Fechada de novo, com o total reapurado |
+| `FECHADA` | `ABERTA` | O usuário **abriu** a última fatura fechada. A seguinte volta a `FUTURA` |
 
-**Por que `REABERTA` existe em vez de voltar para `ABERTA`:** só pode haver uma fatura
-recebendo compra, e ela é a do ciclo corrente. Reabrir fevereiro em maio para corrigir um
-valor não pode fazer o mercado de hoje cair em fevereiro.
+**Não existe estado de "reaberta".** Ele foi cogitado e derrubado: era estado inventado para
+proteger uma edição que já tem proteção melhor no lançamento. Abrir fatura serve para
+**continuar lançando nela**; corrigir o passado é outra coisa, e não precisa de fatura aberta.
 
 ### Eixo 2 — pagamento (derivado)
 
@@ -95,16 +93,18 @@ Um estado a menos é um estado a menos para dessincronizar.
 | Compra nova no cartão, qualquer `dataEvento` | A fatura **`ABERTA`** do cartão |
 | Compra parcelada em N | 1ª parcela na `ABERTA`; as N−1 seguintes nas `FUTURA` seguintes, **criadas na hora se não existirem** |
 | Ocorrência de recorrência do cartão | A fatura que **acabou de abrir** — o gatilho é o fechamento da anterior (`docs/02-dominio/recorrencia.md`) |
-| Estorno de uma compra de fatura já fechada | A `ABERTA`. Não reabre nada: é fato novo, com data própria |
+| Estorno de uma compra de fatura já fechada | A `ABERTA`. Não mexe na fechada: é fato novo, com data própria |
 
 A regra da data foi descartada de propósito. A `dataFechamento` do sistema é uma **estimativa
 do que o emissor faz** — o dia exato varia entre emissores, e uma compra do dia do fechamento
 pode cair dos dois lados. Estado do sistema é fato; data de corte é palpite.
 
 **Quando o palpite erra, quem corrige é o usuário**, movendo o lançamento de fatura pela
-edição normal. `fatura` é campo editável do lançamento (`docs/02-dominio/lancamento.md`),
-não resultado de cálculo imutável. Mover um lançamento recalcula sua `dataEfeito` para o
-vencimento da fatura de destino.
+edição normal — **para qualquer fatura, aberta ou não**. `fatura` é campo editável do
+lançamento (`docs/02-dominio/lancamento.md`), não resultado de cálculo imutável. Mover um
+lançamento recalcula sua `dataEfeito` para o vencimento da fatura de destino.
+
+A automação decide só onde o lançamento **nasce**. Depois disso, quem manda é o usuário.
 
 ## Fechamento
 
@@ -120,7 +120,7 @@ Automático, e é o gatilho de mais coisa do que parece:
 estava desligado, o container caiu — ela roda depois e fecha **todos** os ciclos vencidos,
 um a um, na ordem. Fechar duas vezes a mesma fatura não faz nada.
 
-**Fechar e reabrir à mão existem como contingência**, não como fluxo normal: o banco fechou
+**Fechar e abrir à mão existem como contingência**, não como fluxo normal: o banco fechou
 em dia diferente, a rotina não rodou quando devia. O botão faz exatamente o que a rotina
 faria.
 
@@ -180,24 +180,53 @@ até o vencimento da fatura seguinte, quando o saldo tem que ser quitado ou parc
 original (Lei 14.690/2023). Nenhuma das duas exige código na v1 — a segunda vira alerta
 quando o app souber ler encargos.
 
-## Reabertura
+## Abrir a fatura
 
-Fatura fechada congela seus lançamentos. Corrigir qualquer coisa lá dentro é sempre o mesmo
-caminho: **reabrir → editar → fechar de novo.**
+Serve para uma coisa só: **o ciclo ainda está correndo e o sistema achou que tinha acabado.**
+O caso real é o emissor não ter fechado no dia que o cartão diz — o sistema fechou dia 25, a
+operadora fechou dia 28, e as compras desses três dias pertencem à fatura que acabou de
+fechar. O usuário abre a fatura e volta a lançar nela normalmente.
 
-| Caso | O que acontece ao fechar de novo |
+| Regra | Valor |
 |---|---|
-| Fatura fechada, não paga | O total é reapurado. Nada além disso |
-| **Fatura já paga** | O valor do pagamento é **reescrito**, na data original. **Sem lançamento de ajuste no extrato** |
+| Qual fatura abre | **Só a última fechada.** Nas outras o botão nem aparece |
+| Por quê | É a única em que "a seguinte volta a `FUTURA`" tem sentido. Abrir a de oito meses atrás rebaixaria oito faturas — e ninguém precisa disso: para mexer no passado, edita-se o lançamento |
+| O que acontece com a seguinte | Volta a `FUTURA` na hora. Deixa de receber compra nova, e nada mais |
+| O que já estava dentro dela | **Fica onde está.** Parcelas e ocorrências de recorrência não se mexem |
+| Compras que caíram nela por engano | O usuário move, uma a uma, pela edição do lançamento |
+| Se a última fechada já foi paga | O botão continua lá, com o aviso da seção seguinte. O sistema não é a palavra final |
 
-O passo da fatura paga não custa nada porque saldo é sempre soma de lançamento: reescrever o
-valor **já refaz tudo que deriva dele**. Não há recálculo a disparar. A memória do que mudou
-vive no histórico de alteração do lançamento (`docs/02-dominio/lancamento.md`), não numa
-linha de ajuste que o usuário não reconheceria no extrato do banco.
+Ao fechar de novo, a geração de recorrência é **idempotente por ciclo**: o fechamento nunca
+lança a mesma assinatura duas vezes na mesma fatura (`docs/02-dominio/recorrencia.md`).
 
-**Editar uma série pode reabrir várias faturas de uma vez.** O sistema faz isso sozinho, mas
-**mostra quais** antes de confirmar: reabrir fatura paga de dois meses atrás não pode ser
-efeito colateral silencioso (`docs/02-dominio/recorrencia.md`).
+## Corrigir o passado
+
+**O sistema não congela nada.** Fatura fechada não trava seus lançamentos, e nenhuma correção
+exige abrir fatura: edita-se o lançamento, escolhendo inclusive **em que fatura ele fica**,
+com ela aberta ou não. O sistema não tem a palavra final sobre o dinheiro do usuário — o que
+ele deve é mostrar a consequência antes de aplicar e guardar quem mudou o quê.
+
+O que a correção mexe depende de a fatura ter sido paga, e de **como**:
+
+| Fatura do lançamento | O que acontece |
+|---|---|
+| `ABERTA`, ou `FECHADA` não paga | Só o total é reapurado. Não há mais nada a fazer |
+| **Paga integralmente** | O sistema **avisa antes**, nomeando o pagamento, a data e a diferença. O valor pago acompanha o valor novo, na data original — **sem lançamento de ajuste** |
+| **Paga em parte** | O **valor pago não muda**: foi um débito real no banco, na data em que foi. A diferença vai para a **rolagem**, que sobe ou desce |
+
+A linha que separa os dois últimos casos vale para o sistema inteiro: **valor que o usuário
+digitou é fato e não se reescreve; valor que o sistema derivou acompanha.** No pagamento
+total ninguém digitou número — disse-se "pagar tudo", e "tudo" mudou. No parcial, R$ 500
+foram R$ 500.
+
+Nada disso dispara recálculo: saldo é sempre soma de lançamento (`docs/02-dominio/conta.md`),
+então reescrever um valor **já refaz tudo que deriva dele**. A memória do que mudou vive no
+histórico de alteração (`docs/02-dominio/lancamento.md`), não numa linha de ajuste que o
+usuário não reconheceria no extrato do banco.
+
+**Editar uma série pode mudar o valor de várias faturas de uma vez** — inclusive pagas. O
+sistema **mostra quais** antes de confirmar (`docs/02-dominio/recorrencia.md`): mexer no
+passado é permitido, mas nunca silencioso.
 
 ## Dívida de cartão
 
@@ -219,16 +248,20 @@ mente para cima justo quando importa.
 
 ## Quem pode
 
-Fechar, reabrir e registrar pagamento: **dono e editor** do ambiente
+Fechar, abrir e registrar pagamento: **dono e editor** do ambiente
 (`docs/02-dominio/ambiente-financeiro.md`). Leitor vê a fatura e não mexe.
 
 ## Invariantes
 
 - Todo cartão de crédito ativo tem **exatamente uma** fatura `ABERTA`.
-- Lançamento novo de crédito entra **sempre** na `ABERTA` — nunca em `FUTURA`, `FECHADA` ou
-  `REABERTA`. Só a edição do usuário move um lançamento para outra fatura.
+| Lançamento novo de crédito **nasce sempre** na `ABERTA` — nunca em `FUTURA` ou `FECHADA`.
+  Só a edição do usuário move um lançamento para outra fatura.
 - O valor da fatura **nunca é armazenado**: é sempre a soma dos lançamentos dela.
-- Lançamento em fatura `FECHADA` não muda até a fatura ser reaberta.
+- **Nenhum estado de fatura impede edição de lançamento.** Fatura fechada não congela nada.
+- Só a **última fatura fechada** de um cartão pode ser aberta.
+- Abrir uma fatura devolve a seguinte para `FUTURA` sem mexer no que ela já contém.
+- O fechamento nunca lança a mesma recorrência duas vezes na mesma fatura.
+- Pagamento **parcial** informado pelo usuário nunca é reescrito por correção de lançamento.
 - Pagar fatura **não cria lançamento de pagamento**, em nenhuma hipótese.
 - Os dois lançamentos de uma rolagem existem juntos ou não existem.
 - Uma fatura pertence a **um** meio de pagamento `CREDITO`, e ele a um só ambiente.

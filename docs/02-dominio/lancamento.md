@@ -28,7 +28,7 @@ par de lançamentos, não um lançamento com dois lados — ver Transferência.
 | `situacao` | sim | `PREVISTO` ou `REALIZADO` |
 | `categoria` | não | Obrigatória para o lançamento deixar de ser pendência |
 | `meioDePagamento` | não | Obrigatório em gasto e receita reais. Ausente em transferência, aporte, resgate, rendimento e lançamento de abertura |
-| `fatura` | não | Preenchido quando o meio é crédito, sempre com a fatura **aberta** do cartão. Editável: mover de fatura recalcula a `dataEfeito`. `docs/02-dominio/fatura-cartao.md` |
+| `fatura` | não | Preenchido quando o meio é crédito. **Nasce** na fatura aberta do cartão; editável para qualquer fatura, aberta ou não. Mover recalcula a `dataEfeito`. `docs/02-dominio/fatura-cartao.md` |
 | `transferenciaId` | não | Amarra os dois lançamentos de uma transferência |
 | `origemParcelamento` | não | A compra que gerou esta parcela. `docs/02-dominio/recorrencia.md` |
 | `rolagemDeFatura` | não | Amarra o par de lançamentos do que ficou devendo num pagamento parcial. `docs/02-dominio/fatura-cartao.md` |
@@ -121,15 +121,17 @@ saldo — `valor`, `sentido`, `conta`, `dataEfeito` e `situacao`.
 O motivo do histórico é o ambiente compartilhado: sem ele, "esse valor mudou" vira
 discussão entre duas pessoas sem resposta.
 
-**A exceção é a fatura fechada.** Lançamento dentro de uma fatura fechada não é editável
-enquanto ela estiver fechada — o fluxo é reabrir a fatura, editar, fechar de novo. A
-**reabertura** é operação da fatura, com regras em `docs/02-dominio/fatura-cartao.md`.
-Aqui vale só o efeito: enquanto a fatura está fechada, seus lançamentos estão congelados.
+**Nenhum estado de fatura trava a edição.** Lançamento de fatura fechada se edita como
+qualquer outro, e o campo `fatura` aponta para qualquer fatura do cartão, aberta ou não.
+Fatura fechada não congela nada — o sistema não tem a palavra final sobre o dinheiro do
+usuário; o que ele deve é mostrar a consequência antes e guardar quem mudou o quê.
 
-Corrigir dentro de uma fatura **já paga reescreve o passado**: o lançamento e o pagamento
-passam a valer o valor novo, na data original — sem lançamento de ajuste no extrato. O
-extrato continua igual ao documento do banco, e a memória do que mudou fica no histórico
-de alteração. Nada precisa ser recalculado: como saldo é sempre a soma dos lançamentos
+O que muda conforme a fatura é o **aviso** e o que acompanha o valor novo: fatura paga
+integralmente tem o pagamento reescrito na data original; fatura paga em parte mantém o
+valor pago — que o usuário digitou — e ajusta a rolagem. As regras estão em
+`docs/02-dominio/fatura-cartao.md`. Aqui vale o princípio: **ação retroativa mostra o
+impacto antes de confirmar e vai para o histórico**, sem lançamento de ajuste no extrato.
+Nada precisa ser recalculado: como saldo é sempre a soma dos lançamentos
 (`docs/02-dominio/conta.md`), reescrever o valor já refaz tudo que deriva dele.
 
 ## Invariantes
@@ -140,7 +142,7 @@ de alteração. Nada precisa ser recalculado: como saldo é sempre a soma dos la
   apagar em um e criar no outro, para o saldo dos dois continuar verdadeiro.
 - `dataEfeito` nunca é anterior à `dataEvento`.
 - `transferenciaId`, quando existe, aparece em exatamente dois lançamentos.
-- Lançamento em fatura fechada não muda até a fatura ser reaberta.
+- Nenhum estado de fatura impede a edição de um lançamento (`docs/02-dominio/fatura-cartao.md`).
 - `REALIZADO` não volta para `PREVISTO`.
 - Lançamento de conta inativa não é criado (`docs/02-dominio/conta.md`).
 - Categoria e conta são sempre do mesmo ambiente do lançamento.

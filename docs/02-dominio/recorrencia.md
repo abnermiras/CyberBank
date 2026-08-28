@@ -35,9 +35,10 @@ sendo R$ 5.000: se as parcelas divergirem, o dado está errado, não flexível.
 O procedimento, parcela a parcela:
 
 1. Parcela em fatura **aberta** → altera direto.
-2. Parcela em fatura **fechada** → reabre a fatura, altera, recalcula o total, fecha.
-3. Parcela em fatura **paga** → reabre, altera, recalcula, **corrige o valor do
-   pagamento** e fecha de novo.
+2. Parcela em fatura **fechada** e não paga → altera direto; o total se reapura.
+3. Parcela em fatura **paga** → altera, e o pagamento acompanha: paga integralmente, o valor
+   é reescrito na data original; paga em parte, o valor pago fica e a **rolagem** ajusta
+   (`docs/02-dominio/fatura-cartao.md`).
 
 O passo 3 não custa nada além do óbvio: como saldo é sempre a soma dos lançamentos e
 nunca um total armazenado (`docs/02-dominio/conta.md`), reescrever o valor **já refaz
@@ -130,12 +131,11 @@ do que o caso comum, e o caso comum não deve pagar o preço do raro.
 
 É onde as duas séries encostam na regra de fatura fechada, e é o motivo deste doc existir.
 
-- Fatura **fechada** congela seus lançamentos (`docs/02-dominio/lancamento.md`). Editar
-  qualquer coisa lá dentro exige **reabrir** — inclusive quando o pedido veio de uma
-  edição de série.
-- Editar uma série pode, portanto, **reabrir várias faturas de uma vez**. O sistema faz
-  isso sozinho, mas mostra ao usuário quais faturas serão reabertas antes de confirmar:
-  reabrir fatura paga de dois meses atrás não pode ser efeito colateral silencioso.
+- Fatura **fechada não congela nada** (`docs/02-dominio/fatura-cartao.md`): a parcela se
+  altera onde estiver, sem abrir fatura nenhuma.
+- Editar uma série pode, portanto, **mudar o valor de várias faturas de uma vez** —
+  inclusive pagas. O sistema mostra **quais** antes de confirmar: mexer numa fatura paga de
+  dois meses atrás é permitido, mas nunca pode ser efeito colateral silencioso.
 - Corrigir uma fatura já paga **reescreve o passado**: o lançamento e o pagamento passam a
   valer o valor novo, na data original. O extrato fica igual ao documento do banco, e a
   memória do que mudou vive no histórico de alteração do lançamento, não numa linha de
@@ -150,7 +150,8 @@ do que o caso comum, e o caso comum não deve pagar o preço do raro.
   sentido por ocorrência.
 - Uma recorrência sem data de fim sempre tem previstos gerados à frente; nunca fica com zero.
 - Cancelar série nunca apaga ocorrência `REALIZADO`.
-- Editar série nunca altera lançamento de fatura fechada **sem reabrir** a fatura.
+- Editar série nunca muda o valor de uma fatura paga **sem mostrar quais** antes de confirmar.
+- O fechamento nunca lança a mesma recorrência duas vezes na mesma fatura.
 
 ## Fronteiras com outros docs
 
