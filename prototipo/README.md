@@ -35,26 +35,34 @@ prototipo/
 `dominio.js` é a parte que importa. Ele implementa de verdade as decisões tomadas:
 valor sempre positivo com `sentido` à parte, as duas datas, `PREVISTO`/`REALIZADO`,
 saldo como soma dos lançamentos, transferência como par ligado, rendimento como
-diferença, e o ciclo de fatura com reabertura.
+diferença — e, desde 28/08, o **cartão como conta** (`ADR-0003`): a compra debita a
+conta `CARTAO`, pagar a fatura é transferência, e o que não foi pago fica como saldo.
 
 ## O que dá para testar
 
 | Ação | O que ela valida |
 |---|---|
 | Trocar de ambiente no header | Isolamento: nada de um ambiente aparece no outro |
-| `+1D` / `+7D` / `+30D` | Previsto virando realizado; fatura fechando sozinha |
+| `+1D` / `+7D` / `+30D` | Fatura fechando sozinha, abrindo a seguinte, lançando a recorrência e criando o **pagamento previsto** |
 | Lançar pelo quick-add sem categoria | A fila de pendências |
-| Formulário completo → CRÉDITO, 3 parcelas | Parcelas nascendo previstas, atravessando faturas |
+| Formulário completo → CRÉDITO, 3 parcelas | A compra cai na fatura **ABERTA** pelo status, não pela data; debita a conta `CARTAO` na hora |
 | Formulário completo → TRANSFERÊNCIA para a Reserva | Aporte que não é gasto e não muda o patrimônio |
-| Fatura → REABRIR, editar, FECHAR | O ajuste da diferença numa fatura já paga |
+| Fatura → **PAGAR** | O pagamento é uma **transferência** da conta pagadora para o cartão. Compare o extrato da corrente com o do cartão |
+| Fatura → **PAGAR PARTE** | O que não foi pago **fica como saldo do cartão** — não existe lançamento de rolagem |
+| Fatura → **ABRIR** | Só aparece na última fechada; a seguinte volta a `FUTURA` mantendo o que tinha |
+| Editar lançamento de fatura fechada | **Nada congela**: edita direto. Em fatura paga, `AJUSTAR PAGAMENTO` é a resposta "o banco cobrou o valor novo" |
 | Reserva → informar valor atual | Rendimento como lançamento, não como sobrescrita |
-| Séries → alterar o **parcelamento** | Altera todas as parcelas e reabre a fatura fechada sozinho |
+| Séries → alterar o **parcelamento** | Altera todas as parcelas e mostra quais faturas fechadas mudam de valor |
 | Séries → alterar a **recorrência** | A pergunta "só as futuras ou o passado também?", com o impacto na tela antes de confirmar |
 | Séries → cancelar | Previstos somem, passado fica |
 
 O seed começa em **27/08/2026** com uma fatura fechada vencendo no dia seguinte, outra
-aberta, um parcelamento atravessando as duas, um boleto previsto, um aporte e uma
-pendência — tudo o que o modelo sabe fazer visível numa tela só.
+aberta, uma futura, um parcelamento atravessando as três, um boleto previsto, um aporte e
+uma pendência — tudo o que o modelo sabe fazer visível numa tela só.
+
+**Confira estes números ao abrir** (ambiente PESSOAL): em caixa `R$ 12.036,80` · dívida do
+cartão `R$ 3.600,70` · patrimônio `R$ 21.120,10` · limite disponível `R$ 11.399,30`.
+Pagar a fatura **não pode mudar o patrimônio** — se mudar, é bug.
 
 ## O que o protótipo já mudou nos docs
 
@@ -67,6 +75,14 @@ pendência — tudo o que o modelo sabe fazer visível numa tela só.
   altera todas as parcelas sempre; recorrência pergunta. O protótipo tinha mostrado uma
   série de parcelas terminando com valores diferentes — o bug era aplicar a regra de
   recorrência num parcelamento (`docs/02-dominio/recorrencia.md`).
+- **A dívida do cartão não é o saldo projetado da conta `CARTAO`.** O projetado abate o
+  pagamento *previsto*, que ainda não aconteceu, e responde outra pergunta: "quanto vou
+  dever depois de pagar". Com o projetado, a dívida saía R$ 2.030 em vez de R$ 3.600,70 —
+  e o patrimônio herdava o erro. Limite e patrimônio usam a **dívida**
+  (`docs/02-dominio/fatura-cartao.md`).
+- **`entraNoFluxoDeCaixa` não responde "isso é caixa?".** A conta `CARTAO` é a primeira em
+  que as duas perguntas divergem: os movimentos dela são gasto, mas o saldo é dívida. "Em
+  caixa" passou a somar as contas de fluxo **menos as de dívida** (`docs/02-dominio/conta.md`).
 
 Achado novo trabalhando aqui? Ele vale mais no doc dono da regra do que neste README.
 
@@ -76,6 +92,12 @@ Sem persistência: recarregar volta ao seed (é o botão `RESET`). Não dá para
 recorrência pela tela ainda — o seed traz uma; a tela só edita e cancela. Sem backend, sem
 autenticação real, sem validação séria de formulário. Cadastro de conta, categoria e
 meio ainda não existe — o seed faz esse papel.
+
+**Não simula ainda** (`ADR-0004`): compartilhamento de conta e de cartão entre ambientes,
+categoria mascarada, partes da fatura e pagamento vindo de dois ambientes. É a próxima
+rodada — e é onde a regra "todo lançamento pertence ao ambiente de quem lançou" vai apanhar.
+Também não tem cartão virtual nem adicional no seed, embora o modelo já os suporte: são
+meios `CREDITO` apontando para a mesma conta `CARTAO`.
 
 ## Direção visual
 

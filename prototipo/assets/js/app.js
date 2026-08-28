@@ -74,6 +74,7 @@
     $('#mSobra').textContent = M.fmt(CB.sobraAteFimDoMes());
     $('#mGuardado').textContent = M.fmt(CB.guardado());
     $('#mPatrimonio').textContent = M.fmt(CB.patrimonio());
+    $('#mDivida').textContent = M.fmt(CB.dividaTotal());
     $('#fimMes').textContent = D.br(D.fimDoMes(S.hoje)).slice(0, 5);
     $('#mesRef').textContent = D.parse(S.hoje).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase();
 
@@ -98,18 +99,20 @@
       '<select class="minisel" data-catpend="' + l.id + '">' + optCategorias(l.sentido, '') + '</select></div>').join('')
       : '<div class="vazio">NADA PENDENTE // TUDO CATEGORIZADO</div>';
 
-    const cartao = CB.meios().find((m) => m.tipo === 'CREDITO');
-    if (!cartao) { $('#boxFatura').classList.add('hidden'); }
+    // a fatura e recorte da conta CARTAO — o contrato (ADR-0003)
+    const ccCartao = CB.contas().find(CB.ehDivida);
+    if (!ccCartao) { $('#boxFatura').classList.add('hidden'); }
     else {
       $('#boxFatura').classList.remove('hidden');
-      const fs = CB.faturas().filter((f) => f.cartao === cartao.id).sort((a, b) => a.referencia.localeCompare(b.referencia));
-      const f = fs.find((x) => x.status === 'FECHADA') || fs.find((x) => x.status === 'ABERTA') || fs[fs.length - 1];
+      const fs = CB.faturasDe(ccCartao.id);
+      const f = fs.find((x) => x.status === 'FECHADA' && CB.situacaoPagamento(x.id) !== 'QUITADA')
+        || fs.find((x) => x.status === 'ABERTA') || fs[fs.length - 1];
       if (!f) { $('#fatResumo').innerHTML = '<div class="vazio">SEM FATURA</div>'; $('#fatRef').textContent = '—'; }
       else {
-        $('#fatRef').textContent = cartao.nome;
+        $('#fatRef').textContent = ccCartao.nome;
         $('#fatResumo').innerHTML =
           '<div class="hstack between"><span class="stbadge st-' + f.status + '">' + f.status + '</span>' +
-          '<span class="tele">REF ' + f.referencia + '</span></div>' +
+          '<span class="tele">REF ' + f.referencia + ' &middot; ' + CB.situacaoPagamento(f.id) + '</span></div>' +
           '<div class="metric mt10"><span class="val ac" style="font-size:30px">' + M.fmt(CB.totalFatura(f.id)) + '</span>' +
           '<span class="sub">FECHA ' + D.br(f.fechamento) + ' &middot; VENCE ' + D.br(f.vencimento) + '</span></div>' +
           '<div class="fatacoes">' + acoesFatura(f) + '</div>';
@@ -120,14 +123,21 @@
       '<div><span class="t">' + D.br(l.t) + '</span><span class="' + l.tipo + '">' + esc(l.txt) + '</span></div>').join('');
   }
 
+  // ABRIR so aparece na ULTIMA fechada: e a unica em que "a seguinte volta a FUTURA"
+  // faz sentido. Para mexer no passado, edita-se o lancamento — nada congela.
   function acoesFatura(f) {
     const b = [];
     if (f.status === 'ABERTA') b.push('<button class="btn sm" data-fat="fechar" data-id="' + f.id + '">FECHAR FATURA</button>');
     if (f.status === 'FECHADA') {
-      b.push('<button class="btn sm primary" data-fat="pagar" data-id="' + f.id + '">PAGAR</button>');
-      b.push('<button class="btn sm danger" data-fat="reabrir" data-id="' + f.id + '">REABRIR</button>');
+      const falta = CB.totalFatura(f.id) - CB.pagoDaFatura(f.id);
+      const pago = CB.pagoDaFatura(f.id);
+      if (falta > 0) {
+        b.push('<button class="btn sm primary" data-fat="pagar" data-id="' + f.id + '">PAGAR ' + M.fmt(falta) + '</button>');
+        b.push('<button class="btn sm" data-fat="parcial" data-id="' + f.id + '">PAGAR PARTE</button>');
+      }
+      if (pago > 0 && falta !== 0) b.push('<button class="btn sm" data-fat="ajustar" data-id="' + f.id + '">AJUSTAR PAGAMENTO</button>');
     }
-    if (f.status === 'PAGA') b.push('<button class="btn sm danger" data-fat="reabrir" data-id="' + f.id + '">REABRIR</button>');
+    if (CB.podeAbrir(f)) b.push('<button class="btn sm danger" data-fat="abrir" data-id="' + f.id + '">ABRIR</button>');
     return b.join('');
   }
 
@@ -135,9 +145,19 @@
     const b = e.target.closest('[data-fat]');
     if (!b) return;
     const acao = b.dataset.fat, fid = b.dataset.id;
-    if (acao === 'fechar') { CB.fecharFatura(fid); toast('FATURA FECHADA'); }
-    if (acao === 'pagar') { CB.pagarFatura(fid); toast('FATURA PAGA // LANÇAMENTOS VIRARAM REALIZADO'); }
-    if (acao === 'reabrir') { CB.reabrirFatura(fid); toast('FATURA REABERTA // EDITE E FECHE DE NOVO', true); }
+    if (acao === 'fechar') { CB.fecharFatura(fid); toast('FECHADA // PRÓXIMA ABERTA · RECORRÊNCIAS LANÇADAS · PAGAMENTO PREVISTO CRIADO'); }
+    if (acao === 'pagar') { CB.pagarFatura(fid); toast('PAGA // TRANSFERÊNCIA DA CONTA PAGADORA PARA O CARTÃO'); }
+    if (acao === 'parcial') {
+      const falta = CB.totalFatura(fid) - CB.pagoDaFatura(fid);
+      const txt = prompt('Quanto pagar agora? Falta ' + M.fmt(falta) + '.', (falta / 100).toFixed(2).replace('.', ','));
+      if (!txt) return;
+      const v = M.parse(txt);
+      if (!v || v <= 0) { toast('VALOR INVÁLIDO', true); return; }
+      CB.pagarFatura(fid, { valor: v });
+      toast('PAGO ' + M.fmt(v) + ' // O RESTO FICA COMO SALDO DO CARTÃO — SEM ROLAGEM');
+    }
+    if (acao === 'ajustar') { const v = CB.ajustarPagamento(fid); toast(v ? 'PAGAMENTO AJUSTADO PARA ' + M.fmt(v) : 'NADA A AJUSTAR', !v); }
+    if (acao === 'abrir') { CB.abrirFatura(fid); toast('ABERTA // A SEGUINTE VOLTOU A FUTURA E MANTEVE O QUE TINHA', true); }
     renderTudo();
   });
 
@@ -188,28 +208,31 @@
       faturaSel = padrao.id;
     }
     $('#fSel').innerHTML = fs.map((f) => '<option value="' + f.id + '"' + (f.id === faturaSel ? ' selected' : '') + '>' +
-      esc(CB.meio(f.cartao).nome) + ' &middot; ' + f.referencia + '</option>').join('');
+      esc(CB.conta(f.contaCartao).nome) + ' &middot; ' + f.referencia + '</option>').join('');
     const f = fs.find((x) => x.id === faturaSel);
+    const cc = CB.conta(f.contaCartao);
     const ls = CB.lancamentosDaFatura(f.id);
-    const congelada = f.status !== 'ABERTA'
-      ? '<div class="explica">FATURA ' + f.status + ' // os lan&ccedil;amentos est&atilde;o congelados. Para corrigir algo, reabra a fatura, edite e feche de novo. Se ela j&aacute; estava paga, o valor do pagamento &eacute; <b>reescrito</b> na data original — sem lan&ccedil;amento de ajuste no extrato.</div>' : '';
+    const pago = CB.pagoDaFatura(f.id), falta = CB.totalFatura(f.id) - pago;
+    // NADA CONGELA: a explicacao mudou de "reabra para editar" para "edite direto"
+    const nota = f.status !== 'ABERTA'
+      ? '<div class="explica">FATURA ' + f.status + ' // os lan&ccedil;amentos <b>continuam edit&aacute;veis</b> — nada congela. Se ela j&aacute; foi paga, corrigir um valor faz o sistema <b>perguntar</b>: ajustar o pagamento, ou deixar a diferen&ccedil;a como saldo da conta do cart&atilde;o. Pagar &eacute; <b>transfer&ecirc;ncia</b>, e o que n&atilde;o foi pago simplesmente fica no saldo — sem rolagem.</div>' : '';
     $('#fatDetalhe').innerHTML =
       '<div class="fatgrid">' +
       '<div class="panel hot metric"><span class="lbl">Total</span><span class="val ac">' + M.fmt(CB.totalFatura(f.id)) + '</span><span class="sub">' + ls.length + ' LAN\u00c7AMENTOS</span></div>' +
-      '<div class="panel metric"><span class="lbl">Situa&ccedil;&atilde;o</span><span class="val" style="font-size:26px"><span class="stbadge st-' + f.status + '">' + f.status + '</span></span><span class="sub">' + (f.pagoEm ? 'PAGA EM ' + D.br(f.pagoEm) : 'AGUARDANDO') + '</span></div>' +
-      '<div class="panel metric"><span class="lbl">Fechamento</span><span class="val cy" style="font-size:26px">' + D.br(f.fechamento) + '</span><span class="sub">DIA ' + CB.meio(f.cartao).diaFechamento + '</span></div>' +
-      '<div class="panel metric"><span class="lbl">Vencimento</span><span class="val pk" style="font-size:26px">' + D.br(f.vencimento) + '</span><span class="sub">EFEITO NO SALDO</span></div>' +
-      '</div>' + limiteHTML(f.cartao) + '<div class="panel"><div class="panel-head"><h3>Lançamentos da fatura</h3>' +
-      '<div class="fatacoes" style="margin:0">' + acoesFatura(f) + '</div></div>' + congelada +
+      '<div class="panel metric"><span class="lbl">' + (falta > 0 ? 'Falta pagar' : 'Pago') + '</span><span class="val pk" style="font-size:26px">' + M.fmt(falta > 0 ? falta : pago) + '</span><span class="sub"><span class="stbadge st-' + f.status + '">' + f.status + '</span> &middot; ' + CB.situacaoPagamento(f.id) + '</span></div>' +
+      '<div class="panel metric"><span class="lbl">Fechamento</span><span class="val cy" style="font-size:26px">' + D.br(f.fechamento) + '</span><span class="sub">' + cc.diasAntesFechamento + ' DIAS ANTES DO VENCIMENTO</span></div>' +
+      '<div class="panel metric"><span class="lbl">Vencimento</span><span class="val pk" style="font-size:26px">' + D.br(f.vencimento) + '</span><span class="sub">DIA ' + cc.diaVencimento + ' &middot; PAGA POR ' + esc((CB.conta(cc.contaPagadora) || {}).apelido || '—') + '</span></div>' +
+      '</div>' + limiteHTML(f.contaCartao) + '<div class="panel"><div class="panel-head"><h3>Lançamentos da fatura</h3>' +
+      '<div class="fatacoes" style="margin:0">' + acoesFatura(f) + '</div></div>' + nota +
       '<div style="margin:0 -20px">' + (ls.map(itemHTML).join('') || '<div class="vazio">FATURA VAZIA</div>') + '</div></div>';
   }
   $('#fSel').addEventListener('change', (e) => { faturaSel = e.target.value; renderFatura(); });
 
-  // Limite = tudo que foi comprado e ainda nao foi pago. Parcela futura SEGURA limite
-  // (5.000 em 10x come 5.000 e libera 500/mes) — e e por isso que recorrencia nao
-  // pode gerar previsto: seguraria limite de mes que nao chegou.
-  function limiteHTML(cartaoId) {
-    const L = CB.limiteDisponivel(cartaoId);
+  // Limite = do CONTRATO (a conta CARTAO). Preso = divida: tudo comprado e nao pago,
+  // parcela futura inclusive — e e por isso que recorrencia nao gera previsto.
+  // ACHADO 28/08: o saldo PROJETADO nao serve aqui, porque abate o pagamento previsto.
+  function limiteHTML(contaCartaoId) {
+    const L = CB.limiteDisponivel(contaCartaoId);
     if (!L) return '';
     const pct = Math.min(100, Math.round((L.preso / L.limite) * 100));
     return '<div class="panel mt18" style="margin-bottom:14px">' +
@@ -224,7 +247,7 @@
   /* ================= PATRIMONIO ================= */
   function renderPatrimonio() {
     const cards = CB.contas().map((c) => {
-      const s = CB.saldoRealizado(c.id);
+      const s = CB.ehDivida(c) ? -CB.dividaCartao(c.id) : CB.saldoRealizado(c.id);
       const apl = c.tipo === 'APLICACAO';
       const extra = apl
         ? '<div class="mt10 tele">&Uacute;LTIMA ATUALIZA&Ccedil;&Atilde;O: <b>' + (c.ultimaAtualizacao ? D.br(c.ultimaAtualizacao) : 'NUNCA') + '</b></div>' +
@@ -246,7 +269,7 @@
       '<div class="panel mt18"><div class="panel-head"><h3>Leituras</h3><span class="tele">FLUXO DE CAIXA &ne; PATRIM&Ocirc;NIO</span></div><div class="grid4">' +
       '<div class="metric"><span class="lbl">Em caixa</span><span class="val cy" style="font-size:26px">' + M.fmt(CB.emCaixa()) + '</span><span class="sub">SÓ CONTAS DE FLUXO</span></div>' +
       '<div class="metric"><span class="lbl">Guardado</span><span class="val lm" style="font-size:26px">' + M.fmt(CB.guardado()) + '</span><span class="sub">FORA DO FLUXO</span></div>' +
-      '<div class="metric"><span class="lbl">Patrim&ocirc;nio</span><span class="val" style="font-size:26px">' + M.fmt(CB.patrimonio()) + '</span><span class="sub">TUDO SOMADO</span></div>' +
+      '<div class="metric"><span class="lbl">Patrim&ocirc;nio</span><span class="val" style="font-size:26px">' + M.fmt(CB.patrimonio()) + '</span><span class="sub">TUDO SOMADO, D&Iacute;VIDA DE ' + M.fmt(CB.dividaTotal()) + ' J&Aacute; DESCONTADA</span></div>' +
       '<div class="metric"><span class="lbl">Guardado no m&ecirc;s</span><span class="val ac" style="font-size:26px">' + M.fmt(CB.guardadoNoMes(D.mes(S.hoje))) + '</span><span class="sub">APORTES DO PERÍODO</span></div>' +
       '</div></div>';
   }
@@ -272,7 +295,7 @@
       const rec = r.tipo === 'RECORRENCIA';
       const proxima = ls.filter((l) => l.dataEvento > S.hoje)
         .sort((a, b) => a.dataEvento.localeCompare(b.dataEvento))[0];
-      const travadas = CB.faturasAfetadas(ls);
+      const travadas = CB.faturasAfetadas(ls);   // agora: faturas fechadas que mudam de valor
       // Recorrencia NAO mostra "N previstas": ela nao tem fim e nao gera futuro.
       // Olha para tras (o que existe de verdade) e para a proxima cobranca, so.
       const gasto = ls.reduce((acc, l) => acc + l.valor, 0);
@@ -315,7 +338,9 @@
   }
   const fecharSerie = () => { $('#serieM').classList.remove('open'); smSerie = null; };
 
-  // mostra o impacto ANTES de confirmar: reabrir fatura paga nao pode ser efeito colateral silencioso
+  // mostra o impacto ANTES de confirmar. Nao ha mais reabertura — o que continua
+  // obrigatorio e dizer QUAIS faturas mudam de valor: mexer numa paga nao pode ser
+  // efeito colateral silencioso.
   function impactoSerie() {
     if (!smSerie) return;
     const rec = smSerie.tipo === 'RECORRENCIA';
@@ -325,8 +350,9 @@
     $('#smImpacto').innerHTML = 'VAI ALTERAR <b>' + alvo.length + '</b> LANÇAMENTO(S)' +
       (rec ? (smEscopo === 'TODAS' ? ' &middot; O PASSADO SERÁ REESCRITO' : ' &middot; O PASSADO FICA INTACTO')
            : ' &middot; TODAS AS PARCELAS, SEMPRE — SE DIVERGIREM, O DADO ESTÁ ERRADO') +
-      (fat.length ? '<br>REABRE ' + fat.length + ' FATURA(S): <b>' + fat.map((f) => f.referencia + ' [' + f.status + ']').join(', ') + '</b>' +
-        (fat.some((f) => f.status === 'PAGA') ? ' &middot; UMA DELAS JÁ FOI PAGA' : '') : '');
+      (fat.length ? '<br>MUDA O VALOR DE ' + fat.length + ' FATURA(S) J&Aacute; FECHADA(S): <b>' +
+        fat.map((f) => f.referencia + ' [' + CB.situacaoPagamento(f.id) + ']').join(', ') + '</b>' +
+        (fat.some((f) => CB.pagoDaFatura(f.id) > 0) ? ' &middot; UMA DELAS J&Aacute; FOI PAGA — VOC&Ecirc; DECIDE SE O PAGAMENTO ACOMPANHA' : '') : '');
   }
 
   document.addEventListener('click', (e) => {
@@ -347,7 +373,7 @@
       const r = smSerie.tipo === 'RECORRENCIA'
         ? CB.editarRecorrencia(smSerie.id, { valor: v }, smEscopo, quem)
         : CB.editarParcelamento(smSerie.id, v, quem);
-      toast(r.alterados + ' LANÇAMENTO(S) ALTERADO(S)' + (r.faturasReabertas ? ' · ' + r.faturasReabertas + ' FATURA REABERTA E REFECHADA' : ''));
+      toast(r.alterados + ' LANÇAMENTO(S) ALTERADO(S)' + (r.faturasTocadas ? ' · ' + r.faturasTocadas + ' FATURA FECHADA MUDOU DE VALOR' : ''));
       fecharSerie(); renderTudo();
     } catch (err) { $('#smErr').textContent = String(err.message || err).toUpperCase(); }
   });
@@ -446,9 +472,10 @@
     if (xTipo === 'credito') {
       const cid = $('#xCartao').value, n = Number($('#xParc').value || 1), dt = $('#xData').value || S.hoje;
       if (!cid) { e.innerHTML = 'NENHUM CART&Atilde;O NESTE AMBIENTE'; return; }
-      const f = CB.faturaPara(cid, dt);
-      e.innerHTML = 'CAI NA FATURA <b>' + f.referencia + '</b> &middot; EFEITO NO SALDO EM <b>' + D.br(f.vencimento) + '</b>' +
-        (n > 1 ? ' &middot; ' + n + ' PARCELAS, AS SEGUINTES NAS FATURAS &Agrave; FRENTE' : '') + ' &middot; NASCE COMO <b>PREVISTO</b>';
+      const f = CB.faturaAberta(CB.meio(cid).conta);
+      e.innerHTML = 'CAI NA FATURA <b>' + f.referencia + '</b> — a <b>ABERTA</b>, pelo STATUS e n&atilde;o pela data' +
+        ' &middot; DEBITA A CONTA <b>' + esc(CB.conta(CB.meio(cid).conta).nome) + '</b> HOJE MESMO, COMO <b>REALIZADO</b>' +
+        (n > 1 ? ' &middot; ' + n + ' PARCELAS: AS SEGUINTES NASCEM <b>PREVISTAS</b> NAS FATURAS &Agrave; FRENTE' : '');
     } else if (xTipo === 'transf') {
       const para = CB.conta($('#xPara').value);
       e.innerHTML = 'CRIA <b>DOIS LAN&Ccedil;AMENTOS</b> LIGADOS PELO MESMO ID &middot; SEM CATEGORIA &middot; N&Atilde;O ENTRA NO RELAT&Oacute;RIO DE GASTO' +

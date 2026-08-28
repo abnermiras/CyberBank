@@ -90,9 +90,11 @@ outra pessoa. Para usar o próprio cartão em outro ambiente seu, o caminho é c
 O limite é do **contrato** — ou seja, da conta `CARTAO` — e não se divide entre os cartões.
 Físico, virtual, adicional e compartilhado comem do mesmo bolo.
 
-> **Disponível = limite − saldo projetado da conta `CARTAO`.**
+> **Disponível = limite − dívida da conta `CARTAO`**, e dívida é tudo que foi comprado e
+> ainda não foi pago — o saldo da conta **sem** os pagamentos previstos
+> (`docs/02-dominio/fatura-cartao.md`).
 
-O projetado, e não o realizado, porque **parcela futura segura limite**, como na vida real:
+Não é o saldo realizado, porque **parcela futura segura limite**, como na vida real:
 R$ 5.000 em 10x come R$ 5.000 do limite na hora e libera R$ 500 a cada fatura paga
 (`docs/02-dominio/fatura-cartao.md`).
 

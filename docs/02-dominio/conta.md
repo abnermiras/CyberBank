@@ -62,6 +62,12 @@ futuro só precisa responder a esta pergunta para o relatório continuar certo.
 conta de novo: pagamento é transferência, e transferência nunca entra no relatório de gasto
 (`docs/02-dominio/fatura-cartao.md`).
 
+> **`entraNoFluxoDeCaixa` não responde "isso é caixa?"** — e a `CARTAO` é a primeira conta em
+> que as duas perguntas divergem: os movimentos dela são gasto, mas o saldo dela é dívida, não
+> dinheiro. A leitura **"em caixa"** soma as contas de fluxo de caixa **menos as de dívida**.
+> Achado do protótipo em 28/08; se aparecer um segundo caso, isto vira um campo próprio em vez
+> de uma exceção por tipo.
+
 ## Saldo
 
 **Saldo = soma dos lançamentos da conta até uma data.** Sem exceção e sem campo

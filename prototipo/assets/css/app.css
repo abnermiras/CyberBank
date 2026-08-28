@@ -86,6 +86,7 @@
 .stbadge{display:inline-block;padding:4px 10px;font:10px var(--mono);letter-spacing:.16em;border:1px solid}
 .st-ABERTA{color:var(--acid);border-color:rgba(247,241,60,.5)}
 .st-FECHADA{color:var(--cyan);border-color:rgba(0,240,255,.5)}
+.st-FUTURA{color:var(--dim);border-color:rgba(95,118,136,.45)}
 .st-PAGA{color:var(--lime);border-color:rgba(92,255,157,.45)}
 
 /* ---------- contas / patrimonio ---------- */

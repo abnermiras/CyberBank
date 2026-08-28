@@ -10,9 +10,11 @@
    - situacao PREVISTO|REALIZADO; REALIZADO nunca volta atras
    - saldo = soma dos lancamentos, nunca armazenado
    - transferencia = par de lancamentos com o mesmo transferenciaId
-   - aporte/resgate sao transferencia; nao tem categoria; nao sao gasto
-   - rendimento e lancamento de diferenca, nao sobrescrita de saldo
-   - fatura fechada congela; reabrir -> editar -> recalcular -> ajuste -> fechar
+   - ADR-0003: o contrato de cartao E UMA CONTA (tipo CARTAO). A compra debita
+     ela; pagar a fatura e TRANSFERENCIA; o que nao foi pago fica como saldo
+   - fatura = recorte de periodo da conta CARTAO. FUTURA | ABERTA | FECHADA
+   - o lancamento entra na fatura pelo STATUS, nunca pela data
+   - nada congela: lancamento de fatura fechada se edita direto
    ========================================================================= */
 (function (global) {
   'use strict';
@@ -26,13 +28,14 @@
     addMeses: (s, n) => { const dt = D.parse(s); const dia = dt.getDate(); dt.setDate(1); dt.setMonth(dt.getMonth() + n);
       dt.setDate(Math.min(dia, new Date(dt.getFullYear(), dt.getMonth() + 1, 0).getDate())); return D.fmt(dt); },
     mes: (s) => s.slice(0, 7),
+    proxMes: (ref) => D.mes(D.addMeses(ref + '-01', 1)),
     diaDoMes: (s) => Number(s.slice(8, 10)),
     fimDoMes: (s) => { const dt = D.parse(s + ''); return D.fmt(new Date(dt.getFullYear(), dt.getMonth() + 1, 0)); },
     noMes: (s, mes) => s.slice(0, 7) === mes,
-    ate: (s, limite) => s <= limite,
     br: (s) => s.split('-').reverse().join('/'),
     diasEntre: (a, b) => Math.round((D.parse(b) - D.parse(a)) / 86400000)
   };
+  const SEMPRE = '9999-12-31';
 
   /* ---------- dinheiro: SEMPRE inteiro em centavos ---------- */
   const M = {
@@ -70,13 +73,18 @@
   const meio = (mid) => S.meios.find((m) => m.id === mid);
   const categoria = (kid) => S.categorias.find((k) => k.id === kid);
   const raizDe = (kid) => { const k = categoria(kid); return k ? (k.pai ? categoria(k.pai) : k) : null; };
+  const ehDivida = (c) => !!c && c.tipo === 'CARTAO';
+  // contas de CAIXA: as de fluxo de caixa que nao sao divida.
+  // ACHADO: `entraNoFluxoDeCaixa` responde "movimento e gasto?", nao "isso e caixa?".
+  // A conta CARTAO e a primeira em que as duas perguntas divergem.
+  const ehCaixa = (c) => !!c && c.entraNoFluxoDeCaixa && !ehDivida(c);
 
   /* ================= LANCAMENTO ================= */
   function lancar(o) {
     if (!o.valor || o.valor <= 0) throw new Error('valor tem que ser positivo — o sinal vem do sentido');
     const l = {
       id: id('lan'),
-      ambiente: o.ambiente || S.ambienteAtivo,
+      ambiente: o.ambiente || S.ambienteAtivo,   // o ambiente de QUEM LANCOU, nunca o da conta
       conta: o.conta,
       sentido: o.sentido,                    // ENTRADA | SAIDA
       valor: o.valor,                        // centavos, sempre > 0
@@ -88,6 +96,7 @@
       meio: o.meio || null,
       fatura: o.fatura || null,
       transferenciaId: o.transferenciaId || null,
+      pagamentoDeFatura: o.pagamentoDeFatura || null,
       serie: o.serie || null,
       origemParcelamento: o.origemParcelamento || null,
       estabelecimento: o.estabelecimento || null,
@@ -95,34 +104,38 @@
       historico: []
     };
     S.lancamentos.push(l);
+    // lancamento novo numa fatura ja fechada muda o total dela: o pagamento
+    // previsto acompanha enquanto nao foi feito
+    if (l.fatura) sincronizarPagamentoPrevisto(l.fatura);
     return l;
   }
 
-  // edicao direta com historico — a decisao de 27/08
+  // Edicao direta com historico. NADA CONGELA: fatura fechada nao trava lancamento.
+  // O sistema nao tem a palavra final sobre o dinheiro do usuario — ele mostra a
+  // consequencia antes e guarda quem mudou o que.
   function editar(lid, campos, quem) {
     const l = S.lancamentos.find((x) => x.id === lid);
     if (!l) return null;
-    if (l.fatura) {
-      const f = S.faturas.find((x) => x.id === l.fatura);
-      if (f && f.status !== 'ABERTA') throw new Error('fatura fechada congela o lançamento — reabra a fatura antes');
-    }
     Object.keys(campos).forEach((c) => {
       if (l[c] === campos[c]) return;
       l.historico.push({ quando: S.hoje, quem: quem || 'V', campo: c, de: l[c], para: campos[c] });
       l[c] = campos[c];
     });
+    if (l.fatura) sincronizarPagamentoPrevisto(l.fatura);
     registrar(`lançamento editado: ${l.descricao}`, 'edit');
     return l;
   }
 
-  // estorno != correcao: o dinheiro voltou de verdade
+  // estorno != correcao: o dinheiro voltou de verdade. Fato novo, na fatura ABERTA.
   function estornar(lid) {
     const l = S.lancamentos.find((x) => x.id === lid);
     if (!l) return null;
+    const alvo = l.fatura ? (faturaAberta(conta(l.conta).id) || null) : null;
     const e = lancar({
       conta: l.conta, sentido: l.sentido === 'SAIDA' ? 'ENTRADA' : 'SAIDA',
       valor: l.valor, descricao: 'Estorno — ' + l.descricao,
-      categoria: l.categoria, meio: l.meio, situacao: 'REALIZADO'
+      categoria: l.categoria, meio: l.meio, situacao: 'REALIZADO',
+      fatura: alvo ? alvo.id : null
     });
     e.estornoDe = l.id; l.estornadoPor = e.id;
     registrar(`estorno de ${l.descricao}`, 'estorno');
@@ -133,7 +146,8 @@
   function transferir(o) {
     const tid = id('tr');
     const base = { transferenciaId: tid, dataEvento: o.data || S.hoje, dataEfeito: o.data || S.hoje,
-      situacao: 'REALIZADO', categoria: null, meio: null };
+      situacao: o.situacao || 'REALIZADO', categoria: null, meio: null,
+      pagamentoDeFatura: o.pagamentoDeFatura || null };
     const saida = lancar(Object.assign({}, base, { conta: o.de, sentido: 'SAIDA', valor: o.valor, descricao: o.descricao }));
     const entrada = lancar(Object.assign({}, base, { conta: o.para, sentido: 'ENTRADA', valor: o.valor, descricao: o.descricao }));
     return [saida, entrada];
@@ -141,6 +155,7 @@
 
   const aportar = (o) => transferir({ de: o.de, para: o.para, valor: o.valor, data: o.data, descricao: o.descricao || 'Aporte' });
   const resgatar = (o) => transferir({ de: o.de, para: o.para, valor: o.valor, data: o.data, descricao: o.descricao || 'Resgate' });
+  const parDaTransferencia = (tid) => S.lancamentos.filter((l) => l.transferenciaId === tid);
 
   /* rendimento: informar o valor atual gera a DIFERENCA como lancamento */
   function atualizarValorAplicacao(cid, valorInformado) {
@@ -171,14 +186,30 @@
   }
   const somaContas = (filtro, fn) => contas().filter(filtro).reduce((s, c) => s + fn(c.id), 0);
 
-  const emCaixa = () => somaContas((c) => c.entraNoFluxoDeCaixa, (cid) => saldoRealizado(cid));
-  const sobraAteFimDoMes = () => somaContas((c) => c.entraNoFluxoDeCaixa, (cid) => saldoProjetado(cid, D.fimDoMes(S.hoje)));
-  const patrimonio = () => somaContas(() => true, (cid) => saldoRealizado(cid));
+  const emCaixa = () => somaContas(ehCaixa, (cid) => saldoRealizado(cid));
+  const sobraAteFimDoMes = () => somaContas(ehCaixa, (cid) => saldoProjetado(cid, D.fimDoMes(S.hoje)));
   const guardado = () => somaContas((c) => !c.entraNoFluxoDeCaixa, (cid) => saldoRealizado(cid));
 
+  // PATRIMONIO: saldo REALIZADO de todas as contas, e o PROJETADO das de divida.
+  // "Divida futura ja e sua; receita futura ainda nao." A parcela de 2027 pesa hoje;
+  // o salario do mes que vem, nao.
+  const patrimonio = () => somaContas(() => true,
+    (cid) => (ehDivida(conta(cid)) ? -dividaCartao(cid) : saldoRealizado(cid)));
+
+  /* DIVIDA — achado do prototipo (28/08).
+     O saldo projetado da conta CARTAO NAO serve como divida: ele abate o pagamento
+     PREVISTO, que ainda nao aconteceu, e responde outra pergunta ("quanto vou dever
+     depois de pagar"). Divida e o que foi comprado e ainda nao foi pago, entao ela
+     soma tudo MENOS os pagamentos previstos. Limite e patrimonio usam esta. */
+  const dividaCartao = (cid) => -S.lancamentos
+    .filter((l) => l.conta === cid && !(l.pagamentoDeFatura && l.situacao === 'PREVISTO'))
+    .reduce((s, l) => s + sinal(l) * l.valor, 0);
+  const dividaTotal = () => contas().filter(ehDivida).reduce((s, c) => s + dividaCartao(c.id), 0);
+
   /* ================= RELATORIOS ================= */
-  // gasto por categoria usa dataEvento e SO contas de fluxo de caixa.
-  // transferencia, aporte, resgate e rendimento nao tem categoria => ficam fora.
+  // gasto por categoria usa dataEvento e SO contas de fluxo de caixa — a CARTAO
+  // inclusive, porque comprar no cartao E gasto da vida. Pagar a fatura nao conta
+  // de novo: pagamento e transferencia, e transferencia nunca entra aqui.
   function gastoPorCategoria(mes) {
     const alvo = mes || D.mes(S.hoje);
     const mapa = {};
@@ -195,8 +226,6 @@
     return Object.values(mapa).sort((a, b) => b.total - a.total);
   }
 
-  // o que foi GUARDADO no mes: aportes para contas fora do fluxo de caixa.
-  // e a linha que impede o usuario de procurar o dinheiro que "sumiu".
   function guardadoNoMes(mes) {
     const alvo = mes || D.mes(S.hoje);
     return lancamentos().filter((l) => l.transferenciaId && l.sentido === 'ENTRADA' && D.noMes(l.dataEvento, alvo))
@@ -207,87 +236,218 @@
   function receitaDoMes(mes) {
     const alvo = mes || D.mes(S.hoje);
     return lancamentos().filter((l) => !l.transferenciaId && !l.rendimento && l.sentido === 'ENTRADA' && D.noMes(l.dataEvento, alvo))
-      .filter((l) => { const c = conta(l.conta); return c && c.entraNoFluxoDeCaixa; })
+      .filter((l) => { const c = conta(l.conta); return ehCaixa(conta(l.conta)); })
       .reduce((s, l) => s + l.valor, 0);
   }
 
-  // PENDENCIA: lancamento sem categoria QUE ESPERA UMA. Transferencia, rendimento,
-  // ajuste e abertura de conta nao tem categoria por natureza — nao sao pendencia.
-  // (Achado do prototipo: a definicao "lancamento sem categoria" pegava a abertura.)
-  const esperaCategoria = (l) => !l.transferenciaId && !l.rendimento && !l.abertura && !l.ajusteDeFatura;
+  // PENDENCIA: lancamento sem categoria QUE ESPERA UMA.
+  const esperaCategoria = (l) => !l.transferenciaId && !l.rendimento && !l.abertura;
   const pendencias = () => lancamentos().filter((l) => !l.categoria && esperaCategoria(l));
 
   const extrato = (filtro) => lancamentos()
     .filter((l) => (filtro && filtro.conta ? l.conta === filtro.conta : true))
     .slice().sort((a, b) => (b.dataEvento === a.dataEvento ? b.id.localeCompare(a.id) : b.dataEvento.localeCompare(a.dataEvento)));
 
-  /* ================= FATURA ================= */
-  // A compra cai na fatura do ciclo corrente se o dia <= fechamento; senao, na seguinte.
-  // dataEfeito do lancamento de credito = vencimento da fatura em que caiu.
-  function faturaPara(cartaoId, dataEvento) {
-    const c = meio(cartaoId);
-    const diaEv = D.diaDoMes(dataEvento);
-    let refBase = dataEvento.slice(0, 7);
-    if (diaEv > c.diaFechamento) refBase = D.mes(D.addMeses(dataEvento + '', 1));
-    let f = S.faturas.find((x) => x.cartao === cartaoId && x.referencia === refBase);
-    if (!f) {
-      const ano = Number(refBase.slice(0, 4)), m = Number(refBase.slice(5, 7));
-      const dtFech = D.fmt(new Date(ano, m - 1, Math.min(c.diaFechamento, new Date(ano, m, 0).getDate())));
-      const venc = D.fmt(new Date(ano, m - 1, c.diaVencimento));
-      f = { id: id('fat'), ambiente: c.ambiente, cartao: cartaoId, referencia: refBase,
-        fechamento: dtFech, vencimento: venc > dtFech ? venc : D.addMeses(venc, 1),
-        status: 'ABERTA', pagoEm: null, totalNoFechamento: null };
-      S.faturas.push(f);
-    }
+  /* ================= FATURA =================
+     A fatura e o recorte de um periodo da conta CARTAO. Tem estado proprio
+     (FUTURA | ABERTA | FECHADA) porque estado nao se deriva; o VALOR dela e
+     sempre soma dos lancamentos, nunca armazenado.
+     ========================================================================= */
+
+  // ciclo: o usuario informa dia do vencimento + quantos dias antes fecha
+  function datasDaRef(cc, ref) {
+    const c = conta(cc);
+    const ano = Number(ref.slice(0, 4)), m = Number(ref.slice(5, 7));
+    const diaV = Math.min(c.diaVencimento, new Date(ano, m, 0).getDate());
+    const vencimento = D.fmt(new Date(ano, m - 1, diaV));
+    return { vencimento, fechamento: D.addDias(vencimento, -c.diasAntesFechamento) };
+  }
+
+  const faturasDe = (cc) => S.faturas.filter((f) => f.contaCartao === cc)
+    .sort((a, b) => a.referencia.localeCompare(b.referencia));
+
+  function novaFatura(cc, ref, status) {
+    const c = conta(cc);
+    const dt = datasDaRef(cc, ref);
+    const f = { id: id('fat'), ambiente: c.ambiente, contaCartao: cc, referencia: ref,
+      fechamento: dt.fechamento, vencimento: dt.vencimento, status: status || 'FUTURA' };
+    S.faturas.push(f);
     return f;
   }
 
-  const totalFatura = (fid) => S.lancamentos.filter((l) => l.fatura === fid).reduce((s, l) => s + sinal(l) * -1 * l.valor, 0);
+  // a referencia cujo ciclo ainda esta correndo hoje
+  function referenciaCorrente(cc) {
+    let ref = D.mes(S.hoje);
+    for (let i = 0; i < 36; i++) {
+      if (datasDaRef(cc, ref).fechamento >= S.hoje) return ref;
+      ref = D.proxMes(ref);
+    }
+    return ref;
+  }
+
+  // SO UMA fatura ABERTA por conta CARTAO. Se nao existe, nasce agora.
+  function faturaAberta(cc) {
+    const ja = faturasDe(cc).find((f) => f.status === 'ABERTA');
+    if (ja) return ja;
+    const ref = referenciaCorrente(cc);
+    const existente = faturasDe(cc).find((f) => f.referencia === ref);
+    if (existente) { existente.status = 'ABERTA'; return existente; }
+    return novaFatura(cc, ref, 'ABERTA');
+  }
+
+  // posicao 0 = a ABERTA; i > 0 = i ciclos a frente, criada como FUTURA se preciso.
+  // E assim que o parcelamento acha as faturas que ainda nao existem.
+  function faturaNaPosicao(cc, i) {
+    const aberta = faturaAberta(cc);
+    if (i === 0) return aberta;
+    let ref = aberta.referencia;
+    for (let k = 0; k < i; k++) ref = D.proxMes(ref);
+    return faturasDe(cc).find((f) => f.referencia === ref) || novaFatura(cc, ref, 'FUTURA');
+  }
+
+  const totalFatura = (fid) => S.lancamentos
+    .filter((l) => l.fatura === fid).reduce((s, l) => s + sinal(l) * -1 * l.valor, 0);
   const lancamentosDaFatura = (fid) => S.lancamentos.filter((l) => l.fatura === fid);
 
+  /* ---------- pagamento: EIXO DERIVADO, nao estado salvo ---------- */
+  const pagamentosDaFatura = (fid) => S.lancamentos
+    .filter((l) => l.pagamentoDeFatura === fid && l.sentido === 'ENTRADA');
+  const pagoDaFatura = (fid) => pagamentosDaFatura(fid)
+    .filter((l) => l.situacao === 'REALIZADO').reduce((s, l) => s + l.valor, 0);
+
+  function situacaoPagamento(fid) {
+    const total = totalFatura(fid), pago = pagoDaFatura(fid);
+    if (pago <= 0) return 'EM ABERTO';
+    return pago >= total ? 'QUITADA' : 'PARCIAL';
+  }
+
+  // Enquanto o pagamento previsto nao foi feito, ele acompanha o total da fatura.
+  function sincronizarPagamentoPrevisto(fid) {
+    const f = S.faturas.find((x) => x.id === fid);
+    if (!f || f.status !== 'FECHADA') return null;
+    const total = totalFatura(fid);
+    const pendentes = pagamentosDaFatura(fid).filter((l) => l.situacao === 'PREVISTO');
+    const jaPago = pagoDaFatura(fid);
+    const falta = total - jaPago;
+    if (!pendentes.length) return null;
+    const par = parDaTransferencia(pendentes[0].transferenciaId);
+    if (falta <= 0) { S.lancamentos = S.lancamentos.filter((l) => par.indexOf(l) < 0); return null; }
+    par.forEach((l) => { l.valor = falta; });
+    return par;
+  }
+
+  function criarPagamentoPrevisto(f) {
+    const c = conta(f.contaCartao);
+    const total = totalFatura(f.id) - pagoDaFatura(f.id);
+    if (total <= 0 || !c.contaPagadora) return null;
+    if (pagamentosDaFatura(f.id).some((l) => l.situacao === 'PREVISTO')) return null;
+    const par = transferir({ de: c.contaPagadora, para: f.contaCartao, valor: total,
+      data: f.vencimento, descricao: 'Pagamento fatura ' + f.referencia,
+      situacao: 'PREVISTO', pagamentoDeFatura: f.id });
+    return par[0];
+  }
+
+  /* ---------- fechar: o gatilho de mais coisa do que parece ---------- */
   function fecharFatura(fid) {
     const f = S.faturas.find((x) => x.id === fid);
     if (!f || f.status !== 'ABERTA') return f;
-    const total = totalFatura(fid);
-    // Fatura ja paga corrigida: REESCREVE o passado. O valor do pagamento passa a ser o
-    // novo total, na data original — sem lancamento de ajuste. Nada a recalcular: saldo e
-    // sempre a soma dos lancamentos, entao reescrever o valor ja refaz tudo que deriva dele.
-    const antes = f.totalNoFechamento;
-    f.totalNoFechamento = total;
-    f.status = f.jaFoiPaga ? 'PAGA' : 'FECHADA';
-    if (f.jaFoiPaga && antes !== null && antes !== total) {
-      registrar(`fatura ${f.referencia}: pagamento reescrito ${M.fmt(antes)} -> ${M.fmt(total)}`, 'fatura');
-    } else {
-      registrar(`fatura ${f.referencia} fechada em ${M.fmt(total)}`, 'fatura');
-    }
+    f.status = 'FECHADA';
+    // 1. as parcelas previstas daquele ciclo viram realizadas: a divida consolidou
+    lancamentosDaFatura(fid).forEach((l) => {
+      if (l.situacao === 'PREVISTO') { l.situacao = 'REALIZADO'; l.dataEfeito = f.fechamento; }
+    });
+    // 2. a seguinte abre (criada se nao existir)
+    const seguinteRef = D.proxMes(f.referencia);
+    const seg = faturasDe(f.contaCartao).find((x) => x.referencia === seguinteRef) ||
+      novaFatura(f.contaCartao, seguinteRef, 'FUTURA');
+    seg.status = 'ABERTA';
+    // 3. as recorrencias ativas do cartao entram na fatura recem-aberta (idempotente)
+    sincronizarRecorrencias((r) => noCartao(r) && meio(r.meio) && meio(r.meio).conta === f.contaCartao);
+    // 4. nasce o pagamento previsto — e ele que mantem "quanto sobra ate o fim do mes"
+    criarPagamentoPrevisto(f);
+    registrar(`fatura ${f.referencia} fechada em ${M.fmt(totalFatura(fid))}`, 'fatura');
     return f;
   }
 
-  function reabrirFatura(fid) {
+  /* ---------- abrir: SO a ultima fechada. Contingencia, nao fluxo ----------
+     Serve para uma coisa: o ciclo ainda esta correndo e o sistema achou que tinha
+     acabado (a operadora fechou em outro dia). A seguinte volta a FUTURA. */
+  const ultimaFechada = (cc) => faturasDe(cc).filter((f) => f.status === 'FECHADA').slice(-1)[0] || null;
+  const podeAbrir = (f) => !!f && f.status === 'FECHADA' && ultimaFechada(f.contaCartao) &&
+    ultimaFechada(f.contaCartao).id === f.id;
+
+  function abrirFatura(fid) {
     const f = S.faturas.find((x) => x.id === fid);
-    if (!f || f.status === 'ABERTA') return f;
+    if (!podeAbrir(f)) return null;
+    const aberta = faturasDe(f.contaCartao).find((x) => x.status === 'ABERTA');
+    if (aberta) aberta.status = 'FUTURA';   // o que ja estava nela FICA onde esta
+    // o pagamento previsto ainda nao pago some; renasce no proximo fechamento
+    const prev = pagamentosDaFatura(fid).filter((l) => l.situacao === 'PREVISTO');
+    prev.forEach((l) => { const par = parDaTransferencia(l.transferenciaId);
+      S.lancamentos = S.lancamentos.filter((x) => par.indexOf(x) < 0); });
     f.status = 'ABERTA';
-    registrar(`fatura ${f.referencia} REABERTA`, 'fatura');
+    registrar(`fatura ${f.referencia} ABERTA — contingência`, 'fatura');
     return f;
   }
 
-  // pagar NAO cria lancamento novo: os proprios lancamentos da fatura debitam a conta.
-  // Criar um lancamento de pagamento contaria o gasto duas vezes.
-  function pagarFatura(fid) {
+  /* ---------- pagar: TRANSFERENCIA. Nao ha duplo computo e nao ha regra dizendo
+     que nao ha: transferencia nao tem categoria e nao entra em gasto. O gasto foi
+     contado uma vez, na compra. ---------- */
+  function pagarFatura(fid, o) {
     const f = S.faturas.find((x) => x.id === fid);
-    if (!f || f.status !== 'FECHADA') return f;
-    lancamentosDaFatura(fid).forEach((l) => { l.situacao = 'REALIZADO'; l.dataEfeito = S.hoje; });
-    f.status = 'PAGA'; f.pagoEm = S.hoje; f.jaFoiPaga = true;
-    registrar(`fatura ${f.referencia} paga — ${M.fmt(totalFatura(fid))}`, 'fatura');
+    if (!f || f.status === 'ABERTA') return null;
+    o = o || {};
+    const c = conta(f.contaCartao);
+    const falta = totalFatura(fid) - pagoDaFatura(fid);
+    const valor = o.valor || falta;
+    const de = o.conta || c.contaPagadora;
+    const data = o.data || S.hoje;
+    if (valor <= 0) return null;
+
+    const previsto = pagamentosDaFatura(fid).find((l) => l.situacao === 'PREVISTO');
+    if (previsto) {
+      const par = parDaTransferencia(previsto.transferenciaId);
+      par.forEach((l) => { l.valor = valor; l.situacao = 'REALIZADO'; l.dataEvento = data; l.dataEfeito = data; });
+      const saida = par.find((l) => l.sentido === 'SAIDA');
+      if (saida.conta !== de) saida.conta = de;
+    } else {
+      transferir({ de, para: f.contaCartao, valor, data,
+        descricao: 'Pagamento fatura ' + f.referencia, pagamentoDeFatura: fid });
+    }
+    // o que nao foi pago SIMPLESMENTE FICA como saldo da conta CARTAO.
+    // Nao existe "saldo da fatura anterior" como lancamento: nada rola.
+    const sit = situacaoPagamento(fid);
+    if (sit === 'PARCIAL') criarPagamentoPrevisto(f);
+    registrar(`fatura ${f.referencia}: pago ${M.fmt(valor)} de ${conta(de).apelido || conta(de).nome} — ${sit}`, 'fatura');
     return f;
   }
 
-  const faturaAberta = (cartaoId) => S.faturas.filter((f) => f.cartao === cartaoId && f.status === 'ABERTA')
-    .sort((a, b) => a.referencia.localeCompare(b.referencia))[0] || null;
+  /* ---------- correcao em fatura paga: o sistema PERGUNTA ----------
+     Duas respostas legitimas: o banco cobrou o valor novo (ajusta o pagamento), ou
+     o pagamento foi o que foi (a diferenca vira saldo). */
+  function previaCorrecaoFatura(fid) {
+    const f = S.faturas.find((x) => x.id === fid);
+    const total = totalFatura(fid), pago = pagoDaFatura(fid);
+    return { fatura: f, total, pago, diferenca: total - pago, situacao: situacaoPagamento(fid) };
+  }
+  function ajustarPagamento(fid) {
+    const p = previaCorrecaoFatura(fid);
+    const real = pagamentosDaFatura(fid).filter((l) => l.situacao === 'REALIZADO');
+    if (!real.length || p.diferenca === 0) return null;
+    const par = parDaTransferencia(real[real.length - 1].transferenciaId);
+    const novo = par[0].valor + p.diferenca;
+    if (novo <= 0) return null;
+    par.forEach((l) => { l.valor = novo; });
+    registrar(`fatura ${p.fatura.referencia}: pagamento ajustado para ${M.fmt(novo)}`, 'fatura');
+    return novo;
+  }
 
-  /* ---------- compra no credito, com parcelamento ---------- */
+  /* ---------- compra no credito: debita a conta CARTAO ----------
+     A fatura vem do STATUS, nunca da data: a compra entra na ABERTA, e as parcelas
+     seguintes nas FUTURA. Quando o palpite erra, quem move e o usuario. */
   function comprarNoCredito(o) {
     const c = meio(o.cartao);
+    const cc = c.conta;                       // a conta CARTAO do contrato
     const n = o.parcelas || 1;
     const base = Math.floor(o.valor / n);
     const resto = o.valor - base * n;
@@ -299,13 +459,17 @@
         valorTotal: o.valor, parcelas: n, categoria: o.categoria || null, cartao: o.cartao, ativa: true });
     }
     for (let i = 0; i < n; i++) {
+      const f = faturaNaPosicao(cc, i);
       const dataEv = i === 0 ? (o.data || S.hoje) : D.addMeses(o.data || S.hoje, i);
-      const f = faturaPara(o.cartao, dataEv);
+      // comprou, deve: a parcela do ciclo corrente ja e REALIZADO.
+      // As de mes que nao chegou sao PREVISTO, com efeito no fechamento da sua fatura.
+      const previsto = i > 0;
       const l = lancar({
-        conta: c.conta, sentido: 'SAIDA', valor: base + (i === 0 ? resto : 0),
-        dataEvento: dataEv, dataEfeito: f.vencimento,
+        conta: cc, sentido: 'SAIDA', valor: base + (i === 0 ? resto : 0),
+        dataEvento: dataEv, dataEfeito: previsto ? f.fechamento : (o.data || S.hoje),
         descricao: n > 1 ? `${o.descricao} ${i + 1}/${n}` : o.descricao,
-        situacao: 'PREVISTO', categoria: o.categoria || null, meio: o.cartao,
+        situacao: previsto ? 'PREVISTO' : 'REALIZADO',
+        categoria: o.categoria || null, meio: o.cartao,
         fatura: f.id, serie: grupo, origemParcelamento: grupo, estabelecimento: o.estabelecimento || null
       });
       criados.push(l);
@@ -315,34 +479,34 @@
 
   /* ---------- boleto: previsto no vencimento, realizado quando pago ---------- */
   function registrarBoleto(o) {
+    const b = meios().find((m) => m.tipo === 'BOLETO');
     return lancar({ conta: o.conta, sentido: 'SAIDA', valor: o.valor,
       dataEvento: o.data || S.hoje, dataEfeito: o.vencimento,
       descricao: o.descricao, situacao: 'PREVISTO', categoria: o.categoria || null,
-      meio: meios().find((m) => m.tipo === 'BOLETO') ? meios().find((m) => m.tipo === 'BOLETO').id : null });
+      meio: b ? b.id : null });
   }
 
   /* ================= SERIES: RECORRENCIA E PARCELAMENTO =================
      Recorrencia: N eventos independentes, sem fim. Pode perguntar ao editar.
      Parcelamento: UMA compra dividida. Nunca pergunta — altera todas.
-     Regras em docs/02-dominio/recorrencia.md
      ==================================================================== */
-  /* Recorrencia NAO tem horizonte. Um previsto nao e so item de tela: ele segura
-     limite do cartao e sugere que a assinatura acaba. Assinatura nao acaba e nao
-     reserva limite de mes que nao chegou.
-
-     A geracao segue o CICLO, uma ocorrencia por vez:
-       - recorrencia no cartao  -> quando a fatura fecha, a proxima abre e ganha a sua
-       - recorrencia fora dele  -> na virada do mes
-     Resultado: no maximo UMA ocorrencia nao-acontecida por recorrencia. */
-
   const lancamentosDaSerie = (sid) => S.lancamentos.filter((l) => l.serie === sid);
   const serie = (sid) => S.series.find((x) => x.id === sid);
   const noCartao = (r) => !!(r.meio && meio(r.meio) && meio(r.meio).tipo === 'CREDITO');
+  const contaDoCartao = (r) => meio(r.meio).conta;
 
-  // o ciclo que esta aberto agora: a fatura aberta do cartao, ou o mes corrente
+  function faturaDaReferencia(cc, ref) {
+    const ja = faturasDe(cc).find((f) => f.referencia === ref);
+    if (ja) return ja;
+    const dt = datasDaRef(cc, ref);
+    const status = dt.fechamento < S.hoje ? 'FECHADA'
+      : (faturasDe(cc).some((f) => f.status === 'ABERTA') ? 'FUTURA' : 'ABERTA');
+    return novaFatura(cc, ref, status);
+  }
+
   function cicloAberto(r) {
     if (!noCartao(r)) return D.mes(S.hoje);
-    return faturaPara(r.meio, S.hoje).referencia;  // a fatura que uma compra de hoje pegaria
+    return faturaAberta(contaDoCartao(r)).referencia;
   }
 
   function criarRecorrencia(o) {
@@ -359,40 +523,43 @@
     return r;
   }
 
-  /* Garante que existe uma ocorrencia para cada ciclo desde o inicio ATE o ciclo
-     aberto — e nenhuma alem dele. Idempotente: rodar de novo nao duplica. */
+  /* Uma ocorrencia por ciclo, e NENHUMA alem do ciclo aberto. Idempotente:
+     o fechamento chama isto e nunca lanca a mesma assinatura duas vezes. */
   function sincronizarRecorrencia(sid) {
     const r = serie(sid);
     if (!r || r.tipo !== 'RECORRENCIA' || !r.ativa) return [];
-    const alvo = cicloAberto(r);
+    const criados = [];
     const jaTem = {};
     lancamentosDaSerie(sid).forEach((l) => {
       const f = l.fatura ? S.faturas.find((x) => x.id === l.fatura) : null;
       jaTem[f ? f.referencia : D.mes(l.dataEvento)] = true;
     });
-
-    const criados = [];
-    let cursor = r.inicio.slice(0, 8) + String(Math.min(r.dia, 28)).padStart(2, '0');
+    const alvo = cicloAberto(r);
+    let ref = D.mes(r.inicio);
     let guarda = 0;
-    while (guarda++ < 400) {
-      const ciclo = noCartao(r) ? faturaPara(r.meio, cursor).referencia : D.mes(cursor);
-      if (ciclo > alvo) break;                       // nunca passa do ciclo aberto
-      if (!jaTem[ciclo]) {
+    while (ref <= alvo && guarda++ < 400) {
+      if (!jaTem[ref]) {
+        const dia = String(Math.min(r.dia, 28)).padStart(2, '0');
         if (noCartao(r)) {
-          const l = comprarNoCredito({ cartao: r.meio, valor: r.valor, data: cursor,
-            descricao: r.descricao, categoria: r.categoria })[0];
-          l.serie = sid;
+          const cc = contaDoCartao(r);
+          const f = faturaDaReferencia(cc, ref);
+          const fechada = f.status === 'FECHADA';
+          const l = lancar({ ambiente: r.ambiente, conta: cc, sentido: 'SAIDA', valor: r.valor,
+            dataEvento: ref + '-' + dia, dataEfeito: ref + '-' + dia,
+            descricao: r.descricao, situacao: 'REALIZADO',
+            categoria: r.categoria, meio: r.meio, fatura: f.id, serie: sid });
           criados.push(l);
         } else {
+          const quando = ref + '-' + dia;
           const l = lancar({ ambiente: r.ambiente, conta: r.conta, sentido: 'SAIDA', valor: r.valor,
-            dataEvento: cursor, dataEfeito: cursor, descricao: r.descricao,
-            situacao: cursor <= S.hoje ? 'REALIZADO' : 'PREVISTO',
+            dataEvento: quando, dataEfeito: quando, descricao: r.descricao,
+            situacao: quando <= S.hoje ? 'REALIZADO' : 'PREVISTO',
             categoria: r.categoria, meio: r.meio, serie: sid });
           criados.push(l);
         }
-        jaTem[ciclo] = true;
+        jaTem[ref] = true;
       }
-      cursor = D.addMeses(cursor, 1);
+      ref = D.proxMes(ref);
     }
     return criados;
   }
@@ -401,24 +568,20 @@
     .filter((r) => r.tipo === 'RECORRENCIA' && r.ativa && (!filtro || filtro(r)))
     .forEach((r) => sincronizarRecorrencia(r.id));
 
-  /* ---------- limite do cartao ----------
-     Disponivel = limite - tudo que foi comprado e ainda nao foi pago. Parcela futura
-     SEGURA limite (5.000 em 10x come 5.000 e libera 500 por mes), e por isso mesmo
-     recorrencia nao pode gerar previsto: seguraria limite de mes que nao chegou. */
-  function limiteDisponivel(cartaoId) {
-    const c = meio(cartaoId);
-    if (!c || !c.limite) return null;
-    const preso = S.lancamentos.filter((l) => {
-      if (l.meio !== cartaoId || !l.fatura) return false;
-      const f = S.faturas.find((x) => x.id === l.fatura);
-      return f && f.status !== 'PAGA';
-    }).reduce((s, l) => s + l.valor, 0);
-    return { limite: c.limite, preso, disponivel: c.limite - preso };
+  /* ---------- limite: do CONTRATO, ou seja, da conta CARTAO ----------
+     Disponivel = limite - saldo PROJETADO. O projetado ja inclui a parcela futura,
+     e por isso parcela segura limite — e por isso recorrencia nao gera previsto. */
+  function limiteDisponivel(x) {
+    let c = conta(x);
+    if (!c) { const m = meio(x); c = m ? conta(m.conta) : null; }
+    if (!c || !ehDivida(c) || !c.limite) return null;
+    const preso = dividaCartao(c.id);   // ver o achado em DIVIDA, acima
+    return { conta: c.id, limite: c.limite, preso, disponivel: c.limite - preso };
   }
 
-  /* ---------- quais faturas precisam ser reabertas para esta edicao ----------
-     O usuario ve isso ANTES de confirmar: reabrir fatura paga de dois meses atras
-     nao pode ser efeito colateral silencioso. */
+  /* ---------- o que muda de valor nesta edicao ----------
+     Nao ha mais reabertura: mostrar QUAIS faturas mudam de valor continua sendo
+     obrigatorio, porque mexer numa fatura paga nao pode ser silencioso. */
   function faturasAfetadas(lancs) {
     const ids = {};
     lancs.forEach((l) => { if (l.fatura) { const f = S.faturas.find((x) => x.id === l.fatura);
@@ -426,13 +589,10 @@
     return Object.values(ids);
   }
 
-  // aplica uma edicao reabrindo e refechando o que for preciso
-  function aplicarComReabertura(lancs, campos, quem) {
-    const reabrir = faturasAfetadas(lancs);
-    reabrir.forEach((f) => reabrirFatura(f.id));
+  function aplicarEdicao(lancs, campos, quem) {
+    const tocadas = faturasAfetadas(lancs);
     lancs.forEach((l) => editar(l.id, campos, quem));
-    reabrir.forEach((f) => fecharFatura(f.id));
-    return reabrir;
+    return tocadas;
   }
 
   /* ---------- PARCELAMENTO: altera TODAS. Nunca pergunta. ---------- */
@@ -442,13 +602,11 @@
     const ls = lancamentosDaSerie(sid).sort((a, b) => a.dataEvento.localeCompare(b.dataEvento));
     const n = ls.length;
     const base = Math.floor(novoValorTotal / n), resto = novoValorTotal - base * n;
-    const reabertas = faturasAfetadas(ls);
-    reabertas.forEach((f) => reabrirFatura(f.id));
+    const tocadas = faturasAfetadas(ls);
     ls.forEach((l, i) => editar(l.id, { valor: base + (i === 0 ? resto : 0) }, quem));
-    reabertas.forEach((f) => fecharFatura(f.id));
     r.valorTotal = novoValorTotal;
     registrar(`parcelamento "${r.descricao}" alterado para ${M.fmt(novoValorTotal)} em ${n}x`, 'edit');
-    return { alterados: n, faturasReabertas: reabertas.length };
+    return { alterados: n, faturasTocadas: tocadas.length };
   }
 
   /* ---------- RECORRENCIA: pergunta. escopo = 'FUTURAS' | 'TODAS' ---------- */
@@ -457,15 +615,13 @@
     if (!r || r.tipo !== 'RECORRENCIA') throw new Error('série não é recorrência');
     if (campos.valor) r.valor = campos.valor;
     if (campos.categoria !== undefined) r.categoria = campos.categoria;
-
     const todos = lancamentosDaSerie(sid);
     const alvo = escopo === 'TODAS' ? todos : todos.filter((l) => l.dataEvento > S.hoje);
-    const reabertas = aplicarComReabertura(alvo, campos, quem);
+    const tocadas = aplicarEdicao(alvo, campos, quem);
     registrar(`recorrência "${r.descricao}": ${escopo === 'TODAS' ? 'passado também' : 'só as futuras'} (${alvo.length})`, 'edit');
-    return { alterados: alvo.length, faturasReabertas: reabertas.length };
+    return { alterados: alvo.length, faturasTocadas: tocadas.length };
   }
 
-  // previa do impacto, para a tela perguntar com numero na mao
   function previaEdicaoRecorrencia(sid, escopo) {
     const todos = lancamentosDaSerie(sid);
     const alvo = escopo === 'TODAS' ? todos : todos.filter((l) => l.dataEvento > S.hoje);
@@ -477,11 +633,10 @@
     const r = serie(sid);
     if (!r) return null;
     const previstos = lancamentosDaSerie(sid).filter((l) => l.situacao === 'PREVISTO');
-    const reabertas = faturasAfetadas(previstos);
-    reabertas.forEach((f) => reabrirFatura(f.id));
+    const tocadas = faturasAfetadas(previstos);
     const ids = {}; previstos.forEach((l) => { ids[l.id] = true; });
     S.lancamentos = S.lancamentos.filter((l) => !ids[l.id]);
-    reabertas.forEach((f) => fecharFatura(f.id));
+    tocadas.forEach((f) => sincronizarPagamentoPrevisto(f.id));
     r.ativa = false; r.canceladaEm = S.hoje;
     registrar(`"${r.descricao}" cancelada — ${previstos.length} previsto(s) removido(s)`, 'edit');
     return { removidos: previstos.length };
@@ -492,27 +647,29 @@
     const eventos = [];
     for (let i = 0; i < dias; i++) {
       S.hoje = D.addDias(S.hoje, 1);
-      // previsto vira realizado quando a data de efeito chega (menos o que esta preso em fatura)
+      // previsto vira realizado quando a dataEfeito chega.
+      // Fora: o que esta preso em fatura (vira no fechamento) e o pagamento de
+      // fatura (quem paga e o usuario — o sistema nao debita sozinho).
       S.lancamentos.forEach((l) => {
-        if (l.situacao === 'PREVISTO' && l.dataEfeito <= S.hoje && !l.fatura) {
+        if (l.situacao === 'PREVISTO' && l.dataEfeito <= S.hoje && !l.fatura && !l.pagamentoDeFatura) {
           l.situacao = 'REALIZADO';
           eventos.push(`${D.br(S.hoje)} — ${l.descricao} caiu: ${M.fmt(l.valor)}`);
           registrar(`${l.descricao} realizado`, 'auto');
         }
       });
-      // GATILHO 1 — virada do mes: recorrencia fora do cartao ganha a ocorrencia do mes
+      // GATILHO 1 — virada do mes: recorrencia fora do cartao ganha a ocorrencia
       if (D.diaDoMes(S.hoje) === 1) sincronizarRecorrencias((r) => !noCartao(r));
-      // fatura fecha sozinha no dia do fechamento
-      S.faturas.forEach((f) => {
-        if (f.status === 'ABERTA' && f.fechamento <= S.hoje && totalFatura(f.id) > 0) {
-          fecharFatura(f.id);
-          eventos.push(`${D.br(S.hoje)} — fatura ${f.referencia} fechou: ${M.fmt(totalFatura(f.id))}`);
-          // GATILHO 2 — a fatura fechou, a proxima abriu: as recorrencias ativas entram nela
+      // GATILHO 2 — a fatura fecha sozinha; abre a seguinte, lanca recorrencias
+      // e cria o pagamento previsto. Idempotente e recupera atraso.
+      S.faturas.slice().forEach((f) => {
+        if (f.status === 'ABERTA' && f.fechamento <= S.hoje) {
+          const total = totalFatura(f.id);
           const antes = S.lancamentos.length;
-          sincronizarRecorrencias((r) => noCartao(r) && r.meio === f.cartao);
-          if (S.lancamentos.length > antes) {
-            eventos.push(`${D.br(S.hoje)} — ${S.lancamentos.length - antes} recorrência(s) lançada(s) na fatura nova`);
-          }
+          fecharFatura(f.id);
+          eventos.push(`${D.br(S.hoje)} — fatura ${f.referencia} fechou: ${M.fmt(total)}`);
+          const novos = S.lancamentos.length - antes - 2;  // -2 = o par do pagamento previsto
+          if (novos > 0) eventos.push(`${D.br(S.hoje)} — ${novos} recorrência(s) lançada(s) na fatura nova`);
+          if (total > 0) eventos.push(`${D.br(S.hoje)} — pagamento previsto de ${M.fmt(total)} em ${D.br(f.vencimento)}`);
         }
       });
     }
@@ -520,17 +677,21 @@
   }
 
   global.CB = {
-    S, D, M, id, registrar,
+    S, D, M, id, registrar, SEMPRE,
     contas, meios, categorias, lancamentos, faturas,
-    conta, meio, categoria, raizDe,
+    conta, meio, categoria, raizDe, ehDivida, ehCaixa,
     lancar, editar, estornar, transferir, aportar, resgatar, atualizarValorAplicacao,
     saldoRealizado, saldoProjetado, emCaixa, sobraAteFimDoMes, patrimonio, guardado,
+    dividaCartao, dividaTotal,
     gastoPorCategoria, guardadoNoMes, receitaDoMes, pendencias, esperaCategoria, extrato,
-    faturaPara, totalFatura, lancamentosDaFatura, fecharFatura, reabrirFatura, pagarFatura,
-    faturaAberta, comprarNoCredito, registrarBoleto, avancar,
+    faturasDe, faturaAberta, faturaNaPosicao, faturaDaReferencia, datasDaRef,
+    totalFatura, lancamentosDaFatura, pagamentosDaFatura, pagoDaFatura, situacaoPagamento,
+    fecharFatura, abrirFatura, podeAbrir, ultimaFechada, pagarFatura,
+    previaCorrecaoFatura, ajustarPagamento, criarPagamentoPrevisto, sincronizarPagamentoPrevisto,
+    comprarNoCredito, registrarBoleto, avancar,
     series, serie, lancamentosDaSerie, criarRecorrencia,
     sincronizarRecorrencia, sincronizarRecorrencias, cicloAberto, noCartao, limiteDisponivel,
     editarParcelamento, editarRecorrencia, previaEdicaoRecorrencia, cancelarSerie,
-    faturasAfetadas
+    faturasAfetadas, aplicarEdicao
   };
 })(window);

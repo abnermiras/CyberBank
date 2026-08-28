@@ -52,8 +52,13 @@
 
   const mDeb = novoMeio({ ambiente: PESSOAL, nome: 'Débito HELIX', tipo: 'DEBITO', conta: cc });
   const mPix = novoMeio({ ambiente: PESSOAL, nome: 'Pix', tipo: 'PIX', conta: cc });
-  const mCard = novoMeio({ ambiente: PESSOAL, nome: 'OBSIDIAN BLACK', tipo: 'CREDITO', conta: cc,
-    diaFechamento: 20, diaVencimento: 28, limite: 1500000 });
+  // ADR-0003: o CONTRATO do cartao e uma CONTA (tipo CARTAO) e o saldo dela e a divida.
+  // Limite, ciclo e conta pagadora sao dela, nao do cartao.
+  const ccCard = novaConta({ ambiente: PESSOAL, nome: 'OBSIDIAN BLACK', apelido: 'Cartão de crédito',
+    tipo: 'CARTAO', entraNoFluxoDeCaixa: true, diaVencimento: 28, diasAntesFechamento: 8,
+    limite: 1500000, contaPagadora: cc });
+  // os cartoes sao MEIOS apontando para ela — fisico e virtual dividem fatura e limite
+  const mCard = novoMeio({ ambiente: PESSOAL, nome: 'OBSIDIAN ****-1234', tipo: 'CREDITO', conta: ccCard });
   const mCash = novoMeio({ ambiente: PESSOAL, nome: 'Dinheiro', tipo: 'DINHEIRO', conta: cash });
   const mVr = novoMeio({ ambiente: PESSOAL, nome: 'Cartão benefício', tipo: 'BENEFICIO', conta: vr });
   const mBol = novoMeio({ ambiente: PESSOAL, nome: 'Boleto', tipo: 'BOLETO', conta: cc });
@@ -89,19 +94,37 @@
   CB.registrarBoleto({ conta: cc, valor: 31870, data: '2026-08-22', vencimento: '2026-09-05',
     descricao: 'Energia — setor 7', categoria: sub(cMora, 'Energia') });
 
-  // --- credito: parcelamento atravessando duas faturas ---
-  CB.comprarNoCredito({ cartao: mCard, valor: 267000, parcelas: 3, data: '2026-07-25',
-    descricao: 'Deck neural KIROSHI', categoria: sub(cEqui, 'Hardware'), estabelecimento: 'KIROSHI OPTICS' });
-  CB.comprarNoCredito({ cartao: mCard, valor: 12850, data: '2026-08-03', descricao: 'Jantar — TOXIC LOUNGE', categoria: sub(cSust, 'Restaurante') });
-  CB.comprarNoCredito({ cartao: mCard, valor: 3990, data: '2026-08-11', descricao: 'Streaming BRAINDANCE+', categoria: sub(cLaze, 'Streaming') });
-  CB.comprarNoCredito({ cartao: mCard, valor: 51230, data: '2026-08-18', descricao: 'Mercado NEO-SHIBUYA', categoria: sub(cSust, 'Mercado') });
-  CB.comprarNoCredito({ cartao: mCard, valor: 9600, data: '2026-08-22', descricao: 'Bar AFTERLIFE DECK', categoria: sub(cLaze, 'Bar') });
-  // pendencia de proposito: capturado, sem categoria confirmada
-  CB.comprarNoCredito({ cartao: mCard, valor: 7420, data: '2026-08-26', descricao: 'MEDTECH 24H', estabelecimento: 'MEDTECH DISP 08' });
+  // --- credito ---
+  // Helper SO DE SEED: coloca a compra na fatura de uma referencia. No app de verdade
+  // o lancamento nasce SEMPRE na fatura ABERTA e so o usuario o move — aqui estamos
+  // fabricando passado, o unico caso em que escolher a fatura faz sentido.
+  function creditoEm(ref, o) {
+    const ls = CB.comprarNoCredito(o);
+    let r = ref;
+    ls.forEach((l) => {
+      const f = CB.faturaDaReferencia(ccCard, r);
+      l.fatura = f.id;
+      if (f.status === 'FUTURA') { l.situacao = 'PREVISTO'; l.dataEfeito = f.fechamento; }
+      else { l.situacao = 'REALIZADO'; l.dataEfeito = l.dataEvento; }
+      r = CB.D.proxMes(r);
+    });
+    return ls;
+  }
 
-  // fatura de agosto ja fechou no dia 20 e vence dia 28
-  const fatAgo = S.faturas.find((f) => f.cartao === mCard && f.referencia === '2026-08');
-  if (fatAgo) CB.fecharFatura(fatAgo.id);
+  // parcelamento atravessando tres faturas: fechada, aberta e futura
+  creditoEm('2026-08', { cartao: mCard, valor: 267000, parcelas: 3, data: '2026-07-25',
+    descricao: 'Deck neural KIROSHI', categoria: sub(cEqui, 'Hardware'), estabelecimento: 'KIROSHI OPTICS' });
+  creditoEm('2026-08', { cartao: mCard, valor: 12850, data: '2026-08-03', descricao: 'Jantar — TOXIC LOUNGE', categoria: sub(cSust, 'Restaurante') });
+  creditoEm('2026-08', { cartao: mCard, valor: 3990, data: '2026-08-11', descricao: 'Streaming BRAINDANCE+', categoria: sub(cLaze, 'Streaming') });
+  creditoEm('2026-08', { cartao: mCard, valor: 51230, data: '2026-08-18', descricao: 'Mercado NEO-SHIBUYA', categoria: sub(cSust, 'Mercado') });
+  creditoEm('2026-09', { cartao: mCard, valor: 9600, data: '2026-08-22', descricao: 'Bar AFTERLIFE DECK', categoria: sub(cLaze, 'Bar') });
+  // pendencia de proposito: capturado, sem categoria confirmada
+  creditoEm('2026-09', { cartao: mCard, valor: 7420, data: '2026-08-26', descricao: 'MEDTECH 24H', estabelecimento: 'MEDTECH DISP 08' });
+
+  // fatura de agosto fechou dia 20 e vence dia 28 — ainda nao paga.
+  // O pagamento previsto e o que faz ela pesar em "sobra ate o fim do mes".
+  const fatAgo = S.faturas.find((f) => f.contaCartao === ccCard && f.referencia === '2026-08');
+  if (fatAgo) CB.criarPagamentoPrevisto(fatAgo);
 
   // --- recorrencia: N eventos independentes, sem data de fim (a "Netflix") ---
   // no cartao: a ocorrencia nova nasce quando a fatura fecha e a proxima abre
@@ -134,14 +157,16 @@
   LC({ conta: ccc, sentido: 'SAIDA', valor: 22000, dataEvento: '2026-08-21', dataEfeito: '2026-08-21',
     descricao: 'Conserto do purificador', categoria: null, meio: mDebC });
 
-  // historia paga: fatura com vencimento no passado ja foi fechada e quitada.
-  // Sem isso o passado inteiro fica PREVISTO e a leitura do modelo mente.
-  S.faturas.filter((f) => f.vencimento < HOJE).forEach((f) => {
-    if (f.status === 'ABERTA') CB.fecharFatura(f.id);
-    if (f.status === 'FECHADA') CB.pagarFatura(f.id);
-  });
-
+  // historia paga: fatura com vencimento no passado ja foi quitada.
+  // Pagar e TRANSFERENCIA, entao o ambiente ativo precisa ser o dono do cartao.
   S.ambienteAtivo = PESSOAL;
+  S.faturas.filter((f) => f.vencimento < HOJE && f.status === 'FECHADA')
+    .forEach((f) => { if (CB.totalFatura(f.id) > 0) CB.pagarFatura(f.id, { data: f.vencimento }); });
+
+  // faxina de seed: o parcelamento cria FUTURA contando a partir da ABERTA e o
+  // helper de historico as remaneja, deixando uma fatura vazia na ponta.
+  S.faturas = S.faturas.filter((f) => !(f.status === 'FUTURA' && CB.totalFatura(f.id) === 0));
+
   S.hoje = HOJE;
   S.log.length = 0;
   CB.registrar('sessão iniciada — dados de demonstração', 'sys');

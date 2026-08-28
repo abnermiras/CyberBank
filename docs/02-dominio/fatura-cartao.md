@@ -98,8 +98,14 @@ Não há mais "cuidado ao ler `PREVISTO` no crédito": `REALIZADO` voltou a sign
 
 | Leitura do saldo da conta `CARTAO` | O que é |
 |---|---|
-| **Realizado** | O que já foi comprado |
-| **Projetado** | O mesmo, mais as parcelas futuras — é a **dívida total** |
+| **Realizado** | O que já foi comprado e entrou em fatura |
+| **Projetado** | O mesmo, mais as parcelas futuras **e menos o pagamento previsto** |
+| **Dívida** | Tudo que foi comprado e ainda não foi pago: o saldo **sem** os pagamentos previstos |
+
+> **A dívida não é o saldo projetado, e o protótipo mostrou isso.** O projetado abate um
+> pagamento que ainda não aconteceu — ele responde *"quanto vou dever depois de pagar"*.
+> Quem responde *"quanto devo"* é a soma sem os previstos de pagamento. Limite e patrimônio
+> usam a dívida; usar o projetado subestima os dois.
 
 ## A que fatura um lançamento pertence
 
@@ -240,8 +246,8 @@ A dívida do cartão deixou de ser um cálculo com regra própria: **é o saldo 
 
 | Leitura | Como |
 |---|---|
-| **Limite disponível** | `limite − ` saldo **projetado** da conta `CARTAO`. O projetado já inclui as parcelas futuras — parcela segura limite, como na vida (`docs/02-dominio/meio-de-pagamento.md`) |
-| **Patrimônio** | Soma o saldo da conta `CARTAO` como qualquer outra conta, e ele é negativo. Nenhuma regra de "descontar dívida" é mais necessária (`docs/02-dominio/aplicacao-patrimonio.md`) |
+| **Limite disponível** | `limite − dívida`. A dívida já inclui as parcelas futuras — parcela segura limite, como na vida (`docs/02-dominio/meio-de-pagamento.md`) |
+| **Patrimônio** | Soma a conta `CARTAO` como qualquer outra, e ela é negativa — pela **dívida**, não pelo projetado (`docs/02-dominio/aplicacao-patrimonio.md`) |
 | **Quanto devo desta fatura** | O total dela menos o que já foi pago apontando para ela |
 
 ## Quem pode
