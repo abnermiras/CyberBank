@@ -64,7 +64,7 @@ O glossário define **o que a palavra significa**. Quem define **as regras** é 
 |---|---|---|
 | **Captura** | O ato de o sistema obter um lançamento automaticamente, sem digitação (notificação push, OFX, voz). | `05-integracoes/captura-notificacao` |
 | **Notificação de compra** | O texto bruto recebido do banco ou do cartão, antes de virar lançamento. É a matéria-prima da captura, não um lançamento. | `05-integracoes/captura-notificacao` |
-| **Pendência** | Lançamento sem categoria. **Não é um estado próprio** — é a consulta por lançamentos sem categoria. | `02-dominio/lancamento` |
+| **Pendência** | Lançamento **que espera categoria** e ainda não tem. Não é estado próprio, é consulta — e exclui o que nunca terá categoria (transferência, rendimento, ajuste, abertura). | `02-dominio/lancamento` |
 | **Categorização** | Atribuir categoria a um lançamento. Única etapa que o sistema aceita exigir do usuário. | `02-dominio/regras-categorizacao` |
 | **Regra de categorização** | O mapeamento que faz um estabelecimento virar categoria automaticamente. | `02-dominio/regras-categorizacao` |
 | **Estabelecimento** | Contraparte da compra, como veio da fonte externa: **texto bruto, antes de normalizar**. | `02-dominio/regras-categorizacao` |

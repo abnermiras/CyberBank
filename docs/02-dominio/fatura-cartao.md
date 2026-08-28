@@ -15,7 +15,11 @@ status: stub
 
 - [ ] Como o ciclo de fatura e definido (dia de fechamento x vencimento)
 - [ ] A que fatura um lancamento pertence, incluindo casos de borda na virada
-- [ ] Como o pagamento da fatura e representado sem contar o gasto duas vezes
+- [x] **Como o pagamento da fatura e representado sem contar o gasto duas vezes**
+      (respondido pelo prototipo): **pagar nao cria lancamento nenhum.** Os proprios
+      lancamentos da fatura ja debitam a conta, com dataEfeito no vencimento — pagar so
+      os vira de PREVISTO para REALIZADO, com a dataEfeito na data do pagamento. Um
+      lancamento de pagamento por cima contaria o gasto duas vezes. Falta escrever a regra
 - [ ] Como parcelamento aparece nas faturas seguintes
 - [ ] **Reabertura de fatura** (decidido em 27/08, falta escrever a regra): corrigir um
       lancamento ja faturado e reabrir -> editar -> recalcular -> ajustar o pagamento se

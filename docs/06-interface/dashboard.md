@@ -22,6 +22,9 @@ status: stub
       (`docs/02-dominio/conta.md`)
 - [ ] Filtros disponiveis e comportamento padrao
 - [ ] Tecnologia escolhida e por que
+- [x] **Estrutura de telas e onde vive o ambiente**: decidido em
+      `docs/06-interface/navegacao.md`, validado em `prototipo/`
+- [x] **Linguagem visual**: `docs/06-interface/direcao-visual.md`
 
 ## Conteudo
 

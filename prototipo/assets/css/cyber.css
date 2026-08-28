@@ -1,0 +1,162 @@
+/* =========================================================================
+   CYBERBANK // linguagem visual do prototipo
+   Direcao: HUD denso. Telemetria e moldura; o numero que importa e o maior
+   elemento da tela. Regras em docs/06-interface/direcao-visual.md
+   ========================================================================= */
+
+:root{
+  --void:#04070c;
+  --bg:#06090f;
+  --panel:#0a1018;
+  --panel-2:#0d141d;
+  --line:#1b2b38;
+  --line-hot:rgba(0,240,255,.28);
+
+  --cyan:#00f0ff;
+  --pink:#ff1f91;
+  --acid:#f7f13c;
+  --lime:#5cff9d;
+  --rust:#ff6b35;
+
+  --ink:#e8f4f8;
+  --muted:#5f7688;
+  --dim:#3d4f5e;
+
+  --mono:'Share Tech Mono','JetBrains Mono','Consolas',monospace;
+  --disp:'Chakra Petch','Rajdhani','Segoe UI',system-ui,sans-serif;
+
+  --chamfer:polygon(0 10px,10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%);
+  --chamfer-sm:polygon(0 6px,6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--void);color:var(--ink);
+  font-family:var(--disp);font-size:15px;line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+
+/* ---------- atmosfera: grid, scanline, vinheta ---------- */
+.atmos{position:fixed;inset:0;pointer-events:none;z-index:0}
+.atmos::before{ /* grade de perspectiva */
+  content:'';position:absolute;inset:0;
+  background:
+    linear-gradient(rgba(0,240,255,.045) 1px,transparent 1px) 0 0/100% 46px,
+    linear-gradient(90deg,rgba(0,240,255,.045) 1px,transparent 1px) 0 0/46px 100%;
+  mask-image:radial-gradient(ellipse at 50% 0%,#000 10%,transparent 78%);
+}
+.atmos::after{ /* scanlines + vinheta */
+  content:'';position:absolute;inset:0;
+  background:
+    repeating-linear-gradient(to bottom,rgba(0,0,0,.34) 0 1px,transparent 1px 3px),
+    radial-gradient(ellipse at 50% 40%,transparent 30%,rgba(0,0,0,.72) 100%);
+  opacity:.55;
+}
+.glow-cyan,.glow-pink{position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none;z-index:0}
+.glow-cyan{width:52vw;height:52vw;left:-18vw;top:-16vw;background:rgba(0,240,255,.10)}
+.glow-pink{width:46vw;height:46vw;right:-16vw;bottom:-20vw;background:rgba(255,31,145,.09)}
+
+/* ---------- tipografia ---------- */
+.eyebrow{font:10px/1.4 var(--mono);letter-spacing:.22em;color:var(--cyan);text-transform:uppercase}
+.tele{font:10px/1.5 var(--mono);letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+.tele b{color:var(--cyan);font-weight:400}
+h1,h2,h3{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:-.01em;line-height:.92}
+
+.glitch{position:relative;display:inline-block}
+.glitch::before,.glitch::after{
+  content:attr(data-t);position:absolute;left:0;top:0;width:100%;
+  clip-path:inset(0 0 55% 0);opacity:.85;pointer-events:none;
+}
+.glitch::before{color:var(--pink);opacity:.5;transform:translate(-3px,-1px)}
+.glitch::after{color:var(--cyan);opacity:.5;transform:translate(3px,1px);clip-path:inset(52% 0 0 0)}
+@media (prefers-reduced-motion:no-preference){
+  .glitch::before{animation:gl1 5.5s infinite steps(1)}
+  .glitch::after{animation:gl2 4.7s infinite steps(1)}
+}
+@keyframes gl1{0%,92%,100%{transform:translate(-2px,-1px)}94%{transform:translate(-7px,1px)}97%{transform:translate(3px,-2px)}}
+@keyframes gl2{0%,90%,100%{transform:translate(2px,1px)}93%{transform:translate(8px,-1px)}96%{transform:translate(-4px,2px)}}
+
+/* ---------- paineis ---------- */
+.panel{
+  position:relative;background:var(--panel);
+  border:1px solid var(--line);clip-path:var(--chamfer);
+  padding:18px 20px;
+}
+.panel.hot{border-color:var(--line-hot);box-shadow:0 0 0 1px rgba(0,240,255,.05),0 18px 60px rgba(0,0,0,.6)}
+.panel-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px}
+.panel-head h3{font-size:15px;letter-spacing:.06em;color:var(--ink)}
+.corner{position:absolute;width:8px;height:8px;border:1px solid var(--cyan);opacity:.6}
+.corner.tr{top:6px;right:6px;border-left:0;border-bottom:0}
+.corner.bl{bottom:6px;left:6px;border-right:0;border-top:0}
+
+/* ---------- botoes ---------- */
+.btn{
+  font:600 12px/1 var(--disp);letter-spacing:.14em;text-transform:uppercase;
+  padding:12px 18px;background:transparent;color:var(--cyan);
+  border:1px solid var(--cyan);cursor:pointer;clip-path:var(--chamfer-sm);
+  transition:background .12s,color .12s,box-shadow .12s;
+}
+.btn:hover{background:rgba(0,240,255,.12);box-shadow:0 0 18px rgba(0,240,255,.25)}
+.btn.primary{background:var(--acid);border-color:var(--acid);color:#0a0a05;font-weight:700}
+.btn.primary:hover{box-shadow:0 0 24px rgba(247,241,60,.4);background:#fffa5e}
+.btn.danger{color:var(--pink);border-color:var(--pink)}
+.btn.danger:hover{background:rgba(255,31,145,.14);box-shadow:0 0 18px rgba(255,31,145,.25)}
+.btn.ghost{color:var(--muted);border-color:var(--line)}
+.btn.ghost:hover{color:var(--ink);border-color:var(--dim);background:rgba(255,255,255,.03)}
+.btn:disabled{opacity:.32;cursor:not-allowed;box-shadow:none;background:transparent}
+.btn.sm{padding:8px 12px;font-size:10px}
+
+/* ---------- campos ---------- */
+.field{margin-bottom:14px}
+.field label{display:block;font:10px var(--mono);letter-spacing:.16em;color:var(--cyan);margin-bottom:6px;text-transform:uppercase}
+.field input,.field select,.field textarea{
+  width:100%;padding:12px 13px;background:#03060b;border:1px solid var(--line);
+  color:var(--ink);font:14px var(--mono);outline:none;clip-path:var(--chamfer-sm);
+}
+.field input:focus,.field select:focus{border-color:var(--pink);box-shadow:0 0 16px rgba(255,31,145,.18)}
+.field select{cursor:pointer}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* ---------- numeros ---------- */
+.metric{display:flex;flex-direction:column;gap:4px}
+.metric .lbl{font:10px var(--mono);letter-spacing:.16em;color:var(--muted);text-transform:uppercase}
+.metric .val{font:700 clamp(28px,4vw,44px)/1 var(--disp);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.metric .val.cy{color:var(--cyan)}
+.metric .val.ac{color:var(--acid)}
+.metric .val.pk{color:var(--pink)}
+.metric .val.lm{color:var(--lime)}
+.metric .sub{font:10px var(--mono);color:var(--dim);letter-spacing:.1em}
+.neg{color:var(--pink)}
+.pos{color:var(--lime)}
+
+/* ---------- tags ---------- */
+.tag{
+  display:inline-flex;align-items:center;gap:5px;
+  font:9px var(--mono);letter-spacing:.14em;text-transform:uppercase;
+  padding:3px 7px;border:1px solid var(--line);color:var(--muted);
+}
+.tag.prev{color:var(--acid);border-color:rgba(247,241,60,.4)}
+.tag.real{color:var(--lime);border-color:rgba(92,255,157,.35)}
+.tag.pend{color:var(--pink);border-color:rgba(255,31,145,.45)}
+.tag.transf{color:var(--cyan);border-color:rgba(0,240,255,.35)}
+
+/* ---------- barra de progresso HUD ---------- */
+.bar{height:4px;background:#0b1622;overflow:hidden;position:relative}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--pink))}
+
+/* ---------- utilitarios ---------- */
+.stack{display:flex;flex-direction:column}
+.hstack{display:flex;align-items:center}
+.gap6{gap:6px}.gap10{gap:10px}.gap14{gap:14px}.gap20{gap:20px}
+.between{justify-content:space-between}
+.wrap{flex-wrap:wrap}
+.grow{flex:1}
+.mt10{margin-top:10px}.mt18{margin-top:18px}.mt28{margin-top:28px}
+.center{text-align:center}
+.hidden{display:none !important}
+.scroll{overflow-y:auto}
+.scroll::-webkit-scrollbar{width:8px}
+.scroll::-webkit-scrollbar-track{background:#060a10}
+.scroll::-webkit-scrollbar-thumb{background:var(--line)}

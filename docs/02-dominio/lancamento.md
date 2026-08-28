@@ -64,8 +64,14 @@ dezembro pode estar prevista e já categorizada.
 | `REALIZADO` | Aconteceu | Saldo realizado e projetado |
 
 **`categoria` preenchida ou não** — um lançamento sem categoria **é** a pendência do
-glossário. Não existe estado `PENDENTE` separado: pendência é a consulta "lançamentos sem
-categoria", e um estado a menos é um estado que não dessincroniza.
+glossário. Não existe estado `PENDENTE` separado: pendência é uma **consulta**, e um
+estado a menos é um estado que não dessincroniza.
+
+A consulta não é "sem categoria" — é **"sem categoria e que espera uma"**. Ficam de fora
+transferência, aporte, resgate, rendimento, ajuste de fatura e lançamento de abertura:
+esses não têm categoria por natureza, e não são trabalho pendente para ninguém.
+*(A definição larga foi corrigida depois que o protótipo mostrou a abertura de conta
+aparecendo na fila de pendências.)*
 
 A transição `PREVISTO → REALIZADO` acontece quando a data chega e, havendo captura ou
 extrato, quando a conciliação confirma (`docs/02-dominio/importacao-conciliacao.md`).

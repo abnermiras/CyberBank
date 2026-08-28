@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CYBERBANK // TERMINAL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/cyber.css">
+<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+<div class="atmos"></div><div class="glow-cyan"></div><div class="glow-pink"></div>
+
+<!-- ================= HEADER: o ambiente vive aqui, sempre visivel ================= -->
+<header class="hdr">
+  <div class="hstack gap14">
+    <b class="mark">CYBER<i>BANK</i></b>
+    <div class="amb" id="ambChip">
+      <span class="dot" id="ambDot"></span>
+      <div class="stack">
+        <span class="tele" style="letter-spacing:.18em">AMBIENTE ATIVO</span>
+        <strong id="ambNome">PESSOAL</strong>
+      </div>
+      <span class="caret">▾</span>
+      <div class="ambmenu" id="ambMenu"></div>
+    </div>
+  </div>
+
+  <div class="hstack gap14 clockbox">
+    <div class="stack">
+      <span class="tele">DATA DO SISTEMA</span>
+      <strong id="hoje">27/08/2026</strong>
+    </div>
+    <div class="hstack gap6">
+      <button class="btn sm ghost" data-adv="1">+1D</button>
+      <button class="btn sm ghost" data-adv="7">+7D</button>
+      <button class="btn sm ghost" data-adv="30">+30D</button>
+      <button class="btn sm ghost" id="btnReset" title="Recarrega os dados de demonstração">RESET</button>
+    </div>
+  </div>
+
+  <div class="hstack gap10">
+    <div class="stack" style="text-align:right">
+      <span class="tele">IDENTIDADE</span>
+      <strong id="quem">DEMO</strong>
+    </div>
+    <div class="avatar" id="avatar">D</div>
+    <a class="btn sm ghost" href="index.html" style="text-decoration:none">SAIR</a>
+  </div>
+</header>
+
+<div class="shell">
+  <!-- ================= RAIL ================= -->
+  <nav class="rail">
+    <button class="nav on" data-tela="home"><span>◈</span>HOME</button>
+    <button class="nav" data-tela="extrato"><span>≡</span>EXTRATO</button>
+    <button class="nav" data-tela="fatura"><span>▤</span>FATURA</button>
+    <button class="nav" data-tela="patrimonio"><span>◆</span>RESERVA</button>
+    <div class="railfoot tele">CB<br>NC77</div>
+  </nav>
+
+  <!-- ================= MAIN ================= -->
+  <main class="main scroll" id="main">
+
+    <!-- ---------- HOME ---------- -->
+    <section class="tela" data-tela="home">
+      <div class="telahead">
+        <div><div class="eyebrow">VISÃO GERAL // <span id="mesRef">AGOSTO/2026</span></div><h2 class="th">Home</h2></div>
+        <div class="tele" id="statusLinha">LEDGER SYNCED</div>
+      </div>
+
+      <div class="grid4">
+        <div class="panel hot metric"><span class="corner tr"></span>
+          <span class="lbl">Em caixa · agora</span><span class="val cy" id="mEmCaixa">—</span>
+          <span class="sub">SÓ O REALIZADO, CONTAS DE FLUXO</span></div>
+        <div class="panel metric">
+          <span class="lbl">Sobra até <span id="fimMes">31/08</span></span><span class="val ac" id="mSobra">—</span>
+          <span class="sub">PROJETADO: + TUDO QUE AINDA CAI</span></div>
+        <div class="panel metric">
+          <span class="lbl">Guardado</span><span class="val lm" id="mGuardado">—</span>
+          <span class="sub">FORA DO FLUXO DE CAIXA</span></div>
+        <div class="panel metric">
+          <span class="lbl">Patrimônio</span><span class="val" id="mPatrimonio">—</span>
+          <span class="sub">TODAS AS CONTAS SOMADAS</span></div>
+      </div>
+
+      <div class="grid-2-1 mt18">
+        <div class="panel">
+          <div class="panel-head"><h3>Gasto por categoria</h3><span class="tele">POR DATA DO EVENTO · SÓ FLUXO DE CAIXA</span></div>
+          <div id="catList"></div>
+          <div class="guardadoline" id="guardadoLine"></div>
+        </div>
+
+        <div class="stack gap14">
+          <div class="panel" id="boxPend">
+            <div class="panel-head"><h3>Pendências</h3><span class="tag pend" id="pendCount">0</span></div>
+            <div id="pendList"></div>
+          </div>
+          <div class="panel" id="boxFatura">
+            <div class="panel-head"><h3>Fatura</h3><span class="tele" id="fatRef">—</span></div>
+            <div id="fatResumo"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel mt18" id="boxSim">
+        <div class="panel-head"><h3>Simulador de ciclo</h3><span class="tele">AVANCE O RELÓGIO E VEJA O MODELO REAGIR</span></div>
+        <p class="hint">O previsto vira realizado quando a data de efeito chega. A fatura fecha sozinha no dia do fechamento. Use os controles <b>+1D / +7D / +30D</b> no topo.</p>
+        <div class="logbox scroll" id="logBox"></div>
+      </div>
+    </section>
+
+    <!-- ---------- EXTRATO ---------- -->
+    <section class="tela hidden" data-tela="extrato">
+      <div class="telahead">
+        <div><div class="eyebrow">MOVIMENTO // AMBIENTE ATIVO</div><h2 class="th">Extrato</h2></div>
+        <div class="hstack gap6">
+          <select id="fConta" class="minisel"></select>
+          <button class="btn sm" id="btnSoPend">SÓ PENDÊNCIAS</button>
+        </div>
+      </div>
+      <div class="panel" style="padding:0"><div id="extList" class="extrato"></div></div>
+    </section>
+
+    <!-- ---------- FATURA ---------- -->
+    <section class="tela hidden" data-tela="fatura">
+      <div class="telahead">
+        <div><div class="eyebrow">CRÉDITO // CICLO DE FATURA</div><h2 class="th">Fatura</h2></div>
+        <select id="fSel" class="minisel"></select>
+      </div>
+      <div id="fatDetalhe"></div>
+    </section>
+
+    <!-- ---------- PATRIMONIO ---------- -->
+    <section class="tela hidden" data-tela="patrimonio">
+      <div class="telahead">
+        <div><div class="eyebrow">PATRIMÔNIO // CONTAS E APLICAÇÕES</div><h2 class="th">Reserva</h2></div>
+        <div class="tele">APORTE NÃO É GASTO — É DINHEIRO TROCANDO DE BOLSO</div>
+      </div>
+      <div id="patContas"></div>
+    </section>
+  </main>
+</div>
+
+<!-- ================= QUICK-ADD ================= -->
+<button class="fab" id="fab" title="Lançar (tecla N)">+</button>
+
+<div class="qa" id="qa">
+  <div class="panel hot qabox">
+    <span class="corner tr"></span>
+    <div class="panel-head"><h3>Lançar rápido</h3><span class="tele">ESC PARA FECHAR</span></div>
+    <form id="fQuick" autocomplete="off">
+      <div class="seg" id="qaSent">
+        <button type="button" class="on" data-s="SAIDA">SAÍDA</button>
+        <button type="button" data-s="ENTRADA">ENTRADA</button>
+      </div>
+      <div class="field"><label>valor</label><input id="qValor" inputmode="decimal" placeholder="0,00" required></div>
+      <div class="field"><label>o que foi</label><input id="qDesc" placeholder="DESCRIÇÃO" required></div>
+      <div class="row">
+        <div class="field"><label>meio</label><select id="qMeio"></select></div>
+        <div class="field"><label>categoria <span style="color:var(--dim)">(opcional)</span></label><select id="qCat"></select></div>
+      </div>
+      <div class="err" id="qErr"></div>
+      <button class="btn primary" style="width:100%">Lançar</button>
+    </form>
+    <button class="btn ghost mt10" style="width:100%" id="qFull">Abrir formulário completo →</button>
+    <p class="hint mt10">Sem categoria o lançamento entra e vai para a fila de pendências. O sistema aceita exigir só a categorização — nunca a digitação.</p>
+  </div>
+</div>
+
+<!-- ================= FORM COMPLETO ================= -->
+<div class="modal" id="full">
+  <div class="panel hot fullbox scroll">
+    <span class="corner tr"></span><span class="corner bl"></span>
+    <div class="panel-head"><h3>Novo lançamento</h3><button class="btn sm ghost" id="fullX">FECHAR</button></div>
+    <div class="seg wide" id="fTipo">
+      <button type="button" class="on" data-t="gasto">GASTO</button>
+      <button type="button" data-t="receita">RECEITA</button>
+      <button type="button" data-t="credito">CRÉDITO</button>
+      <button type="button" data-t="transf">TRANSFERÊNCIA</button>
+      <button type="button" data-t="boleto">BOLETO</button>
+    </div>
+    <form id="fFull" autocomplete="off">
+      <div class="row">
+        <div class="field"><label>valor</label><input id="xValor" inputmode="decimal" placeholder="0,00" required></div>
+        <div class="field"><label>data do evento</label><input id="xData" type="date" required></div>
+      </div>
+      <div class="field"><label>descrição</label><input id="xDesc" placeholder="O QUE FOI" required></div>
+      <div class="row" id="rowContaMeio">
+        <div class="field"><label id="lblConta">conta / meio</label><select id="xMeio"></select></div>
+        <div class="field"><label>categoria</label><select id="xCat"></select></div>
+      </div>
+      <div class="row hidden" id="rowTransf">
+        <div class="field"><label>de</label><select id="xDe"></select></div>
+        <div class="field"><label>para</label><select id="xPara"></select></div>
+      </div>
+      <div class="row hidden" id="rowCredito">
+        <div class="field"><label>cartão</label><select id="xCartao"></select></div>
+        <div class="field"><label>parcelas</label><select id="xParc"></select></div>
+      </div>
+      <div class="field hidden" id="rowVenc"><label>vencimento</label><input id="xVenc" type="date"></div>
+      <div class="explica" id="xExplica"></div>
+      <div class="err" id="xErr"></div>
+      <button class="btn primary" style="width:100%">Registrar</button>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="assets/js/dominio.js"></script>
+<script src="assets/js/mock.js"></script>
+<script src="assets/js/app.js"></script>
+</body></html>

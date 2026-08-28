@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CYBERBANK // ACCESS TERMINAL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/cyber.css">
+<style>
+body{display:flex;flex-direction:column;min-height:100vh}
+.topbar{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:center;padding:16px 28px;border-bottom:1px solid var(--line)}
+.brand b{font:700 20px var(--disp);letter-spacing:.16em}.brand b i{color:var(--cyan);font-style:normal}
+main{position:relative;z-index:1;flex:1;display:grid;place-items:center;padding:36px 20px}
+.card{width:min(1020px,100%);display:grid;grid-template-columns:1.05fr .95fr;
+  background:rgba(6,10,16,.94);border:1px solid var(--line-hot);
+  box-shadow:0 40px 120px #000,0 0 40px rgba(0,240,255,.06);clip-path:var(--chamfer)}
+.side{padding:46px 44px;border-right:1px solid rgba(0,240,255,.14);display:flex;flex-direction:column}
+.side h1{font-size:clamp(46px,6vw,74px);margin:14px 0 18px}
+.side .l2{color:var(--cyan)}
+.side p{color:#9fb3c0;font-size:16px;max-width:400px;line-height:1.5}
+.boot{margin-top:auto;padding-top:26px;font:10px/1.9 var(--mono);color:var(--dim);letter-spacing:.1em;min-height:104px}
+.boot b{color:var(--lime);font-weight:400}
+.boot .cur{color:var(--cyan);animation:bl 1s steps(1) infinite}
+@keyframes bl{50%{opacity:0}}
+.auth{padding:42px 40px;background:linear-gradient(140deg,rgba(255,255,255,.022),transparent 70%)}
+.auth-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:26px}
+.auth-head h2{font-size:32px;line-height:.92}
+.auth-head .code{font:9px/1.6 var(--mono);color:var(--dim);text-align:right;letter-spacing:.16em}
+.err{font:10px var(--mono);color:var(--pink);letter-spacing:.12em;min-height:16px;margin:-6px 0 10px;text-transform:uppercase}
+.note{font:10px/1.7 var(--mono);color:var(--dim);letter-spacing:.1em;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.swap{margin-top:10px}
+@media(max-width:860px){.card{grid-template-columns:1fr}.side{border-right:0;border-bottom:1px solid rgba(0,240,255,.14);padding:34px 26px}.auth{padding:30px 26px}.boot{min-height:0}}
+</style>
+</head>
+<body>
+<div class="atmos"></div><div class="glow-cyan"></div><div class="glow-pink"></div>
+
+<header class="topbar">
+  <div class="brand hstack gap14"><b>CYBER<i>BANK</i></b><span class="tele">ACCESS TERMINAL // AUTH GATE</span></div>
+  <span class="tele">SECURE NODE <b>ONLINE</b></span>
+</header>
+
+<main>
+  <section class="card">
+    <div class="side">
+      <div class="eyebrow">IDENTITY GATE // 01</div>
+      <h1><span class="glitch" data-t="ACESSO">ACESSO</span><br><span class="l2">AO NÓ</span></h1>
+      <p>Cada ambiente financeiro é um espaço fechado. Você não entra no sistema — você entra <b style="color:var(--ink)">num ambiente</b>, e só vê o que ele contém.</p>
+      <div class="boot" id="boot"></div>
+    </div>
+
+    <div class="auth">
+      <div id="viewLogin">
+        <div class="auth-head">
+          <h2>Access<br>terminal</h2>
+          <div class="code">AUTH/01<br>CB-NC77<br>PROTO</div>
+        </div>
+        <form id="fLogin" autocomplete="off">
+          <div class="field"><label>01 // identidade</label><input id="user" placeholder="ALIAS OU E-MAIL" required></div>
+          <div class="field"><label>02 // chave de acesso</label><input id="pass" type="password" placeholder="ACCESS KEY" required></div>
+          <div class="err" id="eLogin"></div>
+          <button class="btn primary" style="width:100%">Conectar</button>
+        </form>
+        <button class="btn ghost swap" style="width:100%" id="toReg">Provisionar nova identidade</button>
+        <p class="note">PROTOCOLO DEMO // qualquer identidade com 3+ caracteres e qualquer chave com 4+ acessa o ambiente de demonstração. Nada é persistido.</p>
+      </div>
+
+      <div id="viewReg" class="hidden">
+        <div class="auth-head">
+          <h2>Nova<br>identidade</h2>
+          <div class="code">PROV/02<br>CB-NC77<br>PROTO</div>
+        </div>
+        <form id="fReg" autocomplete="off">
+          <div class="field"><label>01 // alias</label><input id="rUser" placeholder="COMO VOCÊ SERÁ CHAMADO" required></div>
+          <div class="field"><label>02 // chave</label><input id="rPass" type="password" placeholder="MÍNIMO 4 CARACTERES" required></div>
+          <div class="field"><label>03 // confirmação</label><input id="rPass2" type="password" placeholder="REPITA A CHAVE" required></div>
+          <div class="err" id="eReg"></div>
+          <button class="btn primary" style="width:100%">Provisionar</button>
+        </form>
+        <button class="btn ghost swap" style="width:100%" id="toLogin">Voltar ao acesso</button>
+        <p class="note">AO PROVISIONAR // o sistema cria um ambiente financeiro do qual você é o dono. Todo dado nasce dentro dele.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+  var linhas=['> inicializando nó local .......... <b>OK</b>','> handshake criptográfico ........ <b>OK</b>','> ledger local ................... <b>SYNCED</b>','> ambientes disponíveis .......... <b>02</b>','> aguardando identidade <span class="cur">_</span>'];
+  var box=document.getElementById('boot'),i=0;
+  (function next(){ if(i>=linhas.length) return; box.innerHTML+=linhas[i++]+'<br>'; setTimeout(next,i===1?260:420); })();
+
+  var vL=document.getElementById('viewLogin'),vR=document.getElementById('viewReg');
+  document.getElementById('toReg').onclick=function(){vL.classList.add('hidden');vR.classList.remove('hidden');};
+  document.getElementById('toLogin').onclick=function(){vR.classList.add('hidden');vL.classList.remove('hidden');};
+
+  document.getElementById('fLogin').addEventListener('submit',function(e){
+    e.preventDefault();
+    var u=document.getElementById('user').value.trim(),p=document.getElementById('pass').value;
+    if(u.length<3||p.length<4){document.getElementById('eLogin').textContent='AUTH ERROR // identidade 3+ e chave 4+ caracteres';return;}
+    document.getElementById('eLogin').textContent='';
+    location.href='app.html?user='+encodeURIComponent(u.toUpperCase());
+  });
+
+  document.getElementById('fReg').addEventListener('submit',function(e){
+    e.preventDefault();
+    var u=document.getElementById('rUser').value.trim(),a=document.getElementById('rPass').value,b=document.getElementById('rPass2').value;
+    if(u.length<3){document.getElementById('eReg').textContent='PROVISION ERROR // alias muito curto';return;}
+    if(a.length<4||a!==b){document.getElementById('eReg').textContent='PROVISION ERROR // chaves não conferem';return;}
+    location.href='app.html?user='+encodeURIComponent(u.toUpperCase())+'&novo=1';
+  });
+})();
+</script>
+</body></html>

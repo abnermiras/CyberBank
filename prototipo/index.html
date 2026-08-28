@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CYBERBANK // SISTEMA FINANCEIRO PESSOAL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/cyber.css">
+<style>
+.wrapper{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:0 28px}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;gap:12px}
+.brand b{font:700 20px var(--disp);letter-spacing:.16em}
+.brand b i{color:var(--cyan);font-style:normal}
+.ticker{overflow:hidden;border-bottom:1px solid var(--line);background:rgba(0,240,255,.03)}
+.ticker div{display:inline-block;white-space:nowrap;padding:6px 0;font:10px var(--mono);letter-spacing:.2em;color:var(--muted);animation:slide 42s linear infinite}
+.ticker span{padding:0 26px;border-right:1px solid var(--line)}
+.ticker b{color:var(--acid);font-weight:400}
+@keyframes slide{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:40px;padding:70px 0 60px;align-items:center}
+.hero h1{font-size:clamp(48px,7.4vw,104px);margin:16px 0 24px}
+.hero h1 .l2{color:var(--cyan)}
+.lede{font-size:19px;color:#9fb3c0;max-width:520px;line-height:1.5}
+.lede b{color:var(--ink);font-weight:600}
+.cta{display:flex;gap:14px;margin-top:34px;flex-wrap:wrap}
+
+.hud{padding:22px;background:linear-gradient(160deg,rgba(0,240,255,.05),transparent 60%),var(--panel)}
+.hud .rowline{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px dashed rgba(27,43,56,.9);font:11px var(--mono);letter-spacing:.1em;color:var(--muted)}
+.hud .rowline b{color:var(--ink);font-weight:400}
+.hud .big{font:700 46px/1 var(--disp);color:var(--acid);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.spark{display:flex;align-items:flex-end;gap:3px;height:46px;margin-top:14px}
+.spark i{flex:1;background:linear-gradient(180deg,var(--cyan),rgba(0,240,255,.12))}
+
+.feats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding:20px 0 80px}
+.feat{padding:22px 20px;min-height:190px;display:flex;flex-direction:column;gap:10px}
+.feat .n{font:10px var(--mono);color:var(--dim);letter-spacing:.2em}
+.feat h3{font-size:19px;color:var(--ink);line-height:1.02}
+.feat p{font-size:13.5px;color:#8ea3b1;line-height:1.5}
+.feat.c1{border-top:2px solid var(--cyan)}
+.feat.c2{border-top:2px solid var(--acid)}
+.feat.c3{border-top:2px solid var(--pink)}
+.feat.c4{border-top:2px solid var(--lime)}
+
+.stripe{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:26px 0;display:grid;grid-template-columns:repeat(4,1fr);gap:20px;background:rgba(0,0,0,.35)}
+.stripe .metric .val{font-size:30px}
+footer{padding:26px 0 50px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+@media(max-width:980px){.hero{grid-template-columns:1fr;padding:46px 0}.feats{grid-template-columns:1fr 1fr}.stripe{grid-template-columns:1fr 1fr;gap:24px}}
+@media(max-width:620px){.feats{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="atmos"></div><div class="glow-cyan"></div><div class="glow-pink"></div>
+
+<div class="ticker"><div id="tk"></div></div>
+
+<div class="wrapper">
+  <header class="topbar">
+    <div class="brand"><b>CYBER<i>BANK</i></b><span class="tele">PERSONAL FINANCIAL SYSTEM // v0.1-PROTO</span></div>
+    <div class="hstack gap14"><span class="tele">NODE <b>CB-NC77</b></span><span class="tele">LOCAL <b id="clock">--:--:--</b></span></div>
+  </header>
+
+  <section class="hero">
+    <div>
+      <div class="eyebrow">REDE FINANCEIRA PRIVADA // NÓ LOCAL // AUTO-HOSPEDADO</div>
+      <h1><span class="glitch" data-t="SEU FLUXO.">SEU FLUXO.</span><br><span class="l2">SUAS REGRAS.</span></h1>
+      <p class="lede">O RaspyBank mostrava para onde o dinheiro foi. O CyberBank responde <b>quanto entrou, quanto está guardado, quanto está investido</b> e a que distância estão as metas — num sistema que roda na sua casa, no seu hardware, sob o seu controle.</p>
+      <div class="cta">
+        <a href="login.html" class="btn primary" style="text-decoration:none;display:inline-block">Acessar o terminal</a>
+        <a href="app.html?user=DEMO&amp;demo=1" class="btn" style="text-decoration:none;display:inline-block">Entrar em modo demo</a>
+      </div>
+      <div class="tele mt28">PROTÓTIPO NAVEGÁVEL // DADOS FICTÍCIOS // NENHUM DADO REAL É PERSISTIDO</div>
+    </div>
+
+    <div class="panel hot hud">
+      <span class="corner tr"></span><span class="corner bl"></span>
+      <div class="eyebrow">LEDGER SNAPSHOT // AMBIENTE: PESSOAL</div>
+      <div class="mt18"><div class="tele">PATRIMÔNIO CONSOLIDADO</div><div class="big" id="pat">R$ 25.200,50</div></div>
+      <div class="spark" id="spark"></div>
+      <div class="mt18">
+        <div class="rowline"><span>EM CAIXA</span><b>R$ 12.516,50</b></div>
+        <div class="rowline"><span>SOBRA ATÉ 31/08</span><b style="color:var(--acid)">R$ 10.945,80</b></div>
+        <div class="rowline"><span>GUARDADO</span><b style="color:var(--lime)">R$ 12.684,00</b></div>
+        <div class="rowline"><span>FATURA EM ABERTO</span><b style="color:var(--pink)">R$ 1.060,20</b></div>
+        <div class="rowline" style="border:0"><span>PENDÊNCIAS</span><b>01</b></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="feats">
+    <div class="panel feat c1"><div class="n">01</div><h3>Ambiente<br>financeiro</h3><p>Pessoal, Casa, Empresa. O ambiente é o dono do dado — não você. Compartilhe com quem precisa, com papel de dono, editor ou leitor, e nada vaza entre eles.</p></div>
+    <div class="panel feat c2"><div class="n">02</div><h3>Previsto ×<br>realizado</h3><p>A parcela de dezembro já existe hoje. O saldo tem duas leituras: o que você tem agora, e o que sobra até o fim do mês com tudo que ainda vai cair.</p></div>
+    <div class="panel feat c3"><div class="n">03</div><h3>Fatura sob<br>controle</h3><p>O gasto no crédito não debita na hora: cai na fatura certa e sai no vencimento. Errou algo já faturado? Reabre, corrige, recalcula e fecha de novo.</p></div>
+    <div class="panel feat c4"><div class="n">04</div><h3>Patrimônio,<br>não só gasto</h3><p>Guardar dinheiro não é despesa. Aporte sai do fluxo de caixa e entra no patrimônio — e o relatório de gasto para de mentir sobre o seu mês.</p></div>
+  </section>
+
+  <section class="stripe">
+    <div class="metric"><span class="lbl">Ambientes ativos</span><span class="val cy">02</span><span class="sub">PESSOAL // CASA</span></div>
+    <div class="metric"><span class="lbl">Contas conectadas</span><span class="val">05</span><span class="sub">CORRENTE · CARTEIRA · VR · RESERVA</span></div>
+    <div class="metric"><span class="lbl">Custo externo</span><span class="val lm">R$ 0</span><span class="sub">SEM SERVIÇO PAGO, SEM API COBRADA</span></div>
+    <div class="metric"><span class="lbl">Hospedagem</span><span class="val ac">LOCAL</span><span class="sub">RASPBERRY PI // NUVEM DEPOIS</span></div>
+  </section>
+
+  <footer>
+    <span class="tele">CYBERBANK // PROTÓTIPO DE INTERFACE E DE REGRAS DE NEGÓCIO</span>
+    <span class="tele">BUILD <b>0.1.0-PROTO</b> · SESSÃO <b id="sess">--</b></span>
+  </footer>
+</div>
+
+<script>
+(function(){
+  var itens=['LEDGER SYNCED','NÓ LOCAL ONLINE','CRIPTOGRAFIA ATIVA','AMBIENTE: PESSOAL','FATURA 2026-08 FECHADA · VENCE 28/08','01 PENDÊNCIA DE CATEGORIZAÇÃO','PARCELA 2/3 · DECK NEURAL','RESERVA +R$ 84,00 NO MÊS','BOLETO ENERGIA · PREVISTO 05/09','CUSTO EXTERNO R$ 0,00'];
+  var linha=itens.map(function(t){return '<span>'+t.replace(/(R\$ [\d.,]+|\d{2}\/\d{2}|2026-08|2\/3)/g,'<b>$1</b>')+'</span>';}).join('');
+  document.getElementById('tk').innerHTML=linha+linha;
+
+  var s=document.getElementById('spark'),h=[38,44,35,52,61,49,70,58,66,74,63,81,72,88];
+  s.innerHTML=h.map(function(v){return '<i style="height:'+v+'%"></i>';}).join('');
+
+  document.getElementById('sess').textContent='NC'+String(Math.floor(Math.random()*9000)+1000);
+  function tick(){var d=new Date();document.getElementById('clock').textContent=d.toTimeString().slice(0,8);}
+  tick();setInterval(tick,1000);
+
+  // patrimonio com leve telemetria viva — moldura, nunca o dado real
+  var base=2520050,el=document.getElementById('pat');
+  setInterval(function(){
+    var v=base+Math.round((Math.random()-.5)*400);
+    el.textContent='R$ '+(v/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  },2200);
+})();
+</script>
+</body></html>
