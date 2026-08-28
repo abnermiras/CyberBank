@@ -21,10 +21,12 @@ status: stub
       os vira de PREVISTO para REALIZADO, com a dataEfeito na data do pagamento. Um
       lancamento de pagamento por cima contaria o gasto duas vezes. Falta escrever a regra
 - [ ] Como parcelamento aparece nas faturas seguintes
-- [ ] **Reabertura de fatura** (decidido em 27/08, falta escrever a regra): corrigir um
-      lancamento ja faturado e reabrir -> editar -> recalcular -> ajustar o pagamento se
-      ja houver -> fechar de novo. Enquanto fechada, os lancamentos da fatura estao
-      congelados (`docs/02-dominio/lancamento.md`)
+- [ ] **Reabertura de fatura** (decidido, falta escrever a regra): reabrir -> editar ->
+      fechar de novo. Se a fatura ja estava paga, o valor do pagamento e **reescrito** na
+      data original — sem lancamento de ajuste no extrato, porque o saldo e derivado dos
+      lancamentos e se refaz sozinho. Enquanto fechada, os lancamentos estao congelados
+- [ ] Editar uma serie (recorrencia ou parcelamento) pode obrigar a **reabrir varias
+      faturas de uma vez**: mostrar quais antes de confirmar (`docs/02-dominio/recorrencia.md`)
 - [ ] Fatura em aberto entra no calculo de patrimonio como divida?
       (`docs/02-dominio/aplicacao-patrimonio.md`)
 

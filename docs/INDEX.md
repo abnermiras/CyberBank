@@ -57,7 +57,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | [`lancamento.md`](02-dominio/lancamento.md) | campos, as duas datas, situacao, transferencia, correcao versus estorno e invariantes do lancamento | rascunho |
 | [`meio-de-pagamento.md`](02-dominio/meio-de-pagamento.md) | tipos de meio, a regra que calcula a dataEfeito de cada tipo, e como o lancamento os referencia | rascunho |
 | [`orcamento.md`](02-dominio/orcamento.md) | limites por categoria/periodo e calculo de consumo | stub |
-| [`recorrencia.md`](02-dominio/recorrencia.md) | lancamentos recorrentes e parcelados: geracao e manutencao | stub |
+| [`recorrencia.md`](02-dominio/recorrencia.md) | as duas series de lancamentos: como nascem, como sao editadas e como sao canceladas | rascunho |
 | [`regras-categorizacao.md`](02-dominio/regras-categorizacao.md) | como um lancamento recebe categoria automaticamente | stub |
 
 ## Dados — schema e persistencia
@@ -124,5 +124,5 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 
 ---
 
-**59 documentos · 37 ainda em stub.**
+**59 documentos · 36 ainda em stub.**
 Stub = conteudo inexistente: pergunte, nao deduza.

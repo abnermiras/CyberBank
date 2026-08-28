@@ -51,7 +51,7 @@
     hoje: null,
     ambienteAtivo: null,
     ambientes: [], contas: [], meios: [], categorias: [],
-    lancamentos: [], faturas: [],
+    lancamentos: [], faturas: [], series: [],
     log: []
   };
 
@@ -64,6 +64,7 @@
   const categorias = () => doAmbiente(S.categorias);
   const lancamentos = () => doAmbiente(S.lancamentos);
   const faturas = () => doAmbiente(S.faturas);
+  const series = () => doAmbiente(S.series).filter((x) => x.ativa);
 
   const conta = (cid) => S.contas.find((c) => c.id === cid);
   const meio = (mid) => S.meios.find((m) => m.id === mid);
@@ -87,6 +88,7 @@
       meio: o.meio || null,
       fatura: o.fatura || null,
       transferenciaId: o.transferenciaId || null,
+      serie: o.serie || null,
       origemParcelamento: o.origemParcelamento || null,
       estabelecimento: o.estabelecimento || null,
       autor: o.autor || 'V',
@@ -247,18 +249,17 @@
     const f = S.faturas.find((x) => x.id === fid);
     if (!f || f.status !== 'ABERTA') return f;
     const total = totalFatura(fid);
-    // reabertura de fatura ja paga: a diferenca vira AJUSTE, e nao um REALIZADO virando PREVISTO
-    if (f.jaFoiPaga && f.totalNoFechamento !== null && total !== f.totalNoFechamento) {
-      const dif = total - f.totalNoFechamento;
-      const aj = lancar({ conta: meio(f.cartao).conta, sentido: dif > 0 ? 'SAIDA' : 'ENTRADA', valor: Math.abs(dif),
-        descricao: `Ajuste da fatura ${f.referencia}`, dataEvento: S.hoje, dataEfeito: S.hoje,
-        situacao: 'REALIZADO', categoria: null, meio: null });
-      aj.ajusteDeFatura = f.id;
-      registrar(`ajuste de ${M.fmt(Math.abs(dif))} na fatura ${f.referencia}`, 'fatura');
-    }
+    // Fatura ja paga corrigida: REESCREVE o passado. O valor do pagamento passa a ser o
+    // novo total, na data original — sem lancamento de ajuste. Nada a recalcular: saldo e
+    // sempre a soma dos lancamentos, entao reescrever o valor ja refaz tudo que deriva dele.
+    const antes = f.totalNoFechamento;
     f.totalNoFechamento = total;
     f.status = f.jaFoiPaga ? 'PAGA' : 'FECHADA';
-    registrar(`fatura ${f.referencia} fechada em ${M.fmt(total)}`, 'fatura');
+    if (f.jaFoiPaga && antes !== null && antes !== total) {
+      registrar(`fatura ${f.referencia}: pagamento reescrito ${M.fmt(antes)} -> ${M.fmt(total)}`, 'fatura');
+    } else {
+      registrar(`fatura ${f.referencia} fechada em ${M.fmt(total)}`, 'fatura');
+    }
     return f;
   }
 
@@ -291,7 +292,12 @@
     const base = Math.floor(o.valor / n);
     const resto = o.valor - base * n;
     const criados = [];
-    const grupo = n > 1 ? id('parc') : null;
+    let grupo = null;
+    if (n > 1) {
+      grupo = id('ser');
+      S.series.push({ id: grupo, ambiente: S.ambienteAtivo, tipo: 'PARCELAMENTO', descricao: o.descricao,
+        valorTotal: o.valor, parcelas: n, categoria: o.categoria || null, cartao: o.cartao, ativa: true });
+    }
     for (let i = 0; i < n; i++) {
       const dataEv = i === 0 ? (o.data || S.hoje) : D.addMeses(o.data || S.hoje, i);
       const f = faturaPara(o.cartao, dataEv);
@@ -300,7 +306,7 @@
         dataEvento: dataEv, dataEfeito: f.vencimento,
         descricao: n > 1 ? `${o.descricao} ${i + 1}/${n}` : o.descricao,
         situacao: 'PREVISTO', categoria: o.categoria || null, meio: o.cartao,
-        fatura: f.id, origemParcelamento: grupo, estabelecimento: o.estabelecimento || null
+        fatura: f.id, serie: grupo, origemParcelamento: grupo, estabelecimento: o.estabelecimento || null
       });
       criados.push(l);
     }
@@ -313,6 +319,138 @@
       dataEvento: o.data || S.hoje, dataEfeito: o.vencimento,
       descricao: o.descricao, situacao: 'PREVISTO', categoria: o.categoria || null,
       meio: meios().find((m) => m.tipo === 'BOLETO') ? meios().find((m) => m.tipo === 'BOLETO').id : null });
+  }
+
+  /* ================= SERIES: RECORRENCIA E PARCELAMENTO =================
+     Recorrencia: N eventos independentes, sem fim. Pode perguntar ao editar.
+     Parcelamento: UMA compra dividida. Nunca pergunta — altera todas.
+     Regras em docs/02-dominio/recorrencia.md
+     ==================================================================== */
+  const HORIZONTE_MESES = 12; // recorrencia sem fim mantem ~12 meses rolantes a frente
+
+  const lancamentosDaSerie = (sid) => S.lancamentos.filter((l) => l.serie === sid);
+  const serie = (sid) => S.series.find((x) => x.id === sid);
+
+  function criarRecorrencia(o) {
+    const r = {
+      id: id('ser'), ambiente: o.ambiente || S.ambienteAtivo, tipo: 'RECORRENCIA',
+      descricao: o.descricao, valor: o.valor, dia: o.dia || D.diaDoMes(S.hoje),
+      conta: o.conta, meio: o.meio || null, categoria: o.categoria || null,
+      inicio: o.inicio || S.hoje, fim: o.fim || null, ativa: true,
+      automatico: !!o.automatico   // "debito automatico" e atributo daqui, nao meio
+    };
+    S.series.push(r);
+    gerarOcorrencias(r.id);
+    registrar(`recorrência criada: ${r.descricao} — ${M.fmt(r.valor)}/mês`, 'novo');
+    return r;
+  }
+
+  // mantem o horizonte: gera o que falta ate ~12 meses a frente, sem duplicar
+  function gerarOcorrencias(sid) {
+    const r = serie(sid);
+    if (!r || r.tipo !== 'RECORRENCIA' || !r.ativa) return [];
+    const limite = D.addMeses(S.hoje, HORIZONTE_MESES);
+    const jaTem = {};
+    lancamentosDaSerie(sid).forEach((l) => { jaTem[D.mes(l.dataEvento)] = true; });
+    const criados = [];
+    let cursor = r.inicio;
+    // alinha o cursor no dia da recorrencia
+    cursor = cursor.slice(0, 8) + String(Math.min(r.dia, 28)).padStart(2, '0');
+    let guarda = 0;
+    while (cursor <= limite && guarda++ < 400) {
+      if ((!r.fim || cursor <= r.fim) && !jaTem[D.mes(cursor)]) {
+        const meioR = r.meio ? meio(r.meio) : null;
+        if (meioR && meioR.tipo === 'CREDITO') {
+          criados.push(comprarNoCredito({ cartao: r.meio, valor: r.valor, data: cursor,
+            descricao: r.descricao, categoria: r.categoria })[0]);
+          criados[criados.length - 1].serie = sid;
+        } else {
+          const l = lancar({ ambiente: r.ambiente, conta: r.conta, sentido: 'SAIDA', valor: r.valor,
+            dataEvento: cursor, dataEfeito: cursor, descricao: r.descricao,
+            situacao: cursor <= S.hoje ? 'REALIZADO' : 'PREVISTO',
+            categoria: r.categoria, meio: r.meio });
+          l.serie = sid;
+          criados.push(l);
+        }
+        jaTem[D.mes(cursor)] = true;
+      }
+      cursor = D.addMeses(cursor, 1);
+    }
+    return criados;
+  }
+
+  const estenderTodasAsRecorrencias = () => S.series.filter((r) => r.tipo === 'RECORRENCIA' && r.ativa)
+    .forEach((r) => gerarOcorrencias(r.id));
+
+  /* ---------- quais faturas precisam ser reabertas para esta edicao ----------
+     O usuario ve isso ANTES de confirmar: reabrir fatura paga de dois meses atras
+     nao pode ser efeito colateral silencioso. */
+  function faturasAfetadas(lancs) {
+    const ids = {};
+    lancs.forEach((l) => { if (l.fatura) { const f = S.faturas.find((x) => x.id === l.fatura);
+      if (f && f.status !== 'ABERTA') ids[f.id] = f; } });
+    return Object.values(ids);
+  }
+
+  // aplica uma edicao reabrindo e refechando o que for preciso
+  function aplicarComReabertura(lancs, campos, quem) {
+    const reabrir = faturasAfetadas(lancs);
+    reabrir.forEach((f) => reabrirFatura(f.id));
+    lancs.forEach((l) => editar(l.id, campos, quem));
+    reabrir.forEach((f) => fecharFatura(f.id));
+    return reabrir;
+  }
+
+  /* ---------- PARCELAMENTO: altera TODAS. Nunca pergunta. ---------- */
+  function editarParcelamento(sid, novoValorTotal, quem) {
+    const r = serie(sid);
+    if (!r || r.tipo !== 'PARCELAMENTO') throw new Error('série não é parcelamento');
+    const ls = lancamentosDaSerie(sid).sort((a, b) => a.dataEvento.localeCompare(b.dataEvento));
+    const n = ls.length;
+    const base = Math.floor(novoValorTotal / n), resto = novoValorTotal - base * n;
+    const reabertas = faturasAfetadas(ls);
+    reabertas.forEach((f) => reabrirFatura(f.id));
+    ls.forEach((l, i) => editar(l.id, { valor: base + (i === 0 ? resto : 0) }, quem));
+    reabertas.forEach((f) => fecharFatura(f.id));
+    r.valorTotal = novoValorTotal;
+    registrar(`parcelamento "${r.descricao}" alterado para ${M.fmt(novoValorTotal)} em ${n}x`, 'edit');
+    return { alterados: n, faturasReabertas: reabertas.length };
+  }
+
+  /* ---------- RECORRENCIA: pergunta. escopo = 'FUTURAS' | 'TODAS' ---------- */
+  function editarRecorrencia(sid, campos, escopo, quem) {
+    const r = serie(sid);
+    if (!r || r.tipo !== 'RECORRENCIA') throw new Error('série não é recorrência');
+    if (campos.valor) r.valor = campos.valor;
+    if (campos.categoria !== undefined) r.categoria = campos.categoria;
+
+    const todos = lancamentosDaSerie(sid);
+    const alvo = escopo === 'TODAS' ? todos : todos.filter((l) => l.dataEvento > S.hoje);
+    const reabertas = aplicarComReabertura(alvo, campos, quem);
+    registrar(`recorrência "${r.descricao}": ${escopo === 'TODAS' ? 'passado também' : 'só as futuras'} (${alvo.length})`, 'edit');
+    return { alterados: alvo.length, faturasReabertas: reabertas.length };
+  }
+
+  // previa do impacto, para a tela perguntar com numero na mao
+  function previaEdicaoRecorrencia(sid, escopo) {
+    const todos = lancamentosDaSerie(sid);
+    const alvo = escopo === 'TODAS' ? todos : todos.filter((l) => l.dataEvento > S.hoje);
+    return { ocorrencias: alvo.length, faturas: faturasAfetadas(alvo) };
+  }
+
+  /* ---------- CANCELAR: os previstos a frente somem; o passado fica ---------- */
+  function cancelarSerie(sid) {
+    const r = serie(sid);
+    if (!r) return null;
+    const previstos = lancamentosDaSerie(sid).filter((l) => l.situacao === 'PREVISTO');
+    const reabertas = faturasAfetadas(previstos);
+    reabertas.forEach((f) => reabrirFatura(f.id));
+    const ids = {}; previstos.forEach((l) => { ids[l.id] = true; });
+    S.lancamentos = S.lancamentos.filter((l) => !ids[l.id]);
+    reabertas.forEach((f) => fecharFatura(f.id));
+    r.ativa = false; r.canceladaEm = S.hoje;
+    registrar(`"${r.descricao}" cancelada — ${previstos.length} previsto(s) removido(s)`, 'edit');
+    return { removidos: previstos.length };
   }
 
   /* ================= RELOGIO — o ciclo simulavel ================= */
@@ -328,6 +466,7 @@
           registrar(`${l.descricao} realizado`, 'auto');
         }
       });
+      estenderTodasAsRecorrencias();
       // fatura fecha sozinha no dia do fechamento
       S.faturas.forEach((f) => {
         if (f.status === 'ABERTA' && f.fechamento <= S.hoje && totalFatura(f.id) > 0) {
@@ -347,6 +486,9 @@
     saldoRealizado, saldoProjetado, emCaixa, sobraAteFimDoMes, patrimonio, guardado,
     gastoPorCategoria, guardadoNoMes, receitaDoMes, pendencias, esperaCategoria, extrato,
     faturaPara, totalFatura, lancamentosDaFatura, fecharFatura, reabrirFatura, pagarFatura,
-    faturaAberta, comprarNoCredito, registrarBoleto, avancar
+    faturaAberta, comprarNoCredito, registrarBoleto, avancar,
+    series, serie, lancamentosDaSerie, criarRecorrencia, gerarOcorrencias,
+    editarParcelamento, editarRecorrencia, previaEdicaoRecorrencia, cancelarSerie,
+    faturasAfetadas, HORIZONTE_MESES
   };
 })(window);

@@ -48,6 +48,9 @@ diferença, e o ciclo de fatura com reabertura.
 | Formulário completo → TRANSFERÊNCIA para a Reserva | Aporte que não é gasto e não muda o patrimônio |
 | Fatura → REABRIR, editar, FECHAR | O ajuste da diferença numa fatura já paga |
 | Reserva → informar valor atual | Rendimento como lançamento, não como sobrescrita |
+| Séries → alterar o **parcelamento** | Altera todas as parcelas e reabre a fatura fechada sozinho |
+| Séries → alterar a **recorrência** | A pergunta "só as futuras ou o passado também?", com o impacto na tela antes de confirmar |
+| Séries → cancelar | Previstos somem, passado fica |
 
 O seed começa em **27/08/2026** com uma fatura fechada vencendo no dia seguinte, outra
 aberta, um parcelamento atravessando as duas, um boleto previsto, um aporte e uma
@@ -60,12 +63,17 @@ pendência — tudo o que o modelo sabe fazer visível numa tela só.
 - **Pagamento de fatura** não cria lançamento nenhum — os lançamentos da fatura já
   debitam a conta. Criar um lançamento de pagamento contaria o gasto duas vezes.
   Respondeu uma pergunta aberta de `docs/02-dominio/fatura-cartao.md`.
+- **Recorrência não é parcelamento**, e a diferença é a regra de edição: parcelamento
+  altera todas as parcelas sempre; recorrência pergunta. O protótipo tinha mostrado uma
+  série de parcelas terminando com valores diferentes — o bug era aplicar a regra de
+  recorrência num parcelamento (`docs/02-dominio/recorrencia.md`).
 
 Achado novo trabalhando aqui? Ele vale mais no doc dono da regra do que neste README.
 
 ## Limites
 
-Sem persistência: recarregar volta ao seed (é o botão `RESET`). Sem backend, sem
+Sem persistência: recarregar volta ao seed (é o botão `RESET`). Não dá para **criar**
+recorrência pela tela ainda — o seed traz uma; a tela só edita e cancela. Sem backend, sem
 autenticação real, sem validação séria de formulário. Cadastro de conta, categoria e
 meio ainda não existe — o seed faz esse papel.
 

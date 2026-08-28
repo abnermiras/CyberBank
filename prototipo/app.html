@@ -57,6 +57,7 @@
     <button class="nav on" data-tela="home"><span>◈</span>HOME</button>
     <button class="nav" data-tela="extrato"><span>≡</span>EXTRATO</button>
     <button class="nav" data-tela="fatura"><span>▤</span>FATURA</button>
+    <button class="nav" data-tela="series"><span>∞</span>SÉRIES</button>
     <button class="nav" data-tela="patrimonio"><span>◆</span>RESERVA</button>
     <div class="railfoot tele">CB<br>NC77</div>
   </nav>
@@ -133,6 +134,21 @@
       <div id="fatDetalhe"></div>
     </section>
 
+    <!-- ---------- SERIES ---------- -->
+    <section class="tela hidden" data-tela="series">
+      <div class="telahead">
+        <div><div class="eyebrow">SÉRIES // RECORRÊNCIA E PARCELAMENTO</div><h2 class="th">Séries</h2></div>
+        <div class="tele">RECORRÊNCIA PERGUNTA · PARCELAMENTO NÃO</div>
+      </div>
+      <div class="explica" style="margin-bottom:16px">
+        <b>RECORRÊNCIA</b> são N eventos independentes sem fim (a assinatura). Junho a R$ 39,90 e julho a R$ 55,00 são
+        dois fatos verdadeiros — por isso editar <b>pergunta</b> se o passado muda junto.
+        <b>PARCELAMENTO</b> é UMA compra dividida. R$ 3.000 em 3x continua sendo R$ 3.000 — editar altera
+        <b>todas</b> as parcelas, sem perguntar, reabrindo as faturas que precisar.
+      </div>
+      <div id="seriesList"></div>
+    </section>
+
     <!-- ---------- PATRIMONIO ---------- -->
     <section class="tela hidden" data-tela="patrimonio">
       <div class="telahead">
@@ -205,6 +221,27 @@
       <div class="err" id="xErr"></div>
       <button class="btn primary" style="width:100%">Registrar</button>
     </form>
+  </div>
+</div>
+
+<!-- ================= EDICAO DE SERIE ================= -->
+<div class="modal" id="serieM">
+  <div class="panel hot fullbox scroll" style="width:min(560px,100%)">
+    <span class="corner tr"></span>
+    <div class="panel-head"><h3 id="smTitulo">Alterar série</h3><button class="btn sm ghost" id="smX">FECHAR</button></div>
+    <div class="tele" id="smSub"></div>
+    <div class="field mt10"><label id="smLabel">novo valor</label><input id="smValor" inputmode="decimal" placeholder="0,00"></div>
+    <div id="smEscopo" class="hidden">
+      <div class="tele mt10" style="color:var(--acid)">ALTERAR O QUÊ?</div>
+      <div class="seg mt10" id="smSeg">
+        <button type="button" class="on" data-e="FUTURAS">SOMENTE AS FUTURAS</button>
+        <button type="button" data-e="TODAS">O PASSADO TAMBÉM</button>
+      </div>
+    </div>
+    <div class="explica" id="smImpacto"></div>
+    <div class="err" id="smErr"></div>
+    <button class="btn primary" style="width:100%" id="smOk">Confirmar</button>
+    <button class="btn danger mt10" style="width:100%" id="smCancelar">Cancelar esta série</button>
   </div>
 </div>
 

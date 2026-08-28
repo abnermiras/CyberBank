@@ -103,6 +103,10 @@
   const fatAgo = S.faturas.find((f) => f.cartao === mCard && f.referencia === '2026-08');
   if (fatAgo) CB.fecharFatura(fatAgo.id);
 
+  // --- recorrencia: N eventos independentes, sem data de fim (a "Netflix") ---
+  CB.criarRecorrencia({ conta: cc, meio: mDeb, valor: 3990, dia: 12, inicio: '2026-05-12',
+    descricao: 'SYNTH-WAVE PREMIUM', categoria: sub(cLaze, 'Streaming') });
+
   // --- aporte: nao e gasto, e o dinheiro trocando de bolso ---
   CB.aportar({ de: cc, para: cold, valor: 50000, data: '2026-08-06', descricao: 'Aporte — reserva' });
   // --- rendimento: informar o valor atual gera a diferenca ---

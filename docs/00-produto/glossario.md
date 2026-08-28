@@ -39,12 +39,12 @@ O glossário define **o que a palavra significa**. Quem define **as regras** é 
 | **Correção** | Arrumar um registro errado (valor digitado errado, categoria errada). **Edita** o lançamento e guarda o histórico. | `02-dominio/lancamento` |
 | **Estorno** | O dinheiro voltou de verdade: compra cancelada, devolução, chargeback. É um **lançamento novo** de sentido oposto, não uma edição. | `02-dominio/lancamento` |
 | **Previsto / Realizado** | A situação de um lançamento: já aconteceu, ou vai acontecer (parcela futura, recorrência futura). | `02-dominio/lancamento` |
-| **Reabertura de fatura** | Destravar uma fatura já fechada para corrigir lançamento: reabre, edita, recalcula, ajusta o pagamento se houver, fecha de novo. | `02-dominio/fatura-cartao` |
+| **Reabertura de fatura** | Destravar uma fatura fechada para corrigir lançamento: reabre, edita, fecha de novo. Se já estava paga, o valor do pagamento é **reescrito** — não gera lançamento de ajuste. | `02-dominio/fatura-cartao` |
 | **Categoria** | Para que serviu o dinheiro. Árvore de **exatamente dois níveis** (transporte → gasolina) e com um `sentido`: categoria de entrada não recebe lançamento de saída. | `02-dominio/categoria` |
 | **Sentido** | `ENTRADA` ou `SAIDA`. Atributo do lançamento e da categoria — é ele que dá o sinal, nunca o valor. | `02-dominio/lancamento` |
 | **Fatura** | Agrupamento de lançamentos de crédito em um ciclo, com fechamento e vencimento. | `02-dominio/fatura-cartao` |
-| **Parcelamento** | Compra única dividida em N lançamentos futuros. Distinto de recorrência. | `02-dominio/recorrencia` |
-| **Recorrência** | Série de lançamentos previstos que se repetem por regra de tempo. Distinto de parcelamento. | `02-dominio/recorrencia` |
+| **Parcelamento** | **Uma compra só**, dividida em N (R$ 5.000 em 10x). Editar altera **todas** as parcelas, sem perguntar: se elas divergem, o dado está errado. | `02-dominio/recorrencia` |
+| **Recorrência** | **N eventos independentes** que se repetem por regra de tempo, normalmente sem fim (a Netflix). Editar **pergunta**: só as futuras, ou o passado também? | `02-dominio/recorrencia` |
 | **Orçamento** | Limite de gasto planejado para uma categoria em um período. | `02-dominio/orcamento` |
 
 ## Patrimônio

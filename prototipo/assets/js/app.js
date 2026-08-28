@@ -245,6 +245,97 @@
     toast('VALOR ATUALIZADO // DIFERENÇA LANÇADA'); renderTudo();
   });
 
+  /* ================= SERIES ================= */
+  function renderSeries() {
+    const ss = CB.series();
+    if (!ss.length) { $('#seriesList').innerHTML = '<div class="panel vazio">NENHUMA SÉRIE NESTE AMBIENTE</div>'; return; }
+    $('#seriesList').innerHTML = '<div class="ctagrid">' + ss.map((r) => {
+      const ls = CB.lancamentosDaSerie(r.id);
+      const prev = ls.filter((l) => l.situacao === 'PREVISTO');
+      const real = ls.filter((l) => l.situacao === 'REALIZADO');
+      const rec = r.tipo === 'RECORRENCIA';
+      const proxima = prev.sort((a, b) => a.dataEvento.localeCompare(b.dataEvento))[0];
+      const travadas = CB.faturasAfetadas(ls);
+      const corpo = rec
+        ? '<div class="metric mt10"><span class="lbl">valor por ocorrência</span>' +
+          '<span class="val ac" style="font-size:26px">' + M.fmt(r.valor) + '</span>' +
+          '<span class="sub">TODO DIA ' + r.dia + ' &middot; SEM DATA DE FIM</span></div>' +
+          '<div class="tele mt10">' + real.length + ' JÁ ACONTECERAM &middot; <b>' + prev.length + '</b> PREVISTAS À FRENTE' +
+          (proxima ? ' &middot; PRÓXIMA ' + D.br(proxima.dataEvento) : '') + '</div>'
+        : '<div class="metric mt10"><span class="lbl">valor total da compra</span>' +
+          '<span class="val cy" style="font-size:26px">' + M.fmt(r.valorTotal) + '</span>' +
+          '<span class="sub">' + r.parcelas + 'x DE ' + M.fmt(Math.round(r.valorTotal / r.parcelas)) + '</span></div>' +
+          '<div class="tele mt10">' + real.length + ' PAGA(S) &middot; <b>' + prev.length + '</b> A VENCER</div>';
+      return '<div class="panel ' + (rec ? '' : 'hot') + '">' +
+        '<div class="hstack between"><span class="cta-tipo">' + (rec ? 'RECORRÊNCIA' : 'PARCELAMENTO') + '</span>' +
+        '<span class="tag ' + (rec ? 'prev' : 'transf') + '">' + (rec ? 'PERGUNTA AO EDITAR' : 'ALTERA TODAS') + '</span></div>' +
+        '<div class="desc mt10" style="font:600 16px var(--disp)">' + esc(r.descricao) + '</div>' + corpo +
+        (travadas.length ? '<div class="tele mt10" style="color:var(--pink)">' + travadas.length +
+          ' FATURA(S) FECHADA(S) SERÃO REABERTAS: ' + travadas.map((f) => f.referencia).join(', ') + '</div>' : '') +
+        '<div class="fatacoes"><button class="btn sm" data-serie="' + r.id + '">ALTERAR VALOR</button></div></div>';
+    }).join('') + '</div>';
+  }
+
+  /* ---------- modal de edicao de serie ---------- */
+  let smSerie = null, smEscopo = 'FUTURAS';
+  function abrirSerie(sid) {
+    smSerie = CB.serie(sid); smEscopo = 'FUTURAS';
+    const rec = smSerie.tipo === 'RECORRENCIA';
+    $('#smTitulo').textContent = rec ? 'Alterar recorrência' : 'Alterar parcelamento';
+    $('#smSub').innerHTML = esc(smSerie.descricao) + ' &middot; ' + (rec ? 'RECORRÊNCIA' : 'PARCELAMENTO');
+    $('#smLabel').textContent = rec ? 'novo valor por ocorrência' : 'novo valor TOTAL da compra';
+    $('#smValor').value = ((rec ? smSerie.valor : smSerie.valorTotal) / 100).toFixed(2).replace('.', ',');
+    $('#smEscopo').classList.toggle('hidden', !rec);
+    $$('#smSeg button').forEach((b) => b.classList.toggle('on', b.dataset.e === 'FUTURAS'));
+    $('#smErr').textContent = '';
+    impactoSerie();
+    $('#serieM').classList.add('open');
+  }
+  const fecharSerie = () => { $('#serieM').classList.remove('open'); smSerie = null; };
+
+  // mostra o impacto ANTES de confirmar: reabrir fatura paga nao pode ser efeito colateral silencioso
+  function impactoSerie() {
+    if (!smSerie) return;
+    const rec = smSerie.tipo === 'RECORRENCIA';
+    const ls = CB.lancamentosDaSerie(smSerie.id);
+    const alvo = rec ? (smEscopo === 'TODAS' ? ls : ls.filter((l) => l.dataEvento > S.hoje)) : ls;
+    const fat = CB.faturasAfetadas(alvo);
+    $('#smImpacto').innerHTML = 'VAI ALTERAR <b>' + alvo.length + '</b> LANÇAMENTO(S)' +
+      (rec ? (smEscopo === 'TODAS' ? ' &middot; O PASSADO SERÁ REESCRITO' : ' &middot; O PASSADO FICA INTACTO')
+           : ' &middot; TODAS AS PARCELAS, SEMPRE — SE DIVERGIREM, O DADO ESTÁ ERRADO') +
+      (fat.length ? '<br>REABRE ' + fat.length + ' FATURA(S): <b>' + fat.map((f) => f.referencia + ' [' + f.status + ']').join(', ') + '</b>' +
+        (fat.some((f) => f.status === 'PAGA') ? ' &middot; UMA DELAS JÁ FOI PAGA' : '') : '');
+  }
+
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-serie]');
+    if (b) { abrirSerie(b.dataset.serie); return; }
+  });
+  $('#smX').addEventListener('click', fecharSerie);
+  $('#serieM').addEventListener('click', (e) => { if (e.target === $('#serieM')) fecharSerie(); });
+  $('#smSeg').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-e]'); if (!b) return;
+    smEscopo = b.dataset.e; $$('#smSeg button').forEach((x) => x.classList.toggle('on', x === b)); impactoSerie();
+  });
+  $('#smOk').addEventListener('click', () => {
+    if (!smSerie) return;
+    const v = M.parse($('#smValor').value);
+    if (!v) { $('#smErr').textContent = 'VALOR INVÁLIDO'; return; }
+    try {
+      const r = smSerie.tipo === 'RECORRENCIA'
+        ? CB.editarRecorrencia(smSerie.id, { valor: v }, smEscopo, quem)
+        : CB.editarParcelamento(smSerie.id, v, quem);
+      toast(r.alterados + ' LANÇAMENTO(S) ALTERADO(S)' + (r.faturasReabertas ? ' · ' + r.faturasReabertas + ' FATURA REABERTA E REFECHADA' : ''));
+      fecharSerie(); renderTudo();
+    } catch (err) { $('#smErr').textContent = String(err.message || err).toUpperCase(); }
+  });
+  $('#smCancelar').addEventListener('click', () => {
+    if (!smSerie) return;
+    const r = CB.cancelarSerie(smSerie.id);
+    toast(r.removidos + ' PREVISTO(S) REMOVIDO(S) · O PASSADO FICOU INTACTO', true);
+    fecharSerie(); renderTudo();
+  });
+
   /* ================= SELECTS ================= */
   function optCategorias(sentido, sel) {
     const raizes = CB.categorias().filter((c) => !c.pai && (!sentido || c.sentido === sentido));
@@ -378,7 +469,7 @@
 
   /* ================= ATALHOS + RENDER ================= */
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') { fecharQA(); fecharFull(); $('#ambMenu').classList.remove('open'); }
+    if (e.key === 'Escape') { fecharQA(); fecharFull(); fecharSerie(); $('#ambMenu').classList.remove('open'); }
     const dig = /^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName);
     if (!dig && (e.key === 'n' || e.key === 'N')) { e.preventDefault(); abrirQA(); }
   });
@@ -388,6 +479,7 @@
     if (tela === 'home') renderHome();
     if (tela === 'extrato') renderExtrato();
     if (tela === 'fatura') renderFatura();
+    if (tela === 'series') renderSeries();
     if (tela === 'patrimonio') renderPatrimonio();
     $('#statusLinha').textContent = 'LEDGER SYNCED \u00b7 ' + CB.lancamentos().length + ' LAN\u00c7AMENTOS NO AMBIENTE';
   }

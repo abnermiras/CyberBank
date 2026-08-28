@@ -117,10 +117,15 @@ O motivo do histórico é o ambiente compartilhado: sem ele, "esse valor mudou" 
 discussão entre duas pessoas sem resposta.
 
 **A exceção é a fatura fechada.** Lançamento dentro de uma fatura fechada não é editável
-enquanto ela estiver fechada — o fluxo é reabrir a fatura, editar, recalcular, ajustar o
-pagamento se já houver, e fechar de novo. A **reabertura** é operação da fatura, com suas
-regras em `docs/02-dominio/fatura-cartao.md`. Aqui vale só o efeito: enquanto a fatura
-está fechada, seus lançamentos estão congelados.
+enquanto ela estiver fechada — o fluxo é reabrir a fatura, editar, fechar de novo. A
+**reabertura** é operação da fatura, com regras em `docs/02-dominio/fatura-cartao.md`.
+Aqui vale só o efeito: enquanto a fatura está fechada, seus lançamentos estão congelados.
+
+Corrigir dentro de uma fatura **já paga reescreve o passado**: o lançamento e o pagamento
+passam a valer o valor novo, na data original — sem lançamento de ajuste no extrato. O
+extrato continua igual ao documento do banco, e a memória do que mudou fica no histórico
+de alteração. Nada precisa ser recalculado: como saldo é sempre a soma dos lançamentos
+(`docs/02-dominio/conta.md`), reescrever o valor já refaz tudo que deriva dele.
 
 ## Invariantes
 
