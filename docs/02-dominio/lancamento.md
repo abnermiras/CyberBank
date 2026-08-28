@@ -104,6 +104,10 @@ Duas coisas diferentes que a mesma palavra costuma esconder:
 | **Correção** | O registro está errado: valor digitado errado, categoria errada, conta errada | **Edita o lançamento** e guarda o que mudou no histórico |
 | **Estorno** | O dinheiro voltou de verdade: compra cancelada, devolução, chargeback | **Cria um lançamento novo** de sentido oposto, ligado ao original |
 
+No crédito, o estorno de uma compra parcelada credita o **valor total** de uma vez, e as
+parcelas restantes seguem correndo — os dois se compensam. O parcelamento não é editado
+nem cancelado: ver `docs/02-dominio/recorrencia.md`.
+
 Estorno é evento financeiro — aconteceu na vida e tem data própria. Apagar o lançamento
 original faria o extrato divergir do banco, que mostra a compra e a devolução.
 

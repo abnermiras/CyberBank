@@ -48,9 +48,28 @@ todos os saldos derivados**. Não existe recálculo a disparar.
 Cancelar um parcelamento não é apagar a compra — a compra aconteceu. As parcelas
 **já realizadas ficam**; as `PREVISTO` somem.
 
-> ☐ **A definir:** o que fazer quando o parcelamento é cancelado porque a compra foi
-> estornada pela loja. Provavelmente é estorno, não cancelamento — ver a distinção em
-> `docs/02-dominio/lancamento.md`.
+### Quando a loja estorna a compra
+
+**Isso não é cancelar o parcelamento.** É como a operadora de cartão realmente age: ela
+credita o **valor total da compra de uma vez** — não o que você já pagou, e não parcelado
+— e as parcelas restantes seguem seu curso na fatura. Os dois se compensam ao longo dos
+meses seguintes.
+
+Uma compra de R$ 5.000 em 10x com 4 parcelas pagas gera um crédito de **R$ 5.000**, não
+de R$ 2.000. As 6 parcelas que faltam continuam caindo, e no fim a compra custou zero.
+
+Por isso o sistema **não toca no parcelamento**: registra um **lançamento de estorno**
+(`docs/02-dominio/lancamento.md`) e deixa as parcelas correrem. Como saldo é sempre a soma
+dos lançamentos, a compra se anula sozinha — sem regra especial, sem operação de
+cancelamento, sem editar uma série que representa um fato que aconteceu.
+
+O parcelamento continua sendo verdade histórica: aquela compra foi feita e foi dividida
+em 10. O estorno é outro fato, com data própria. Um não edita o outro.
+
+> ☐ **A definir:** alguns emissores cancelam as parcelas restantes em vez de deixá-las
+> correr, e a prática varia entre eles. Como o sistema descobre qual aconteceu? A resposta
+> provavelmente é: **não decide, observa** — o que vier na fatura é a verdade
+> (`docs/02-dominio/importacao-conciliacao.md`). Confirmar ao escrever a conciliação.
 
 ## Recorrência
 
