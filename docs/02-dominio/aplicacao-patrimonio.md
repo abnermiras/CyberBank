@@ -83,11 +83,10 @@ inclusive. É consulta, não entidade: nada é armazenado.
 Dívida de cartão não é mais um termo separado nesta conta: o contrato de cartão **é** uma
 conta `CARTAO` de saldo negativo (`ADR-0003`), e somar as contas já desconta.
 
-**Qual saldo entra:** o **realizado** de todas as contas, e a **dívida** da `CARTAO` — que
-não é o saldo projetado dela, porque o projetado abate um pagamento que ainda não aconteceu
-(`docs/02-dominio/fatura-cartao.md`). A regra por trás cabe numa frase: **dívida futura já é
-sua; receita futura ainda não.** Quem parcelou R$ 5.000 em 10x deve os R$ 5.000 hoje, não
-R$ 500 — mas o salário do mês que vem não é patrimônio.
+**Qual saldo entra:** o **realizado** de todas as contas, e nada além disso — a `CARTAO`
+não é caso especial. A frase que parecia regra virou consequência: **dívida futura já é sua;
+receita futura ainda não.** A parcela de 2027 pesa hoje porque é `PROVISIONADA` (a compra
+aconteceu); o salário do mês que vem não pesa porque é `PREVISTO` (`ADR-0006`).
 
 Conta compartilhada entra no patrimônio de **todos** os ambientes que a usam
 (`docs/02-dominio/compartilhamento.md`). Isso é conta conjunta, não bug — e é por isso que

@@ -45,7 +45,7 @@ conta `CARTAO`, pagar a fatura é transferência, e o que não foi pago fica com
 | Trocar de ambiente no header | Isolamento: nada de um ambiente aparece no outro |
 | `+1D` / `+7D` / `+30D` | Fatura fechando sozinha, abrindo a seguinte, lançando a recorrência e criando o **pagamento previsto** |
 | Lançar pelo quick-add sem categoria | A fila de pendências |
-| Formulário completo → CRÉDITO, 3 parcelas | A compra cai na fatura **ABERTA** pelo status, não pela data; debita a conta `CARTAO` na hora |
+| Formulário completo → CRÉDITO, 3 parcelas | A compra cai na fatura **ABERTA** pelo status, não pela data; as 3 parcelas nascem juntas e **todas `PROVISIONADAS`**, porque a compra aconteceu uma vez |
 | Formulário completo → TRANSFERÊNCIA para a Reserva | Aporte que não é gasto e não muda o patrimônio |
 | Fatura → **PAGAR** | O pagamento é uma **transferência** da conta pagadora para o cartão. Compare o extrato da corrente com o do cartão |
 | Fatura → **PAGAR PARTE**, depois `+30D` | O que não foi pago vira a linha **"Saldo da fatura anterior"** no topo da fatura seguinte, quando esta vencer. É um par dentro da própria conta do cartão: soma zero, a dívida não muda |
@@ -61,7 +61,7 @@ aberta, uma futura, um parcelamento atravessando as três, um boleto previsto, u
 uma pendência — tudo o que o modelo sabe fazer visível numa tela só.
 
 **Confira estes números ao abrir** (ambiente PESSOAL): em caixa `R$ 12.036,80` · dívida do
-cartão `R$ 3.600,70` · patrimônio `R$ 21.120,10` · limite disponível `R$ 11.399,30`.
+cartão `R$ 3.560,80` · patrimônio `R$ 21.160,00` · limite disponível `R$ 11.439,20`.
 Pagar a fatura **não pode mudar o patrimônio** — se mudar, é bug.
 
 ## O que o protótipo já mudou nos docs
@@ -83,6 +83,11 @@ Pagar a fatura **não pode mudar o patrimônio** — se mudar, é bug.
 - **`entraNoFluxoDeCaixa` não responde "isso é caixa?".** A conta `CARTAO` é a primeira em
   que as duas perguntas divergem: os movimentos dela são gasto, mas o saldo é dívida. "Em
   caixa" passou a somar as contas de fluxo **menos as de dívida** (`docs/02-dominio/conta.md`).
+- **Numa mesma fatura, uma compra à vista era `REALIZADO` e uma parcela era `PREVISTO`** —
+  lado a lado, esperando o mesmo pagamento no mesmo dia. O erro de fundo era `situacao`
+  carregar duas perguntas: *já aconteceu?* e *entra no saldo?*. Nasceu `PROVISIONADO`
+  (`ADR-0006`), e com ele sumiram duas exceções: a dívida do cartão voltou a ser o saldo da
+  conta, e o patrimônio voltou a ser o realizado de todas as contas.
 - **O que não foi pago ficava preso numa fatura vencida.** Pagando R$ 800 de R$ 1.610,60 e
   avançando o relógio, os R$ 810,60 continuavam na dívida (certo) mas não apareciam na
   fatura seguinte — que exibia R$ 1.100,10 quando o banco ia cobrar R$ 1.910,70. O erro era

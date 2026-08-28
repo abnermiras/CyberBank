@@ -102,11 +102,8 @@
     const ls = CB.comprarNoCredito(o);
     let r = ref;
     ls.forEach((l) => {
-      const f = CB.faturaDaReferencia(ccCard, r);
-      l.fatura = f.id;
-      if (f.status === 'FUTURA') { l.situacao = 'PREVISTO'; l.dataEfeito = f.fechamento; }
-      else { l.situacao = 'REALIZADO'; l.dataEfeito = l.dataEvento; }
-      r = CB.D.proxMes(r);
+      l.fatura = CB.faturaDaReferencia(ccCard, r).id;   // so remaneja: a situacao ja
+      r = CB.D.proxMes(r);                                // nasceu PROVISIONADO
     });
     return ls;
   }

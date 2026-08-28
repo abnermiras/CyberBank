@@ -29,6 +29,10 @@ contado uma vez, na compra.
 **Cada fatura é paga na tela dela.** O pagamento aponta para uma fatura, não para o cartão:
 é assim que se sabe qual ciclo foi quitado e qual não.
 
+**Pagar é o que liquida.** Os lançamentos daquela fatura saem de `PROVISIONADO` e viram
+`REALIZADO` — inclusive quando o pagamento é parcial, porque o que sobrou vira rolagem no
+vencimento em vez de ficar pendurado (`ADR-0006`).
+
 | Caso | O que acontece |
 |---|---|
 | Pagar tudo | O pagamento previsto vira `REALIZADO`, com a data e a conta reais |

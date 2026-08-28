@@ -181,7 +181,8 @@
   function itemHTML(l) {
     const c = CB.conta(l.conta), k = l.categoria ? CB.categoria(l.categoria) : null, r = l.categoria ? CB.raizDe(l.categoria) : null;
     const m = l.meio ? CB.meio(l.meio) : null;
-    const tags = ['<span class="tag ' + (l.situacao === 'PREVISTO' ? 'prev' : 'real') + '">' + l.situacao + '</span>'];
+    const cls = l.situacao === 'PREVISTO' ? 'prev' : (l.situacao === 'PROVISIONADO' ? 'prov' : 'real');
+    const tags = ['<span class="tag ' + cls + '">' + l.situacao + '</span>'];
     if (l.transferenciaId) tags.push('<span class="tag transf">TRANSFER&Ecirc;NCIA</span>');
     if (l.rendimento) tags.push('<span class="tag transf">RENDIMENTO</span>');
     if (!l.categoria && CB.esperaCategoria(l)) tags.push('<span class="tag pend">SEM CATEGORIA</span>');
@@ -298,7 +299,7 @@
     $('#seriesList').innerHTML = '<div class="ctagrid">' + ss.map((r) => {
       const ls = CB.lancamentosDaSerie(r.id);
       const prev = ls.filter((l) => l.situacao === 'PREVISTO');
-      const real = ls.filter((l) => l.situacao === 'REALIZADO');
+      const real = ls.filter((l) => l.situacao !== 'PREVISTO');
       const rec = r.tipo === 'RECORRENCIA';
       const proxima = ls.filter((l) => l.dataEvento > S.hoje)
         .sort((a, b) => a.dataEvento.localeCompare(b.dataEvento))[0];
@@ -481,8 +482,9 @@
       if (!cid) { e.innerHTML = 'NENHUM CART&Atilde;O NESTE AMBIENTE'; return; }
       const f = CB.faturaAberta(CB.meio(cid).conta);
       e.innerHTML = 'CAI NA FATURA <b>' + f.referencia + '</b> — a <b>ABERTA</b>, pelo STATUS e n&atilde;o pela data' +
-        ' &middot; DEBITA A CONTA <b>' + esc(CB.conta(CB.meio(cid).conta).nome) + '</b> HOJE MESMO, COMO <b>REALIZADO</b>' +
-        (n > 1 ? ' &middot; ' + n + ' PARCELAS: AS SEGUINTES NASCEM <b>PREVISTAS</b> NAS FATURAS &Agrave; FRENTE' : '');
+        ' &middot; DEBITA A CONTA <b>' + esc(CB.conta(CB.meio(cid).conta).nome) + '</b> HOJE, COMO <b>PROVISIONADO</b>: aconteceu, falta liquidar' +
+        (n > 1 ? ' &middot; AS ' + n + ' PARCELAS NASCEM JUNTAS, TODAS PROVISIONADAS — A COMPRA ACONTECEU UMA VEZ' : '') +
+        ' &middot; VIRA <b>REALIZADO</b> QUANDO A FATURA FOR PAGA';
     } else if (xTipo === 'transf') {
       const para = CB.conta($('#xPara').value);
       e.innerHTML = 'CRIA <b>DOIS LAN&Ccedil;AMENTOS</b> LIGADOS PELO MESMO ID &middot; SEM CATEGORIA &middot; N&Atilde;O ENTRA NO RELAT&Oacute;RIO DE GASTO' +

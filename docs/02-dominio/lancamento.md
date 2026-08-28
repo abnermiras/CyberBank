@@ -60,12 +60,22 @@ Situação e categorização são coisas separadas e não se misturam num estado
 lançamento capturado hoje pode estar realizado e pendente ao mesmo tempo; uma parcela de
 dezembro pode estar prevista e já categorizada.
 
-**`situacao`** — o dinheiro já se moveu?
+**`situacao`** — em que ponto entre o **fato** e a **liquidação** este lançamento está?
+São três valores, e o do meio existe porque as duas coisas não acontecem juntas no crédito
+(`ADR-0006`).
 
-| Valor | Significa | Entra no saldo |
-|---|---|---|
-| `PREVISTO` | Vai acontecer: parcela futura, recorrência futura, fatura ainda não paga | Só no saldo projetado |
-| `REALIZADO` | Aconteceu | Saldo realizado e projetado |
+| Valor | Significa | Entra no saldo realizado | No projetado |
+|---|---|:--:|:--:|
+| `PREVISTO` | Vai acontecer, ainda não aconteceu | não | sim |
+| `PROVISIONADO` | **Aconteceu, falta liquidar** | **sim** | sim |
+| `REALIZADO` | Aconteceu e foi liquidado | sim | sim |
+
+`PROVISIONADO` é a situação da compra no crédito, do dia da compra até a fatura ser paga.
+O boleto registrado e não pago **não** é provisionado: ele é lançamento da conta corrente, e
+nela nada se moveu ainda.
+
+**O teste para "entra no saldo" é `situacao !== 'PREVISTO'`**, nunca
+`situacao === 'REALIZADO'`.
 
 **`categoria` preenchida ou não** — um lançamento sem categoria **é** a pendência do
 glossário. Não existe estado `PENDENTE` separado: pendência é uma **consulta**, e um
@@ -77,9 +87,11 @@ esses não têm categoria por natureza, e não são trabalho pendente para ningu
 *(A definição larga foi corrigida depois que o protótipo mostrou a abertura de conta
 aparecendo na fila de pendências.)*
 
-A transição `PREVISTO → REALIZADO` acontece quando a data chega e, havendo captura ou
-extrato, quando a conciliação confirma (`docs/02-dominio/importacao-conciliacao.md`).
-Ela nunca volta atrás: realizado não vira previsto.
+A transição só anda para frente — `PREVISTO → PROVISIONADO → REALIZADO`, com qualquer
+salto válido — e **nunca volta atrás**. Fora do cartão ela acontece quando a data chega e,
+havendo captura ou extrato, quando a conciliação confirma
+(`docs/02-dominio/importacao-conciliacao.md`). No cartão, quem liquida é o **pagamento da
+fatura** (`docs/02-dominio/fatura-pagamento.md`).
 
 ## Transferência
 
@@ -149,7 +161,7 @@ Nada precisa ser recalculado: como saldo é sempre a soma dos lançamentos
 - `transferenciaId`, quando existe, aparece em exatamente dois lançamentos.
 - `rolagemDeFatura`, quando existe, aparece em exatamente dois — na mesma conta, somando zero.
 - Nenhum estado de fatura impede a edição de um lançamento (`docs/02-dominio/fatura-cartao.md`).
-- `REALIZADO` não volta para `PREVISTO`.
+- A situação só anda para frente: `PREVISTO → PROVISIONADO → REALIZADO`, nunca ao contrário.
 - Lançamento de conta inativa não é criado (`docs/02-dominio/conta.md`).
 - A **categoria** é sempre do mesmo ambiente do lançamento.
 - A **conta** é do mesmo ambiente, ou de um que a compartilhou com ele.

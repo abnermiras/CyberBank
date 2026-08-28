@@ -32,6 +32,10 @@ como `PREVISTO`, cada uma na fatura do seu mês (`docs/02-dominio/fatura-cartao.
 **Altera todas as parcelas, sempre. O sistema não pergunta.** R$ 5.000 em 10x continua
 sendo R$ 5.000: se as parcelas divergirem, o dado está errado, não flexível.
 
+Isso ficou literal quando as parcelas passaram a nascer todas juntas, **todas
+`PROVISIONADAS` na data da compra** (`ADR-0006`): elas são uma compra só, dividida em N
+cobranças.
+
 O procedimento, parcela a parcela:
 
 1. Parcela em fatura **aberta** → altera direto.
@@ -98,8 +102,9 @@ porque a ocorrência do ciclo corrente existe. Projeção mais longa (Fase 3) se
 partir da **regra** da recorrência, não de lançamentos pré-criados.
 
 > **No crédito, `PREVISTO` significa "ainda não aconteceu"**, como em todo lugar. A compra
-> de ontem no cartão é `REALIZADO`: a dívida existe desde a compra (`ADR-0003`). `PREVISTO`
-> no cartão é só a **parcela de um mês que ainda não chegou**.
+> de ontem no cartão é `PROVISIONADA` — aconteceu, falta a fatura ser paga (`ADR-0006`). No
+> cartão, `PREVISTO` sobra só para a **ocorrência de recorrência que ainda não foi cobrada**;
+> parcela de mês à frente já nasce provisionada, porque a compra aconteceu uma vez.
 
 ### Editar
 
@@ -164,6 +169,8 @@ do que o caso comum, e o caso comum não deve pagar o preço do raro.
 > ☐ **A definir:** débito automático é atributo da recorrência (já decidido), mas falta
 > escrever o que ele muda no comportamento — se nada muda além de rótulo, ele é rótulo.
 
-> ☐ **A definir:** a parcela futura tem `dataEvento` da compra ou do mês dela? Todas na data
-> da compra jogam os R$ 5.000 inteiros no relatório de gasto daquele mês; cada uma no seu
-> mês espalha. Decidir com uma jornada real na mão.
+> ☐ **A definir:** com `ADR-0006`, todas as parcelas têm `dataEvento` **da compra** — e o
+> relatório de gasto, que usa `dataEvento`, joga os R$ 5.000 inteiros no mês da compra. É a
+> leitura fiel ao fato ("comprei R$ 5.000 em julho"), e não é a que a maioria dos apps mostra
+> ("R$ 500 por mês"). Se a segunda for a desejada, quem espalha é o **relatório**, olhando a
+> fatura de cada parcela — não a data delas. Decidir com uma jornada real na mão.

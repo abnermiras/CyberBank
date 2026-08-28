@@ -39,6 +39,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | [`decisoes/ADR-0003-cartao-de-credito-e-conta.md`](01-arquitetura/decisoes/ADR-0003-cartao-de-credito-e-conta.md) | como a divida de cartao e representada e o que isso faz com o pagamento de fatura | ativo |
 | [`decisoes/ADR-0004-compartilhamento-entre-ambientes.md`](01-arquitetura/decisoes/ADR-0004-compartilhamento-entre-ambientes.md) | o que o compartilhamento faz com a regra de isolamento do ADR-0002 | ativo |
 | [`decisoes/ADR-0005-rolagem-entre-faturas.md`](01-arquitetura/decisoes/ADR-0005-rolagem-entre-faturas.md) | como o saldo nao pago de uma fatura chega na fatura seguinte | ativo |
+| [`decisoes/ADR-0006-situacao-provisionado.md`](01-arquitetura/decisoes/ADR-0006-situacao-provisionado.md) | por que a situacao do lancamento tem tres valores e nao dois | ativo |
 | [`decisoes/README.md`](01-arquitetura/decisoes/README.md) | índice das ADRs e regra de quando escrever uma | ativo |
 | [`estrutura-de-pastas.md`](01-arquitetura/estrutura-de-pastas.md) | onde cada tipo de arquivo mora no repositorio | stub |
 | [`modulos.md`](01-arquitetura/modulos.md) | lista canonica dos modulos/bounded contexts e as dependencias permitidas entre eles | stub |

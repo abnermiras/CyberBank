@@ -89,27 +89,26 @@ Não é estado salvo: é comparação entre o que foi pago e o total da fatura.
 
 ## A situação do lançamento de crédito
 
-Comprar no cartão **cria dívida na hora**, e o modelo diz isso literalmente:
+Comprar no cartão **cria dívida na hora e não liquida nada** — e é exatamente isso que a
+situação `PROVISIONADO` diz (`ADR-0006`):
 
 | Lançamento | `situacao` | `dataEfeito` |
 |---|---|---|
-| Compra no crédito | `REALIZADO` | = `dataEvento`. Comprou, deve |
-| Parcela de mês futuro | `PREVISTO` | O fechamento da fatura em que ela cai |
+| Compra no crédito, **à vista ou parcelada** | `PROVISIONADO` | = `dataEvento`. Comprou, deve |
+| **Todas as N parcelas**, inclusive as de meses à frente | `PROVISIONADO`, desde a compra | = a data da compra |
+| Ocorrência de recorrência que ainda não foi cobrada | `PREVISTO` até a data dela chegar | a data dela |
+| Qualquer um deles, depois que a fatura é paga | `REALIZADO` | não muda |
 
-Não há mais "cuidado ao ler `PREVISTO` no crédito": `REALIZADO` voltou a significar
-*aconteceu*. E a conta `CARTAO` ganha as duas leituras de saldo de graça
-(`docs/02-dominio/conta.md`):
+**As parcelas nascem todas juntas e todas provisionadas** porque a compra aconteceu **uma
+vez**: quem parcelou R$ 5.000 em 10x deve R$ 5.000 hoje, e o limite já se comporta assim. O
+que espalha a cobrança pelos meses é a **fatura** de cada parcela, não a situação delas.
 
-| Leitura do saldo da conta `CARTAO` | O que é |
-|---|---|
-| **Realizado** | O que já foi comprado e entrou em fatura |
-| **Projetado** | O mesmo, mais as parcelas futuras **e menos o pagamento previsto** |
-| **Dívida** | Tudo que foi comprado e ainda não foi pago: o saldo **sem** os pagamentos previstos |
+Numa mesma fatura, portanto, tudo tem a mesma situação. Uma compra à vista e uma parcela
+5/10 esperam o mesmo pagamento no mesmo dia — não havia o que justificasse a diferença.
 
-> **A dívida não é o saldo projetado, e o protótipo mostrou isso.** O projetado abate um
-> pagamento que ainda não aconteceu — ele responde *"quanto vou dever depois de pagar"*.
-> Quem responde *"quanto devo"* é a soma sem os previstos de pagamento. Limite e patrimônio
-> usam a dívida; usar o projetado subestima os dois.
+E a dívida sai de graça: **é o saldo da conta `CARTAO`**. O que já aconteceu conta; o
+pagamento previsto, que é `PREVISTO`, não conta. Sem cálculo especial
+(`docs/02-dominio/conta.md`).
 
 ## A que fatura um lançamento pertence
 
@@ -177,13 +176,13 @@ acabou de fechar.
 
 ## Dívida e limite
 
-A dívida do cartão deixou de ser um cálculo com regra própria: **é o saldo da conta
-`CARTAO`** (`ADR-0003`).
+A dívida do cartão não é cálculo com regra própria: **é o saldo da conta `CARTAO`**
+(`ADR-0003` e `ADR-0006`).
 
 | Leitura | Como |
 |---|---|
-| **Limite disponível** | `limite − dívida`. A dívida já inclui as parcelas futuras — parcela segura limite, como na vida (`docs/02-dominio/meio-de-pagamento.md`) |
-| **Patrimônio** | Soma a conta `CARTAO` como qualquer outra, e ela é negativa — pela **dívida**, não pelo projetado (`docs/02-dominio/aplicacao-patrimonio.md`) |
+| **Limite disponível** | `limite − dívida`, e dívida é o saldo da conta. Ele já inclui as parcelas futuras, porque elas são provisionadas desde a compra (`docs/02-dominio/meio-de-pagamento.md`) |
+| **Patrimônio** | Soma a conta `CARTAO` como qualquer outra, e ela é negativa. Nenhum tratamento especial (`docs/02-dominio/aplicacao-patrimonio.md`) |
 | **Quanto devo desta fatura** | O total dela menos o que já foi pago **e menos o que já rolou** |
 
 ## Quem pode

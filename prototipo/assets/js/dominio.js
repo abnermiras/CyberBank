@@ -7,7 +7,10 @@
    Decisoes exercitadas aqui:
    - valor sempre positivo, o sinal vem de `sentido`
    - duas datas: dataEvento (relatorio) e dataEfeito (saldo)
-   - situacao PREVISTO|REALIZADO; REALIZADO nunca volta atras
+   - situacao PREVISTO | PROVISIONADO | REALIZADO, e nunca volta atras.
+     PROVISIONADO = o fato aconteceu e falta liquidar (a compra no cartao ate a
+     fatura ser paga). Ele conta no saldo do que JA ACONTECEU, e e por isso que
+     a divida do cartao e simplesmente o saldo da conta, sem calculo especial
    - saldo = soma dos lancamentos, nunca armazenado
    - transferencia = par de lancamentos com o mesmo transferenciaId
    - ADR-0003: o contrato de cartao E UMA CONTA (tipo CARTAO). A compra debita
@@ -91,7 +94,7 @@
       dataEvento: o.dataEvento || S.hoje,
       dataEfeito: o.dataEfeito || o.dataEvento || S.hoje,
       descricao: o.descricao || 'Sem descrição',
-      situacao: o.situacao || 'REALIZADO',   // PREVISTO | REALIZADO
+      situacao: o.situacao || 'REALIZADO',   // PREVISTO | PROVISIONADO | REALIZADO
       categoria: o.categoria || null,        // null = pendência (que é consulta, não estado)
       meio: o.meio || null,
       fatura: o.fatura || null,
@@ -175,9 +178,12 @@
   /* ================= SALDO ================= */
   const sinal = (l) => (l.sentido === 'ENTRADA' ? 1 : -1);
 
+  // "Realizado" aqui e o que JA ACONTECEU: REALIZADO mais PROVISIONADO. A compra no
+  // cartao aconteceu no dia da compra, mesmo que a fatura so seja paga daqui a 40 dias.
+  const jaAconteceu = (l) => l.situacao !== 'PREVISTO';
   function saldoRealizado(cid, ate) {
     const lim = ate || S.hoje;
-    return S.lancamentos.filter((l) => l.conta === cid && l.situacao === 'REALIZADO' && l.dataEfeito <= lim)
+    return S.lancamentos.filter((l) => l.conta === cid && jaAconteceu(l) && l.dataEfeito <= lim)
       .reduce((s, l) => s + sinal(l) * l.valor, 0);
   }
   function saldoProjetado(cid, ate) {
@@ -194,17 +200,15 @@
   // PATRIMONIO: saldo REALIZADO de todas as contas, e o PROJETADO das de divida.
   // "Divida futura ja e sua; receita futura ainda nao." A parcela de 2027 pesa hoje;
   // o salario do mes que vem, nao.
-  const patrimonio = () => somaContas(() => true,
-    (cid) => (ehDivida(conta(cid)) ? -dividaCartao(cid) : saldoRealizado(cid)));
+  // sem excecao por tipo: o realizado de todas as contas. A parcela de 2027 pesa hoje
+  // porque e PROVISIONADA; o salario do mes que vem nao pesa porque e PREVISTO.
+  const patrimonio = () => somaContas(() => true, (cid) => saldoRealizado(cid, SEMPRE));
 
-  /* DIVIDA — achado do prototipo (28/08).
-     O saldo projetado da conta CARTAO NAO serve como divida: ele abate o pagamento
-     PREVISTO, que ainda nao aconteceu, e responde outra pergunta ("quanto vou dever
-     depois de pagar"). Divida e o que foi comprado e ainda nao foi pago, entao ela
-     soma tudo MENOS os pagamentos previstos. Limite e patrimonio usam esta. */
-  const dividaCartao = (cid) => -S.lancamentos
-    .filter((l) => l.conta === cid && !(l.pagamentoDeFatura && l.situacao === 'PREVISTO'))
-    .reduce((s, l) => s + sinal(l) * l.valor, 0);
+  /* DIVIDA — com PROVISIONADO ela deixou de ser calculo especial: e o SALDO da conta.
+     A compra provisionada ja conta (aconteceu); o pagamento previsto nao conta (nao
+     aconteceu). O achado de 28/08 — "a divida nao e o saldo projetado" — deixou de
+     precisar de correcao: sumiu pela estrutura. */
+  const dividaCartao = (cid) => -saldoRealizado(cid, SEMPRE);
   const dividaTotal = () => contas().filter(ehDivida).reduce((s, c) => s + dividaCartao(c.id), 0);
 
   /* ================= RELATORIOS ================= */
@@ -363,18 +367,16 @@
     const f = S.faturas.find((x) => x.id === fid);
     if (!f || f.status !== 'ABERTA') return f;
     f.status = 'FECHADA';
-    // 1. as parcelas previstas daquele ciclo viram realizadas: a divida consolidou
-    lancamentosDaFatura(fid).forEach((l) => {
-      if (l.situacao === 'PREVISTO') { l.situacao = 'REALIZADO'; l.dataEfeito = f.fechamento; }
-    });
-    // 2. a seguinte abre (criada se nao existir)
+    // (nao ha nada a converter aqui: a compra ja nasceu PROVISIONADA. O que muda a
+    //  situacao dela e o PAGAMENTO, nao o fechamento.)
+    // 1. a seguinte abre (criada se nao existir)
     const seguinteRef = D.proxMes(f.referencia);
     const seg = faturasDe(f.contaCartao).find((x) => x.referencia === seguinteRef) ||
       novaFatura(f.contaCartao, seguinteRef, 'FUTURA');
     seg.status = 'ABERTA';
-    // 3. as recorrencias ativas do cartao entram na fatura recem-aberta (idempotente)
+    // 2. as recorrencias ativas do cartao entram na fatura recem-aberta (idempotente)
     sincronizarRecorrencias((r) => noCartao(r) && meio(r.meio) && meio(r.meio).conta === f.contaCartao);
-    // 4. nasce o pagamento previsto — e ele que mantem "quanto sobra ate o fim do mes"
+    // 3. nasce o pagamento previsto — e ele que mantem "quanto sobra ate o fim do mes"
     criarPagamentoPrevisto(f);
     registrar(`fatura ${f.referencia} fechada em ${M.fmt(totalFatura(fid))}`, 'fatura');
     return f;
@@ -425,8 +427,12 @@
       transferir({ de, para: f.contaCartao, valor, data,
         descricao: 'Pagamento fatura ' + f.referencia, pagamentoDeFatura: fid });
     }
-    // o que nao foi pago SIMPLESMENTE FICA como saldo da conta CARTAO.
-    // Nao existe "saldo da fatura anterior" como lancamento: nada rola.
+    // PAGOU: os lancamentos daquela fatura deixam de ser provisao e viram fato
+    // liquidado. Vale tambem no pagamento parcial — o que sobrou vira rolagem no
+    // vencimento, nao um item pendurado.
+    lancamentosDaFatura(fid).forEach((l) => {
+      if (l.situacao === 'PROVISIONADO') { l.situacao = 'REALIZADO'; }
+    });
     const sit = situacaoPagamento(fid);
     if (sit === 'PARCIAL') criarPagamentoPrevisto(f);
     registrar(`fatura ${f.referencia}: pago ${M.fmt(valor)} de ${conta(de).apelido || conta(de).nome} — ${sit}`, 'fatura');
@@ -458,11 +464,12 @@
     });
     const rid = id('rol');
     const base = { conta: f.contaCartao, valor: falta, dataEvento: f.vencimento,
-      dataEfeito: f.vencimento, situacao: 'REALIZADO', categoria: null, meio: null,
-      rolagemDeFatura: rid };
-    lancar(Object.assign({}, base, { sentido: 'ENTRADA', fatura: fid,
+      dataEfeito: f.vencimento, categoria: null, meio: null, rolagemDeFatura: rid };
+    // o credito encerra a fatura velha (fato consumado); o debito entra na nova como
+    // PROVISIONADO, porque e divida que aconteceu e ainda espera pagamento
+    lancar(Object.assign({}, base, { sentido: 'ENTRADA', fatura: fid, situacao: 'REALIZADO',
       descricao: 'Rolado para a fatura ' + destino.referencia }));
-    lancar(Object.assign({}, base, { sentido: 'SAIDA', fatura: destino.id,
+    lancar(Object.assign({}, base, { sentido: 'SAIDA', fatura: destino.id, situacao: 'PROVISIONADO',
       descricao: 'Saldo da fatura ' + f.referencia }));
     registrar(`fatura ${f.referencia}: ${M.fmt(falta)} rolado para ${destino.referencia}`, 'fatura');
     return rid;
@@ -504,17 +511,17 @@
       S.series.push({ id: grupo, ambiente: S.ambienteAtivo, tipo: 'PARCELAMENTO', descricao: o.descricao,
         valorTotal: o.valor, parcelas: n, categoria: o.categoria || null, cartao: o.cartao, ativa: true });
     }
+    const quando = o.data || S.hoje;
     for (let i = 0; i < n; i++) {
       const f = faturaNaPosicao(cc, i);
-      const dataEv = i === 0 ? (o.data || S.hoje) : D.addMeses(o.data || S.hoje, i);
-      // comprou, deve: a parcela do ciclo corrente ja e REALIZADO.
-      // As de mes que nao chegou sao PREVISTO, com efeito no fechamento da sua fatura.
-      const previsto = i > 0;
+      // A COMPRA ACONTECEU UMA VEZ. Todas as parcelas nascem PROVISIONADAS, na data da
+      // compra: voce deve os 5.000 hoje, nao 500. O que espalha as cobrancas pelos meses
+      // e a FATURA de cada parcela, nao a data delas.
       const l = lancar({
         conta: cc, sentido: 'SAIDA', valor: base + (i === 0 ? resto : 0),
-        dataEvento: dataEv, dataEfeito: previsto ? f.fechamento : (o.data || S.hoje),
+        dataEvento: quando, dataEfeito: quando,
         descricao: n > 1 ? `${o.descricao} ${i + 1}/${n}` : o.descricao,
-        situacao: previsto ? 'PREVISTO' : 'REALIZADO',
+        situacao: 'PROVISIONADO',
         categoria: o.categoria || null, meio: o.cartao,
         fatura: f.id, serie: grupo, origemParcelamento: grupo, estabelecimento: o.estabelecimento || null
       });
@@ -590,9 +597,12 @@
           const cc = contaDoCartao(r);
           const f = faturaDaReferencia(cc, ref);
           const fechada = f.status === 'FECHADA';
+          // a ocorrencia do ciclo corrente pode ainda nao ter sido cobrada: ate a data
+          // dela chegar e PREVISTO, porque nao aconteceu. Provisao e para fato ocorrido.
+          const quando = ref + '-' + dia;
           const l = lancar({ ambiente: r.ambiente, conta: cc, sentido: 'SAIDA', valor: r.valor,
-            dataEvento: ref + '-' + dia, dataEfeito: ref + '-' + dia,
-            descricao: r.descricao, situacao: 'REALIZADO',
+            dataEvento: quando, dataEfeito: quando, descricao: r.descricao,
+            situacao: quando <= S.hoje ? 'PROVISIONADO' : 'PREVISTO',
             categoria: r.categoria, meio: r.meio, fatura: f.id, serie: sid });
           criados.push(l);
         } else {
@@ -697,8 +707,9 @@
       // Fora: o que esta preso em fatura (vira no fechamento) e o pagamento de
       // fatura (quem paga e o usuario — o sistema nao debita sozinho).
       S.lancamentos.forEach((l) => {
-        if (l.situacao === 'PREVISTO' && l.dataEfeito <= S.hoje && !l.fatura && !l.pagamentoDeFatura) {
-          l.situacao = 'REALIZADO';
+        if (l.situacao === 'PREVISTO' && l.dataEfeito <= S.hoje && !l.pagamentoDeFatura) {
+          // em fatura, o fato ocorrido vira PROVISAO — quem liquida e o pagamento
+          l.situacao = l.fatura ? 'PROVISIONADO' : 'REALIZADO';
           eventos.push(`${D.br(S.hoje)} — ${l.descricao} caiu: ${M.fmt(l.valor)}`);
           registrar(`${l.descricao} realizado`, 'auto');
         }
@@ -732,7 +743,7 @@
   global.CB = {
     S, D, M, id, registrar, SEMPRE,
     contas, meios, categorias, lancamentos, faturas,
-    conta, meio, categoria, raizDe, ehDivida, ehCaixa,
+    conta, meio, categoria, raizDe, ehDivida, ehCaixa, jaAconteceu,
     lancar, editar, estornar, transferir, aportar, resgatar, atualizarValorAplicacao,
     saldoRealizado, saldoProjetado, emCaixa, sobraAteFimDoMes, patrimonio, guardado,
     dividaCartao, dividaTotal,

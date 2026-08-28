@@ -138,6 +138,7 @@ h1,h2,h3{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter
   padding:3px 7px;border:1px solid var(--line);color:var(--muted);
 }
 .tag.prev{color:var(--acid);border-color:rgba(247,241,60,.4)}
+.tag.prov{color:var(--cyan);border-color:rgba(0,240,255,.4)}
 .tag.real{color:var(--lime);border-color:rgba(92,255,157,.35)}
 .tag.pend{color:var(--pink);border-color:rgba(255,31,145,.45)}
 .tag.transf{color:var(--cyan);border-color:rgba(0,240,255,.35)}

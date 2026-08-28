@@ -90,13 +90,16 @@ outra pessoa. Para usar o próprio cartão em outro ambiente seu, o caminho é c
 O limite é do **contrato** — ou seja, da conta `CARTAO` — e não se divide entre os cartões.
 Físico, virtual, adicional e compartilhado comem do mesmo bolo.
 
-> **Disponível = limite − dívida da conta `CARTAO`**, e dívida é tudo que foi comprado e
-> ainda não foi pago — o saldo da conta **sem** os pagamentos previstos
-> (`docs/02-dominio/fatura-cartao.md`).
+> **Disponível = limite − dívida da conta `CARTAO`**, e a dívida é simplesmente o **saldo**
+> dela (`docs/02-dominio/fatura-cartao.md`).
 
-Não é o saldo realizado, porque **parcela futura segura limite**, como na vida real:
+Ele já inclui a parcela de daqui a oito meses, porque **parcela futura segura limite**, como
+na vida real:
 R$ 5.000 em 10x come R$ 5.000 do limite na hora e libera R$ 500 a cada fatura paga
 (`docs/02-dominio/fatura-cartao.md`).
+
+A parcela pesa desde a compra porque ela é `PROVISIONADA` desde a compra: o fato aconteceu
+uma vez (`ADR-0006`).
 
 É exatamente por isso que **recorrência não gera lançamento futuro**
 (`docs/02-dominio/recorrencia.md`): se gerasse, seguraria limite de um mês que não chegou.

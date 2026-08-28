@@ -79,8 +79,8 @@ na mesma tela sem rótulo:
 
 | Leitura | Como se calcula | Para que serve |
 |---|---|---|
-| **Saldo realizado** | Só lançamentos `REALIZADO`, até hoje | Quanto tem na conta agora |
-| **Saldo projetado** | Realizado + `PREVISTO` até uma data futura | Quanto sobra até o fim do mês |
+| **Saldo realizado** | Tudo que **já aconteceu** até hoje: `REALIZADO` e `PROVISIONADO` (`ADR-0006`) | Quanto tem na conta agora — e, na `CARTAO`, quanto se deve |
+| **Saldo projetado** | Realizado mais o `PREVISTO` até uma data futura | Quanto sobra até o fim do mês |
 
 **Saldo inicial é um lançamento**, não um campo: ao criar a conta com saldo existente,
 nasce um lançamento de abertura naquele valor. Assim a frase "saldo é a soma dos
