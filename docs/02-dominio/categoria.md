@@ -48,6 +48,12 @@ categorias compatíveis com o sentido do lançamento.
 O motivo é bobo e real: sem isso, nada impede categorizar o salário como "mercado", e o
 relatório some com a diferença sem avisar.
 
+**A regra é de escolha, não de dado.** Ela governa o que o usuário **pode escolher** ao lançar
+— e existe exatamente um lançamento em que o dado diverge: o **estorno**, que herda a categoria
+do original e nasce com o sentido invertido (`docs/02-dominio/lancamento.md`). Isso é de
+propósito: é o que faz o estorno abater o gasto da categoria certa. Escrever a regra como
+invariante de dado a tornava falsa — o protótipo mostrou isso somando os números.
+
 - Subcategoria **herda** o sentido da raiz e não pode divergir dele.
 - **Categoria de sistema também tem `sentido`**, e é por isso que cada operação existe duas
   vezes, em `ENTRADA` e em `SAIDA` — ver *As categorias de sistema*. A invariante não abre

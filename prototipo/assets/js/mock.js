@@ -63,6 +63,11 @@
     tipo: 'BENEFICIO', entraNoFluxoDeCaixa: true, entraEmCaixa: false, abertura: 88000 });
   const cold = novaConta({ ambiente: PESSOAL, nome: 'COLD STORAGE', apelido: 'Reserva',
     tipo: 'APLICACAO', entraNoFluxoDeCaixa: false, entraEmCaixa: false, abertura: 1200000 });
+  // POUPANCA E UMA APLICACAO, nao um tipo de conta — e existe aqui por um segundo motivo:
+  // ela NUNCA foi atualizada desde a abertura (01/07), entao a tela precisa marca-la como
+  // DESATUALIZADA. E a regra 7 do CLAUDE.md com banco de provas.
+  const pou = novaConta({ ambiente: PESSOAL, nome: 'SLOW VAULT', apelido: 'Poupança',
+    tipo: 'APLICACAO', entraNoFluxoDeCaixa: false, entraEmCaixa: false, abertura: 350000 });
 
   const mDeb = novoMeio({ ambiente: PESSOAL, nome: 'Débito HELIX', tipo: 'DEBITO', conta: cc });
   const mPix = novoMeio({ ambiente: PESSOAL, nome: 'Pix', tipo: 'PIX', conta: cc });

@@ -13,6 +13,7 @@
   const esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
   let tela = 'home';
+  let eixo = 'POR_FATURA';   // em que mes o gasto conta — docs/02-dominio/lancamento.md
   let soPendencias = false;
   let contaFiltro = '';
   let faturaSel = '';
@@ -78,7 +79,11 @@
     $('#fimMes').textContent = D.br(D.fimDoMes(S.hoje)).slice(0, 5);
     $('#mesRef').textContent = D.parse(S.hoje).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase();
 
-    const cats = CB.gastoPorCategoria(D.mes(S.hoje));
+    $$('[data-eixo]').forEach((b) => b.classList.toggle('on', b.dataset.eixo === eixo));
+    $('#eixoHint').innerHTML = eixo === 'POR_FATURA'
+      ? 'A parcela conta no m&ecirc;s de <b>vencimento da fatura</b> em que ela entrou. &Eacute; o n&uacute;mero que bate com o dinheiro que sai.'
+      : 'Tudo no m&ecirc;s da <b>data da compra</b> — os R$ 5.000 de uma vez. Responde <i>quanto eu me comprometi</i>.';
+    const cats = CB.gastoPorCategoria(D.mes(S.hoje), eixo);
     const teto = cats.length ? cats[0].total : 1;
     $('#catList').innerHTML = cats.length ? cats.map((c) =>
       '<div class="catrow"><span class="nome" style="color:' + c.cor + '">' + esc(c.nome) + '</span>' +
@@ -246,7 +251,10 @@
     return '<div class="panel mt18" style="margin-bottom:14px">' +
       '<div class="panel-head"><h3>Limite</h3><span class="tele">PARCELA FUTURA SEGURA LIMITE &middot; RECORRÊNCIA NÃO</span></div>' +
       '<div class="hstack between wrap gap14">' +
-      '<div class="metric"><span class="lbl">Disponível</span><span class="val lm" style="font-size:30px">' + M.fmt(L.disponivel) + '</span></div>' +
+      '<div class="metric"><span class="lbl">Disponível</span><span class="val lm" style="font-size:30px">' + M.fmt(L.disponivel) + '</span>' +
+      (CB.limiteDesatualizado(contaCartaoId)
+        ? '<span class="sub" style="color:#ffb020">A D&Iacute;VIDA PASSOU DO LIMITE INFORMADO — ELE PODE ESTAR DESATUALIZADO</span>'
+        : '<span class="sub">LIMITE INFORMADO PELO USU&Aacute;RIO &middot; NUNCA TRAVA UMA COMPRA</span>') + '</div>' +
       '<div class="metric" style="text-align:right"><span class="lbl">Preso em compras não pagas</span>' +
       '<span class="val" style="font-size:20px">' + M.fmt(L.preso) + ' <span style="color:var(--dim);font-size:13px">de ' + M.fmt(L.limite) + '</span></span></div>' +
       '</div><div class="bar mt10"><i style="width:' + pct + '%"></i></div></div>';
@@ -258,7 +266,17 @@
       const s = CB.ehDivida(c) ? -CB.dividaCartao(c.id) : CB.saldoRealizado(c.id);
       const apl = c.tipo === 'APLICACAO';
       const extra = apl
-        ? '<div class="mt10 tele">&Uacute;LTIMA ATUALIZA&Ccedil;&Atilde;O: <b>' + (c.ultimaAtualizacao ? D.br(c.ultimaAtualizacao) : 'NUNCA') + '</b></div>' +
+        ? (function () {
+            // regra 7: o valor informado carrega a idade dele, e a tela mostra
+            const ult = CB.ultimaAtualizacaoDe(c.id);
+            const dias = CB.diasSemAtualizar(c.id);
+            const velho = CB.aplicacaoDesatualizada(c.id);
+            return '<div class="mt10 tele">&Uacute;LTIMA ATUALIZA&Ccedil;&Atilde;O: <b>' + (ult ? D.br(ult) : 'NUNCA') + '</b>' +
+              (dias === null ? '' : ' <b style="opacity:.6">(' + dias + ' DIA' + (dias === 1 ? '' : 'S') + ')</b>') +
+              (velho ? ' <span class="tag" style="border-color:#ffb020;color:#ffb020">DESATUALIZADA</span>' : '') + '</div>' +
+              (velho ? '<p class="hint mt6" style="color:#ffb020">Mais de ' + CB.DIAS_DESATUALIZADO +
+                ' dias sem atualizar. O sistema <b>n&atilde;o estima nada</b>: o saldo continua sendo o &uacute;ltimo valor informado.</p>' : '');
+          })() +
           '<div class="row mt10" style="grid-template-columns:1fr auto;gap:8px;align-items:end">' +
           '<div class="field" style="margin:0"><label>informar valor atual</label>' +
           '<input data-vlr="' + c.id + '" inputmode="decimal" placeholder="' + (s / 100).toFixed(2).replace('.', ',') + '"></div>' +
@@ -290,6 +308,63 @@
     if (!v) { toast('INFORME O VALOR ATUAL', true); return; }
     CB.atualizarValorAplicacao(b.dataset.rend, v);
     toast('VALOR ATUALIZADO // DIFERENÇA LANÇADA'); renderTudo();
+  });
+
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-eixo]');
+    if (!b) return;
+    eixo = b.dataset.eixo; renderTudo();
+  });
+
+  /* ================= CADASTRO =================
+     Existe para exercitar uma decisao: o ambiente nasce com as 14 categorias de SISTEMA
+     e NENHUMA do usuario. Se lancar a primeira despesa doer, a decisao volta para a mesa.
+     ========================================================================= */
+  function renderCadastro() {
+    const cs = CB.categoriasDoUsuario();
+    const sis = CB.categorias().filter((k) => k.sistema);
+    const lista = (arr, vazio) => arr.length
+      ? '<div class="hstack wrap gap8 mt10">' + arr.map((k) =>
+          '<span class="tag" style="border-color:' + k.cor + ';color:' + k.cor + '">' + esc(k.nome) +
+          ' <b style="opacity:.6">' + k.sentido[0] + '</b></span>').join('') + '</div>'
+      : '<div class="vazio mt10">' + vazio + '</div>';
+
+    $('#cadastro').innerHTML =
+      '<div class="panel"><div class="panel-head"><h3>Categorias do usu&aacute;rio</h3>' +
+      '<span class="tele">' + cs.length + ' NESTE AMBIENTE</span></div>' +
+      lista(cs, 'NENHUMA — O SISTEMA N&Atilde;O CRIA CATEGORIA DE USU&Aacute;RIO. CRIE A PRIMEIRA.') +
+      '<div class="row mt14" style="grid-template-columns:1fr auto auto;gap:8px;align-items:end">' +
+      '<div class="field" style="margin:0"><label>nome</label><input id="catNome" placeholder="MORADIA"></div>' +
+      '<div class="field" style="margin:0"><label>sentido</label><select id="catSent"><option>SAIDA</option><option>ENTRADA</option></select></div>' +
+      '<button class="btn sm primary" id="btnCat">CRIAR</button></div>' +
+      '<p class="hint mt10">A raiz nasce sem filhos, ent&atilde;o ela j&aacute; &eacute; escolh&iacute;vel no lan&ccedil;amento. ' +
+      'Ao ganhar a primeira subcategoria, ela <b>deixa</b> de ser — e os lan&ccedil;amentos que j&aacute; apontam para ela continuam somando na raiz.</p></div>' +
+
+      '<div class="panel mt18"><div class="panel-head"><h3>Categorias de sistema</h3>' +
+      '<span class="tele">' + sis.length + ' — O USU&Aacute;RIO NUNCA V&Ecirc; ESTAS NO SELETOR</span></div>' +
+      lista(sis, '—') +
+      '<p class="hint mt10">Sete opera&ccedil;&otilde;es, cada uma em <b>ENTRADA</b> e <b>SAIDA</b>. N&atilde;o se renomeia, ' +
+      'n&atilde;o se move, n&atilde;o se inativa e n&atilde;o se exclui — e &eacute; por causa delas que <b>pend&ecirc;ncia</b> voltou a ser ' +
+      '<code>categoria IS NULL</code>, sem lista de exce&ccedil;&atilde;o.</p></div>' +
+
+      '<div class="panel mt18"><div class="panel-head"><h3>Confer&ecirc;ncia das invariantes</h3>' +
+      '<span class="tele">conferir() — TODO ESTADO, TODA REGRA</span></div>' + conferirHTML() + '</div>';
+  }
+
+  function conferirHTML() {
+    const e = CB.conferir();
+    return e.length
+      ? '<div class="vazio mt10" style="color:#ff5c7a">' + e.map(esc).join('<br>') + '</div>'
+      : '<div class="mt10"><span class="tag">SEM VIOLA&Ccedil;&Atilde;O</span> <span class="hint">' +
+        'Regra que ningu&eacute;m executa &eacute; regra que ningu&eacute;m verifica.</span></div>';
+  }
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#btnCat')) return;
+    const nome = ($('#catNome').value || '').trim();
+    if (!nome) { toast('INFORME O NOME', true); return; }
+    CB.criarCategoria({ nome, sentido: $('#catSent').value });
+    toast('CATEGORIA CRIADA'); renderTudo();
   });
 
   /* ================= SERIES ================= */
@@ -540,6 +615,7 @@
     if (tela === 'fatura') renderFatura();
     if (tela === 'series') renderSeries();
     if (tela === 'patrimonio') renderPatrimonio();
+    if (tela === 'cadastro') renderCadastro();
     $('#statusLinha').textContent = 'LEDGER SYNCED \u00b7 ' + CB.lancamentos().length + ' LAN\u00c7AMENTOS NO AMBIENTE';
   }
 

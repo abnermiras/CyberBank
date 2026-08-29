@@ -59,6 +59,7 @@
     <button class="nav" data-tela="fatura"><span>▤</span>FATURA</button>
     <button class="nav" data-tela="series"><span>∞</span>SÉRIES</button>
     <button class="nav" data-tela="patrimonio"><span>◆</span>RESERVA</button>
+    <button class="nav" data-tela="cadastro"><span>⊕</span>CADASTRO</button>
     <div class="railfoot tele">CB<br>NC77</div>
   </nav>
 
@@ -89,7 +90,12 @@
 
       <div class="grid-2-1 mt18">
         <div class="panel">
-          <div class="panel-head"><h3>Gasto por categoria</h3><span class="tele">POR DATA DO EVENTO · SÓ FLUXO DE CAIXA</span></div>
+          <div class="panel-head"><h3>Gasto por categoria</h3>
+            <span class="hstack gap8">
+              <button class="btn sm on" data-eixo="POR_FATURA">POR FATURA</button>
+              <button class="btn sm" data-eixo="POR_COMPRA">POR COMPRA</button>
+            </span></div>
+          <p class="hint" id="eixoHint"></p>
           <div id="catList"></div>
           <div class="guardadoline" id="guardadoLine"></div>
         </div>
@@ -157,6 +163,14 @@
         <div class="tele">APORTE NÃO É GASTO — É DINHEIRO TROCANDO DE BOLSO</div>
       </div>
       <div id="patContas"></div>
+    </section>
+
+    <section class="tela hidden" data-tela="cadastro">
+      <div class="telahead">
+        <div><div class="eyebrow">CADASTRO // O QUE O USUÁRIO CRIA</div><h2 class="th">Cadastro</h2></div>
+        <div class="tele">O SISTEMA SÓ CRIA AS CATEGORIAS DE SISTEMA</div>
+      </div>
+      <div id="cadastro"></div>
     </section>
   </main>
 </div>

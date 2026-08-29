@@ -93,6 +93,14 @@ Duas coisas que este eixo **não** é:
 Rolagem, pagamento de fatura, transferência, aporte, resgate e rendimento carregam **categoria
 de sistema**, que nenhum relatório por categoria inclui — então não entram em nenhum dos dois.
 
+**O relatório é líquido, e quem manda é o sentido da categoria, não o do lançamento.** O
+estorno herda a categoria do original e vem com o sentido invertido: ele **abate** o mês em que
+aconteceu. Sem isso, quem comprou e devolveu continuaria vendo o gasto cheio para sempre — o
+saldo se compensava e o relatório não. *(Achado do protótipo: a compra entrava com R$ 300 e o
+estorno não tirava nada.)* A consequência aceita: **uma categoria pode ficar negativa num mês**,
+quando o estorno é de uma compra de outro mês. É fiel ao fato, e a tela precisa saber mostrar
+número negativo.
+
 ## Dois eixos independentes
 
 Situação e categorização são coisas separadas e não se misturam num estado só. Um
@@ -197,7 +205,8 @@ Duas coisas diferentes que a mesma palavra costuma esconder:
 | **Estorno** | O dinheiro voltou de verdade: compra cancelada, devolução, chargeback | **Cria um lançamento novo** de sentido oposto, ligado ao original por `estornoDe` |
 
 No crédito, o estorno de uma compra parcelada credita o **valor total** de uma vez, e as
-parcelas restantes seguem correndo — os dois se compensam. O parcelamento não é editado
+parcelas restantes seguem correndo — os dois se compensam **no saldo e no relatório**, este
+último porque o gasto por categoria é líquido (ver *Em que mês o gasto conta*). O parcelamento não é editado
 nem cancelado: ver `docs/02-dominio/recorrencia.md`.
 
 Estorno é evento financeiro — aconteceu na vida e tem data própria. Apagar o lançamento

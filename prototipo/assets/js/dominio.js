@@ -189,6 +189,12 @@
 
   /* ================= TRANSFERENCIA (par ligado) ================= */
   function transferir(o) {
+    // saldo de BENEFICIO nao e fungivel: nao sai por transferencia e nao entra por ela.
+    // Entra por receita (o credito do beneficio) e sai por gasto no meio dele.
+    [o.de, o.para].forEach((cid) => {
+      const c = conta(cid);
+      if (c && c.tipo === 'BENEFICIO') throw new Error('BENEFICIO nao entra em transferencia: ' + c.nome);
+    });
     const tid = id('tr');
     const amb = o.ambiente || S.ambienteAtivo;
     const nome = nomeDaTransferencia(o);
@@ -262,19 +268,35 @@
   // gasto por categoria usa dataEvento e SO contas de fluxo de caixa — a CARTAO
   // inclusive, porque comprar no cartao E gasto da vida. Pagar a fatura nao conta
   // de novo: pagamento e transferencia, e transferencia nunca entra aqui.
-  function gastoPorCategoria(mes) {
+  /* EM QUE MES O GASTO CONTA — docs/02-dominio/lancamento.md.
+     POR_FATURA (padrao): a parcela conta no mes de VENCIMENTO da fatura em que ela entrou.
+     POR_COMPRA:          tudo no mes da dataEvento, ou seja, no mes da compra.
+     Lancamento SEM fatura (debito, pix, dinheiro, boleto) conta pela dataEvento nos dois —
+     nao ha fatura para discordar dela. O eixo so separa alguma coisa no credito. */
+  function mesDeCompetencia(l, eixo) {
+    if (eixo === 'POR_COMPRA' || !l.fatura) return D.mes(l.dataEvento);
+    const f = S.faturas.find((x) => x.id === l.fatura);
+    return f ? D.mes(f.vencimento) : D.mes(l.dataEvento);
+  }
+
+  function gastoPorCategoria(mes, eixo) {
     const alvo = mes || D.mes(S.hoje);
+    const ex = eixo || 'POR_FATURA';
     const mapa = {};
     lancamentos().forEach((l) => {
       const k0 = l.categoria ? categoria(l.categoria) : null;
       if (k0 && k0.sistema) return;   // um predicado no lugar da lista de excecoes
-      if (l.sentido !== 'SAIDA') return;
-      if (!D.noMes(l.dataEvento, alvo)) return;
+      // RELATORIO LIQUIDO: quem manda e o SENTIDO DA CATEGORIA, nao o do lancamento.
+      // O estorno herda a categoria do original e vem como ENTRADA — ele ABATE o mes em
+      // que aconteceu. Sem isso, quem compra e devolve continua vendo o gasto cheio.
+      const deSaida = k0 ? k0.sentido === 'SAIDA' : l.sentido === 'SAIDA';
+      if (!deSaida) return;
+      if (mesDeCompetencia(l, ex) !== alvo) return;
       const c = conta(l.conta); if (!c || !c.entraNoFluxoDeCaixa) return;
       const r = l.categoria ? raizDe(l.categoria) : null;
       const chave = r ? r.id : '__sem__';
       if (!mapa[chave]) mapa[chave] = { id: chave, nome: r ? r.nome : 'Sem categoria', cor: r ? r.cor : '#5f7688', total: 0, itens: 0 };
-      mapa[chave].total += l.valor; mapa[chave].itens++;
+      mapa[chave].total += (l.sentido === 'SAIDA' ? 1 : -1) * l.valor; mapa[chave].itens++;
     });
     return Object.values(mapa).sort((a, b) => b.total - a.total);
   }
@@ -288,10 +310,13 @@
 
   function receitaDoMes(mes) {
     const alvo = mes || D.mes(S.hoje);
-    const doSistema = (l) => { const k = l.categoria ? categoria(l.categoria) : null; return !!(k && k.sistema); };
-    return lancamentos().filter((l) => !doSistema(l) && l.sentido === 'ENTRADA' && D.noMes(l.dataEvento, alvo))
-      .filter((l) => { const c = conta(l.conta); return ehCaixa(conta(l.conta)); })
-      .reduce((s, l) => s + l.valor, 0);
+    // liquida pelo mesmo motivo do gasto: o estorno de uma receita a abate
+    return lancamentos().filter((l) => {
+      const k = l.categoria ? categoria(l.categoria) : null;
+      if (k && k.sistema) return false;
+      const deEntrada = k ? k.sentido === 'ENTRADA' : l.sentido === 'ENTRADA';
+      return deEntrada && D.noMes(l.dataEvento, alvo) && ehCaixa(conta(l.conta));
+    }).reduce((s, l) => s + (l.sentido === 'ENTRADA' ? 1 : -1) * l.valor, 0);
   }
 
   /* PENDENCIA: lancamento SEM CATEGORIA. E so isso — a lista de excecoes morreu quando
@@ -302,6 +327,148 @@
   const extrato = (filtro) => lancamentos()
     .filter((l) => (filtro && filtro.conta ? l.conta === filtro.conta : true))
     .slice().sort((a, b) => (b.dataEvento === a.dataEvento ? b.id.localeCompare(a.id) : b.dataEvento.localeCompare(a.dataEvento)));
+
+  /* ================= DADO QUE ENVELHECE =================
+     Regra 7 do CLAUDE.md: valor informado pelo usuario nunca e extrapolado nem corrigido
+     pelo sistema — ele carrega a data em que foi informado, e a tela mostra essa idade.
+     A "ultima atualizacao" NAO e campo: e consulta, como todo o resto do modelo.
+     ========================================================================= */
+  const DIAS_DESATUALIZADO = 30;
+
+  function ultimaAtualizacaoDe(cid) {
+    const rends = S.lancamentos.filter((l) => l.conta === cid && l.rendimento).map((l) => l.dataEvento).sort();
+    if (rends.length) return rends[rends.length - 1];
+    const ab = S.lancamentos.find((l) => l.conta === cid && l.abertura);
+    return ab ? ab.dataEvento : null;
+  }
+  function diasSemAtualizar(cid) {
+    const d = ultimaAtualizacaoDe(cid);
+    return d === null ? null : D.diasEntre(d, S.hoje);
+  }
+  function aplicacaoDesatualizada(cid) {
+    const n = diasSemAtualizar(cid);
+    return n !== null && n > DIAS_DESATUALIZADO;
+  }
+  // o sinal de que o limite envelheceu nao e prazo, e FATO: a divida passou dele.
+  function limiteDesatualizado(cid) {
+    const c = conta(cid);
+    return !!(c && c.tipo === 'CARTAO' && c.limite && Math.abs(saldoRealizado(cid)) > c.limite);
+  }
+  const patrimonioDesatualizado = () => contas().some((c) => c.tipo === 'APLICACAO' && aplicacaoDesatualizada(c.id));
+
+  /* ================= CADASTRO =================
+     O ambiente nasce com as 14 categorias de sistema e NENHUMA do usuario.
+     ========================================================================= */
+  function criarAmbiente(o) {
+    const a = { id: id('amb'), nome: o.nome, cor: o.cor || '#00f0ff', setor: o.setor || 'NC-77/N' };
+    S.ambientes.push(a);
+    criarCategoriasDeSistema(a.id);
+    return a;
+  }
+  function criarConta(o) {
+    if (typeof o.entraEmCaixa !== 'boolean') throw new Error('conta sem entraEmCaixa');
+    if (o.entraEmCaixa && !o.entraNoFluxoDeCaixa) throw new Error('caixa implica fluxo');
+    const c = Object.assign({ id: id('cta'), ambiente: o.ambiente || S.ambienteAtivo }, o);
+    S.contas.push(c);
+    if (o.abertura) {
+      lancar({ ambiente: c.ambiente, conta: c.id, sentido: 'ENTRADA', valor: o.abertura,
+        descricao: 'Saldo de abertura', situacao: 'REALIZADO', meio: null,
+        categoria: catSistema(c.ambiente, 'Saldo de abertura', 'ENTRADA') }).abertura = true;
+    }
+    return c;
+  }
+  function criarCategoria(o) {
+    const pai = o.pai ? categoria(o.pai) : null;
+    if (pai && pai.sistema) throw new Error('categoria de sistema nao tem filho');
+    if (pai && pai.pai) throw new Error('a arvore tem exatamente dois niveis');
+    const k = { id: id('cat'), ambiente: o.ambiente || S.ambienteAtivo, nome: o.nome,
+      cor: o.cor || (pai ? pai.cor : '#00f0ff'), sentido: pai ? pai.sentido : o.sentido,
+      pai: o.pai || null, sistema: false };
+    S.categorias.push(k);
+    return k;
+  }
+  function criarMeio(o) {
+    const c = conta(o.conta);
+    if (!c) throw new Error('meio sem conta');
+    if (c.tipo === 'APLICACAO') throw new Error('nao se paga com uma APLICACAO');
+    if (o.tipo === 'CREDITO' && c.tipo !== 'CARTAO') throw new Error('CREDITO so aponta para CARTAO');
+    if (o.tipo !== 'CREDITO' && c.tipo === 'CARTAO') throw new Error('so CREDITO aponta para CARTAO');
+    if (o.tipo === 'BENEFICIO' && c.tipo !== 'BENEFICIO') throw new Error('meio BENEFICIO so aponta para conta BENEFICIO');
+    const m = Object.assign({ id: id('mei'), ambiente: o.ambiente || S.ambienteAtivo }, o);
+    S.meios.push(m);
+    return m;
+  }
+
+  /* ================= CONFERIR =================
+     Cada invariante escrita nos docs vira uma checagem que roda sobre o estado inteiro.
+     E o instrumento que faltava: regra que ninguem executa e regra que ninguem verifica.
+     ========================================================================= */
+  function conferir() {
+    const erros = [];
+    const diz = (cond, msg) => { if (!cond) erros.push(msg); };
+
+    S.contas.forEach((c) => {
+      diz(typeof c.entraEmCaixa === 'boolean', `conta sem entraEmCaixa: ${c.nome}`);
+      diz(!(c.entraEmCaixa && !c.entraNoFluxoDeCaixa), `caixa sem fluxo: ${c.nome}`);
+      diz(!(c.tipo === 'APLICACAO' && c.entraNoFluxoDeCaixa), `APLICACAO no fluxo: ${c.nome}`);
+    });
+
+    S.ambientes.forEach((a) => {
+      const n = S.categorias.filter((k) => k.sistema && k.ambiente === a.id).length;
+      diz(n === CAT_SISTEMA.length * 2, `ambiente ${a.nome} com ${n} categorias de sistema (esperado ${CAT_SISTEMA.length * 2})`);
+    });
+    S.categorias.filter((k) => k.sistema).forEach((k) => {
+      diz(!k.pai, `categoria de sistema com pai: ${k.nome}`);
+      diz(!S.categorias.some((x) => x.pai === k.id), `categoria de sistema com filho: ${k.nome}`);
+    });
+
+    S.lancamentos.forEach((l) => {
+      const k = l.categoria ? categoria(l.categoria) : null;
+      const doCiclo = l.transferenciaId || l.rendimento || l.abertura || l.rolagemDeFatura;
+      diz(!(doCiclo && !k), `lancamento do ciclo sem categoria: ${l.descricao}`);
+      diz(!(doCiclo && k && !k.sistema), `lancamento do ciclo com categoria de usuario: ${l.descricao}`);
+      if (k) {
+        diz(k.ambiente === l.ambiente, `categoria de outro ambiente: ${l.descricao}`);
+        // a regra do sentido e de ESCOLHA DO USUARIO, nao de dados: o estorno herda a
+        // categoria do original de proposito, e por isso vem com o sentido invertido
+        diz(k.sentido === l.sentido || !!l.estornoDe,
+          `categoria de sentido ${k.sentido} num lancamento ${l.sentido}: ${l.descricao}`);
+      }
+      diz(l.valor > 0, `valor nao positivo: ${l.descricao}`);
+      diz(l.dataEfeito >= l.dataEvento, `dataEfeito antes da dataEvento: ${l.descricao}`);
+    });
+
+    const porTid = {};
+    S.lancamentos.filter((l) => l.transferenciaId).forEach((l) => {
+      (porTid[l.transferenciaId] = porTid[l.transferenciaId] || []).push(l);
+    });
+    Object.keys(porTid).forEach((tid) => {
+      const par = porTid[tid];
+      diz(par.length === 2, `transferencia com ${par.length} lados: ${tid}`);
+      if (par.length === 2) {
+        diz(par[0].conta !== par[1].conta, `transferencia na mesma conta: ${tid}`);
+        par.forEach((l) => diz(conta(l.conta).tipo !== 'BENEFICIO', `transferencia tocando BENEFICIO: ${tid}`));
+      }
+    });
+
+    const porRol = {};
+    S.lancamentos.filter((l) => l.rolagemDeFatura).forEach((l) => {
+      (porRol[l.rolagemDeFatura] = porRol[l.rolagemDeFatura] || []).push(l);
+    });
+    Object.keys(porRol).forEach((rid) => {
+      const par = porRol[rid];
+      diz(par.length === 2, `rolagem com ${par.length} lados: ${rid}`);
+      const soma = par.reduce((s, l) => s + (l.sentido === 'ENTRADA' ? 1 : -1) * l.valor, 0);
+      diz(soma === 0, `rolagem que nao soma zero: ${rid} (${soma})`);
+    });
+
+    S.contas.filter((c) => c.tipo === 'CARTAO').forEach((c) => {
+      const ab = S.faturas.filter((f) => f.contaCartao === c.id && f.status === 'ABERTA').length;
+      diz(ab === 1, `conta ${c.nome} com ${ab} faturas ABERTA (esperado 1)`);
+    });
+
+    return erros;
+  }
 
   /* ================= FATURA =================
      A fatura e o recorte de um periodo da conta CARTAO. Tem estado proprio
@@ -809,7 +976,10 @@
     lancar, editar, estornar, transferir, aportar, resgatar, atualizarValorAplicacao,
     saldoRealizado, saldoProjetado, emCaixa, sobraAteFimDoMes, patrimonio, guardado,
     dividaCartao, dividaTotal,
-    gastoPorCategoria, guardadoNoMes, receitaDoMes, pendencias, extrato,
+    gastoPorCategoria, mesDeCompetencia, guardadoNoMes, receitaDoMes, pendencias, extrato,
+    conferir, DIAS_DESATUALIZADO, ultimaAtualizacaoDe, diasSemAtualizar,
+    aplicacaoDesatualizada, limiteDesatualizado, patrimonioDesatualizado,
+    criarAmbiente, criarConta, criarCategoria, criarMeio,
     categoriasDoUsuario, criarCategoriasDeSistema, catSistema, CAT_SISTEMA,
     faturasDe, faturaAberta, faturaNaPosicao, faturaDaReferencia, datasDaRef,
     totalFatura, roladoDaFatura, faltaNaFatura, ehRolagem, lancamentosDaFatura,

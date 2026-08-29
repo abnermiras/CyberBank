@@ -61,14 +61,29 @@ aberta, uma futura, um parcelamento atravessando as três, um boleto previsto, u
 uma pendência — tudo o que o modelo sabe fazer visível numa tela só.
 
 **Confira estes números ao abrir** (ambiente PESSOAL): em caixa `R$ 11.236,00` · dívida do
-cartão `R$ 3.560,80` · patrimônio `R$ 21.160,00` · limite disponível `R$ 11.439,20`.
-Pagar a fatura **não pode mudar o patrimônio** — se mudar, é bug.
+cartão `R$ 3.560,80` · patrimônio `R$ 24.660,00` · guardado `R$ 16.184,00` · limite disponível
+`R$ 11.439,20`. Pagar a fatura **não pode mudar o patrimônio** — se mudar, é bug.
 
 O "em caixa" caiu de `R$ 12.036,80` para `R$ 11.236,00` em 29/08, e a diferença é exatamente
 o saldo do vale-refeição: `entraEmCaixa` virou campo e a `BENEFICIO` saiu do caixa
-(`docs/02-dominio/conta.md`). Dívida, patrimônio e limite **não podem** ter mudado junto.
+(`docs/02-dominio/conta.md`). Dívida e limite **não podem** ter mudado junto. O patrimônio
+subiu `R$ 3.500,00` no mesmo dia por outro motivo: entrou no seed a **Poupança**, uma segunda
+`APLICACAO` que nunca foi atualizada desde a abertura — ela existe para a marca
+**DESATUALIZADA** ter o que marcar (57 dias, contra os 30 da regra).
+
+**`CB.conferir()`** roda todas as invariantes dos docs sobre o estado inteiro e devolve a lista
+de violações. No seed ela é vazia, e a tela de **Cadastro** a mostra. É o instrumento que
+faltava: *regra que ninguém executa é regra que ninguém verifica.*
 
 ## O que o protótipo já mudou nos docs
+
+- **O estorno não abatia o gasto.** O relatório por categoria só somava `SAIDA`, e o estorno é
+  `ENTRADA` — quem comprava R$ 300 e devolvia continuava vendo R$ 300 de gasto, para sempre. O
+  saldo se compensava e o relatório não. Agora o relatório é **líquido**, e quem manda é o
+  **sentido da categoria**, não o do lançamento (`docs/02-dominio/lancamento.md`).
+- **A regra do `sentido` era de escolha, não de dado.** O estorno herda a categoria do original
+  e inverte o sentido — escrita como invariante de dado, a regra era simplesmente falsa. O
+  `conferir()` acusou na primeira execução (`docs/02-dominio/categoria.md`).
 
 - **Pendência** era "lançamento sem categoria". Larga demais: pegava a abertura de conta.
   Virou "lançamento que *espera* categoria" (`docs/02-dominio/lancamento.md`).
