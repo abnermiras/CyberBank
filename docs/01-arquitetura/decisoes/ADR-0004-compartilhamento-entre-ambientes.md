@@ -63,5 +63,8 @@ para
 - **Passa a ser proibido:** lançamento sem ambiente próprio; herdar o ambiente da conta em
   vez de gravar o ambiente de quem lançou; e exibir categoria de lançamento de outro
   ambiente — categoria de fora é sempre mascarada.
+- **Quando:** o **modelo** entra na Fase 1 — ambiente de quem lançou, posse separada do uso e
+  a política de RLS já com o `OR`, mesmo sem nenhum vínculo existir. A **funcionalidade** é
+  liberada com a Fase 1 concluída (`docs/00-produto/roadmap.md`).
 - **Revisitar se:** o `OR` da política aparecer em medição real como custo no Raspberry Pi.
   A saída seria uma tabela materializada de visibilidade, nunca desligar o RLS.

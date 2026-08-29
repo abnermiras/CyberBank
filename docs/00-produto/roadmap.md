@@ -35,7 +35,8 @@ O corte mínimo que substitui o sistema atual no dia a dia. Alvo: ~3 meses.
 | Entra | Por quê é mínimo |
 |---|---|
 | Cadastro e autenticação | Há mais de um usuário; é pré-requisito de todo o resto |
-| Ambiente financeiro com compartilhamento | O dono do dado. Ver `docs/02-dominio/ambiente-financeiro.md` |
+| Ambiente financeiro, com convite e papéis | O dono do dado. Ver `docs/02-dominio/ambiente-financeiro.md` |
+| O **modelo** do compartilhamento (`ADR-0004`) | Só o que contamina schema e política de acesso — não a tela. Ver abaixo |
 | Conta, meio de pagamento, categoria | O esqueleto sem o qual lançamento não existe |
 | Lançamento: entrada, saída, edição, estorno | A unidade central. Saldo tem que fechar |
 | Receita como conceito próprio | Não é despesa negativa — decidir depois é retrabalho de schema |
@@ -48,11 +49,20 @@ dinheiro entre conta e aplicação; valor atual atualizado **à mão**; patrimô
 contas + aplicações. Rentabilidade, cotação e qualquer consulta de mercado ficam fora —
 custo externo zero é restrição, não preferência.
 
+**Compartilhamento na Fase 1 é exatamente isto:** o que contamina schema e política de
+acesso, e nada mais. Todo lançamento grava o **ambiente de quem lançou** e nunca herda o da
+conta; conta e cartão têm posse imutável, separada do uso; e a política de RLS já nasce com o
+`OR` do `ADR-0004`, mesmo com a tabela de vínculo vazia. **Criar vínculo, categoria mascarada
+e partes da fatura ficam para depois** — pelo mesmo motivo que puxou `Aplicação` para cá:
+schema deixado para o fim é migration em cima de dado real, e tela não é.
+
 **Pronto quando:**
 
 - [ ] Um mês inteiro fechado no Cyberbank com saldo batendo com o extrato do banco
 - [ ] Uma fatura de cartão fechada e paga, com parcela caindo nos meses seguintes
 - [ ] Dois usuários no mesmo ambiente, e um terceiro **sem acesso** que não enxerga nada
+- [ ] Um lançamento guarda o **ambiente de quem lançou**, e a política de RLS já traz o `OR`
+      do `ADR-0004` — mesmo sem nenhum vínculo existir
 - [ ] O RaspyBank desligado — não "em paralelo por segurança"
 
 ## Fase 2 — Tirar a digitação do caminho
@@ -90,6 +100,11 @@ apagado a pedido, sem cirurgia manual no banco.
 Não se começa, não se prototipa, não se "deixa preparado" antes da fase indicada.
 Preparar para o futuro sem o futuro definido é o custo que mata projeto de um dev só.
 
+O que se congela é a **funcionalidade**. Quando uma decisão de modelo já foi tomada e ela
+contamina schema ou política de acesso, o modelo entra na fase em que o schema nasce —
+deixar para depois é migration em cima de dado real. É o caso do `ADR-0004`, e a linha
+correspondente abaixo diz isso.
+
 | Item | Liberado a partir de |
 |---|---|
 | Rentabilidade e cotação de investimento | Fase 3 concluída |
@@ -98,7 +113,7 @@ Preparar para o futuro sem o futuro definido é o custo que mata projeto de um d
 | App mobile nativo | Sem fase. Web responsiva + bot resolvem |
 | Multi-moeda | Sem fase. Real inteiro em centavos, e ponto |
 | Relatório customizável pelo usuário | Sem fase. Dashboard fixo até alguém reclamar |
-| Compartilhar dado **entre** ambientes | Sem fase. Quebra o isolamento, que é o requisito de segurança |
+| **Compartilhar conta ou cartão entre ambientes** — a funcionalidade: criar o vínculo, categoria mascarada, partes da fatura | **Fase 1 concluída.** O modelo (`ADR-0004`) entra na Fase 1; o que fica congelado é a tela |
 
 "Sem fase" não é "nunca" — é: ninguém abre isso sem antes mover a linha aqui.
 

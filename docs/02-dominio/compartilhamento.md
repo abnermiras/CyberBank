@@ -8,6 +8,11 @@ status: ativo
 
 # Compartilhamento de conta e cartão
 
+> **Quando.** O **modelo** deste doc entra na Fase 1 — ele contamina schema e política de
+> acesso. A **funcionalidade** (criar o vínculo, categoria mascarada, partes da fatura) é
+> liberada com a Fase 1 concluída (`docs/00-produto/roadmap.md`). O doc está ativo porque o
+> schema depende dele desde a primeira migration.
+
 Três coisas diferentes usam a palavra "compartilhar" e **não são a mesma**:
 
 | | O que é | O que a pessoa ganha |
