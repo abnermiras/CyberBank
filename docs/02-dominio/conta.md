@@ -73,7 +73,7 @@ conta de novo: pagamento é transferência, e transferência nunca entra no rela
 **Saldo = soma dos lançamentos da conta até uma data.** Sem exceção e sem campo
 denormalizado guardando o total — saldo guardado é saldo que diverge.
 
-Como o lançamento tem situação `PREVISTO` ou `REALIZADO`
+Como o lançamento tem situação `PREVISTO`, `PROVISIONADO` ou `REALIZADO`
 (`docs/02-dominio/lancamento.md`), o saldo tem duas leituras, e elas nunca se misturam
 na mesma tela sem rótulo:
 

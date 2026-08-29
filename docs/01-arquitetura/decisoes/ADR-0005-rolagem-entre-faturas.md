@@ -41,6 +41,12 @@ de lançamentos dentro da própria conta `CARTAO`**:
 Os dois têm o mesmo `rolagemDeFatura`, a data do vencimento que passou, e **somam zero**:
 a dívida do cartão não muda. A rolagem move dívida de período, não cria dívida.
 
+**A rolagem é o encerramento da fatura**, e faz mais do que o par: o débito nasce
+`PROVISIONADO`, os lançamentos da fatura vencida viram `REALIZADO` e o pagamento previsto
+dela que não foi pago é descartado. Débito `PREVISTO` foi cogitado e derrubado por
+aritmética — ele não entraria no saldo, o crédito entraria, e o par que existe justamente
+para somar zero apagaria a dívida.
+
 É a mesma forma da transferência — par ligado, sem categoria, fora do relatório de gasto —
 aplicada **entre faturas** em vez de entre contas.
 
@@ -64,7 +70,8 @@ o "saldo anterior" da fatura de papel.
   É o mesmo preço que a transferência já cobra, e pela mesma razão: manter "saldo é a soma
   dos lançamentos" verdadeiro ao pé da letra.
 - **Passa a ser proibido:** rolagem com um lado só; rolagem que altere a dívida total;
-  contar linha de rolagem em relatório de gasto ou na fila de pendências.
+  débito de rolagem `PREVISTO`; pagamento previsto que sobreviva ao vencimento da fatura
+  dele; contar linha de rolagem em relatório de gasto ou na fila de pendências.
 - **Revisitar se:** aparecer um segundo par que existe só para mover valor entre recortes
   do mesmo agregado. Aí a "transferência interna" vira conceito de primeira classe em vez
   de dois casos parecidos.

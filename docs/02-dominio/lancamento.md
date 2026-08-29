@@ -27,7 +27,7 @@ lançamentos, não um lançamento com dois lados — ver Transferência.
 | `dataEvento` | sim | Quando aconteceu na vida real |
 | `dataEfeito` | sim | Quando mexe no saldo. Ver As duas datas |
 | `descricao` | sim | O que o usuário lê no extrato |
-| `situacao` | sim | `PREVISTO` ou `REALIZADO` |
+| `situacao` | sim | `PREVISTO`, `PROVISIONADO` ou `REALIZADO`. Ver Dois eixos independentes |
 | `categoria` | não | Obrigatória para o lançamento deixar de ser pendência |
 | `meioDePagamento` | não | Obrigatório em gasto e receita reais. Ausente em transferência, aporte, resgate, rendimento e lançamento de abertura |
 | `fatura` | não | Preenchido quando o meio é crédito. **Nasce** na fatura aberta do cartão; editável para qualquer fatura, aberta ou não. Mover recalcula a `dataEfeito`. `docs/02-dominio/fatura-cartao.md` |
@@ -90,8 +90,8 @@ aparecendo na fila de pendências.)*
 A transição só anda para frente — `PREVISTO → PROVISIONADO → REALIZADO`, com qualquer
 salto válido — e **nunca volta atrás**. Fora do cartão ela acontece quando a data chega e,
 havendo captura ou extrato, quando a conciliação confirma
-(`docs/02-dominio/importacao-conciliacao.md`). No cartão, quem liquida é o **pagamento da
-fatura** (`docs/02-dominio/fatura-pagamento.md`).
+(`docs/02-dominio/importacao-conciliacao.md`). No cartão, quem liquida é o **encerramento da
+fatura** — quitada, ou vencida e rolada (`docs/02-dominio/fatura-pagamento.md`).
 
 ## Transferência
 

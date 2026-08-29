@@ -29,19 +29,23 @@ contado uma vez, na compra.
 **Cada fatura é paga na tela dela.** O pagamento aponta para uma fatura, não para o cartão:
 é assim que se sabe qual ciclo foi quitado e qual não.
 
-**Pagar é o que liquida.** Os lançamentos daquela fatura saem de `PROVISIONADO` e viram
-`REALIZADO` — inclusive quando o pagamento é parcial, porque o que sobrou vira rolagem no
-vencimento em vez de ficar pendurado (`ADR-0006`).
+**Quem liquida é o encerramento da fatura**, e ela encerra de dois jeitos: **quitada** — a
+soma dos pagamentos cobre o total — ou **vencida sem ser quitada**, e aí o que faltou rola.
+Nos dois casos os lançamentos dela saem de `PROVISIONADO` e viram `REALIZADO` (`ADR-0006`).
+
+**Pagamento parcial, sozinho, não liquida nada.** Enquanto a fatura está viva, o que foi
+comprado continua `PROVISIONADO` — que é exatamente o que "aconteceu, falta liquidar" quer
+dizer. Chamar de liquidado o que ainda se deve é a confusão que o `ADR-0006` desfez.
 
 | Caso | O que acontece |
 |---|---|
 | Pagar tudo | O pagamento previsto vira `REALIZADO`, com a data e a conta reais |
-| **Pagar menos** | O valor do pagamento é o que foi pago. A fatura fica **parcial**, e o que sobrou rola quando ela vencer — ver Rolagem |
+| **Pagar menos** | O valor do pagamento é o que foi pago. A fatura fica **parcial** e **nada é liquidado**; se ela vencer assim, o que sobrou rola e ela encerra — ver Encerramento |
 | **Pagar de outra conta** | Troca-se a conta de origem do pagamento. Qualquer conta que o ambiente acesse serve |
 | **Pagar em dois ou mais pedaços** | Duas transferências para a mesma fatura. A soma quita (`docs/02-dominio/compartilhamento.md`) |
 | Pagar mais que a fatura | A conta `CARTAO` fica com saldo a favor. É crédito no cartão, e existe na vida real |
 
-## Rolagem: o que venceu sem ser pago
+## Encerramento: o que venceu sem ser pago
 
 **Fatura que vence sem ser quitada rola o que sobrou para a fatura `ABERTA`** (`ADR-0005`).
 São **dois lançamentos dentro da própria conta `CARTAO`**, com o mesmo `rolagemDeFatura`:
@@ -54,6 +58,23 @@ São **dois lançamentos dentro da própria conta `CARTAO`**, com o mesmo `rolag
 Os dois **somam zero**: a dívida do cartão não muda. A rolagem move dívida de período, não
 cria dívida. É a mesma forma da transferência — par ligado, sem categoria, fora do relatório
 de gasto — aplicada entre faturas em vez de entre contas.
+
+### O que o encerramento faz, em ordem
+
+1. **Rola o que faltava:** crédito na fatura que venceu, débito na `ABERTA`.
+2. **O débito nasce `PROVISIONADO`.** Aquela dívida aconteceu — são compras que não foram
+   pagas — e é ela que ainda espera liquidação. `PREVISTO` foi cogitado e cai na aritmética:
+   o crédito entraria no saldo e o débito não, o par que existe para somar zero **apagaria a
+   dívida**, e o limite voltaria inteiro sem ninguém ter pago nada.
+3. **Todos os lançamentos da fatura vencida viram `REALIZADO`**, o crédito de rolagem
+   inclusive. Ela acabou: parte paga, parte rolada, nada mais a cobrar nela.
+4. **O pagamento previsto que ela ainda tinha é descartado.** Um previsto datado num
+   vencimento que já passou era metade do furo que o `ADR-0005` veio tapar.
+
+Fatura quitada no prazo não passa por nada disso: o pagamento cobriu o total, os lançamentos
+dela viram `REALIZADO` na hora e não há o que rolar.
+
+Daí sai a frase curta: **`PROVISIONADO` dura da compra até o fim da fatura dela, sempre.**
 
 **O total histórico da fatura não cai.** Agosto continua tendo sido R$ 1.610,60: o crédito
 de rolagem fica fora do total dela, e o débito entra no total da seguinte. É exatamente o
@@ -120,6 +141,9 @@ passado é permitido, mas nunca silencioso.
 - A rolagem tem **sempre dois lados**, na mesma conta `CARTAO`, e a soma deles é zero.
 - Rolagem nunca entra em relatório de gasto nem na fila de pendências.
 - O total histórico de uma fatura **não cai** quando ela rola.
+- O **débito** de rolagem nasce `PROVISIONADO`; o crédito e os demais lançamentos da fatura
+  encerrada viram `REALIZADO`.
+- Fatura encerrada **não deixa pagamento previsto** datado no passado.
 - Nenhum valor de pagamento informado pelo usuário é reescrito sem ele mandar.
 
 ## Fronteiras com outros docs

@@ -9,7 +9,7 @@
    - duas datas: dataEvento (relatorio) e dataEfeito (saldo)
    - situacao PREVISTO | PROVISIONADO | REALIZADO, e nunca volta atras.
      PROVISIONADO = o fato aconteceu e falta liquidar (a compra no cartao ate a
-     fatura ser paga). Ele conta no saldo do que JA ACONTECEU, e e por isso que
+     fatura dela ENCERRAR: quitada, ou vencida e rolada). Ele conta no saldo do que JA ACONTECEU, e e por isso que
      a divida do cartao e simplesmente o saldo da conta, sem calculo especial
    - saldo = soma dos lancamentos, nunca armazenado
    - transferencia = par de lancamentos com o mesmo transferenciaId
@@ -403,6 +403,14 @@
     return f;
   }
 
+  /* Encerrar = a fatura acabou de cobrar. Quitada ou rolada, os lancamentos dela
+     deixam de ser provisao e viram fato liquidado. Pagamento parcial NAO encerra. */
+  function encerrarFatura(fid) {
+    lancamentosDaFatura(fid).forEach((l) => {
+      if (l.situacao === 'PROVISIONADO') l.situacao = 'REALIZADO';
+    });
+  }
+
   /* ---------- pagar: TRANSFERENCIA. Nao ha duplo computo e nao ha regra dizendo
      que nao ha: transferencia nao tem categoria e nao entra em gasto. O gasto foi
      contado uma vez, na compra. ---------- */
@@ -427,13 +435,11 @@
       transferir({ de, para: f.contaCartao, valor, data,
         descricao: 'Pagamento fatura ' + f.referencia, pagamentoDeFatura: fid });
     }
-    // PAGOU: os lancamentos daquela fatura deixam de ser provisao e viram fato
-    // liquidado. Vale tambem no pagamento parcial — o que sobrou vira rolagem no
-    // vencimento, nao um item pendurado.
-    lancamentosDaFatura(fid).forEach((l) => {
-      if (l.situacao === 'PROVISIONADO') { l.situacao = 'REALIZADO'; }
-    });
+    // QUEM LIQUIDA E O ENCERRAMENTO, nao o pagamento. Quitou: a fatura acabou e os
+    // lancamentos dela viram fato liquidado. Pagamento parcial nao liquida nada — o
+    // que foi comprado segue PROVISIONADO ate a fatura encerrar, pela rolagem.
     const sit = situacaoPagamento(fid);
+    if (sit === 'QUITADA') encerrarFatura(fid);
     if (sit === 'PARCIAL') criarPagamentoPrevisto(f);
     registrar(`fatura ${f.referencia}: pago ${M.fmt(valor)} de ${conta(de).apelido || conta(de).nome} — ${sit}`, 'fatura');
     return f;
@@ -471,6 +477,8 @@
       descricao: 'Rolado para a fatura ' + destino.referencia }));
     lancar(Object.assign({}, base, { sentido: 'SAIDA', fatura: destino.id, situacao: 'PROVISIONADO',
       descricao: 'Saldo da fatura ' + f.referencia }));
+    // a fatura velha acabou: o que sobrou nela de provisao vira fato liquidado
+    encerrarFatura(fid);
     registrar(`fatura ${f.referencia}: ${M.fmt(falta)} rolado para ${destino.referencia}`, 'fatura');
     return rid;
   }

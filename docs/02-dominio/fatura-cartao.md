@@ -86,6 +86,11 @@ Não é estado salvo: é comparação entre o que foi pago e o total da fatura.
 | **Em aberto** | Nenhum pagamento apontando para ela |
 | **Parcial** | Pago > 0 e menor que o total |
 | **Quitada** | Pago ≥ total |
+| **Rolada** | Venceu sem ser quitada: o que faltava rolou para a `ABERTA`, e não há mais o que pagar nela |
+
+**Quitada** e **rolada** são as duas formas de a fatura **encerrar** — e é o encerramento,
+nunca o fechamento nem um pagamento parcial, que liquida os lançamentos dela
+(`docs/02-dominio/fatura-pagamento.md`).
 
 ## A situação do lançamento de crédito
 
@@ -97,7 +102,7 @@ situação `PROVISIONADO` diz (`ADR-0006`):
 | Compra no crédito, **à vista ou parcelada** | `PROVISIONADO` | = `dataEvento`. Comprou, deve |
 | **Todas as N parcelas**, inclusive as de meses à frente | `PROVISIONADO`, desde a compra | = a data da compra |
 | Ocorrência de recorrência que ainda não foi cobrada | `PREVISTO` até a data dela chegar | a data dela |
-| Qualquer um deles, depois que a fatura é paga | `REALIZADO` | não muda |
+| Qualquer um deles, depois que a fatura dele **encerra** — quitada, ou vencida e rolada | `REALIZADO` | não muda |
 
 **As parcelas nascem todas juntas e todas provisionadas** porque a compra aconteceu **uma
 vez**: quem parcelou R$ 5.000 em 10x deve R$ 5.000 hoje, e o limite já se comporta assim. O
@@ -135,8 +140,9 @@ A automação decide só onde o lançamento **nasce**. Depois disso, quem manda 
 
 Automático, e é o gatilho de mais coisa do que parece:
 
-1. A fatura `ABERTA` cuja `dataFechamento` chegou vira `FECHADA`. As parcelas `PREVISTO`
-   que estavam nela viram `REALIZADO`.
+1. A fatura `ABERTA` cuja `dataFechamento` chegou vira `FECHADA`. **Nenhuma situação muda
+   aqui:** fechar é recortar o período, não liquidar. Quem liquida é o **encerramento**
+   (`docs/02-dominio/fatura-pagamento.md`).
 2. A `FUTURA` seguinte vira `ABERTA` — criada na hora se não existir.
 3. O sistema varre as **recorrências ativas** do cartão e lança a ocorrência do ciclo na
    fatura recém-aberta (`docs/02-dominio/recorrencia.md`), **sem repetir** o que já lançou
@@ -204,6 +210,8 @@ mexe.
   sem mexer no que ela já contém.
 - O fechamento nunca lança a mesma recorrência duas vezes na mesma fatura.
 - Fatura sem lançamento fecha com total zero e não gera pagamento previsto.
+- **Fechar não liquida nada; encerrar sim.** Uma fatura encerra ao ser quitada ou ao vencer
+  e rolar — e só então os lançamentos dela deixam de ser `PROVISIONADO`.
 - Cartão inativado **mantém a fatura em aberto viva** até fechar e ser paga.
 
 ## Fronteiras com outros docs

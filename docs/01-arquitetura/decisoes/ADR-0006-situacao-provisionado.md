@@ -38,7 +38,9 @@ A transição só anda para frente: `PREVISTO → PROVISIONADO → REALIZADO`, e
 saltos é válido. Nunca volta.
 
 **Onde `PROVISIONADO` aparece:** compra no crédito, de qualquer valor e qualquer parcela,
-desde o dia da compra até a fatura dela ser paga. Todas as N parcelas nascem provisionadas
+desde o dia da compra até a fatura dela **encerrar** — quitada, ou vencida e rolada
+(`ADR-0005`). O **débito de rolagem** também nasce `PROVISIONADO`: é dívida que aconteceu e
+ainda espera liquidação. Pagamento parcial não liquida nada. Todas as N parcelas nascem provisionadas
 juntas — a compra aconteceu **uma vez**, e o que espalha a cobrança pelos meses é a fatura
 de cada parcela, não a situação delas.
 
