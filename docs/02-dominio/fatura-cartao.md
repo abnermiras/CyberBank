@@ -202,8 +202,10 @@ mexe.
 
 - Toda fatura pertence a **uma** conta `CARTAO`, e toda conta `CARTAO` ativa tem
   **exatamente uma** fatura `ABERTA`.
-- Lançamento de crédito **nasce sempre** na `ABERTA` — nunca em `FUTURA` ou `FECHADA`. Só a
-  edição do usuário move um lançamento para outra fatura.
+- Lançamento de crédito nasce pelo **status**, nunca pela data: a compra à vista e a 1ª
+  parcela na `ABERTA`, a parcela *k* na *k*-ésima fatura a partir dela — criada como
+  `FUTURA` se ainda não existir. **Nenhum nasce em `FECHADA`.** Depois disso, só a edição do
+  usuário move um lançamento de fatura.
 - O valor da fatura **nunca é armazenado**: é sempre a soma dos lançamentos dela.
 - **Nenhum estado de fatura impede edição de lançamento.** Fatura fechada não congela nada.
 - Só a **última fatura fechada** pode ser aberta, e abrir devolve a seguinte para `FUTURA`

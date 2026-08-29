@@ -30,7 +30,7 @@ lançamentos, não um lançamento com dois lados — ver Transferência.
 | `situacao` | sim | `PREVISTO`, `PROVISIONADO` ou `REALIZADO`. Ver Dois eixos independentes |
 | `categoria` | não | Obrigatória para o lançamento deixar de ser pendência |
 | `meioDePagamento` | não | Obrigatório em gasto e receita reais. Ausente em transferência, aporte, resgate, rendimento e lançamento de abertura |
-| `fatura` | não | Preenchido quando o meio é crédito. **Nasce** na fatura aberta do cartão; editável para qualquer fatura, aberta ou não. Mover recalcula a `dataEfeito`. `docs/02-dominio/fatura-cartao.md` |
+| `fatura` | não | Preenchido quando o meio é crédito. **Nasce** pelo status da fatura, nunca pela data; editável para qualquer fatura, aberta ou não. Mover **não muda data nenhuma** — no crédito `dataEfeito = dataEvento`, sempre. `docs/02-dominio/fatura-cartao.md` |
 | `transferenciaId` | não | Amarra os dois lançamentos de uma transferência |
 | `origemParcelamento` | não | A compra que gerou esta parcela. `docs/02-dominio/recorrencia.md` |
 | `rolagemDeFatura` | não | Amarra o par que move o saldo não pago de uma fatura para a seguinte. `ADR-0005` |
