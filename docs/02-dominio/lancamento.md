@@ -87,11 +87,22 @@ esses não têm categoria por natureza, e não são trabalho pendente para ningu
 *(A definição larga foi corrigida depois que o protótipo mostrou a abertura de conta
 aparecendo na fila de pendências.)*
 
-A transição só anda para frente — `PREVISTO → PROVISIONADO → REALIZADO`, com qualquer
-salto válido — e **nunca volta atrás**. Fora do cartão ela acontece quando a data chega e,
-havendo captura ou extrato, quando a conciliação confirma
-(`docs/02-dominio/importacao-conciliacao.md`). No cartão, quem liquida é o **encerramento da
-fatura** — quitada, ou vencida e rolada (`docs/02-dominio/fatura-pagamento.md`).
+**Fora do cartão a transição é automática: o lançamento vira `REALIZADO` quando a
+`dataEfeito` chega.** Sem confirmação e sem fila. No cartão, quem liquida é o **encerramento
+da fatura** — quitada, ou vencida e rolada (`docs/02-dominio/fatura-pagamento.md`).
+
+O preço dessa automação tem nome, e ele é o boleto: o sistema afirma o fato pela **data**, não
+por ter observado o dinheiro sair. Boleto esquecido, débito que não passou por falta de saldo,
+cobrança que o banco atrasou — nos três o saldo realizado desconta dinheiro que ainda está na
+conta. Foi escolhido assim porque uma fila de confirmação cobra atrito em **todo** lançamento
+previsto para acertar a minoria que dá errado, e porque a Fase 2 resolve pela raiz: com o
+extrato na mão, a conciliação confirma pelo fato (`docs/02-dominio/importacao-conciliacao.md`).
+
+**A automação só anda para frente** — `PREVISTO → PROVISIONADO → REALIZADO`, com qualquer
+salto válido, e nunca ao contrário. **A correção do usuário anda nos dois sentidos**, porque
+ela não descreve o dinheiro: descreve o registro. Devolver a `PREVISTO` o boleto que o sistema
+realizou pela data é correção comum, com histórico — ver Correção não é estorno. Estornar
+seria pior: inventaria um dinheiro que voltou.
 
 ## Transferência
 
@@ -129,6 +140,10 @@ nem cancelado: ver `docs/02-dominio/recorrencia.md`.
 Estorno é evento financeiro — aconteceu na vida e tem data própria. Apagar o lançamento
 original faria o extrato divergir do banco, que mostra a compra e a devolução.
 
+A correção mais comum fora do cartão é justamente **desfazer o que a data realizou**: o
+boleto que venceu e não foi pago. Nenhum dinheiro voltou, então não é estorno — é o registro
+que ficou errado, e ele volta para `PREVISTO` como qualquer outro campo se corrige.
+
 ## Edição e histórico
 
 Lançamento se edita direto, e toda alteração fica registrada: **quem**, **quando**, o
@@ -161,7 +176,9 @@ Nada precisa ser recalculado: como saldo é sempre a soma dos lançamentos
 - `transferenciaId`, quando existe, aparece em exatamente dois lançamentos.
 - `rolagemDeFatura`, quando existe, aparece em exatamente dois — na mesma conta, somando zero.
 - Nenhum estado de fatura impede a edição de um lançamento (`docs/02-dominio/fatura-cartao.md`).
-- A situação só anda para frente: `PREVISTO → PROVISIONADO → REALIZADO`, nunca ao contrário.
+- A situação, **quando a automação a move**, só anda para frente:
+  `PREVISTO → PROVISIONADO → REALIZADO`, nunca ao contrário. Só a **correção** do usuário
+  volta, e sempre com histórico.
 - Lançamento de conta inativa não é criado (`docs/02-dominio/conta.md`).
 - A **categoria** é sempre do mesmo ambiente do lançamento.
 - A **conta** é do mesmo ambiente, ou de um que a compartilhou com ele.

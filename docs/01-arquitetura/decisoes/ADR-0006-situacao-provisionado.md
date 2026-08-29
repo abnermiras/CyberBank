@@ -34,8 +34,10 @@ numa mesma fatura aberta, uma compra à vista aparecia `REALIZADO` e uma parcela
 | `PROVISIONADO` | **Aconteceu, falta liquidar** | **sim** | sim |
 | `REALIZADO` | Aconteceu e foi liquidado | sim | sim |
 
-A transição só anda para frente: `PREVISTO → PROVISIONADO → REALIZADO`, e qualquer um dos
-saltos é válido. Nunca volta.
+A transição **automática** só anda para frente: `PREVISTO → PROVISIONADO → REALIZADO`, e
+qualquer um dos saltos é válido. Nunca volta. A **correção** do usuário volta, porque ela
+corrige o registro e não o dinheiro — com histórico, como toda correção
+(`docs/02-dominio/lancamento.md`).
 
 **Onde `PROVISIONADO` aparece:** compra no crédito, de qualquer valor e qualquer parcela,
 desde o dia da compra até a fatura dela **encerrar** — quitada, ou vencida e rolada

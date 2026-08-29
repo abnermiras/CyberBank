@@ -57,7 +57,12 @@ O **boleto** é o único tipo com duas datas de verdade, e é por isso que ele e
 | Boleto pago | `REALIZADO` | a data em que foi pago |
 
 Assim o boleto em aberto já entra no saldo projetado — "quanto sobra até o fim do mês" conta
-a conta de luz que ainda vai ser paga — sem nunca mentir no saldo realizado.
+a conta de luz que ainda vai ser paga.
+
+**Chegando o vencimento, o sistema realiza o boleto pela data**, tenha ele sido pago ou não
+(`docs/02-dominio/lancamento.md`). Quando não foi, o conserto é **corrigir o lançamento** —
+devolvê-lo a `PREVISTO` com a data nova. É o único ponto do modelo em que o sistema afirma um
+fato que não observou, e ele existe até a conciliação da Fase 2.
 
 ## Os cartões de um contrato
 
