@@ -98,7 +98,11 @@ ele"*.
 - Um usuário tem no máximo um acesso por ambiente (um papel, não vários).
 - Um lançamento **não muda de ambiente**. Nem por edição, nem por correção — o certo é
   estornar em um e criar no outro, para o saldo dos dois continuar verdadeiro.
-- Conta, categoria e meio de pagamento de ambientes diferentes nunca se referenciam.
+- A **categoria** de um lançamento é sempre do mesmo ambiente dele. Sem exceção.
+- **Conta e meio** podem ser de outro ambiente, e só num caso: existe um vínculo de
+  compartilhamento com o ambiente do lançamento (`ADR-0004`,
+  `docs/02-dominio/compartilhamento.md`). Fora dele, nada de ambientes diferentes se
+  referencia.
 
 ## O que este doc exige dos outros
 
