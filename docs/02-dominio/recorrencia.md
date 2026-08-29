@@ -29,7 +29,14 @@ não pode.**
 ## Parcelamento
 
 Nasce de uma compra: valor total e número de parcelas. As **N parcelas nascem na hora**,
-como `PREVISTO`, cada uma na fatura do seu mês (`docs/02-dominio/fatura-cartao.md`).
+todas `PROVISIONADAS` na data da compra (`ADR-0006`), cada uma na fatura do seu mês
+(`docs/02-dominio/fatura-cartao.md`).
+
+**O centavo que sobra vai na primeira parcela.** R$ 5.000 em 3x é 1.666,68 + 1.666,66 +
+1.666,66 — é o que a maioria dos emissores faz, então o valor do app bate com o da fatura sem
+ninguém corrigir nada. A soma das parcelas é **sempre** igual ao valor da compra, e o
+arredondamento é do sistema: o usuário não edita uma parcela sozinha, porque isso quebraria a
+soma. Editar o parcelamento muda o valor da compra, e o sistema redistribui as N.
 
 ### Editar
 
@@ -154,6 +161,8 @@ do que o caso comum, e o caso comum não deve pagar o preço do raro.
 - Um lançamento pertence a **no máximo uma** série (recorrência ou parcelamento), nunca às duas.
 - Todas as parcelas de um parcelamento têm o **mesmo valor total de compra**: se a soma
   delas não bate com o valor da compra, é bug.
+- O centavo do arredondamento vai na **primeira** parcela, e o usuário não edita parcela
+  isolada.
 - Uma recorrência **não tem valor total** — perguntar "quanto custa a Netflix" só faz
   sentido por ocorrência.
 - Uma recorrência ativa tem **no máximo uma** ocorrência ainda não acontecida: a do ciclo

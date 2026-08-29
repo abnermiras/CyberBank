@@ -24,15 +24,17 @@ lançamentos, não um lançamento com dois lados — ver Transferência.
 | `conta` | sim | A conta cujo saldo este lançamento move |
 | `sentido` | sim | `ENTRADA` ou `SAIDA` |
 | `valor` | sim | Inteiro em centavos, **sempre positivo**. O sinal vem do `sentido`, nunca do valor |
-| `dataEvento` | sim | Quando aconteceu na vida real |
-| `dataEfeito` | sim | Quando mexe no saldo. Ver As duas datas |
+| `dataEvento` | sim | Quando aconteceu na vida real. **Data pura**, sem hora e sem fuso |
+| `dataEfeito` | sim | Quando mexe no saldo. **Data pura**, sem hora e sem fuso. Ver As duas datas |
 | `descricao` | sim | O que o usuário lê no extrato |
 | `situacao` | sim | `PREVISTO`, `PROVISIONADO` ou `REALIZADO`. Ver Dois eixos independentes |
 | `categoria` | não | Obrigatória para o lançamento deixar de ser pendência |
 | `meioDePagamento` | não | Obrigatório em gasto e receita reais. Ausente em transferência, aporte, resgate, rendimento e lançamento de abertura |
-| `fatura` | não | Preenchido quando o meio é crédito. **Nasce** pelo status da fatura, nunca pela data; editável para qualquer fatura, aberta ou não. Mover **não muda data nenhuma** — no crédito `dataEfeito = dataEvento`, sempre. `docs/02-dominio/fatura-cartao.md` |
+| `fatura` | não | Em qual fatura o lançamento **entra**. Preenchido quando o meio é crédito. **Nasce** pelo status da fatura, nunca pela data; editável para qualquer fatura, aberta ou não. Mover **não muda data nenhuma** — no crédito `dataEfeito = dataEvento`, sempre. `docs/02-dominio/fatura-cartao.md` |
 | `transferenciaId` | não | Amarra os dois lançamentos de uma transferência |
 | `origemParcelamento` | não | A compra que gerou esta parcela. `docs/02-dominio/recorrencia.md` |
+| `estornoDe` | não | O lançamento original que este estorna. Ver Correção não é estorno |
+| `pagamentoDeFatura` | não | A fatura que este pagamento **quita** — distinto de `fatura`, que é onde o lançamento **entra**. O pagamento não é gasto da fatura e não conta no total dela (`docs/02-dominio/fatura-pagamento.md`) |
 | `rolagemDeFatura` | não | Amarra o par que move o saldo não pago de uma fatura para a seguinte. `ADR-0005` |
 | `estabelecimento` | não | Texto bruto da captura, antes de normalizar |
 | `autor` | sim | Qual usuário criou. Em ambiente compartilhado, "quem lançou isso?" é a primeira pergunta. Lançamento que o **ciclo** cria sozinho é assinado pelo dono do ambiente da conta — ver Lançamento que o sistema cria |
@@ -48,6 +50,12 @@ Registrar um boleto que vence dia 10 e pagá-lo dia 14 são **duas datas**, e tr
 - **`dataEvento`** — quando a compra aconteceu. É por ela que o usuário procura e é ela
   que o relatório de gasto por categoria usa: o mercado de terça foi gasto de terça.
 - **`dataEfeito`** — quando o dinheiro sai da conta. É por ela que o saldo se calcula.
+
+**As duas são data pura: dia, sem hora e sem fuso.** A compra das 22h de 25 de fevereiro em
+São Paulo é do dia 25 — e não do dia 26, que é onde ela cairia se a data viesse de um instante
+convertido para UTC, junto com a fatura errada. O UTC da regra 5 do `CLAUDE.md` continua
+valendo para **instante**: criado em, alterado em, hora em que a rotina rodou. Data de domínio
+não é instante.
 
 Em quase todo meio as duas são iguais, **crédito incluído**: comprar no cartão cria dívida
 na hora, na conta `CARTAO` (`ADR-0003`). O boleto é a exceção que faz os dois campos
@@ -152,7 +160,7 @@ Duas coisas diferentes que a mesma palavra costuma esconder:
 | Situação | O que houve | O que o sistema faz |
 |---|---|---|
 | **Correção** | O registro está errado: valor digitado errado, categoria errada, conta errada | **Edita o lançamento** e guarda o que mudou no histórico |
-| **Estorno** | O dinheiro voltou de verdade: compra cancelada, devolução, chargeback | **Cria um lançamento novo** de sentido oposto, ligado ao original |
+| **Estorno** | O dinheiro voltou de verdade: compra cancelada, devolução, chargeback | **Cria um lançamento novo** de sentido oposto, ligado ao original por `estornoDe` |
 
 No crédito, o estorno de uma compra parcelada credita o **valor total** de uma vez, e as
 parcelas restantes seguem correndo — os dois se compensam. O parcelamento não é editado
@@ -190,6 +198,8 @@ Nada precisa ser recalculado: como saldo é sempre a soma dos lançamentos
 ## Invariantes
 
 - `valor` é sempre positivo. Zero não é lançamento.
+- Estorno aponta para o lançamento que estorna (`estornoDe`) e nunca o apaga.
+- Lançamento de abertura de conta e lançamento de rendimento nascem `REALIZADO`.
 - Todo lançamento tem exatamente um ambiente e uma conta.
 - Todo lançamento tem `autor`, inclusive os que o ciclo cria sozinho — nesses, o dono do
   ambiente da conta.

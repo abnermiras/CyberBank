@@ -33,7 +33,7 @@ sempre, nunca armazenada — a mesma regra do saldo de conta (`docs/02-dominio/c
 | Número | Como se calcula |
 |---|---|
 | **Total** | Soma dos lançamentos que apontam para ela, **menos o lado crédito de uma rolagem**. Esse crédito não é gasto da fatura: é a saída da dívida dela para a seguinte, e é por isso que o total histórico não cai (`ADR-0005`) |
-| **Pago** | Soma dos pagamentos `REALIZADO` que apontam para ela |
+| **Pago** | Soma dos pagamentos `REALIZADO` que apontam para ela por `pagamentoDeFatura` |
 | **A pagar** | `total − pago − rolado`, onde `rolado` é o crédito que o total já não conta |
 
 O **débito** de rolagem, na fatura de destino, entra no total normalmente: ele é o "saldo

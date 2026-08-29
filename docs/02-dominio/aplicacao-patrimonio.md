@@ -69,7 +69,7 @@ aparece no extrato, e o histórico de quanto a aplicação valeu ao longo do tem
 tabela nova.
 
 O lançamento de rendimento não tem categoria e não entra no fluxo de caixa — ele não é
-receita da vida, é a aplicação valendo mais.
+receita da vida, é a aplicação valendo mais. Nasce `REALIZADO`: o valor informado é o de hoje.
 
 > ☐ **A definir:** o que acontece quando o usuário passa meses sem atualizar. O patrimônio
 > envelhece calado, e um número velho apresentado como atual é pior que número nenhum.

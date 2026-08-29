@@ -83,7 +83,7 @@ na mesma tela sem rótulo:
 | **Saldo projetado** | Realizado mais o `PREVISTO` até uma data futura | Quanto sobra até o fim do mês |
 
 **Saldo inicial é um lançamento**, não um campo: ao criar a conta com saldo existente,
-nasce um lançamento de abertura naquele valor. Assim a frase "saldo é a soma dos
+nasce um lançamento de abertura naquele valor, `REALIZADO` — o dinheiro já está lá. Assim a frase "saldo é a soma dos
 lançamentos" continua verdadeira literalmente, sem um "mais o saldo inicial" grudado em
 cada cálculo.
 

@@ -53,7 +53,7 @@ Os fluxos em `docs/08-fluxos/` já trazem, no topo, a lista fechada de docs a ab
 2. Entidade de domínio ≠ entidade JPA ≠ DTO de API. A conversão é explícita.
 3. Nada de dependência nova sem ADR. Nada de serviço pago. Nada que não rode no Pi.
 4. Toda mudança de schema é migration versionada — nunca `ddl-auto: update`.
-5. Todo valor monetário é inteiro em centavos. Toda data/hora é armazenada em UTC.
+5. Todo valor monetário é inteiro em centavos. **Data de domínio** (`dataEvento`, `dataEfeito`, datas de fatura) é **dia local, sem hora nem fuso**. **Instante** — carimbo de auditoria, hora em que a rotina rodou — é armazenado em UTC.
 6. Um fato mora em um doc só. Se você precisou repetir, é sinal de que está no doc errado.
 
 ## Comandos

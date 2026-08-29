@@ -27,7 +27,9 @@ tem categoria e não entra no relatório de gasto**, igual a aporte e resgate. O
 contado uma vez, na compra.
 
 **Cada fatura é paga na tela dela.** O pagamento aponta para uma fatura, não para o cartão:
-é assim que se sabe qual ciclo foi quitado e qual não.
+é assim que se sabe qual ciclo foi quitado e qual não. O campo é `pagamentoDeFatura`, distinto
+do `fatura` do lançamento de crédito: o pagamento **quita** a fatura, não **entra** nela — e
+por isso não conta no total dela (`docs/02-dominio/lancamento.md`).
 
 **Quem liquida é o encerramento da fatura**, e ela encerra de dois jeitos: **quitada** — a
 soma dos pagamentos cobre o total — ou **vencida sem ser quitada**, e aí o que faltou rola.
