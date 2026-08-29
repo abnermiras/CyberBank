@@ -144,13 +144,16 @@ Automático, e é o gatilho de mais coisa do que parece:
    aqui:** fechar é recortar o período, não liquidar. Quem liquida é o **encerramento**
    (`docs/02-dominio/fatura-pagamento.md`).
 2. A `FUTURA` seguinte vira `ABERTA` — criada na hora se não existir.
-3. O sistema varre as **recorrências ativas** do cartão e lança a ocorrência do ciclo na
-   fatura recém-aberta (`docs/02-dominio/recorrencia.md`), **sem repetir** o que já lançou
-   naquele ciclo.
-4. Nasce o **pagamento previsto**: uma transferência `PREVISTO` da `contaPagadoraPadrao`
+3. Nasce o **pagamento previsto**: uma transferência `PREVISTO` da `contaPagadoraPadrao`
    para a conta `CARTAO`, no valor da fatura, com `dataEfeito` no vencimento.
 
-O passo 4 é o que mantém a promessa do produto. Como a compra no crédito não toca mais a
+> **Passo que entra com a recorrência.** O fechamento também varre as **recorrências ativas**
+> do cartão e lança a ocorrência do ciclo na fatura recém-aberta
+> (`docs/02-dominio/recorrencia.md`), **sem repetir** o que já lançou naquele ciclo. A regra
+> está decidida — ela vira código quando a recorrência entrar
+> (`docs/00-produto/roadmap.md`). Até lá o fechamento tem três passos.
+
+O passo 3 é o que mantém a promessa do produto. Como a compra no crédito não toca mais a
 conta corrente, é o pagamento previsto que faz "quanto sobra até o fim do mês" continuar
 contando a fatura que vai vencer.
 

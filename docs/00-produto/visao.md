@@ -44,7 +44,7 @@ O nome do conceito foi decidido em `ADR-0001`.
 | Pergunta do usuário | Exige |
 |---|---|
 | Onde meu dinheiro foi? | Lançamento categorizado + relatório por período |
-| Quanto sobra até o fim do mês? | Projeção: fatura em aberto, parcelas e recorrências futuras |
+| Quanto sobra até o fim do mês? | Projeção: fatura em aberto, parcelas e o previsto do ciclo corrente |
 | Estourei o orçamento? | Orçamento como conceito de primeira classe + alerta |
 | Quanto entrou? | Receita modelada, não só despesa |
 | Quanto investi e quanto tenho guardado? | Patrimônio e aplicação — **não é fluxo de caixa** |

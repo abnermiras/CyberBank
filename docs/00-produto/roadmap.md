@@ -79,11 +79,13 @@ lançamento duplicado sobrevive à conciliação.
 
 O sistema para de só contar o passado.
 
-Recorrência · orçamento por categoria com alerta · projeção de saldo até o fim do mês ·
-meta com valor-alvo, prazo e progresso.
+Recorrência · orçamento por categoria com alerta · projeção de saldo **além do ciclo
+corrente** · meta com valor-alvo, prazo e progresso.
 
-**Pronto quando:** o sistema responde "quanto sobra até o fim do mês" e "estourei o
-orçamento" sem o usuário fazer conta.
+**Pronto quando:** o sistema responde "estourei o orçamento" e projeta saldo **além do ciclo
+corrente**, a partir da regra da recorrência e não de lançamento pré-criado. O "quanto sobra
+até o fim do mês" do ciclo corrente já é da Fase 1, pelo pagamento previsto que nasce no
+fechamento da fatura.
 
 > ☐ **Em aberto:** recorrência pode precisar subir para a Fase 2 — ela é barata e é
 > pré-requisito da projeção. Decidir ao fechar a Fase 1, com o modelo de lançamento na mão.

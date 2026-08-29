@@ -8,6 +8,10 @@ status: rascunho
 
 # Recorrência e parcelamento
 
+> **Quando.** O **parcelamento** é Fase 1. A **recorrência** não é
+> (`docs/00-produto/roadmap.md`) — ela está escrita aqui porque a regra foi decidida junto
+> com a fatura, e porque o passo do fechamento que a lança depende dela.
+
 São **duas coisas diferentes** que geram várias linhas no extrato. Tratar as duas com a
 mesma regra é o erro que este doc existe para impedir.
 
@@ -152,7 +156,8 @@ do que o caso comum, e o caso comum não deve pagar o preço do raro.
   delas não bate com o valor da compra, é bug.
 - Uma recorrência **não tem valor total** — perguntar "quanto custa a Netflix" só faz
   sentido por ocorrência.
-- Uma recorrência sem data de fim sempre tem previstos gerados à frente; nunca fica com zero.
+- Uma recorrência ativa tem **no máximo uma** ocorrência ainda não acontecida: a do ciclo
+  aberto agora. Nunca um horizonte.
 - Cancelar série nunca apaga ocorrência `REALIZADO`.
 - Editar série nunca muda o valor de uma fatura paga **sem mostrar quais** antes de confirmar.
 - O fechamento nunca lança a mesma recorrência duas vezes na mesma fatura.
