@@ -33,7 +33,7 @@ existe meio órfão.
 | `CREDITO` | **`CARTAO`** | = `dataEvento` | **sim** | **sim** | notificação push |
 | `PIX` | `CORRENTE` | = `dataEvento` | não | não | notificação push |
 | `DINHEIRO` | `CARTEIRA` | = `dataEvento` | não | não | só manual |
-| `BENEFICIO` | `BENEFICIO` | = `dataEvento` | não | não | ☐ a definir |
+| `BENEFICIO` | `BENEFICIO` | = `dataEvento` | não | não | push, se o app do benefício notificar |
 | `BOLETO` | `CORRENTE` | data do pagamento | não | não | OFX ou manual |
 
 Conta `APLICACAO` não aparece nesta tabela: não se paga com ela, resgata-se antes
@@ -114,8 +114,17 @@ Num contrato compartilhado, **o limite e o consumo são visíveis em qualquer am
 tenha um cartão dele. Limite é do contrato, e esconder metade dele daria um número que não
 serve para decidir nada.
 
-> ☐ **A definir:** o limite é dado informado pelo usuário ou capturado do banco? Enquanto
-> for informado à mão, ele envelhece — e limite errado é pior que limite ausente.
+**O limite é informado pelo usuário.** Captura é integração externa, e a Fase 1 não tem
+nenhuma (`docs/00-produto/roadmap.md`). Ele segue a **regra 7** do `CLAUDE.md`: o sistema nunca
+o corrige sozinho, e a conta `CARTAO` guarda **desde quando** aquele limite está valendo.
+
+O sinal de que ele envelheceu não é um prazo, é um fato: **quando a dívida passa do limite
+informado**, o disponível fica negativo e a tela diz que o limite pode estar desatualizado —
+em vez de exibir um número que já não descreve nada.
+
+**O limite nunca trava um lançamento.** Ele orienta, como a parte da fatura
+(`docs/02-dominio/compartilhamento.md`): recusar uma compra que o emissor já aprovou seria o
+app discordando do banco sobre um fato do banco.
 
 ## Débito automático
 
@@ -145,6 +154,8 @@ nesses o dinheiro não foi "pago" de jeito nenhum, só mudou de lugar.
 
 - Todo meio pertence a um ambiente e aponta para uma conta.
 - Todo meio `CREDITO` aponta para uma conta `CARTAO`, e só `CREDITO` aponta para ela.
+- Todo meio `BENEFICIO` aponta para uma conta `BENEFICIO`, e só ele aponta para ela.
+- O limite nunca impede a criação de um lançamento.
 - Nenhum meio aponta para conta `APLICACAO`: não se paga com ela.
 - O tipo de um meio não muda depois de existir lançamento.
 - Só `CREDITO` tem fatura e só `CREDITO` parcela.
@@ -162,7 +173,5 @@ modelagem, não detalhe de implementação.
 
 ## Ainda em aberto
 
-- [ ] `BENEFICIO` tem captura automática? Depende de o app do benefício notificar
-- [ ] Confirmar o tipo de conta `BENEFICIO` proposto em `docs/02-dominio/conta.md`
 - [ ] Cartão adicional exige que a pessoa tenha cadastro no sistema, ou o adicional pode ser
       só um rótulo de quem gasta?

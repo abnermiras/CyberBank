@@ -37,6 +37,7 @@ O glossário define **o que a palavra significa**. Quem define **as regras** é 
 | **Receita** | Lançamento de entrada de dinheiro. Existe como conceito próprio, **não** como despesa com sinal negativo. | `02-dominio/lancamento` |
 | **Conta** | Onde o dinheiro está. Corrente, carteira, aplicação, benefício — e o **contrato de cartão de crédito**, cujo saldo é a dívida (`ADR-0003`). **Se tem saldo próprio que o sistema acompanha, é conta.** Poupança é uma aplicação, não um tipo à parte. | `02-dominio/conta` |
 | **Saldo** | Soma dos lançamentos de uma conta até uma data. Nunca armazenado. Tem duas leituras: **realizado** (só o que aconteceu) e **projetado** (mais os previstos). | `02-dominio/conta` |
+| **Em caixa** | Quanto há de dinheiro que serve para pagar **qualquer coisa**: soma do saldo realizado das contas com `entraEmCaixa = true`. Fica de fora o que não é fungível — aplicação, benefício e a dívida do cartão. Distinto de fluxo de caixa e de patrimônio. | `02-dominio/conta` |
 | **Meio de pagamento** | *Como* a compra foi paga (débito, crédito, Pix, dinheiro, benefício, boleto). Distinto de conta, e sempre apontando para uma. Só o **boleto** separa as duas datas; em todo o resto, crédito incluído, `dataEfeito = dataEvento`. | `02-dominio/meio-de-pagamento` |
 | **Débito automático** | **Não é meio de pagamento.** O meio é débito; "automático" é fato da recorrência, que se paga sem o usuário agir. | `02-dominio/recorrencia` |
 | **Transferência** | Movimento de dinheiro entre duas contas acessíveis ao ambiente do lançamento — próprias, ou compartilhadas com ele. São **dois lançamentos** ligados pelo mesmo id, sentidos opostos. Não tem categoria e não é gasto. | `02-dominio/lancamento` |
@@ -47,6 +48,7 @@ O glossário define **o que a palavra significa**. Quem define **as regras** é 
 | **Encerrar fatura** | O fim do ciclo de cobrança: a fatura é **quitada**, ou **vence sem ser quitada** e o que faltou rola. É o encerramento que liquida os lançamentos dela — nem o fechamento, nem um pagamento parcial. | `02-dominio/fatura-pagamento` |
 | **Rolagem** | O que uma fatura vencida não cobriu vira um **par de lançamentos dentro da própria conta `CARTAO`** — crédito na vencida, débito na aberta — que **soma zero**. Move dívida de período, não cria dívida. | `ADR-0005`, `02-dominio/fatura-pagamento` |
 | **Categoria** | Para que serviu o dinheiro. Árvore de **exatamente dois níveis** (transporte → gasolina) e com um `sentido`: categoria de entrada não recebe lançamento de saída. | `02-dominio/categoria` |
+| **Categoria sistêmica** | Categoria que o sistema cria junto com o ambiente financeiro. Não pode ser **excluída**; renomear, mover e inativar são livres. "Sistêmica" é a origem dela, não um privilégio: nenhuma regra do sistema procura categoria por nome. | `02-dominio/categoria` |
 | **Sentido** | `ENTRADA` ou `SAIDA`. Atributo do lançamento e da categoria — é ele que dá o sinal, nunca o valor. | `02-dominio/lancamento` |
 | **Fatura** | **Recorte de um período da conta `CARTAO`**, com fechamento e vencimento. Tem estado salvo (`FUTURA`, `ABERTA`, `FECHADA`); o valor dela é sempre derivado, nunca armazenado. | `02-dominio/fatura-cartao` |
 | **Parcelamento** | **Uma compra só**, dividida em N (R$ 5.000 em 10x). Editar altera **todas** as parcelas, sem perguntar: se elas divergem, o dado está errado. Entidade própria, que guarda o valor da compra. | `02-dominio/recorrencia` |
@@ -122,3 +124,6 @@ Palavra ambígua vira modelo ambíguo. Não use:
 | "fatura reaberta", estado `REABERTA` | **abrir a fatura** (é ação, não estado — e não existe estado de reabertura) |
 | `REALIZADO` como sinônimo de "entra no saldo" | **`!== PREVISTO`** (`PROVISIONADO` também entra) |
 | valor com sinal negativo | **valor positivo + `sentido`** (ENTRADA ou SAIDA) |
+| "contas de fluxo menos as de dívida" | **`entraEmCaixa`** (virou campo quando apareceu o segundo caso: o benefício) |
+| "categoria protegida" | **categoria sistêmica** (só a exclusão é bloqueada) |
+| "assinatura" como categoria | **recorrência** (a categoria diz para que serviu, não como se paga) |

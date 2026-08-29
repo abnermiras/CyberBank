@@ -22,9 +22,9 @@ Toda conta pertence a um **ambiente financeiro** e nunca muda de ambiente
 for compartilhada: o que atravessa é o uso, nunca a posse
 (`docs/02-dominio/compartilhamento.md`).
 
-## Os dois eixos
+## Os três eixos
 
-Uma conta tem duas classificações independentes. Confundi-las é o erro que faz o
+Uma conta tem três classificações separadas. Confundi-las é o erro que faz o
 dashboard mentir.
 
 **Eixo 1 — `tipo`:** o que a conta é.
@@ -42,10 +42,12 @@ tem meio de pagamento e rende — comportamento idêntico ao de `APLICACAO`. Uma
 uma conta `APLICACAO` chamada "Poupança do Itaú". Dois tipos com o mesmo comportamento é
 exatamente o que a regra desta seção manda não criar.
 
-> ☐ **Confirmar `BENEFICIO`.** É a resposta proposta para a pergunta aberta em
-> `docs/02-dominio/meio-de-pagamento.md`: o vale tem saldo próprio acompanhado, então é
-> conta, com um meio de pagamento apontando para ela. Se você preferir tratar o vale como
-> saldo não acompanhado, este tipo some e a pergunta volta para lá.
+**`BENEFICIO` está confirmado — e não pelo motivo que parecia.** "Saldo separado do banco"
+não muda regra nenhuma: uma `CORRENTE` chamada "Vale-refeição" faria o mesmo, e é assim que
+`POUPANCA` morreu. O que justifica o tipo é o saldo ser **não fungível**: dele não sai
+transferência, e ele não é caixa. São duas regras do sistema que mudam por causa dele — que
+é exatamente o critério desta seção. **Revisitar se** aparecer benefício com saque em
+dinheiro: aí ele volta a ser fungível e o tipo perde a razão de existir.
 
 **Eixo 2 — `entraNoFluxoDeCaixa`:** se o movimento nessa conta é gasto/receita da vida,
 ou apenas dinheiro trocando de lugar dentro do próprio patrimônio.
@@ -62,11 +64,22 @@ futuro só precisa responder a esta pergunta para o relatório continuar certo.
 conta de novo: pagamento é transferência, e transferência nunca entra no relatório de gasto
 (`docs/02-dominio/fatura-cartao.md`).
 
-> **`entraNoFluxoDeCaixa` não responde "isso é caixa?"** — e a `CARTAO` é a primeira conta em
-> que as duas perguntas divergem: os movimentos dela são gasto, mas o saldo dela é dívida, não
-> dinheiro. A leitura **"em caixa"** soma as contas de fluxo de caixa **menos as de dívida**.
-> Achado do protótipo em 28/08; se aparecer um segundo caso, isto vira um campo próprio em vez
-> de uma exceção por tipo.
+**Eixo 3 — `entraEmCaixa`:** se o saldo dessa conta é dinheiro que serve para pagar
+**qualquer coisa**.
+
+| Valor | Contas | Consequência |
+|---|---|---|
+| `true` | `CORRENTE`, `CARTEIRA` | Entra em "em caixa" e em "quanto sobra até o fim do mês" |
+| `false` | `APLICACAO`, `BENEFICIO`, `CARTAO` | Fica fora das duas leituras. Continua no patrimônio |
+
+`entraNoFluxoDeCaixa` **não responde "isso é caixa?"**, e agora são **dois** os casos em que as
+duas perguntas divergem: a `CARTAO`, cujo saldo é dívida e não dinheiro (achado do protótipo em
+28/08), e a `BENEFICIO`, cujo saldo é dinheiro que só compra uma coisa. Este doc dizia que ao
+aparecer o **segundo** caso a exceção por tipo viraria campo próprio — foi o que aconteceu:
+onde se lia "contas de fluxo **menos as de dívida**", agora se lê **`entraEmCaixa`**.
+
+O achado saiu de somar os números do seed: R$ 880 de vale entravam nos R$ 12.036,80 de "em
+caixa", e o sistema afirmava que dava para pagar um boleto com dinheiro que só compra comida.
 
 ## Saldo
 
@@ -107,7 +120,11 @@ Quem pode: dono e editor. Leitor não mexe (`docs/02-dominio/ambiente-financeiro
 ## Invariantes
 
 - Toda conta pertence a exatamente um ambiente, e nunca muda de ambiente.
-- Toda conta tem `tipo` e `entraNoFluxoDeCaixa`, os dois obrigatórios.
+- Toda conta tem `tipo`, `entraNoFluxoDeCaixa` e `entraEmCaixa`, os três obrigatórios.
+- `entraEmCaixa = true` implica `entraNoFluxoDeCaixa = true`. O contrário não vale: a
+  `BENEFICIO` e a `CARTAO` são de fluxo e não são caixa.
+- Conta `BENEFICIO` não é origem nem destino de transferência: o saldo dela não é fungível.
+  Entra por receita (o crédito do benefício) e sai por gasto no meio dele.
 - Conta inativa não recebe lançamento novo **do usuário** — nem previsto, nem por captura. O
   que o ciclo da fatura produz sozinho (rolagem e pagamento previsto) continua nascendo numa
   `CARTAO` inativada, até a dívida acabar (`docs/02-dominio/fatura-cartao.md`).

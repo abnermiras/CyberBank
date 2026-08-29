@@ -32,9 +32,10 @@ O que a distingue das outras contas:
 que o sistema modela. O mesmo vale para CDB, reserva de emergência e afins — o que muda
 entre eles (liquidez, imposto, risco) o Cyberbank não acompanha na Fase 1.
 
-> ☐ **A definir:** se `APLICACAO` precisa de um campo `subtipo` ou se o nome da conta
-> basta. A regra é a mesma de `conta.md`: só vira campo se alguma **regra do sistema**
-> mudar por subtipo. Hoje nenhuma muda — então, até aparecer uma, é o nome da conta.
+**`APLICACAO` não tem `subtipo`:** o nome da conta basta. A regra é a de `conta.md` — só
+vira campo se alguma **regra do sistema** mudar por subtipo, e hoje nenhuma muda. CDB,
+poupança e reserva de emergência são nomes, não comportamentos. **Revisitar se** liquidez,
+imposto ou risco entrarem no modelo.
 
 ## Aporte e resgate
 
@@ -71,9 +72,22 @@ tabela nova.
 O lançamento de rendimento não tem categoria e não entra no fluxo de caixa — ele não é
 receita da vida, é a aplicação valendo mais. Nasce `REALIZADO`: o valor informado é o de hoje.
 
-> ☐ **A definir:** o que acontece quando o usuário passa meses sem atualizar. O patrimônio
-> envelhece calado, e um número velho apresentado como atual é pior que número nenhum.
-> Mínimo: a tela mostra a data da última atualização de cada aplicação.
+**Quando o usuário passa meses sem atualizar, o sistema não faz nada com o número — e diz
+isso.** É a **regra 7** do `CLAUDE.md`: valor informado nunca é extrapolado nem corrigido
+sozinho. Não há rendimento estimado nem projeção de curva; o saldo continua sendo o último
+valor informado.
+
+O que muda é o que a tela mostra:
+
+- Toda aplicação exibe **a data da última atualização** — a `dataEvento` do último lançamento
+  de rendimento, ou a da abertura, se nunca houve. Não é campo: é consulta, como todo o resto.
+- Passados **30 dias** sem atualização, a aplicação aparece marcada como **desatualizada**, e
+  o patrimônio que a inclui carrega a mesma marca. Trinta dias porque o ritmo do app é mensal
+  — é o prazo em que o próprio usuário espera já ter olhado. **Revisitar se** a marca aparecer
+  o tempo todo e virar ruído.
+
+Número velho apresentado como atual é pior que número nenhum; número velho **com a idade ao
+lado** é honesto e continua servindo.
 
 ## Patrimônio
 
@@ -113,6 +127,10 @@ bolso sem criar nem destruir nada.
 - Aporte e resgate são sempre um par de lançamentos com o mesmo `transferenciaId`.
 - Aporte, resgate e rendimento não têm categoria e nunca entram no relatório de gasto.
 - Patrimônio nunca é armazenado; é sempre derivado dos saldos.
+- O valor de uma aplicação nunca é estimado pelo sistema: só o usuário o informa, e a idade
+  do último valor é sempre visível.
+- Conta `APLICACAO` tem `entraEmCaixa = false`: aplicação não é caixa
+  (`docs/02-dominio/conta.md`).
 - Pagar fatura não altera o patrimônio, pelo mesmo motivo do aporte.
 - Aporte e resgate não alteram o patrimônio total. Só rendimento altera.
 

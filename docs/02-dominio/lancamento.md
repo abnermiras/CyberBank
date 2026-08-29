@@ -48,8 +48,9 @@ relatório em `SUM(CASE WHEN ...)` e faz um sinal trocado passar despercebido.
 Registrar um boleto que vence dia 10 e pagá-lo dia 14 são **duas datas**, e tratar como uma
 é o bug que faz o saldo mentir o mês inteiro.
 
-- **`dataEvento`** — quando a compra aconteceu. É por ela que o usuário procura e é ela
-  que o relatório de gasto por categoria usa: o mercado de terça foi gasto de terça.
+- **`dataEvento`** — quando a compra aconteceu. É por ela que o usuário procura: o mercado
+  de terça foi gasto de terça. **Não é ela que o relatório de gasto usa por padrão** — ver
+  *Em que mês o gasto conta*.
 - **`dataEfeito`** — quando o dinheiro sai da conta. É por ela que o saldo se calcula.
 
 **As duas são data pura: dia, sem hora e sem fuso.** A compra das 22h de 25 de fevereiro em
@@ -62,6 +63,35 @@ Em quase todo meio as duas são iguais, **crédito incluído**: comprar no cart�
 na hora, na conta `CARTAO` (`ADR-0003`). O boleto é a exceção que faz os dois campos
 existirem — e o `PREVISTO` é a outra. **A regra que calcula `dataEfeito` por tipo de meio vive em
 `docs/02-dominio/meio-de-pagamento.md`** — aqui só fica o fato de que os dois campos existem.
+
+## Em que mês o gasto conta
+
+O relatório de gasto por categoria tem **dois eixos de competência**, e é o parcelamento que
+os separa. R$ 5.000 em 10x tem `dataEvento` da compra em **todas** as dez parcelas
+(`ADR-0006`), então:
+
+| Eixo | Em que mês a parcela conta | O que responde |
+|---|---|---|
+| **Por fatura** (padrão) | No mês de vencimento da fatura em que ela entrou | "Quanto saiu da minha vida neste mês" |
+| **Por compra** | No mês da `dataEvento` — os R$ 5.000 inteiros de uma vez | "Quanto eu me comprometi neste mês" |
+
+**O padrão é por fatura**, porque é o número que bate com o dinheiro que sai e é o único que
+sobrevive à comparação mês a mês: uma geladeira em 10x não pode fazer julho parecer o mês em
+que a pessoa perdeu o controle. A leitura **por compra** continua existindo porque é a única
+que responde ao compromisso assumido, e essa pergunta é real.
+
+Duas coisas que este eixo **não** é:
+
+- **Não é campo, e não muda o modelo.** `dataEvento` continua sendo a data da compra em toda
+  parcela. Quem espalha é o relatório, olhando a **fatura** de cada parcela — nunca a data
+  delas. Trocar a data das parcelas mentiria sobre quando a compra aconteceu, e ainda quebraria
+  a busca do usuário.
+- **Não vale só para parcelamento.** Lançamento sem fatura — débito, Pix, dinheiro, boleto —
+  conta pela `dataEvento` nos dois eixos, porque não há fatura para discordar dela. O eixo só
+  separa alguma coisa no crédito.
+
+Rolagem, pagamento de fatura, transferência, aporte, resgate e rendimento não têm categoria e
+por isso não entram em nenhum dos dois.
 
 ## Dois eixos independentes
 

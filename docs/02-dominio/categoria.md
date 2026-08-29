@@ -37,6 +37,8 @@ Regras da árvore:
   se não tiver subcategorias — se tem filhos, escolher o pai é escolher "não sei qual".
 - Todo relatório **agrupa pela raiz**. "Quanto gastei com transporte" é a soma das
   subcategorias mais o que estiver na própria raiz.
+- Em **que mês** cada lançamento conta é regra de `docs/02-dominio/lancamento.md` (seção
+  *Em que mês o gasto conta*): o padrão é a fatura, não a `dataEvento`.
 
 ## Sentido
 
@@ -50,17 +52,75 @@ relatório some com a diferença sem avisar.
 - Transferência, aporte, resgate e rendimento **não têm categoria** e por isso não
   entram nessa conversa (`docs/02-dominio/lancamento.md`).
 
-## De onde vêm as categorias
+## Sistêmica e do usuário
 
-Ao criar um ambiente, ele nasce com um **conjunto inicial** de categorias — tela vazia na
-primeira vez é o jeito mais rápido de fazer alguém desistir de categorizar.
+Toda categoria tem um campo `sistemica`, e ele responde de onde ela veio.
 
-Não existe categoria protegida: tudo que vem no conjunto inicial pode ser renomeado,
-movido, inativado ou excluído. O sistema não depende de nenhuma categoria existir por nome.
+| | Quem cria | Quando |
+|---|---|---|
+| **Sistêmica** | O sistema | No instante em que o **ambiente financeiro** é criado |
+| **Do usuário** | O usuário | Quando ele quiser — é assim que a árvore dele nasce de verdade |
 
-> ☐ **A definir:** qual é o conjunto inicial. Sai das jornadas reais do RaspyBank
-> (`docs/00-produto/jornadas.md`), não de uma lista genérica de app de finanças —
-> categoria que ninguém usa é ruído na hora de lançar.
+O ambiente nasce com o conjunto sistêmico porque tela vazia na primeira vez é o jeito mais
+rápido de fazer alguém desistir de categorizar. O que o sistema **não** faz é adivinhar a vida
+de ninguém: as categorias que importam, o usuário cria.
+
+**A categoria sistêmica não pode ser excluída.** É a única proteção que ela tem, e existe para
+que todo ambiente sempre tenha para onde categorizar. Inativar já resolve o incômodo de uma
+categoria que não serve — ela some da lista de escolha do mesmo jeito. Fora isso, ela é do
+usuário como qualquer outra: renomear e mover são livres, e mudar o `sentido` segue valendo
+enquanto ela não tiver lançamento.
+
+`sistemica` é **origem, não privilégio**. Nenhuma regra do sistema procura categoria por nome
+— transferência, aporte, resgate, rendimento e rolagem simplesmente não têm categoria. A
+proteção é contra tela vazia, não contra regra quebrada.
+
+**O preço, escrito para não ser esquecido:** um ambiente PJ nasce com categorias de vida
+pessoal que ele nunca vai usar e não pode apagar, só inativar. **Revisitar se** isso incomodar
+— a saída seria conjunto sistêmico por perfil de ambiente, que é modelo novo para um problema
+que talvez não exista.
+
+## O conjunto sistêmico
+
+Onze raízes, deliberadamente poucas. Subcategoria só onde ela responde uma pergunta que a raiz
+não responde.
+
+**Saída**
+
+| Raiz | Subcategorias |
+|---|---|
+| Moradia | Aluguel ou financiamento · Condomínio · Energia · Água · Internet · Gás |
+| Alimentação | Mercado · Restaurante · Delivery |
+| Transporte | Combustível · Aplicativo · Transporte público · Estacionamento · Manutenção |
+| Saúde | Plano · Farmácia · Consultas e exames |
+| Educação | — |
+| Lazer | — |
+| Compras | Vestuário · Casa · Eletrônicos |
+| Tarifas e encargos | Tarifa bancária · Juros · Anuidade · Impostos |
+
+**Entrada**
+
+| Raiz | Subcategorias |
+|---|---|
+| Salário | — |
+| Renda extra | — |
+| Reembolso | — |
+
+Três ausências que são decisão, não esquecimento:
+
+- **Não existe "Assinaturas".** Categoria responde *para que serviu o dinheiro*, e a Netflix
+  serviu para lazer. "Assinatura" descreve a **forma** de pagar, e essa forma já tem dono: a
+  `Recorrencia` (`docs/02-dominio/recorrencia.md`).
+- **Não existe "Outros".** Quem não acha a categoria na hora deixa o lançamento **sem
+  categoria**, e ele vira **pendência** — a fila de quem volta depois. Uma raiz "Outros"
+  lavaria essa fila: o lançamento sairia dela sem ninguém ter decidido nada.
+- **Nada de "Investimentos" ou "Poupança".** Aporte e resgate são transferência e não têm
+  categoria (`docs/02-dominio/aplicacao-patrimonio.md`).
+
+**"Tarifas e encargos" não é enfeite de lista.** O `ADR-0003` decidiu que o sistema **nunca**
+calcula juros nem pagamento mínimo, e que encargos entram como lançamento comum — lançamento
+comum precisa de categoria. É a única raiz do conjunto que existe porque uma decisão escrita
+a exige.
 
 ## Renomear, mover, excluir
 
@@ -73,7 +133,7 @@ livre e o histórico acompanha sem reescrever nada.
 | Mover subcategoria para outra raiz | Permitido, e **o relatório do passado muda junto** — aquele gasto passa a contar na raiz nova |
 | Mudar o sentido | Só enquanto a categoria não tiver nenhum lançamento |
 | Inativar | Some da lista de escolha; o histórico continua exibindo e somando normalmente |
-| Excluir | Só se nunca teve lançamento. Com histórico, o caminho é inativar |
+| Excluir | Só se nunca teve lançamento **e** não for sistêmica. Nos dois casos o caminho é inativar |
 
 O caso do "mover" é o único que muda o passado. Foi escolhido assim porque a alternativa —
 congelar a árvore depois do primeiro lançamento — deixaria o usuário preso a uma
@@ -100,4 +160,6 @@ Como a categoria é atribuída automaticamente é assunto de
 - Categoria raiz com subcategorias não é escolhível num lançamento.
 - Categoria com qualquer lançamento não pode ser excluída nem ter o sentido alterado.
 - Categoria inativa não aparece para escolha, mas continua somando no histórico.
+- Categoria sistêmica nunca é excluída, tenha lançamento ou não.
+- Todo ambiente nasce com o conjunto sistêmico, no mesmo ato que cria o ambiente.
 - Lançamento e categoria são sempre do mesmo ambiente.

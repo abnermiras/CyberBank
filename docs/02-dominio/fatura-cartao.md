@@ -255,6 +255,4 @@ mexe.
       operadora informa. Fase 2
 - [ ] **Parcelamento da própria fatura** oferecido pelo emissor: vira um parcelamento novo
       sobre a dívida que ficou na conta `CARTAO`. Fase 2
-- [ ] A parcela futura tem `dataEvento` da compra ou do mês dela? Muda o relatório de gasto
-      por categoria de quem parcela muito — decidir em `docs/02-dominio/recorrencia.md`
 - [ ] Fatura em **moeda estrangeira**: entra já convertida, ou guarda os dois valores?

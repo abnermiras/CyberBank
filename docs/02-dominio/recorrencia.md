@@ -225,8 +225,8 @@ do que o caso comum, e o caso comum não deve pagar o preço do raro.
 > ☐ **A definir:** débito automático é atributo da recorrência (já decidido), mas falta
 > escrever o que ele muda no comportamento — se nada muda além de rótulo, ele é rótulo.
 
-> ☐ **A definir:** com `ADR-0006`, todas as parcelas têm `dataEvento` **da compra** — e o
-> relatório de gasto, que usa `dataEvento`, joga os R$ 5.000 inteiros no mês da compra. É a
-> leitura fiel ao fato ("comprei R$ 5.000 em julho"), e não é a que a maioria dos apps mostra
-> ("R$ 500 por mês"). Se a segunda for a desejada, quem espalha é o **relatório**, olhando a
-> fatura de cada parcela — não a data delas. Decidir com uma jornada real na mão.
+**Decidido:** todas as parcelas continuam com `dataEvento` **da compra**, e quem espalha os
+R$ 5.000 é o **relatório**, olhando a fatura de cada parcela. O padrão do relatório de gasto é
+**por fatura** (R$ 500 por mês); a leitura **por compra** (R$ 5.000 em julho) fica como segundo
+eixo. A regra inteira está em `docs/02-dominio/lancamento.md`, seção *Em que mês o gasto
+conta* — aqui fica só o fato de que o parcelamento é o caso que a criou.
