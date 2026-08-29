@@ -19,6 +19,9 @@
   S.ambienteAtivo = PESSOAL;
 
   function novaConta(o) {
+    // eixo 3 (docs/02-dominio/conta.md): caixa e CAMPO, e o seed nao tem direito de omiti-lo
+    if (typeof o.entraEmCaixa !== 'boolean') throw new Error('conta sem entraEmCaixa: ' + o.nome);
+    if (o.entraEmCaixa && !o.entraNoFluxoDeCaixa) throw new Error('caixa implica fluxo: ' + o.nome);
     const c = Object.assign({ id: CB.id('cta'), ultimaAtualizacao: null }, o);
     S.contas.push(c);
     if (o.abertura) {
@@ -42,20 +45,20 @@
 
   /* ================= AMBIENTE: PESSOAL ================= */
   const cc = novaConta({ ambiente: PESSOAL, nome: 'HELIX FINANCIAL', apelido: 'Conta corrente',
-    tipo: 'CORRENTE', entraNoFluxoDeCaixa: true, abertura: 640000 });
+    tipo: 'CORRENTE', entraNoFluxoDeCaixa: true, entraEmCaixa: true, abertura: 640000 });
   const cash = novaConta({ ambiente: PESSOAL, nome: 'DINHEIRO VIVO', apelido: 'Carteira',
-    tipo: 'CARTEIRA', entraNoFluxoDeCaixa: true, abertura: 24000 });
+    tipo: 'CARTEIRA', entraNoFluxoDeCaixa: true, entraEmCaixa: true, abertura: 24000 });
   const vr = novaConta({ ambiente: PESSOAL, nome: 'SUSTENANCE CORP', apelido: 'Vale-refeição',
-    tipo: 'BENEFICIO', entraNoFluxoDeCaixa: true, abertura: 88000 });
+    tipo: 'BENEFICIO', entraNoFluxoDeCaixa: true, entraEmCaixa: false, abertura: 88000 });
   const cold = novaConta({ ambiente: PESSOAL, nome: 'COLD STORAGE', apelido: 'Reserva',
-    tipo: 'APLICACAO', entraNoFluxoDeCaixa: false, abertura: 1200000 });
+    tipo: 'APLICACAO', entraNoFluxoDeCaixa: false, entraEmCaixa: false, abertura: 1200000 });
 
   const mDeb = novoMeio({ ambiente: PESSOAL, nome: 'Débito HELIX', tipo: 'DEBITO', conta: cc });
   const mPix = novoMeio({ ambiente: PESSOAL, nome: 'Pix', tipo: 'PIX', conta: cc });
   // ADR-0003: o CONTRATO do cartao e uma CONTA (tipo CARTAO) e o saldo dela e a divida.
   // Limite, ciclo e conta pagadora sao dela, nao do cartao.
   const ccCard = novaConta({ ambiente: PESSOAL, nome: 'OBSIDIAN BLACK', apelido: 'Cartão de crédito',
-    tipo: 'CARTAO', entraNoFluxoDeCaixa: true, diaVencimento: 28, diasAntesFechamento: 8,
+    tipo: 'CARTAO', entraNoFluxoDeCaixa: true, entraEmCaixa: false, diaVencimento: 28, diasAntesFechamento: 8,
     limite: 1500000, contaPagadora: cc });
   // os cartoes sao MEIOS apontando para ela — fisico e virtual dividem fatura e limite
   const mCard = novoMeio({ ambiente: PESSOAL, nome: 'OBSIDIAN ****-1234', tipo: 'CREDITO', conta: ccCard });
@@ -140,7 +143,7 @@
   /* ================= AMBIENTE: CASA ================= */
   S.ambienteAtivo = CASA;
   const ccc = novaConta({ ambiente: CASA, nome: 'VOLTA COOP', apelido: 'Conta conjunta',
-    tipo: 'CORRENTE', entraNoFluxoDeCaixa: true, abertura: 310000 });
+    tipo: 'CORRENTE', entraNoFluxoDeCaixa: true, entraEmCaixa: true, abertura: 310000 });
   const mDebC = novoMeio({ ambiente: CASA, nome: 'Débito VOLTA', tipo: 'DEBITO', conta: ccc });
   novoMeio({ ambiente: CASA, nome: 'Boleto', tipo: 'BOLETO', conta: ccc });
   const kCasa = arvore(CASA, 'SAIDA', 'CASA', '#ff6b35', ['Mercado', 'Manutenção', 'Contas']);

@@ -60,9 +60,13 @@ O seed começa em **27/08/2026** com uma fatura fechada vencendo no dia seguinte
 aberta, uma futura, um parcelamento atravessando as três, um boleto previsto, um aporte e
 uma pendência — tudo o que o modelo sabe fazer visível numa tela só.
 
-**Confira estes números ao abrir** (ambiente PESSOAL): em caixa `R$ 12.036,80` · dívida do
+**Confira estes números ao abrir** (ambiente PESSOAL): em caixa `R$ 11.236,00` · dívida do
 cartão `R$ 3.560,80` · patrimônio `R$ 21.160,00` · limite disponível `R$ 11.439,20`.
 Pagar a fatura **não pode mudar o patrimônio** — se mudar, é bug.
+
+O "em caixa" caiu de `R$ 12.036,80` para `R$ 11.236,00` em 29/08, e a diferença é exatamente
+o saldo do vale-refeição: `entraEmCaixa` virou campo e a `BENEFICIO` saiu do caixa
+(`docs/02-dominio/conta.md`). Dívida, patrimônio e limite **não podem** ter mudado junto.
 
 ## O que o protótipo já mudou nos docs
 
@@ -80,9 +84,14 @@ Pagar a fatura **não pode mudar o patrimônio** — se mudar, é bug.
   dever depois de pagar". Com o projetado, a dívida saía R$ 2.030 em vez de R$ 3.600,70 —
   e o patrimônio herdava o erro. Limite e patrimônio usam a **dívida**
   (`docs/02-dominio/fatura-cartao.md`).
-- **`entraNoFluxoDeCaixa` não responde "isso é caixa?".** A conta `CARTAO` é a primeira em
+- **`entraNoFluxoDeCaixa` não responde "isso é caixa?".** A conta `CARTAO` foi a primeira em
   que as duas perguntas divergem: os movimentos dela são gasto, mas o saldo é dívida. "Em
   caixa" passou a somar as contas de fluxo **menos as de dívida** (`docs/02-dominio/conta.md`).
+- **O vale-refeição era o segundo caso, e ninguém tinha reparado.** R$ 800,80 de vale
+  entravam no "em caixa" e no "quanto sobra até o fim do mês": o app afirmava que dava para
+  pagar um boleto com dinheiro que só compra comida. O `conta.md` já dizia que ao aparecer o
+  segundo caso a exceção por tipo viraria campo — virou **`entraEmCaixa`**, e com ele o motor
+  parou de perguntar o tipo da conta para saber o que é caixa.
 - **Numa mesma fatura, uma compra à vista era `REALIZADO` e uma parcela era `PREVISTO`** —
   lado a lado, esperando o mesmo pagamento no mesmo dia. O erro de fundo era `situacao`
   carregar duas perguntas: *já aconteceu?* e *entra no saldo?*. Nasceu `PROVISIONADO`

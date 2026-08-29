@@ -18,6 +18,8 @@
    - fatura = recorte de periodo da conta CARTAO. FUTURA | ABERTA | FECHADA
    - o lancamento entra na fatura pelo STATUS, nunca pela data
    - nada congela: lancamento de fatura fechada se edita direto
+   - `entraEmCaixa` e campo da conta (eixo 3): CAIXA nao e mais "fluxo menos divida".
+     Vale e aplicacao nao sao caixa — saldo que nao paga qualquer coisa nao e caixa
    - DIVERGENCIA CONSCIENTE: o motor guarda parcelamento e recorrencia na mesma lista
      S.series, por conveniencia do banco de provas. No MODELO sao DUAS ENTIDADES, sem
      campo `tipo` (docs/02-dominio/recorrencia.md) — e repare que o comportamento aqui
@@ -81,10 +83,11 @@
   const categoria = (kid) => S.categorias.find((k) => k.id === kid);
   const raizDe = (kid) => { const k = categoria(kid); return k ? (k.pai ? categoria(k.pai) : k) : null; };
   const ehDivida = (c) => !!c && c.tipo === 'CARTAO';
-  // contas de CAIXA: as de fluxo de caixa que nao sao divida.
+  // CAIXA agora e CAMPO, nao excecao por tipo (docs/02-dominio/conta.md, eixo 3).
   // ACHADO: `entraNoFluxoDeCaixa` responde "movimento e gasto?", nao "isso e caixa?".
-  // A conta CARTAO e a primeira em que as duas perguntas divergem.
-  const ehCaixa = (c) => !!c && c.entraNoFluxoDeCaixa && !ehDivida(c);
+  // A conta CARTAO foi o primeiro caso em que as duas divergem; a BENEFICIO foi o
+  // SEGUNDO — e o doc dizia que no segundo a excecao viraria campo. Virou.
+  const ehCaixa = (c) => !!c && !!c.entraEmCaixa;
 
   /* ================= LANCAMENTO ================= */
   function lancar(o) {
