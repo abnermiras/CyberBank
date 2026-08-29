@@ -49,8 +49,8 @@ O glossário define **o que a palavra significa**. Quem define **as regras** é 
 | **Categoria** | Para que serviu o dinheiro. Árvore de **exatamente dois níveis** (transporte → gasolina) e com um `sentido`: categoria de entrada não recebe lançamento de saída. | `02-dominio/categoria` |
 | **Sentido** | `ENTRADA` ou `SAIDA`. Atributo do lançamento e da categoria — é ele que dá o sinal, nunca o valor. | `02-dominio/lancamento` |
 | **Fatura** | **Recorte de um período da conta `CARTAO`**, com fechamento e vencimento. Tem estado salvo (`FUTURA`, `ABERTA`, `FECHADA`); o valor dela é sempre derivado, nunca armazenado. | `02-dominio/fatura-cartao` |
-| **Parcelamento** | **Uma compra só**, dividida em N (R$ 5.000 em 10x). Editar altera **todas** as parcelas, sem perguntar: se elas divergem, o dado está errado. | `02-dominio/recorrencia` |
-| **Recorrência** | **N eventos independentes** que se repetem por regra de tempo, normalmente sem fim (a Netflix). Editar **pergunta**: só as futuras, ou o passado também? | `02-dominio/recorrencia` |
+| **Parcelamento** | **Uma compra só**, dividida em N (R$ 5.000 em 10x). Editar altera **todas** as parcelas, sem perguntar: se elas divergem, o dado está errado. Entidade própria, que guarda o valor da compra. | `02-dominio/recorrencia` |
+| **Recorrência** | **N eventos independentes** que se repetem por regra de tempo, normalmente sem fim (a Netflix). Editar **pergunta**: só as futuras, ou o passado também? Entidade própria, e **não** um tipo de parcelamento: as duas não compartilham tabela. | `02-dominio/recorrencia` |
 | **Orçamento** | Limite de gasto planejado para uma categoria em um período. | `02-dominio/orcamento` |
 
 ## Patrimônio

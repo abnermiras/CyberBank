@@ -18,6 +18,10 @@
    - fatura = recorte de periodo da conta CARTAO. FUTURA | ABERTA | FECHADA
    - o lancamento entra na fatura pelo STATUS, nunca pela data
    - nada congela: lancamento de fatura fechada se edita direto
+   - DIVERGENCIA CONSCIENTE: o motor guarda parcelamento e recorrencia na mesma lista
+     S.series, por conveniencia do banco de provas. No MODELO sao DUAS ENTIDADES, sem
+     campo `tipo` (docs/02-dominio/recorrencia.md) — e repare que o comportamento aqui
+     ja esta separado por funcao: editarParcelamento e editarRecorrencia nao se tocam
    ========================================================================= */
 (function (global) {
   'use strict';

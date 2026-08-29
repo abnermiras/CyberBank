@@ -26,6 +26,46 @@ mesma regra é o erro que este doc existe para impedir.
 Dessa diferença sai tudo o que vem abaixo. **A recorrência pode perguntar; o parcelamento
 não pode.**
 
+## Duas entidades, não uma com `tipo`
+
+São **duas tabelas**, não uma `Série` com um campo `tipo`. O critério do projeto — *tipo novo
+só existe se alguma regra do sistema mudar por causa dele* — aqui aponta para o contrário do
+costume: **todas** as regras mudam por tipo (como nascem, como se editam, o que é cancelar, se
+existe total). Quando todas mudam, não é um tipo: são duas coisas. Um campo `tipo` viraria
+`if (tipo == RECORRENCIA)` espalhado, que `docs/02-dominio/meio-de-pagamento.md` chama de bug
+de modelagem.
+
+**`Parcelamento`**
+
+| Campo | Nota |
+|---|---|
+| `ambiente` | O de quem comprou |
+| `valorDaCompra` | Inteiro em centavos. **Guardado** — é ele que torna verificável a invariante da soma |
+| `parcelas` | O N. Fechado desde o nascimento |
+| `dataDaCompra` | Vira a `dataEvento` de todas as parcelas (`ADR-0006`) |
+| `descricao`, `categoria`, `cartao` | O que as parcelas herdam ao nascer |
+
+Não tem `ativa` e não tem estado: um parcelamento não é ligado nem desligado. Ele existe, e
+acaba quando a última parcela é paga.
+
+**`Recorrencia`**
+
+| Campo | Nota |
+|---|---|
+| `ambiente` | O de quem criou |
+| `valor` | O da ocorrência. **Não existe valor total** |
+| `periodicidade` e `dia` | A regra de tempo |
+| `inicio` | A partir de quando vale |
+| `ativa` | Cancelar desliga; o passado fica |
+| `conta` ou `cartao`, `meio`, `descricao`, `categoria` | O que a ocorrência herda ao nascer |
+
+Ela é entidade porque é **regra**, e regra não se deriva de lançamento nenhum — o mesmo
+motivo pelo qual a fatura é entidade e o valor dela não
+(`docs/02-dominio/fatura-cartao.md`).
+
+**No lançamento** ficam dois campos anuláveis, `parcelamento` e `recorrencia`, e no máximo um
+dos dois é preenchido (`docs/02-dominio/lancamento.md`).
+
 ## Parcelamento
 
 Nasce de uma compra: valor total e número de parcelas. As **N parcelas nascem na hora**,
@@ -158,7 +198,9 @@ do que o caso comum, e o caso comum não deve pagar o preço do raro.
 
 ## Invariantes
 
-- Um lançamento pertence a **no máximo uma** série (recorrência ou parcelamento), nunca às duas.
+- Um lançamento tem `parcelamento` **ou** `recorrencia` preenchido, nunca os dois — e na
+  maioria das vezes, nenhum dos dois.
+- `Parcelamento` guarda o valor da compra; `Recorrencia` não tem valor total nenhum.
 - Todas as parcelas de um parcelamento têm o **mesmo valor total de compra**: se a soma
   delas não bate com o valor da compra, é bug.
 - O centavo do arredondamento vai na **primeira** parcela, e o usuário não edita parcela

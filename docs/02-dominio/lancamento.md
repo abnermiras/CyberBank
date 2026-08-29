@@ -32,7 +32,8 @@ lançamentos, não um lançamento com dois lados — ver Transferência.
 | `meioDePagamento` | não | Obrigatório em gasto e receita reais. Ausente em transferência, aporte, resgate, rendimento e lançamento de abertura |
 | `fatura` | não | Em qual fatura o lançamento **entra**. Preenchido quando o meio é crédito. **Nasce** pelo status da fatura, nunca pela data; editável para qualquer fatura, aberta ou não. Mover **não muda data nenhuma** — no crédito `dataEfeito = dataEvento`, sempre. `docs/02-dominio/fatura-cartao.md` |
 | `transferenciaId` | não | Amarra os dois lançamentos de uma transferência |
-| `origemParcelamento` | não | A compra que gerou esta parcela. `docs/02-dominio/recorrencia.md` |
+| `parcelamento` | não | O `Parcelamento` de que esta parcela faz parte. `docs/02-dominio/recorrencia.md` |
+| `recorrencia` | não | A `Recorrencia` que gerou esta ocorrência. Nunca junto com `parcelamento` |
 | `estornoDe` | não | O lançamento original que este estorna. Ver Correção não é estorno |
 | `pagamentoDeFatura` | não | A fatura que este pagamento **quita** — distinto de `fatura`, que é onde o lançamento **entra**. O pagamento não é gasto da fatura e não conta no total dela (`docs/02-dominio/fatura-pagamento.md`) |
 | `rolagemDeFatura` | não | Amarra o par que move o saldo não pago de uma fatura para a seguinte. `ADR-0005` |
@@ -199,6 +200,7 @@ Nada precisa ser recalculado: como saldo é sempre a soma dos lançamentos
 
 - `valor` é sempre positivo. Zero não é lançamento.
 - Estorno aponta para o lançamento que estorna (`estornoDe`) e nunca o apaga.
+- `parcelamento` e `recorrencia` nunca aparecem preenchidos no mesmo lançamento.
 - Lançamento de abertura de conta e lançamento de rendimento nascem `REALIZADO`.
 - Todo lançamento tem exatamente um ambiente e uma conta.
 - Todo lançamento tem `autor`, inclusive os que o ciclo cria sozinho — nesses, o dono do
