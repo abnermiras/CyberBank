@@ -35,7 +35,7 @@ lançamentos, não um lançamento com dois lados — ver Transferência.
 | `origemParcelamento` | não | A compra que gerou esta parcela. `docs/02-dominio/recorrencia.md` |
 | `rolagemDeFatura` | não | Amarra o par que move o saldo não pago de uma fatura para a seguinte. `ADR-0005` |
 | `estabelecimento` | não | Texto bruto da captura, antes de normalizar |
-| `autor` | sim | Qual usuário criou. Em ambiente compartilhado, "quem lançou isso?" é a primeira pergunta |
+| `autor` | sim | Qual usuário criou. Em ambiente compartilhado, "quem lançou isso?" é a primeira pergunta. Lançamento que o **ciclo** cria sozinho é assinado pelo dono do ambiente da conta — ver Lançamento que o sistema cria |
 
 `valor` positivo com `sentido` separado não é preciosismo: valor com sinal transforma todo
 relatório em `SUM(CASE WHEN ...)` e faz um sinal trocado passar despercebido.
@@ -124,6 +124,27 @@ Regras do par:
 - Transferência **não tem categoria** e não aparece no relatório de gasto: o dinheiro não
   saiu da vida do usuário, mudou de bolso.
 
+## Lançamento que o sistema cria
+
+Nem todo lançamento sai de alguém digitando. Quatro nascem do ciclo: os dois lados da
+**rolagem**, o **pagamento previsto** que o fechamento gera, o **lançamento de abertura** de
+uma conta e — quando a recorrência entrar — a **ocorrência do ciclo**.
+
+| Campo | Valor |
+|---|---|
+| `autor` | O **dono do ambiente** ao qual a conta pertence, no instante em que o lançamento nasce |
+| `ambiente` | O do **dono do objeto**: a conta `CARTAO` na rolagem e no pagamento previsto, a conta no lançamento de abertura. A regra "o ambiente é o de quem lançou" não se aplica quando ninguém lançou |
+
+O `autor` continua **obrigatório** de propósito. Um campo que aceita vazio obriga toda
+consulta e toda tela a tratar o vazio, e um bug que esquecesse de preenchê-lo passaria
+despercebido como "foi o sistema".
+
+**O preço, escrito para não ser esquecido:** o histórico afirma que o dono lançou algo que
+ele não lançou — e responder "quem lançou isso?" é a razão de o campo existir. Na prática a
+descrição desfaz a confusão: ninguém lê "Saldo da fatura anterior" e pensa numa pessoa.
+**Revisitar se** alguém, num ambiente compartilhado, discutir a autoria de um lançamento que
+o ciclo criou. Aí o vazio — ou um campo `origem` ao lado — passa a valer o custo.
+
 ## Correção não é estorno
 
 Duas coisas diferentes que a mesma palavra costuma esconder:
@@ -170,6 +191,8 @@ Nada precisa ser recalculado: como saldo é sempre a soma dos lançamentos
 
 - `valor` é sempre positivo. Zero não é lançamento.
 - Todo lançamento tem exatamente um ambiente e uma conta.
+- Todo lançamento tem `autor`, inclusive os que o ciclo cria sozinho — nesses, o dono do
+  ambiente da conta.
 - Um lançamento **nunca muda de ambiente** — nem por edição, nem por correção. O certo é
   apagar em um e criar no outro, para o saldo dos dois continuar verdadeiro.
 - `dataEfeito` nunca é anterior à `dataEvento`.
