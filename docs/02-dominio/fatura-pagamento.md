@@ -45,6 +45,11 @@ dizer. Chamar de liquidado o que ainda se deve é a confusão que o `ADR-0006` d
 | **Pagar em dois ou mais pedaços** | Duas transferências para a mesma fatura. A soma quita (`docs/02-dominio/compartilhamento.md`) |
 | Pagar mais que a fatura | A conta `CARTAO` fica com saldo a favor. É crédito no cartão, e existe na vida real |
 
+**Fatura encerrada não recebe pagamento.** Depois que ela rolou, o `a pagar` dela é zero: a
+dívida inteira está na fatura seguinte, e é lá que se paga. Não é proibição inventada, é
+consequência da fórmula (`docs/02-dominio/fatura-cartao.md`) — pagar a fatura velha
+descontaria a mesma dívida duas vezes.
+
 ## Encerramento: o que venceu sem ser pago
 
 **Fatura que vence sem ser quitada rola o que sobrou para a fatura `ABERTA`** (`ADR-0005`).
@@ -73,6 +78,18 @@ de gasto — aplicada entre faturas em vez de entre contas.
 
 Fatura quitada no prazo não passa por nada disso: o pagamento cobriu o total, os lançamentos
 dela viram `REALIZADO` na hora e não há o que rolar.
+
+### Quando o encerramento roda
+
+**No dia seguinte ao vencimento.** O usuário tem o dia inteiro do vencimento para pagar, e a
+rotina só encontra a fatura em aberto no dia seguinte. Os dois lançamentos do par ficam
+datados **no vencimento**, não no dia em que a rotina rodou — a fatura nova mostra o saldo
+anterior com a data que o banco usaria.
+
+**É idempotente e recupera atraso, como o fechamento** — e recupera **dia a dia, em ordem
+cronológica**, nunca "fecha tudo e depois rola tudo". Se o Raspberry Pi ficou dois ciclos
+desligado, janeiro rola para a fatura que estava aberta em janeiro; só então fevereiro fecha,
+vence e rola. Rolar duas vezes a mesma fatura não faz nada.
 
 Daí sai a frase curta: **`PROVISIONADO` dura da compra até o fim da fatura dela, sempre.**
 
@@ -140,6 +157,9 @@ passado é permitido, mas nunca silencioso.
 - Todo pagamento aponta para **uma** fatura: é assim que se sabe qual ciclo foi quitado.
 - A rolagem tem **sempre dois lados**, na mesma conta `CARTAO`, e a soma deles é zero.
 - Rolagem nunca entra em relatório de gasto nem na fila de pendências.
+- O encerramento roda **no dia seguinte ao vencimento**, é idempotente e recupera atraso em
+  ordem cronológica.
+- Fatura encerrada **não recebe pagamento**: o `a pagar` dela é zero por construção.
 - O total histórico de uma fatura **não cai** quando ela rola.
 - O **débito** de rolagem nasce `PROVISIONADO`; o crédito e os demais lançamentos da fatura
   encerrada viram `REALIZADO`.

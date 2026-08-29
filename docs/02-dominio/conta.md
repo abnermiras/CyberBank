@@ -97,9 +97,9 @@ do `CLAUDE.md` e não-objetivo do roadmap.
 | Momento | Regra |
 |---|---|
 | Criação | Nome, tipo e saldo inicial (que vira lançamento de abertura) |
-| Criação de uma `CARTAO` | Mais limite, dia do vencimento, quantos dias antes fecha e conta pagadora padrão (`docs/02-dominio/fatura-cartao.md`) |
+| Criação de uma `CARTAO` | Mais limite, dia do vencimento, quantos dias antes fecha e conta pagadora padrão. Nasce já com a fatura `ABERTA` do ciclo corrente (`docs/02-dominio/fatura-cartao.md`) |
 | Edição | Nome livre. **Tipo não muda** depois de existir lançamento — mudaria o significado do histórico |
-| Inativação | Não aceita lançamento novo; histórico e saldo continuam existindo e visíveis |
+| Inativação | Não aceita lançamento novo **do usuário**; histórico e saldo continuam existindo e visíveis. Numa `CARTAO`, o ciclo da fatura continua correndo — cancelar cartão não perdoa dívida |
 | Exclusão | Só se a conta nunca teve lançamento. Com histórico, o caminho é inativar |
 
 Quem pode: dono e editor. Leitor não mexe (`docs/02-dominio/ambiente-financeiro.md`).
@@ -108,7 +108,9 @@ Quem pode: dono e editor. Leitor não mexe (`docs/02-dominio/ambiente-financeiro
 
 - Toda conta pertence a exatamente um ambiente, e nunca muda de ambiente.
 - Toda conta tem `tipo` e `entraNoFluxoDeCaixa`, os dois obrigatórios.
-- Conta inativa não recebe lançamento novo — nem previsto, nem por captura.
+- Conta inativa não recebe lançamento novo **do usuário** — nem previsto, nem por captura. O
+  que o ciclo da fatura produz sozinho (rolagem e pagamento previsto) continua nascendo numa
+  `CARTAO` inativada, até a dívida acabar (`docs/02-dominio/fatura-cartao.md`).
 - Uma conta com qualquer lançamento não pode ser excluída.
 - Conta com `entraNoFluxoDeCaixa = false` não é origem de compra: nenhum meio de
   pagamento aponta para ela.

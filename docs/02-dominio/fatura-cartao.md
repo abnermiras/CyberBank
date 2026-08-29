@@ -28,6 +28,17 @@ datas desse ciclo. Isso é estado, e estado se guarda.
 O **valor** não é uma delas: é a soma dos lançamentos que apontam para ela, calculada
 sempre, nunca armazenada — a mesma regra do saldo de conta (`docs/02-dominio/conta.md`).
 
+**Os números de uma fatura são três, e só três:**
+
+| Número | Como se calcula |
+|---|---|
+| **Total** | Soma dos lançamentos que apontam para ela, **menos o lado crédito de uma rolagem**. Esse crédito não é gasto da fatura: é a saída da dívida dela para a seguinte, e é por isso que o total histórico não cai (`ADR-0005`) |
+| **Pago** | Soma dos pagamentos `REALIZADO` que apontam para ela |
+| **A pagar** | `total − pago − rolado`, onde `rolado` é o crédito que o total já não conta |
+
+O **débito** de rolagem, na fatura de destino, entra no total normalmente: ele é o "saldo
+anterior", e é dívida que aquela fatura cobra de verdade.
+
 ## O ciclo
 
 O usuário não informa duas datas soltas. Ele informa o que sabe de cabeça, na conta
@@ -55,6 +66,11 @@ Bordas:
 | `diaVencimento` maior que o mês (31 em fevereiro) | Cai no **último dia do mês** |
 | Vencimento em fim de semana ou feriado | A data **não muda**. O pagamento real tem a data que tiver, e é ela que vale — o sistema não carrega calendário de feriados |
 | Usuário muda o ciclo | Vale da próxima fatura a nascer. Fatura já criada mantém suas datas |
+
+**A primeira fatura nasce com a conta.** Criar uma conta `CARTAO` cria junto a fatura
+`ABERTA` do ciclo corrente — aquele cuja `dataFechamento` ainda não passou. Sem isso a
+invariante da `ABERTA` única seria falsa entre a criação da conta e o primeiro fechamento, e
+a primeira compra não teria onde cair.
 
 ## Estados: dois eixos independentes
 
@@ -218,6 +234,8 @@ mexe.
 - **Fechar não liquida nada; encerrar sim.** Uma fatura encerra ao ser quitada ou ao vencer
   e rolar — e só então os lançamentos dela deixam de ser `PROVISIONADO`.
 - Cartão inativado **mantém a fatura em aberto viva** até fechar e ser paga.
+- Toda conta `CARTAO` tem uma fatura `ABERTA` **desde o instante em que é criada**.
+- Fatura encerrada não recebe pagamento novo: o `a pagar` dela é zero por construção.
 
 ## Fronteiras com outros docs
 
