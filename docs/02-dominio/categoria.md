@@ -49,78 +49,81 @@ O motivo é bobo e real: sem isso, nada impede categorizar o salário como "merc
 relatório some com a diferença sem avisar.
 
 - Subcategoria **herda** o sentido da raiz e não pode divergir dele.
-- Transferência, aporte, resgate e rendimento **não têm categoria** e por isso não
-  entram nessa conversa (`docs/02-dominio/lancamento.md`).
+- **Categoria de sistema também tem `sentido`**, e é por isso que cada operação existe duas
+  vezes, em `ENTRADA` e em `SAIDA` — ver *As categorias de sistema*. A invariante não abre
+  exceção para ninguém.
 
-## Sistêmica e do usuário
+## De sistema e do usuário
 
-Toda categoria tem um campo `sistemica`, e ele responde de onde ela veio.
+Toda categoria tem um campo `sistema`, e ele separa duas coisas que não se misturam.
 
-| | Quem cria | Quando |
-|---|---|---|
-| **Sistêmica** | O sistema | No instante em que o **ambiente financeiro** é criado |
-| **Do usuário** | O usuário | Quando ele quiser — é assim que a árvore dele nasce de verdade |
+| | Para que serve | Quem cria | Quando |
+|---|---|---|---|
+| **De sistema** | Para o **sistema** conseguir lançar. O usuário nunca escolhe uma | O sistema | No ato em que o **ambiente financeiro** é criado |
+| **Do usuário** | Para o usuário responder "onde meu dinheiro foi" | O usuário | Quando ele quiser |
 
-O ambiente nasce com o conjunto sistêmico porque tela vazia na primeira vez é o jeito mais
-rápido de fazer alguém desistir de categorizar. O que o sistema **não** faz é adivinhar a vida
-de ninguém: as categorias que importam, o usuário cria.
+**O sistema não cria nenhuma categoria de uso do usuário.** Nada de conjunto inicial, nada de
+lista sugerida: "Moradia", "Transporte" e "Estudos" nascem com o nome que o usuário escolher, e
+a nomenclatura é dele. O preço é a **tela vazia no primeiro lançamento** — aceito de propósito,
+porque adivinhar a vida de alguém custa mais caro e para sempre: categoria que ninguém usa é
+ruído em toda tela de lançamento, todo dia.
 
-**A categoria sistêmica não pode ser excluída.** É a única proteção que ela tem, e existe para
-que todo ambiente sempre tenha para onde categorizar. Inativar já resolve o incômodo de uma
-categoria que não serve — ela some da lista de escolha do mesmo jeito. Fora isso, ela é do
-usuário como qualquer outra: renomear e mover são livres, e mudar o `sentido` segue valendo
-enquanto ela não tiver lançamento.
+### O que a categoria de sistema resolve
 
-`sistemica` é **origem, não privilégio**. Nenhuma regra do sistema procura categoria por nome
-— transferência, aporte, resgate, rendimento e rolagem simplesmente não têm categoria. A
-proteção é contra tela vazia, não contra regra quebrada.
+Ela existe por uma razão só, e é estrutural. Antes dela, a pendência era *"lançamento sem
+categoria **que espera uma**"* — e o "que espera uma" era uma lista de exceções (transferência,
+aporte, resgate, rendimento, pagamento de fatura, rolagem, abertura) que alguém tinha que manter
+em dia. Foi ela que produziu o primeiro achado do protótipo: a abertura de conta apareceu na
+fila de pendências.
 
-**O preço, escrito para não ser esquecido:** um ambiente PJ nasce com categorias de vida
-pessoal que ele nunca vai usar e não pode apagar, só inativar. **Revisitar se** isso incomodar
-— a saída seria conjunto sistêmico por perfil de ambiente, que é modelo novo para um problema
-que talvez não exista.
+Com a categoria de sistema, **`categoria` vazia passa a significar uma coisa só: pendência.**
+A exceção não foi corrigida — deixou de existir. É o mesmo movimento do `PROVISIONADO`
+(`ADR-0006`), e o mesmo argumento que manteve o `autor` obrigatório: campo que aceita vazio
+obriga toda tela a tratar o vazio.
 
-## O conjunto sistêmico
+A troca está nomeada: **sai uma lista de exceções, entra um filtro único.** Todo relatório por
+categoria passa a excluir `sistema = true` — um predicado, no mesmo lugar, sempre igual.
 
-Onze raízes, deliberadamente poucas. Subcategoria só onde ela responde uma pergunta que a raiz
-não responde.
+### As regras delas
 
-**Saída**
+- **Nunca aparecem no seletor** de um lançamento do usuário. Ninguém categoriza o mercado como
+  "Transferência".
+- **Nunca entram no relatório de gasto nem no de receita por categoria.** Transferência, aporte
+  e pagamento de fatura não são gasto da vida — só mudam o dinheiro de bolso.
+- **Não se renomeia, não se move, não se inativa e não se exclui.** Aqui a proteção tem motivo
+  nomeado: o sistema depende delas por identidade, e sem elas o ciclo não consegue lançar.
+- **São sempre raiz e nunca têm filhos.** O usuário não pendura subcategoria em uma delas.
+- Como qualquer categoria, **pertencem a um ambiente** e nunca mudam de ambiente. Cada ambiente
+  tem o seu jogo completo.
 
-| Raiz | Subcategorias |
+## As categorias de sistema
+
+São **sete operações**, e cada uma existe em **`ENTRADA` e `SAIDA`** — todas movimentam duas
+contas, ou podem cair para qualquer lado. Quatorze registros por ambiente, gerados em laço.
+
+| Operação | Como o sistema reconhece o lançamento |
 |---|---|
-| Moradia | Aluguel ou financiamento · Condomínio · Energia · Água · Internet · Gás |
-| Alimentação | Mercado · Restaurante · Delivery |
-| Transporte | Combustível · Aplicativo · Transporte público · Estacionamento · Manutenção |
-| Saúde | Plano · Farmácia · Consultas e exames |
-| Educação | — |
-| Lazer | — |
-| Compras | Vestuário · Casa · Eletrônicos |
-| Tarifas e encargos | Tarifa bancária · Juros · Anuidade · Impostos |
+| **Saldo de abertura** | É o lançamento de abertura da conta (`docs/02-dominio/conta.md`) |
+| **Transferência** | Tem `transferenciaId` e não é nenhum dos casos abaixo |
+| **Aporte** | Transferência cujo **destino** é uma conta `APLICACAO` |
+| **Resgate** | Transferência cuja **origem** é uma conta `APLICACAO` |
+| **Pagamento de fatura** | Tem `pagamentoDeFatura` preenchido |
+| **Rolagem de fatura** | Tem `rolagemDeFatura` preenchido |
+| **Rendimento** | É o lançamento de rendimento de uma aplicação |
 
-**Entrada**
+Nenhuma foi inventada: **cada uma é uma operação que o modelo já distinguia**, por campo próprio
+ou por tipo de conta. É o critério do projeto aplicado à lista — categoria de sistema nova só
+existe se o sistema souber, sozinho e sem perguntar, quando usá-la.
 
-| Raiz | Subcategorias |
-|---|---|
-| Salário | — |
-| Renda extra | — |
-| Reembolso | — |
+**"Saque" ficou de fora** por esse mesmo critério. Sacar é uma transferência de uma `CORRENTE`
+para uma `CARTEIRA`, e o modelo não tem nada que a distinga de outra transferência qualquer —
+a categoria exigiria inventar uma regra só para ela existir. Se um dia o saque ganhar
+comportamento próprio, ele entra.
 
-Três ausências que são decisão, não esquecimento:
-
-- **Não existe "Assinaturas".** Categoria responde *para que serviu o dinheiro*, e a Netflix
-  serviu para lazer. "Assinatura" descreve a **forma** de pagar, e essa forma já tem dono: a
-  `Recorrencia` (`docs/02-dominio/recorrencia.md`).
-- **Não existe "Outros".** Quem não acha a categoria na hora deixa o lançamento **sem
-  categoria**, e ele vira **pendência** — a fila de quem volta depois. Uma raiz "Outros"
-  lavaria essa fila: o lançamento sairia dela sem ninguém ter decidido nada.
-- **Nada de "Investimentos" ou "Poupança".** Aporte e resgate são transferência e não têm
-  categoria (`docs/02-dominio/aplicacao-patrimonio.md`).
-
-**"Tarifas e encargos" não é enfeite de lista.** O `ADR-0003` decidiu que o sistema **nunca**
-calcula juros nem pagamento mínimo, e que encargos entram como lançamento comum — lançamento
-comum precisa de categoria. É a única raiz do conjunto que existe porque uma decisão escrita
-a exige.
+O par `ENTRADA`/`SAIDA` mantém o **mesmo nome** nos dois lados: no extrato da conta corrente
+lê-se "Transferência −R$ 500" e no da carteira "Transferência +R$ 500", como no extrato do
+banco. São dois registros porque a invariante do `sentido` vale para toda categoria, sem
+exceção nenhuma.
 
 ## Renomear, mover, excluir
 
@@ -133,7 +136,10 @@ livre e o histórico acompanha sem reescrever nada.
 | Mover subcategoria para outra raiz | Permitido, e **o relatório do passado muda junto** — aquele gasto passa a contar na raiz nova |
 | Mudar o sentido | Só enquanto a categoria não tiver nenhum lançamento |
 | Inativar | Some da lista de escolha; o histórico continua exibindo e somando normalmente |
-| Excluir | Só se nunca teve lançamento **e** não for sistêmica. Nos dois casos o caminho é inativar |
+| Excluir | Só se nunca teve lançamento. Com histórico, o caminho é inativar |
+
+**Nada nesta tabela vale para categoria de sistema:** ela não se renomeia, não se move, não se
+inativa e não se exclui. O sistema depende dela por identidade.
 
 O caso do "mover" é o único que muda o passado. Foi escolhido assim porque a alternativa —
 congelar a árvore depois do primeiro lançamento — deixaria o usuário preso a uma
@@ -145,9 +151,12 @@ organização que ele montou antes de entender os próprios gastos.
 
 ## Lançamento sem categoria
 
-É a **pendência** do glossário: não é um estado próprio, é a consulta por lançamento sem
-categoria. Um lançamento pode nascer, existir e entrar no saldo sem categoria — o que ele
-não faz é sumir da fila de pendências até alguém resolver.
+É a **pendência** do glossário: não é um estado próprio, é a consulta `categoria IS NULL`,
+sem exceção nenhuma. Um lançamento pode nascer, existir e entrar no saldo sem categoria — o
+que ele não faz é sumir da fila de pendências até alguém resolver.
+
+Só o lançamento **do usuário** chega aqui. O que o ciclo cria já nasce com a categoria de
+sistema da operação dele, e por isso nunca foi trabalho pendente para ninguém.
 
 Como a categoria é atribuída automaticamente é assunto de
 `docs/02-dominio/regras-categorizacao.md`. Este doc só garante que o destino existe.
@@ -160,6 +169,10 @@ Como a categoria é atribuída automaticamente é assunto de
 - Categoria raiz com subcategorias não é escolhível num lançamento.
 - Categoria com qualquer lançamento não pode ser excluída nem ter o sentido alterado.
 - Categoria inativa não aparece para escolha, mas continua somando no histórico.
-- Categoria sistêmica nunca é excluída, tenha lançamento ou não.
-- Todo ambiente nasce com o conjunto sistêmico, no mesmo ato que cria o ambiente.
+- Categoria de sistema não se renomeia, não se move, não se inativa e não se exclui.
+- Categoria de sistema é sempre raiz e nunca tem subcategoria.
+- Todo ambiente nasce com o jogo completo de categorias de sistema, no mesmo ato que o cria —
+  e com **nenhuma** categoria de usuário.
+- Nenhuma categoria de sistema aparece no seletor de um lançamento do usuário.
+- Nenhum relatório por categoria inclui categoria de sistema.
 - Lançamento e categoria são sempre do mesmo ambiente.

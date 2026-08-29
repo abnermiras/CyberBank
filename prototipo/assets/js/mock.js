@@ -5,6 +5,11 @@
    previsto e realizado convivendo, uma fatura fechada prestes a vencer,
    outra aberta, um parcelamento atravessando as duas, uma pendencia sem
    categoria, um aporte que nao e gasto e uma aplicacao que rendeu.
+
+   ATENCAO: as categorias do seed (SUSTENTO, MORADIA, LAZER, TRANSITO...) sao do
+   USUARIO — o seed representa alguem que ja criou as dele. O sistema NAO cria
+   categoria de usuario nenhuma; ele so cria as 14 CATEGORIAS DE SISTEMA, e isso
+   acontece em `amb()` (docs/02-dominio/categoria.md).
    ========================================================================= */
 (function (CB) {
   'use strict';
@@ -13,7 +18,12 @@
   const HOJE = '2026-08-27';
   S.hoje = HOJE;
 
-  const amb = (id, nome, cor, setor) => { S.ambientes.push({ id, nome, cor, setor }); return id; };
+  // o ambiente nasce com o jogo completo de CATEGORIAS DE SISTEMA — e com nenhuma do usuario
+  const amb = (id, nome, cor, setor) => {
+    S.ambientes.push({ id, nome, cor, setor });
+    CB.criarCategoriasDeSistema(id);
+    return id;
+  };
   const PESSOAL = amb('amb_pessoal', 'PESSOAL', '#00f0ff', 'NC-77/A');
   const CASA = amb('amb_casa', 'CASA', '#ff1f91', 'NC-77/B');
   S.ambienteAtivo = PESSOAL;
@@ -28,7 +38,8 @@
       S.ambienteAtivo = o.ambiente;
       CB.lancar({ ambiente: o.ambiente, conta: c.id, sentido: 'ENTRADA', valor: o.abertura,
         dataEvento: '2026-07-01', dataEfeito: '2026-07-01', descricao: 'Saldo de abertura',
-        situacao: 'REALIZADO', categoria: null, meio: null }).abertura = true;
+        situacao: 'REALIZADO', meio: null,
+        categoria: CB.catSistema(o.ambiente, 'Saldo de abertura', 'ENTRADA') }).abertura = true;
     }
     return c.id;
   }

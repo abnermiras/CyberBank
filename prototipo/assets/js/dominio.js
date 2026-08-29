@@ -18,6 +18,9 @@
    - fatura = recorte de periodo da conta CARTAO. FUTURA | ABERTA | FECHADA
    - o lancamento entra na fatura pelo STATUS, nunca pela data
    - nada congela: lancamento de fatura fechada se edita direto
+   - CATEGORIA DE SISTEMA: tudo que o ciclo cria (transferencia, aporte, resgate,
+     pagamento de fatura, rolagem, rendimento, abertura) nasce com categoria propria,
+     e por isso PENDENCIA voltou a ser `categoria IS NULL` sem lista de excecoes
    - `entraEmCaixa` e campo da conta (eixo 3): CAIXA nao e mais "fluxo menos divida".
      Vale e aplicacao nao sao caixa — saldo que nao paga qualquer coisa nao e caixa
    - DIVERGENCIA CONSCIENTE: o motor guarda parcelamento e recorrencia na mesma lista
@@ -74,6 +77,37 @@
   const contas = () => doAmbiente(S.contas);
   const meios = () => doAmbiente(S.meios);
   const categorias = () => doAmbiente(S.categorias);
+  const categoriasDoUsuario = () => categorias().filter((k) => !k.sistema);
+
+  /* CATEGORIA DE SISTEMA — uso exclusivo do sistema, para ele conseguir lancar o que o
+     ciclo produz. Sete operacoes, cada uma em ENTRADA e SAIDA (a invariante do sentido
+     nao abre excecao). Nascem com o AMBIENTE, nunca aparecem no seletor do usuario, e
+     nenhum relatorio por categoria as inclui.
+     O PREMIO: `categoria` vazia passa a significar UMA coisa so — pendencia. */
+  const CAT_SISTEMA = ['Saldo de abertura', 'Transferência', 'Aporte', 'Resgate',
+    'Pagamento de fatura', 'Rolagem de fatura', 'Rendimento'];
+
+  function criarCategoriasDeSistema(ambiente) {
+    CAT_SISTEMA.forEach((nome) => ['ENTRADA', 'SAIDA'].forEach((sentido) => {
+      S.categorias.push({ id: id('cat'), ambiente, nome, cor: '#5f7688', sentido, pai: null, sistema: true });
+    }));
+  }
+
+  function catSistema(ambiente, nome, sentido) {
+    const k = S.categorias.find((x) => x.sistema && x.ambiente === ambiente
+      && x.nome === nome && x.sentido === sentido);
+    if (!k) throw new Error('categoria de sistema ausente: ' + nome + '/' + sentido);
+    return k.id;
+  }
+
+  // a tabela de reconhecimento do doc, em codigo: cada nome sai de algo que o modelo JA distinguia
+  function nomeDaTransferencia(o) {
+    if (o.pagamentoDeFatura) return 'Pagamento de fatura';
+    const de = conta(o.de), para = conta(o.para);
+    if (para && para.tipo === 'APLICACAO') return 'Aporte';
+    if (de && de.tipo === 'APLICACAO') return 'Resgate';
+    return 'Transferência';
+  }
   const lancamentos = () => doAmbiente(S.lancamentos);
   const faturas = () => doAmbiente(S.faturas);
   const series = () => doAmbiente(S.series).filter((x) => x.ativa);
@@ -156,11 +190,15 @@
   /* ================= TRANSFERENCIA (par ligado) ================= */
   function transferir(o) {
     const tid = id('tr');
-    const base = { transferenciaId: tid, dataEvento: o.data || S.hoje, dataEfeito: o.data || S.hoje,
-      situacao: o.situacao || 'REALIZADO', categoria: null, meio: null,
+    const amb = o.ambiente || S.ambienteAtivo;
+    const nome = nomeDaTransferencia(o);
+    const base = { ambiente: amb, transferenciaId: tid, dataEvento: o.data || S.hoje, dataEfeito: o.data || S.hoje,
+      situacao: o.situacao || 'REALIZADO', meio: null,
       pagamentoDeFatura: o.pagamentoDeFatura || null };
-    const saida = lancar(Object.assign({}, base, { conta: o.de, sentido: 'SAIDA', valor: o.valor, descricao: o.descricao }));
-    const entrada = lancar(Object.assign({}, base, { conta: o.para, sentido: 'ENTRADA', valor: o.valor, descricao: o.descricao }));
+    const saida = lancar(Object.assign({}, base, { conta: o.de, sentido: 'SAIDA', valor: o.valor, descricao: o.descricao,
+      categoria: catSistema(amb, nome, 'SAIDA') }));
+    const entrada = lancar(Object.assign({}, base, { conta: o.para, sentido: 'ENTRADA', valor: o.valor, descricao: o.descricao,
+      categoria: catSistema(amb, nome, 'ENTRADA') }));
     return [saida, entrada];
   }
 
@@ -175,8 +213,10 @@
     const dif = valorInformado - atual;
     c.ultimaAtualizacao = S.hoje;
     if (dif === 0) { registrar(`${c.nome}: sem variação`, 'rend'); return null; }
-    const l = lancar({ conta: cid, sentido: dif > 0 ? 'ENTRADA' : 'SAIDA', valor: Math.abs(dif),
-      descricao: dif > 0 ? 'Rendimento' : 'Desvalorização', situacao: 'REALIZADO', categoria: null, meio: null });
+    const sentido = dif > 0 ? 'ENTRADA' : 'SAIDA';
+    const l = lancar({ conta: cid, sentido, valor: Math.abs(dif),
+      descricao: dif > 0 ? 'Rendimento' : 'Desvalorização', situacao: 'REALIZADO',
+      categoria: catSistema(c.ambiente, 'Rendimento', sentido), meio: null });
     l.rendimento = true;
     registrar(`${c.nome}: ${dif > 0 ? 'rendeu' : 'perdeu'} ${M.fmt(Math.abs(dif))}`, 'rend');
     return l;
@@ -226,7 +266,8 @@
     const alvo = mes || D.mes(S.hoje);
     const mapa = {};
     lancamentos().forEach((l) => {
-      if (l.transferenciaId || l.rendimento || l.rolagemDeFatura) return;
+      const k0 = l.categoria ? categoria(l.categoria) : null;
+      if (k0 && k0.sistema) return;   // um predicado no lugar da lista de excecoes
       if (l.sentido !== 'SAIDA') return;
       if (!D.noMes(l.dataEvento, alvo)) return;
       const c = conta(l.conta); if (!c || !c.entraNoFluxoDeCaixa) return;
@@ -247,14 +288,16 @@
 
   function receitaDoMes(mes) {
     const alvo = mes || D.mes(S.hoje);
-    return lancamentos().filter((l) => !l.transferenciaId && !l.rendimento && l.sentido === 'ENTRADA' && D.noMes(l.dataEvento, alvo))
+    const doSistema = (l) => { const k = l.categoria ? categoria(l.categoria) : null; return !!(k && k.sistema); };
+    return lancamentos().filter((l) => !doSistema(l) && l.sentido === 'ENTRADA' && D.noMes(l.dataEvento, alvo))
       .filter((l) => { const c = conta(l.conta); return ehCaixa(conta(l.conta)); })
       .reduce((s, l) => s + l.valor, 0);
   }
 
-  // PENDENCIA: lancamento sem categoria QUE ESPERA UMA.
-  const esperaCategoria = (l) => !l.transferenciaId && !l.rendimento && !l.abertura && !l.rolagemDeFatura;
-  const pendencias = () => lancamentos().filter((l) => !l.categoria && esperaCategoria(l));
+  /* PENDENCIA: lancamento SEM CATEGORIA. E so isso — a lista de excecoes morreu quando
+     tudo que o ciclo cria passou a nascer com CATEGORIA DE SISTEMA. Era aqui que a
+     abertura de conta vazava para a fila (achado 1 do prototipo); agora ela nao pode. */
+  const pendencias = () => lancamentos().filter((l) => !l.categoria);
 
   const extrato = (filtro) => lancamentos()
     .filter((l) => (filtro && filtro.conta ? l.conta === filtro.conta : true))
@@ -476,13 +519,17 @@
       S.lancamentos = S.lancamentos.filter((x) => par.indexOf(x) < 0);
     });
     const rid = id('rol');
+    const ambRol = conta(f.contaCartao).ambiente;
     const base = { conta: f.contaCartao, valor: falta, dataEvento: f.vencimento,
-      dataEfeito: f.vencimento, categoria: null, meio: null, rolagemDeFatura: rid };
+      dataEfeito: f.vencimento, meio: null, rolagemDeFatura: rid };
+    const catRol = (sentido) => catSistema(ambRol, 'Rolagem de fatura', sentido);
     // o credito encerra a fatura velha (fato consumado); o debito entra na nova como
     // PROVISIONADO, porque e divida que aconteceu e ainda espera pagamento
     lancar(Object.assign({}, base, { sentido: 'ENTRADA', fatura: fid, situacao: 'REALIZADO',
+      categoria: catRol('ENTRADA'),
       descricao: 'Rolado para a fatura ' + destino.referencia }));
     lancar(Object.assign({}, base, { sentido: 'SAIDA', fatura: destino.id, situacao: 'PROVISIONADO',
+      categoria: catRol('SAIDA'),
       descricao: 'Saldo da fatura ' + f.referencia }));
     // a fatura velha acabou: o que sobrou nela de provisao vira fato liquidado
     encerrarFatura(fid);
@@ -758,11 +805,12 @@
   global.CB = {
     S, D, M, id, registrar, SEMPRE,
     contas, meios, categorias, lancamentos, faturas,
-    conta, meio, categoria, raizDe, ehDivida, ehCaixa, jaAconteceu,
+    conta, meio, categoria, categorias, raizDe, ehDivida, ehCaixa, jaAconteceu,
     lancar, editar, estornar, transferir, aportar, resgatar, atualizarValorAplicacao,
     saldoRealizado, saldoProjetado, emCaixa, sobraAteFimDoMes, patrimonio, guardado,
     dividaCartao, dividaTotal,
-    gastoPorCategoria, guardadoNoMes, receitaDoMes, pendencias, esperaCategoria, extrato,
+    gastoPorCategoria, guardadoNoMes, receitaDoMes, pendencias, extrato,
+    categoriasDoUsuario, criarCategoriasDeSistema, catSistema, CAT_SISTEMA,
     faturasDe, faturaAberta, faturaNaPosicao, faturaDaReferencia, datasDaRef,
     totalFatura, roladoDaFatura, faltaNaFatura, ehRolagem, lancamentosDaFatura,
     pagamentosDaFatura, pagoDaFatura, situacaoPagamento, rolarSaldo, lancamentosDeRolagem,

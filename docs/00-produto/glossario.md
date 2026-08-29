@@ -40,7 +40,7 @@ O glossário define **o que a palavra significa**. Quem define **as regras** é 
 | **Em caixa** | Quanto há de dinheiro que serve para pagar **qualquer coisa**: soma do saldo realizado das contas com `entraEmCaixa = true`. Fica de fora o que não é fungível — aplicação, benefício e a dívida do cartão. Distinto de fluxo de caixa e de patrimônio. | `02-dominio/conta` |
 | **Meio de pagamento** | *Como* a compra foi paga (débito, crédito, Pix, dinheiro, benefício, boleto). Distinto de conta, e sempre apontando para uma. Só o **boleto** separa as duas datas; em todo o resto, crédito incluído, `dataEfeito = dataEvento`. | `02-dominio/meio-de-pagamento` |
 | **Débito automático** | **Não é meio de pagamento.** O meio é débito; "automático" é fato da recorrência, que se paga sem o usuário agir. | `02-dominio/recorrencia` |
-| **Transferência** | Movimento de dinheiro entre duas contas acessíveis ao ambiente do lançamento — próprias, ou compartilhadas com ele. São **dois lançamentos** ligados pelo mesmo id, sentidos opostos. Não tem categoria e não é gasto. | `02-dominio/lancamento` |
+| **Transferência** | Movimento de dinheiro entre duas contas acessíveis ao ambiente do lançamento — próprias, ou compartilhadas com ele. São **dois lançamentos** ligados pelo mesmo id, sentidos opostos. Carrega **categoria de sistema** e não é gasto. | `02-dominio/lancamento` |
 | **Correção** | Arrumar um registro errado (valor digitado errado, categoria errada). **Edita** o lançamento e guarda o histórico. | `02-dominio/lancamento` |
 | **Estorno** | O dinheiro voltou de verdade: compra cancelada, devolução, chargeback. É um **lançamento novo** de sentido oposto, não uma edição. | `02-dominio/lancamento` |
 | **Situação** | Em que ponto entre o **fato** e a **liquidação** o lançamento está. Três valores: `PREVISTO` (vai acontecer), `PROVISIONADO` (aconteceu, falta liquidar) e `REALIZADO` (aconteceu e liquidou). Só anda para frente. O teste de "entra no saldo" é `situacao !== PREVISTO`, **nunca** `=== REALIZADO`. | `02-dominio/lancamento`, `ADR-0006` |
@@ -48,7 +48,8 @@ O glossário define **o que a palavra significa**. Quem define **as regras** é 
 | **Encerrar fatura** | O fim do ciclo de cobrança: a fatura é **quitada**, ou **vence sem ser quitada** e o que faltou rola. É o encerramento que liquida os lançamentos dela — nem o fechamento, nem um pagamento parcial. | `02-dominio/fatura-pagamento` |
 | **Rolagem** | O que uma fatura vencida não cobriu vira um **par de lançamentos dentro da própria conta `CARTAO`** — crédito na vencida, débito na aberta — que **soma zero**. Move dívida de período, não cria dívida. | `ADR-0005`, `02-dominio/fatura-pagamento` |
 | **Categoria** | Para que serviu o dinheiro. Árvore de **exatamente dois níveis** (transporte → gasolina) e com um `sentido`: categoria de entrada não recebe lançamento de saída. | `02-dominio/categoria` |
-| **Categoria sistêmica** | Categoria que o sistema cria junto com o ambiente financeiro. Não pode ser **excluída**; renomear, mover e inativar são livres. "Sistêmica" é a origem dela, não um privilégio: nenhuma regra do sistema procura categoria por nome. | `02-dominio/categoria` |
+| **Categoria de sistema** | Categoria de uso **exclusivo do sistema**, para ele conseguir lançar o que o ciclo produz: transferência, aporte, resgate, pagamento de fatura, rolagem, rendimento e saldo de abertura. Nasce com o ambiente, nunca aparece no seletor do usuário, não se renomeia nem se exclui, e nenhum relatório por categoria a inclui. Sete operações, cada uma em `ENTRADA` e `SAIDA`. | `02-dominio/categoria` |
+| **Categoria do usuário** | Todas as outras. O sistema **não cria nenhuma** — "Moradia", "Transporte", "Estudos" nascem com o nome que o usuário escolher. Não existe conjunto inicial. | `02-dominio/categoria` |
 | **Sentido** | `ENTRADA` ou `SAIDA`. Atributo do lançamento e da categoria — é ele que dá o sinal, nunca o valor. | `02-dominio/lancamento` |
 | **Fatura** | **Recorte de um período da conta `CARTAO`**, com fechamento e vencimento. Tem estado salvo (`FUTURA`, `ABERTA`, `FECHADA`); o valor dela é sempre derivado, nunca armazenado. | `02-dominio/fatura-cartao` |
 | **Parcelamento** | **Uma compra só**, dividida em N (R$ 5.000 em 10x). Editar altera **todas** as parcelas, sem perguntar: se elas divergem, o dado está errado. Entidade própria, que guarda o valor da compra. | `02-dominio/recorrencia` |
@@ -72,7 +73,7 @@ O glossário define **o que a palavra significa**. Quem define **as regras** é 
 |---|---|---|
 | **Captura** | O ato de o sistema obter um lançamento automaticamente, sem digitação (notificação push, OFX, voz). | `05-integracoes/captura-notificacao` |
 | **Notificação de compra** | O texto bruto recebido do banco ou do cartão, antes de virar lançamento. É a matéria-prima da captura, não um lançamento. | `05-integracoes/captura-notificacao` |
-| **Pendência** | Lançamento **que espera categoria** e ainda não tem. Não é estado próprio, é consulta — e exclui o que nunca terá categoria (transferência, rendimento, ajuste, abertura). | `02-dominio/lancamento` |
+| **Pendência** | Lançamento **sem categoria**. Não é estado próprio, é a consulta `categoria IS NULL` — e não tem exceção nenhuma, porque tudo que o ciclo cria já nasce com **categoria de sistema**. | `02-dominio/lancamento`, `02-dominio/categoria` |
 | **Categorização** | Atribuir categoria a um lançamento. Única etapa que o sistema aceita exigir do usuário. | `02-dominio/regras-categorizacao` |
 | **Regra de categorização** | O mapeamento que faz um estabelecimento virar categoria automaticamente. | `02-dominio/regras-categorizacao` |
 | **Estabelecimento** | Contraparte da compra, como veio da fonte externa: **texto bruto, antes de normalizar**. | `02-dominio/regras-categorizacao` |
@@ -125,5 +126,5 @@ Palavra ambígua vira modelo ambíguo. Não use:
 | `REALIZADO` como sinônimo de "entra no saldo" | **`!== PREVISTO`** (`PROVISIONADO` também entra) |
 | valor com sinal negativo | **valor positivo + `sentido`** (ENTRADA ou SAIDA) |
 | "contas de fluxo menos as de dívida" | **`entraEmCaixa`** (virou campo quando apareceu o segundo caso: o benefício) |
-| "categoria protegida" | **categoria sistêmica** (só a exclusão é bloqueada) |
-| "assinatura" como categoria | **recorrência** (a categoria diz para que serviu, não como se paga) |
+| "categoria protegida" / "categoria sistêmica" | **categoria de sistema** |
+| "conjunto inicial de categorias" | não existe: o sistema só cria as **de sistema** |

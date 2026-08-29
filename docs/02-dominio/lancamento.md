@@ -28,7 +28,7 @@ lançamentos, não um lançamento com dois lados — ver Transferência.
 | `dataEfeito` | sim | Quando mexe no saldo. **Data pura**, sem hora e sem fuso. Ver As duas datas |
 | `descricao` | sim | O que o usuário lê no extrato |
 | `situacao` | sim | `PREVISTO`, `PROVISIONADO` ou `REALIZADO`. Ver Dois eixos independentes |
-| `categoria` | não | Obrigatória para o lançamento deixar de ser pendência |
+| `categoria` | não | Vazia significa **pendência**, e nada além disso: o lançamento que o ciclo cria nasce com a **categoria de sistema** da operação dele (`docs/02-dominio/categoria.md`) |
 | `meioDePagamento` | não | Obrigatório em gasto e receita reais. Ausente em transferência, aporte, resgate, rendimento e lançamento de abertura |
 | `fatura` | não | Em qual fatura o lançamento **entra**. Preenchido quando o meio é crédito. **Nasce** pelo status da fatura, nunca pela data; editável para qualquer fatura, aberta ou não. Mover **não muda data nenhuma** — no crédito `dataEfeito = dataEvento`, sempre. `docs/02-dominio/fatura-cartao.md` |
 | `transferenciaId` | não | Amarra os dois lançamentos de uma transferência |
@@ -90,8 +90,8 @@ Duas coisas que este eixo **não** é:
   conta pela `dataEvento` nos dois eixos, porque não há fatura para discordar dela. O eixo só
   separa alguma coisa no crédito.
 
-Rolagem, pagamento de fatura, transferência, aporte, resgate e rendimento não têm categoria e
-por isso não entram em nenhum dos dois.
+Rolagem, pagamento de fatura, transferência, aporte, resgate e rendimento carregam **categoria
+de sistema**, que nenhum relatório por categoria inclui — então não entram em nenhum dos dois.
 
 ## Dois eixos independentes
 
@@ -120,11 +120,14 @@ nela nada se moveu ainda.
 glossário. Não existe estado `PENDENTE` separado: pendência é uma **consulta**, e um
 estado a menos é um estado que não dessincroniza.
 
-A consulta não é "sem categoria" — é **"sem categoria e que espera uma"**. Ficam de fora
-transferência, aporte, resgate, rendimento, pagamento de fatura, rolagem e lançamento de abertura:
-esses não têm categoria por natureza, e não são trabalho pendente para ninguém.
-*(A definição larga foi corrigida depois que o protótipo mostrou a abertura de conta
-aparecendo na fila de pendências.)*
+E a consulta é exatamente **`categoria IS NULL`**, sem nenhuma exceção. Transferência, aporte,
+resgate, rendimento, pagamento de fatura, rolagem e abertura não ficam de fora por uma lista:
+eles nascem com a **categoria de sistema** deles (`docs/02-dominio/categoria.md`), então nunca
+estiveram dentro.
+
+*(Já foi diferente, e a diferença custou um bug. A consulta era "sem categoria **e que espera
+uma**", com a lista de exceções escrita à mão, e o protótipo mostrou a abertura de conta na fila
+de pendências. A categoria de sistema não corrigiu a lista: apagou a necessidade dela.)*
 
 **Fora do cartão a transição é automática: o lançamento vira `REALIZADO` quando a
 `dataEfeito` chega.** Sem confirmação e sem fila. No cartão, quem liquida é o **encerramento
@@ -160,8 +163,8 @@ Regras do par:
 - Mesmo valor, sentidos opostos, contas **diferentes** — ambas acessíveis ao ambiente do
   lançamento, próprias ou compartilhadas (`docs/02-dominio/compartilhamento.md`).
 - Editar ou apagar um lado age no par inteiro.
-- Transferência **não tem categoria** e não aparece no relatório de gasto: o dinheiro não
-  saiu da vida do usuário, mudou de bolso.
+- Transferência carrega a **categoria de sistema** "Transferência" e não aparece no relatório
+  de gasto: o dinheiro não saiu da vida do usuário, mudou de bolso.
 
 ## Lançamento que o sistema cria
 
@@ -246,6 +249,9 @@ Nada precisa ser recalculado: como saldo é sempre a soma dos lançamentos
   volta, e sempre com histórico.
 - Lançamento de conta inativa não é criado (`docs/02-dominio/conta.md`).
 - A **categoria** é sempre do mesmo ambiente do lançamento.
+- Todo lançamento que o ciclo cria nasce com a **categoria de sistema** da operação dele — e
+  por isso nenhum deles aparece na fila de pendências (`docs/02-dominio/categoria.md`).
+- Nenhum lançamento do usuário aponta para uma categoria de sistema.
 - A **conta** é do mesmo ambiente, ou de um que a compartilhou com ele.
 
 ## Fronteiras com outros docs

@@ -46,8 +46,8 @@ São transferências, e nada além disso (`docs/02-dominio/lancamento.md`):
 | **Aporte** | `SAIDA` na conta corrente + `ENTRADA` na aplicação, mesmo `transferenciaId` |
 | **Resgate** | `SAIDA` na aplicação + `ENTRADA` na conta corrente |
 
-Como toda transferência, não têm categoria e **não aparecem no relatório de gasto por
-categoria**. Guardar dinheiro não é despesa; se aparecesse, o relatório de gasto mentiria
+Como toda transferência, carregam **categoria de sistema** — "Aporte" e "Resgate"
+(`docs/02-dominio/categoria.md`) — e **não aparecem no relatório de gasto por categoria**. Guardar dinheiro não é despesa; se aparecesse, o relatório de gasto mentiria
 e comparar mês a mês ficaria distorcido por quem aportou muito.
 
 **Consequência aceita, e ela precisa aparecer na tela:** o mês deixa de fechar na soma
@@ -69,7 +69,7 @@ sempre, sem campo guardando total*. E dá de graça três coisas: o rendimento t
 aparece no extrato, e o histórico de quanto a aplicação valeu ao longo do tempo existe sem
 tabela nova.
 
-O lançamento de rendimento não tem categoria e não entra no fluxo de caixa — ele não é
+O lançamento de rendimento carrega a categoria de sistema "Rendimento" e não entra no fluxo de caixa — ele não é
 receita da vida, é a aplicação valendo mais. Nasce `REALIZADO`: o valor informado é o de hoje.
 
 **Quando o usuário passa meses sem atualizar, o sistema não faz nada com o número — e diz
@@ -125,7 +125,7 @@ bolso sem criar nem destruir nada.
 - Conta `APLICACAO` tem `entraNoFluxoDeCaixa = false`.
 - Nenhum meio de pagamento aponta para uma conta `APLICACAO`.
 - Aporte e resgate são sempre um par de lançamentos com o mesmo `transferenciaId`.
-- Aporte, resgate e rendimento não têm categoria e nunca entram no relatório de gasto.
+- Aporte, resgate e rendimento carregam categoria de sistema e nunca entram no relatório de gasto.
 - Patrimônio nunca é armazenado; é sempre derivado dos saldos.
 - O valor de uma aplicação nunca é estimado pelo sistema: só o usuário o informa, e a idade
   do último valor é sempre visível.

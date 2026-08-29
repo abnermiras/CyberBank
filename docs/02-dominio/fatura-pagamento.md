@@ -63,8 +63,8 @@ São **dois lançamentos dentro da própria conta `CARTAO`**, com o mesmo `rolag
 | Débito | na fatura aberta | `SAIDA` | "Saldo da fatura anterior" — **a primeira linha dela** |
 
 Os dois **somam zero**: a dívida do cartão não muda. A rolagem move dívida de período, não
-cria dívida. É a mesma forma da transferência — par ligado, sem categoria, fora do relatório
-de gasto — aplicada entre faturas em vez de entre contas.
+cria dívida. É a mesma forma da transferência — par ligado, com categoria
+de sistema, fora do relatório de gasto — aplicada entre faturas em vez de entre contas.
 
 ### O que o encerramento faz, em ordem
 

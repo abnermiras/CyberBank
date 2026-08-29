@@ -394,9 +394,10 @@
 
   /* ================= SELECTS ================= */
   function optCategorias(sentido, sel) {
-    const raizes = CB.categorias().filter((c) => !c.pai && (!sentido || c.sentido === sentido));
+    // categoria de sistema NUNCA aparece no seletor do usuario
+    const raizes = CB.categoriasDoUsuario().filter((c) => !c.pai && (!sentido || c.sentido === sentido));
     return '<option value="">— SEM CATEGORIA —</option>' + raizes.map((r) => {
-      const fi = CB.categorias().filter((c) => c.pai === r.id);
+      const fi = CB.categoriasDoUsuario().filter((c) => c.pai === r.id);
       const opts = fi.length
         ? fi.map((f) => '<option value="' + f.id + '"' + (f.id === sel ? ' selected' : '') + '>' + esc(f.nome) + '</option>').join('')
         : '<option value="' + r.id + '"' + (r.id === sel ? ' selected' : '') + '>' + esc(r.nome) + '</option>';

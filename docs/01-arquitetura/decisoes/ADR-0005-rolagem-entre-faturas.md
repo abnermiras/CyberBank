@@ -47,8 +47,8 @@ dela que não foi pago é descartado. Débito `PREVISTO` foi cogitado e derrubad
 aritmética — ele não entraria no saldo, o crédito entraria, e o par que existe justamente
 para somar zero apagaria a dívida.
 
-É a mesma forma da transferência — par ligado, sem categoria, fora do relatório de gasto —
-aplicada **entre faturas** em vez de entre contas.
+É a mesma forma da transferência — par ligado, com categoria de sistema, fora do relatório de
+gasto — aplicada **entre faturas** em vez de entre contas.
 
 O **total histórico da fatura não cai**: agosto continua tendo sido R$ 1.610,60. O crédito
 de rolagem fica fora do total dela e o débito entra no total da seguinte, que é exatamente
