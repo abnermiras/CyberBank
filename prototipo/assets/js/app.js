@@ -179,7 +179,10 @@
       CB.contas().map((c) => '<option value="' + c.id + '"' + (c.id === contaFiltro ? ' selected' : '') + '>' + esc(c.nome) + '</option>').join('');
     $('#btnSoPend').classList.toggle('primary', soPendencias);
     let ls = CB.extrato(contaFiltro ? { conta: contaFiltro } : null);
-    if (soPendencias) ls = ls.filter((l) => !l.categoria && CB.esperaCategoria(l));
+    // PENDENCIA E \`categoria IS NULL\`, SEM EXCECAO (docs/02-dominio/categoria.md).
+    // Aqui havia \`&& CB.esperaCategoria(l)\` — funcao que a decisao de 29/08 apagou do
+    // dominio e ninguem apagou da tela: o Extrato e a Home morriam no primeiro render.
+    if (soPendencias) ls = ls.filter((l) => !l.categoria);
     $('#extList').innerHTML = ls.length ? ls.map(itemHTML).join('') : '<div class="vazio">NENHUM LANÇAMENTO</div>';
   }
 
@@ -190,7 +193,7 @@
     const tags = ['<span class="tag ' + cls + '">' + l.situacao + '</span>'];
     if (l.transferenciaId) tags.push('<span class="tag transf">TRANSFER&Ecirc;NCIA</span>');
     if (l.rendimento) tags.push('<span class="tag transf">RENDIMENTO</span>');
-    if (!l.categoria && CB.esperaCategoria(l)) tags.push('<span class="tag pend">SEM CATEGORIA</span>');
+    if (!l.categoria) tags.push('<span class="tag pend">SEM CATEGORIA</span>');
     const dif = l.dataEfeito !== l.dataEvento ? ' &middot; EFEITO ' + D.br(l.dataEfeito) : '';
     return '<div class="item"><div class="d"><b>' + l.dataEvento.slice(8, 10) + '</b>' + l.dataEvento.slice(5, 7) + '/' + l.dataEvento.slice(2, 4) + '</div>' +
       '<div><div class="desc">' + esc(l.descricao) + '</div><div class="sub2">' + esc(c ? c.nome : '') +
