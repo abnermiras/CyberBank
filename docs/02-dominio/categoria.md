@@ -1,7 +1,7 @@
 ---
 id: 02-dominio/categoria
 titulo: Categoria
-dono: a arvore de categorias, o sentido, e o que acontece ao renomear, mover, inativar ou excluir
+dono: a arvore de categorias, o sentido, e o que acontece ao renomear, inativar ou excluir
 ler-junto: [02-dominio/lancamento, 02-dominio/regras-categorizacao, 02-dominio/orcamento]
 status: rascunho
 ---
@@ -133,7 +133,7 @@ lê-se "Transferência −R$ 500" e no da carteira "Transferência +R$ 500", com
 banco. São dois registros porque a invariante do `sentido` vale para toda categoria, sem
 exceção nenhuma.
 
-## Renomear, mover, excluir
+## Renomear, inativar, excluir
 
 O lançamento referencia a categoria por **identidade, não por nome** — então renomear é
 livre e o histórico acompanha sem reescrever nada.
@@ -141,7 +141,7 @@ livre e o histórico acompanha sem reescrever nada.
 | Ação | Regra |
 |---|---|
 | Renomear | Livre. O histórico passa a exibir o nome novo |
-| Mover subcategoria para outra raiz | Permitido, e **o relatório do passado muda junto** — aquele gasto passa a contar na raiz nova |
+| Mover subcategoria para outra raiz | **Não existe.** O caminho é inativar a subcategoria e criar outra na raiz nova — ver *Não existe mover* |
 | Mudar o sentido | Só enquanto a categoria não tiver nenhum lançamento |
 | Inativar | Some da lista de escolha; o histórico continua exibindo e somando normalmente. Reversível — ver *Inativar* abaixo |
 | Excluir | Só se nunca teve lançamento. Com histórico, o caminho é inativar |
@@ -212,13 +212,34 @@ escolha atual, e salvar mandaria o lançamento para a fila de pendências.
 
 Trocar para outra categoria continua livre; o que a tela não faz é **forçar** a troca.
 
-O caso do "mover" é o único que muda o passado. Foi escolhido assim porque a alternativa —
-congelar a árvore depois do primeiro lançamento — deixaria o usuário preso a uma
-organização que ele montou antes de entender os próprios gastos.
+### Não existe mover
 
-> ☐ **Revisitar quando o orçamento existir** (Fase 3): mover uma subcategoria muda o
-> consumo de orçamento de meses já fechados. Pode ser que aí o "mover" precise valer só
-> daqui pra frente (`docs/02-dominio/orcamento.md`).
+Trocar uma subcategoria de raiz **não é uma operação do sistema**. Quem quer reorganizar
+**inativa** a subcategoria onde ela está e **cria** uma nova na raiz certa. Dali para a frente
+o gasto entra na raiz nova; o que já foi lançado continua contando onde foi lançado.
+
+Mover existia e foi descartado. A razão é que ele era a **única operação do sistema que
+reescrevia o passado**: mudar `Academia` de `Lazer` para `Saúde` faria o relatório de março do
+ano passado mudar de resposta sem que nenhum lançamento tivesse mudado. Isso contradiz o resto
+do modelo inteiro — o sistema não estima valor de aplicação, não corrige o limite do cartão,
+não afirma o que não observou. Não é para reescrever histórico também.
+
+Inativar-e-recriar entrega o que o "mover" existia para entregar — o usuário não fica preso à
+organização que montou antes de entender os próprios gastos — e não cobra o preço:
+
+- O passado fica **exatamente** como foi vivido. Março continua respondendo o que respondeu.
+- A virada tem **data**: existe um ponto no tempo em que a categoria nova começa, e ele é
+  visível no histórico. O "mover" não deixava marca nenhuma.
+- O orçamento de meses fechados para de ser um problema. Era o único caso em que consumo já
+  apurado mudava sozinho, e ele **deixa de existir** — não foi resolvido, sumiu com a regra.
+
+Consequência aceita: **dois nomes iguais em raízes diferentes**, e é assim mesmo. `Academia`
+inativa sob `Lazer` e `Academia` ativa sob `Saúde` são duas categorias, porque foram dois
+períodos da vida do usuário. O relatório mostra as duas, cada uma na sua raiz — e essa é a
+resposta certa para "onde meu dinheiro foi", não um efeito colateral.
+
+Um relatório que queira somar as duas é assunto de `docs/02-dominio/regras-categorizacao.md`,
+não do modelo da árvore.
 
 ## Lançamento sem categoria
 
@@ -243,6 +264,8 @@ Como a categoria é atribuída automaticamente é assunto de
 - Subcategoria de raiz inativa não aparece para escolha, **e o campo `inativa` dela não muda**.
 - Categoria inativa não recebe lançamento novo **do usuário**; o que o ciclo produz sozinho
   continua nascendo nela.
+- **Subcategoria nunca troca de raiz.** O `pai` de uma categoria não muda depois de criada —
+  nenhuma operação do sistema reescreve o passado de um relatório.
 - Nenhuma categoria é inativada nem excluída pelo sistema: inativar é sempre ato do usuário.
 - Categoria de sistema não se renomeia, não se move, não se inativa e não se exclui.
 - Categoria de sistema é sempre raiz e nunca tem subcategoria.

@@ -336,11 +336,17 @@
     { cor: '#ff6b35', nome: 'RUST' }, { cor: '#ff1f91', nome: 'PINK' },
     { cor: '#f7f13c', nome: 'ACID' }, { cor: '#5f7688', nome: 'MUTED' }];
   let catCor = PALETA[0].cor;
+  // ESCONDIDO E O PADRAO (docs/06-interface/navegacao.md). Nao e preferencia guardada:
+  // inativar e raro, revelar e mais raro ainda. E a contagem SEMPRE inclui o escondido —
+  // tela que mostra 3 quando existem 4 esta mentindo, e ai escondido vira sumido.
+  let verInativas = false;
 
   function renderCadastro() {
     const cs = CB.categoriasDoUsuario();
     const raizes = cs.filter((k) => !k.pai);
     const usos = (kid) => CB.lancamentos().filter((l) => l.categoria === kid).length;
+    const visiveis = raizes.filter((r) => verInativas || !r.inativa);
+    const ocultas = cs.filter((k) => k.inativa).length;
 
     const swatches = PALETA.map((p) =>
       '<button type="button" class="swatch' + (p.cor === catCor ? ' on' : '') +
@@ -362,9 +368,10 @@
       'para ela continuam somando na raiz. O card de cada raiz mostra em qual dos dois estados ela está. ' +
       'O filho <b>herda sentido e cor</b> do pai: não há o que escolher.</p></div>';
 
-    const cards = raizes.length
-      ? '<div class="arvores">' + raizes.map((r) => {
+    const cards = visiveis.length
+      ? '<div class="arvores">' + visiveis.map((r) => {
           const fi = cs.filter((k) => k.pai === r.id);
+          const chips = fi.filter((f) => verInativas || !f.inativa);
           const ativos = fi.filter((f) => !f.inativa);
           const nr = usos(r.id);
           // ROSA E DE ALERTA (direcao-visual.md), e nem "raiz com filho" nem "raiz inativa"
@@ -379,14 +386,15 @@
               : '<span class="tag real">ESCOLHÍVEL NO LANÇAMENTO</span><span class="hint">' +
                 (fi.length ? 'todas as subcategorias estão inativas · a raiz voltou a ser destino'
                            : (nr ? '<b>' + nr + '</b> lançamento(s)' : 'sem lançamento ainda')) + '</span>';
-          const corpo = fi.length
-            ? fi.map((f) => { const n = usos(f.id);
+          const corpo = chips.length
+            ? chips.map((f) => { const n = usos(f.id);
                 return '<span class="sub-chip' + (f.inativa ? ' ina' : '') + '">' + esc(f.nome) +
                   (n ? '<b>' + n + '</b>' : '') +
                   '<button class="chip-x" data-toggle="' + f.id + '" title="' +
                   (f.inativa ? 'reativar' : 'inativar') + '">' + (f.inativa ? '↺' : '×') + '</button>' +
                   '</span>'; }).join('')
-            : '<span class="hint">SEM SUBCATEGORIA</span>';
+            : '<span class="hint">' + (fi.length
+                ? fi.length + ' SUBCATEGORIA(S) INATIVA(S), ESCONDIDA(S)' : 'SEM SUBCATEGORIA') + '</span>';
           // EXCLUIR so aparece quando a regra do doc permite — "so se nunca teve lancamento",
           // e vale para a arvore inteira. Botao que so existe quando funciona nao precisa
           // explicar por que esta travado.
@@ -409,13 +417,18 @@
               '<button class="btn sm" data-addsub="' + r.id + '" title="criar subcategoria">+</button></div>') +
             acoes + '</div>';
         }).join('') + '</div>'
-      : '<div class="vazio mt10">NENHUMA CATEGORIA NESTE AMBIENTE · O SISTEMA NÃO CRIA CATEGORIA ' +
-        'DE USUÁRIO · CRIE A PRIMEIRA ACIMA</div>';
+      : '<div class="vazio mt10">' + (raizes.length
+          ? 'TODAS AS ' + raizes.length + ' RAÍZES ESTÃO INATIVAS E ESCONDIDAS'
+          : 'NENHUMA CATEGORIA NESTE AMBIENTE · O SISTEMA NÃO CRIA CATEGORIA DE USUÁRIO · ' +
+            'CRIE A PRIMEIRA ACIMA') + '</div>';
 
     const arvores =
       '<div class="panel mt18"><div class="panel-head"><h3>Árvores do usuário</h3>' +
-      '<span class="tele">' + raizes.length + ' RAIZ(ES) · ' + (cs.length - raizes.length) +
-      ' SUBCATEGORIA(S) · ' + cs.filter((k) => k.inativa).length + ' INATIVA(S)</span></div>' + cards +
+      '<span class="tele hstack gap8">' + raizes.length + ' RAIZ(ES) · ' + (cs.length - raizes.length) +
+      ' SUBCATEGORIA(S) · <b>' + ocultas + '</b> INATIVA(S)' +
+      (ocultas ? '<button class="btn sm ghost" id="btnInativas">' +
+        (verInativas ? 'ESCONDER INATIVAS' : (ocultas === 1 ? 'VER A INATIVA' : 'VER AS ' + ocultas + ' INATIVAS')) + '</button>' : '') +
+      '</span></div>' + cards +
       '<p class="hint mt10">Inativar é o <b>excluir de quem tem histórico</b>: some da escolha, e ' +
       'o que já foi lançado continua exibindo e somando. Nunca é físico, e o sistema nunca inativa ' +
       'nada sozinho — nem por prazo, nem por desuso. A raiz inativa <b>esconde</b> a árvore sem mexer ' +
@@ -488,6 +501,11 @@
   document.addEventListener('click', (e) => {
     const b = e.target.closest('[data-addsub]');
     if (b) criarSub(b.dataset.addsub);
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#btnInativas')) return;
+    verInativas = !verInativas; renderCadastro();
   });
 
   // inativar/reativar uma SUBCATEGORIA pelo chip

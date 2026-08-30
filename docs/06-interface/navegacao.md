@@ -69,9 +69,34 @@ em algo aprendível.
 | **Extrato** | Todo movimento do ambiente, filtrável por conta e por pendência |
 | **Fatura** | O ciclo do cartão e as ações de fechar, pagar e abrir (só na última fechada) |
 | **Reserva** | Contas, aplicações e a diferença entre fluxo de caixa e patrimônio |
+| **Séries** | Os parcelamentos e as recorrências vivos, e o que muda ao alterar cada um |
+| **Cadastro** | As árvores de categoria do usuário: criar, inativar, reativar e excluir |
 
-Ainda não existem: cadastro de contas, categorias e meios; convite de pessoas para um
-ambiente; perfil e sessões.
+Ainda não existem: cadastro de contas e de meios; convite de pessoas para um ambiente;
+perfil e sessões.
+
+## Dado inativo fica escondido, e a tela diz que escondeu
+
+Inativar é como o usuário tira do caminho o que não usa mais — categoria, e um dia conta e
+meio. Se a tela continuar mostrando tudo, inativar não resolve o problema que existe para
+resolver: a poluição.
+
+A regra tem três partes, e as três importam:
+
+1. **Escondido é o padrão.** Ao abrir a tela, o inativo não aparece.
+2. **Existe um interruptor para revelar**, na própria tela, sem entrar em configuração
+   nenhuma. Ele afeta só o que se está olhando e não é preferência guardada — inativar é
+   raro, e revelar é mais raro ainda.
+3. **A contagem sempre inclui o escondido, e diz que ele existe.** Uma tela que mostra
+   "3 subcategorias" quando existem 4 está mentindo. Ela mostra "3 de 4" ou "3 · 1 inativa",
+   e é essa diferença que faz o usuário lembrar de onde foi parar a categoria que ele
+   procura.
+
+O item 3 é o que separa "escondido" de "sumido". Escondido é reversível e visível como
+ausência; sumido é o usuário achando que perdeu o dado.
+
+**Nada de esconder pelo tempo.** O sistema não infere desuso e não recolhe nada sozinho
+(`docs/02-dominio/categoria.md`): só está escondido o que o usuário inativou.
 
 ## Regras de leitura de número
 

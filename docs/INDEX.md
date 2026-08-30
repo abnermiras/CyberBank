@@ -36,7 +36,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | [`decisoes/ADR-0000-template.md`](01-arquitetura/decisoes/ADR-0000-template.md) | formato padrão de uma ADR | ativo |
 | [`decisoes/ADR-0001-nome-ambiente-financeiro.md`](01-arquitetura/decisoes/ADR-0001-nome-ambiente-financeiro.md) | a decisão sobre a colisão do termo ambiente | ativo |
 | [`decisoes/ADR-0002-isolamento-por-ambiente.md`](01-arquitetura/decisoes/ADR-0002-isolamento-por-ambiente.md) | como o isolamento entre ambientes financeiros e imposto | ativo |
-| [`decisoes/ADR-0003-cartao-de-credito-e-conta.md`](01-arquitetura/decisoes/ADR-0003-cartao-de-credito-e-conta.md) | como a divida de cartao e representada e o que isso faz com o pagamento de fatura | ativo |
+| [`decisoes/ADR-0003-cartao-de-credito-e-conta.md`](01-arquitetura/decisoes/ADR-0003-cartao-de-credito-e-conta.md) | como a dívida de cartão é representada e o que isso faz com o pagamento de fatura | ativo |
 | [`decisoes/ADR-0004-compartilhamento-entre-ambientes.md`](01-arquitetura/decisoes/ADR-0004-compartilhamento-entre-ambientes.md) | o que o compartilhamento faz com a regra de isolamento do ADR-0002 | ativo |
 | [`decisoes/ADR-0005-rolagem-entre-faturas.md`](01-arquitetura/decisoes/ADR-0005-rolagem-entre-faturas.md) | como o saldo nao pago de uma fatura chega na fatura seguinte | ativo |
 | [`decisoes/ADR-0006-situacao-provisionado.md`](01-arquitetura/decisoes/ADR-0006-situacao-provisionado.md) | por que a situacao do lancamento tem tres valores e nao dois | ativo |
@@ -54,7 +54,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 |---|---|---|
 | [`ambiente-financeiro.md`](02-dominio/ambiente-financeiro.md) | o ambiente como agregado dono do dado: papeis, acesso, convite, ciclo de vida e a regra de isolamento | rascunho |
 | [`aplicacao-patrimonio.md`](02-dominio/aplicacao-patrimonio.md) | aplicacao como conta, aporte e resgate, atualizacao do valor atual e o calculo do patrimonio | rascunho |
-| [`categoria.md`](02-dominio/categoria.md) | a arvore de categorias, o sentido, e o que acontece ao renomear, mover ou excluir | rascunho |
+| [`categoria.md`](02-dominio/categoria.md) | a arvore de categorias, o sentido, e o que acontece ao renomear, inativar ou excluir | rascunho |
 | [`compartilhamento.md`](02-dominio/compartilhamento.md) | o vinculo que da uso de uma conta ou cartao a outro ambiente, o mascaramento de categoria e as partes da fatura | ativo |
 | [`conta.md`](02-dominio/conta.md) | tipos de conta, saldo, a separacao entre fluxo de caixa e patrimonio, e o ciclo de vida | rascunho |
 | [`fatura-cartao.md`](02-dominio/fatura-cartao.md) | ciclo e datas da fatura, estados, a que fatura um lancamento pertence, fechamento e abertura | ativo |
@@ -130,5 +130,5 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 
 ---
 
-**59 documentos · 36 ainda em stub.**
+**65 documentos · 35 ainda em stub.**
 Stub = conteudo inexistente: pergunte, nao deduza.
