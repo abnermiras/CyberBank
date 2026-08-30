@@ -131,3 +131,44 @@
   font:11px var(--mono);letter-spacing:.12em;color:var(--ink);pointer-events:none;transition:.22s;max-width:90vw}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .toast.warn{border-color:var(--pink);color:var(--pink)}
+
+/* ---------- cadastro: arvores de categoria ----------------------------------
+   Um card por raiz, na cor da raiz. O campo de subcategoria mora DENTRO do card:
+   e ele que responde "de quem esse filho e" — sem seletor de pai, sem modo.
+   ATENCAO: nada aqui abre camada flutuante, entao o clip-path do card e seguro
+   (docs/06-interface/direcao-visual.md, a armadilha do clip-path).
+   -------------------------------------------------------------------------- */
+.formraiz{display:grid;grid-template-columns:minmax(160px,1fr) 148px auto auto;gap:12px;align-items:end}
+@media(max-width:820px){.formraiz{grid-template-columns:1fr 1fr}}
+.swatches{display:flex;gap:6px}
+.swatch{width:28px;height:28px;padding:0;background:var(--sw);border:0;
+  cursor:pointer;clip-path:var(--chamfer-sm);opacity:.6;transition:opacity .12s,box-shadow .12s}
+.swatch:hover{opacity:.85}
+.swatch.on{opacity:1;box-shadow:0 0 0 1px var(--void),0 0 0 2px var(--sw),0 0 18px var(--sw)}
+
+.arvores{display:grid;grid-template-columns:repeat(auto-fill,minmax(288px,1fr));gap:14px;align-items:start}
+.arv{background:var(--panel-2);border:1px solid var(--line);border-top:2px solid var(--k);
+  clip-path:var(--chamfer-sm);padding:12px 14px 14px}
+.arv-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.arv-nome{font:700 15px var(--disp);letter-spacing:.06em;text-transform:uppercase;color:var(--k)}
+.arv-sent{font:9px var(--mono);letter-spacing:.14em;color:var(--muted);white-space:nowrap}
+.arv-corpo{display:flex;flex-wrap:wrap;gap:6px;margin:11px 0;min-height:24px}
+.sub-chip{display:inline-flex;align-items:center;gap:6px;font:11px var(--mono);letter-spacing:.04em;
+  padding:3px 8px;border:1px solid var(--line);color:var(--ink);background:rgba(255,255,255,.025)}
+.sub-chip b{font:9px var(--mono);font-weight:400;letter-spacing:.1em;color:var(--dim)}
+.arv-estado{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-height:20px;padding-top:10px;
+  border-top:1px dashed var(--line)}
+.arv-add{display:grid;grid-template-columns:1fr auto;gap:6px;margin-top:11px}
+.arv-add input{padding:8px 10px;background:#03060b;border:1px solid var(--line);color:var(--ink);
+  font:12px var(--mono);outline:none;clip-path:var(--chamfer-sm);min-width:0}
+.arv-add input::placeholder{color:var(--dim)}
+.arv-add input:focus{border-color:var(--k)}
+.arv-add .btn{padding:8px 14px;border-color:var(--k);color:var(--k)}
+
+.sis-linha{display:grid;grid-template-columns:1fr 84px 72px;gap:8px;align-items:center;
+  padding:6px 0;border-bottom:1px solid rgba(27,43,56,.55)}
+.sis-linha:last-child{border-bottom:0}
+.sis-linha .tag{justify-content:center}
+.sis-nome{font:12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+
+.gap8{gap:8px}.mt14{margin-top:14px}

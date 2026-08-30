@@ -317,37 +317,102 @@
   });
 
   /* ================= CADASTRO =================
-     Existe para exercitar uma decisao: o ambiente nasce com as 14 categorias de SISTEMA
-     e NENHUMA do usuario. Se lancar a primeira despesa doer, a decisao volta para a mesa.
+     Exercita DUAS decisoes, nao uma:
+     (1) o ambiente nasce com as 14 categorias de SISTEMA e NENHUMA do usuario;
+     (2) a arvore tem exatamente dois niveis, e a raiz DEIXA de ser escolhivel no
+         lancamento quando ganha o primeiro filho.
+     A regra (2) estava so em prosa aqui embaixo, e prosa ninguem executa: agora cada
+     raiz e um card que MOSTRA o proprio estado, e o campo de subcategoria mora DENTRO
+     do card — o lugar onde se digita ja diz de quem o filho e.
      ========================================================================= */
+
+  // A paleta do usuario e a de docs/06-interface/direcao-visual.md, e nada alem dela.
+  // DIVERGENCIA CONSCIENTE: o doc diz que cada cor tem UM significado (rosa = saida,
+  // verde = entrada), e categoria colorida quebra isso. O seed ja quebrava — LAZER e
+  // rosa e nao e alerta nenhum. Ou o doc ganha um paragrafo de "cor de categoria e
+  // identidade, nao semantica", ou a categoria perde a cor. Decisao do Abner.
+  const PALETA = [
+    { cor: '#5cff9d', nome: 'LIME' }, { cor: '#00f0ff', nome: 'CYAN' },
+    { cor: '#ff6b35', nome: 'RUST' }, { cor: '#ff1f91', nome: 'PINK' },
+    { cor: '#f7f13c', nome: 'ACID' }, { cor: '#5f7688', nome: 'MUTED' }];
+  let catCor = PALETA[0].cor;
+
   function renderCadastro() {
     const cs = CB.categoriasDoUsuario();
+    const raizes = cs.filter((k) => !k.pai);
+    const usos = (kid) => CB.lancamentos().filter((l) => l.categoria === kid).length;
+
+    const swatches = PALETA.map((p) =>
+      '<button type="button" class="swatch' + (p.cor === catCor ? ' on' : '') +
+      '" data-cor="' + p.cor + '" style="--sw:' + p.cor + '" title="' + p.nome + '"></button>').join('');
+
+    const formRaiz =
+      '<div class="panel"><div class="panel-head"><h3>Nova categoria raiz</h3>' +
+      '<span class="tele">O SISTEMA NÃO CRIA NENHUMA · A NOMENCLATURA É SUA</span></div>' +
+      '<div class="formraiz">' +
+      '<div class="field" style="margin:0"><label>nome</label>' +
+      '<input id="catNome" placeholder="MORADIA" autocomplete="off"></div>' +
+      '<div class="field" style="margin:0"><label>sentido</label>' +
+      '<select id="catSent"><option>SAIDA</option><option>ENTRADA</option></select></div>' +
+      '<div class="field" style="margin:0"><label>cor</label>' +
+      '<div class="swatches">' + swatches + '</div></div>' +
+      '<button class="btn sm primary" id="btnRaiz">CRIAR RAIZ</button></div>' +
+      '<p class="hint mt10">Raiz nasce sem filho, então ela já é <b>escolhível</b> no lançamento. ' +
+      'Ao ganhar a primeira subcategoria ela <b>deixa</b> de ser — e os lançamentos que já apontam ' +
+      'para ela continuam somando na raiz. O card de cada raiz mostra em qual dos dois estados ela está. ' +
+      'O filho <b>herda sentido e cor</b> do pai: não há o que escolher.</p></div>';
+
+    const cards = raizes.length
+      ? '<div class="arvores">' + raizes.map((r) => {
+          const fi = cs.filter((k) => k.pai === r.id);
+          const nr = usos(r.id);
+          // O ROSA E DE ALERTA (direcao-visual.md), e "raiz com filho" nao e alerta: e o
+          // estado normal de toda raiz madura. Rosa fica so para o RESIDUO — lancamento
+          // que ficou apontando para a raiz depois que ela deixou de ser escolhivel.
+          const estado = fi.length
+            ? '<span class="tag">NÃO ESCOLHÍVEL</span><span class="hint">o lançamento escolhe um filho</span>' +
+              (nr ? '<span class="tag pend">' + nr + ' NA RAIZ</span>' : '')
+            : '<span class="tag real">ESCOLHÍVEL NO LANÇAMENTO</span><span class="hint">' +
+              (nr ? '<b>' + nr + '</b> lançamento(s)' : 'sem lançamento ainda') + '</span>';
+          const corpo = fi.length
+            ? fi.map((f) => { const n = usos(f.id);
+                return '<span class="sub-chip">' + esc(f.nome) + (n ? '<b>' + n + '</b>' : '') + '</span>'; }).join('')
+            : '<span class="hint">SEM SUBCATEGORIA</span>';
+          return '<div class="arv" style="--k:' + r.cor + '">' +
+            '<div class="arv-head"><span class="arv-nome">' + esc(r.nome) + '</span>' +
+            '<span class="arv-sent">' + r.sentido + ' · ' + fi.length + ' SUB</span></div>' +
+            '<div class="arv-corpo">' + corpo + '</div>' +
+            '<div class="arv-estado">' + estado + '</div>' +
+            '<div class="arv-add"><input data-sub="' + r.id + '" autocomplete="off" ' +
+            'placeholder="+ subcategoria de ' + esc(r.nome) + '">' +
+            '<button class="btn sm" data-addsub="' + r.id + '" title="criar subcategoria">+</button></div>' +
+            '</div>';
+        }).join('') + '</div>'
+      : '<div class="vazio mt10">NENHUMA CATEGORIA NESTE AMBIENTE · O SISTEMA NÃO CRIA CATEGORIA ' +
+        'DE USUÁRIO · CRIE A PRIMEIRA ACIMA</div>';
+
+    const arvores =
+      '<div class="panel mt18"><div class="panel-head"><h3>Árvores do usuário</h3>' +
+      '<span class="tele">' + raizes.length + ' RAIZ(ES) · ' + (cs.length - raizes.length) +
+      ' SUBCATEGORIA(S) · DOIS NÍVEIS, NUNCA TRÊS</span></div>' + cards + '</div>';
+
     const sis = CB.categorias().filter((k) => k.sistema);
-    const lista = (arr, vazio) => arr.length
-      ? '<div class="hstack wrap gap8 mt10">' + arr.map((k) =>
-          '<span class="tag" style="border-color:' + k.cor + ';color:' + k.cor + '">' + esc(k.nome) +
-          ' <b style="opacity:.6">' + k.sentido[0] + '</b></span>').join('') + '</div>'
-      : '<div class="vazio mt10">' + vazio + '</div>';
+    const linhas = CB.CAT_SISTEMA.map((nome) =>
+      '<div class="sis-linha"><span class="sis-nome">' + esc(nome) + '</span>' +
+      ['ENTRADA', 'SAIDA'].map((s) => sis.some((k) => k.nome === nome && k.sentido === s)
+        ? '<span class="tag ' + (s === 'ENTRADA' ? 'real' : 'pend') + '">' + s + '</span>'
+        : '<span class="tag" style="opacity:.35">AUSENTE</span>').join('') + '</div>').join('');
 
-    $('#cadastro').innerHTML =
-      '<div class="panel"><div class="panel-head"><h3>Categorias do usu&aacute;rio</h3>' +
-      '<span class="tele">' + cs.length + ' NESTE AMBIENTE</span></div>' +
-      lista(cs, 'NENHUMA — O SISTEMA N&Atilde;O CRIA CATEGORIA DE USU&Aacute;RIO. CRIE A PRIMEIRA.') +
-      '<div class="row mt14" style="grid-template-columns:1fr auto auto;gap:8px;align-items:end">' +
-      '<div class="field" style="margin:0"><label>nome</label><input id="catNome" placeholder="MORADIA"></div>' +
-      '<div class="field" style="margin:0"><label>sentido</label><select id="catSent"><option>SAIDA</option><option>ENTRADA</option></select></div>' +
-      '<button class="btn sm primary" id="btnCat">CRIAR</button></div>' +
-      '<p class="hint mt10">A raiz nasce sem filhos, ent&atilde;o ela j&aacute; &eacute; escolh&iacute;vel no lan&ccedil;amento. ' +
-      'Ao ganhar a primeira subcategoria, ela <b>deixa</b> de ser — e os lan&ccedil;amentos que j&aacute; apontam para ela continuam somando na raiz.</p></div>' +
-
+    const sistema =
       '<div class="panel mt18"><div class="panel-head"><h3>Categorias de sistema</h3>' +
-      '<span class="tele">' + sis.length + ' — O USU&Aacute;RIO NUNCA V&Ecirc; ESTAS NO SELETOR</span></div>' +
-      lista(sis, '—') +
-      '<p class="hint mt10">Sete opera&ccedil;&otilde;es, cada uma em <b>ENTRADA</b> e <b>SAIDA</b>. N&atilde;o se renomeia, ' +
-      'n&atilde;o se move, n&atilde;o se inativa e n&atilde;o se exclui — e &eacute; por causa delas que <b>pend&ecirc;ncia</b> voltou a ser ' +
-      '<code>categoria IS NULL</code>, sem lista de exce&ccedil;&atilde;o.</p></div>' +
+      '<span class="tele">' + sis.length + ' · O USUÁRIO NUNCA VÊ ESTAS NO SELETOR</span></div>' +
+      '<div class="mt10">' + linhas + '</div>' +
+      '<p class="hint mt10">Sete operações, cada uma nos <b>dois sentidos</b>. Não se renomeia, ' +
+      'não se move, não se inativa e não se exclui — e é por causa delas que <b>pendência</b> ' +
+      'voltou a ser <code>categoria IS NULL</code>, sem lista de exceção.</p></div>';
 
-      '<div class="panel mt18"><div class="panel-head"><h3>Confer&ecirc;ncia das invariantes</h3>' +
+    $('#cadastro').innerHTML = formRaiz + arvores + sistema +
+      '<div class="panel mt18"><div class="panel-head"><h3>Conferência das invariantes</h3>' +
       '<span class="tele">conferir() — TODO ESTADO, TODA REGRA</span></div>' + conferirHTML() + '</div>';
   }
 
@@ -355,16 +420,55 @@
     const e = CB.conferir();
     return e.length
       ? '<div class="vazio mt10" style="color:#ff5c7a">' + e.map(esc).join('<br>') + '</div>'
-      : '<div class="mt10"><span class="tag">SEM VIOLA&Ccedil;&Atilde;O</span> <span class="hint">' +
-        'Regra que ningu&eacute;m executa &eacute; regra que ningu&eacute;m verifica.</span></div>';
+      : '<div class="mt10"><span class="tag">SEM VIOLAÇÃO</span> <span class="hint">' +
+        'Regra que ninguém executa é regra que ninguém verifica.</span></div>';
+  }
+
+  /* ---------- criacao ---------- */
+  document.addEventListener('click', (e) => {
+    const s = e.target.closest('[data-cor]');
+    if (!s) return;
+    catCor = s.dataset.cor;                       // sem re-render: o nome digitado sobrevive
+    $$('.swatch').forEach((b) => b.classList.toggle('on', b.dataset.cor === catCor));
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#btnRaiz')) return;
+    const nome = ($('#catNome').value || '').trim();
+    if (!nome) { toast('INFORME O NOME', true); return; }
+    const igual = (a, b) => a.toUpperCase() === b.toUpperCase();
+    if (CB.categoriasDoUsuario().some((k) => !k.pai && igual(k.nome, nome))) {
+      toast('JÁ EXISTE UMA RAIZ COM ESSE NOME', true); return; }
+    CB.criarCategoria({ nome, sentido: $('#catSent').value, cor: catCor });
+    toast('RAIZ CRIADA · ESCOLHÍVEL ATÉ GANHAR O PRIMEIRO FILHO'); renderTudo();
+  });
+
+  function criarSub(pid) {
+    const inp = $('[data-sub="' + pid + '"]');
+    const nome = ((inp && inp.value) || '').trim();
+    if (!nome) { toast('INFORME O NOME DA SUBCATEGORIA', true); return; }
+    const irmaos = CB.categoriasDoUsuario().filter((k) => k.pai === pid);
+    if (irmaos.some((k) => k.nome.toUpperCase() === nome.toUpperCase())) {
+      toast('JÁ EXISTE ESSA SUBCATEGORIA AQUI', true); return; }
+    const primeira = !irmaos.length;
+    CB.criarCategoria({ nome, pai: pid });        // sentido e cor vem do pai, sempre
+    toast(primeira
+      ? 'PRIMEIRA SUBCATEGORIA · A RAIZ SAIU DO SELETOR DE LANÇAMENTO'
+      : 'SUBCATEGORIA CRIADA');
+    renderTudo();
+    const volta = $('[data-sub="' + pid + '"]');  // continuar digitando a proxima
+    if (volta) volta.focus();
   }
 
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('#btnCat')) return;
-    const nome = ($('#catNome').value || '').trim();
-    if (!nome) { toast('INFORME O NOME', true); return; }
-    CB.criarCategoria({ nome, sentido: $('#catSent').value });
-    toast('CATEGORIA CRIADA'); renderTudo();
+    const b = e.target.closest('[data-addsub]');
+    if (b) criarSub(b.dataset.addsub);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    const inp = e.target.closest && e.target.closest('[data-sub]');
+    if (!inp) return;
+    e.preventDefault(); criarSub(inp.dataset.sub);
   });
 
   /* ================= SERIES ================= */
