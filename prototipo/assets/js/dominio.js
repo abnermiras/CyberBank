@@ -67,10 +67,50 @@
     ambienteAtivo: null,
     ambientes: [], contas: [], meios: [], categorias: [],
     lancamentos: [], faturas: [], series: [],
-    log: []
+    eventos: []
   };
 
-  const registrar = (txt, tipo) => { S.log.unshift({ t: S.hoje, txt, tipo: tipo || 'sys' }); if (S.log.length > 60) S.log.pop(); };
+  /* ================= EVENTO =================
+     docs/02-dominio/evento.md — o registro do que aconteceu num dia.
+     Existe porque o sistema mexe no dinheiro SOZINHO em quatro lugares, e sem isso o
+     usuario abre o app, ve um numero diferente do de ontem e nao tem como perguntar
+     por que. E ENTIDADE, nao consulta: metade do que ele mostra (quando o previsto
+     realizou, quando a fatura fechou) nao e derivavel do estado.
+
+     O evento NAO guarda a frase pronta — `tipo` + `dados` bastam, e a tela monta o
+     texto. Frase guardada congela na redacao do dia em que foi escrita.
+
+     DIVERGENCIA CONSCIENTE do doc: la o criterio de ordem dentro do dia e o `instante`;
+     aqui o relogio e simulado e um `avancar(30)` roda em milissegundos, entao varios
+     eventos colidem no mesmo instante. A ordem do banco de provas e a de insercao.
+     ========================================================================= */
+  function evento(o) {
+    if (!o.tipo) throw new Error('evento sem tipo');
+    if (o.origem !== 'SISTEMA' && o.origem !== 'USUARIO') throw new Error('evento sem origem valida');
+    const amb = o.ambiente || S.ambienteAtivo;
+    const a = S.ambientes.find((x) => x.id === amb);
+    const e = {
+      id: id('evt'), ambiente: amb,
+      dia: S.hoje,                                  // data de dominio: dia local, sem fuso
+      instante: new Date().toISOString(),           // UTC: carimbo de auditoria
+      origem: o.origem,
+      // no evento do SISTEMA o autor e o DONO DO AMBIENTE — mesma regra do lancamento
+      // que o ciclo cria (docs/02-dominio/lancamento.md)
+      autor: o.origem === 'SISTEMA' ? ((a && a.dono) || 'V') : (o.autor || 'V'),
+      tipo: o.tipo, alvo: o.alvo || null, dados: o.dados || {},
+    };
+    S.eventos.push(e);
+    return e;
+  }
+  const doSistema = (tipo, alvo, dados, ambiente) =>
+    evento({ origem: 'SISTEMA', tipo, alvo, dados, ambiente });
+  const doUsuario = (tipo, alvo, dados, ambiente) =>
+    evento({ origem: 'USUARIO', tipo, alvo, dados, ambiente });
+
+  const eventos = () => S.eventos.filter((e) => e.ambiente === S.ambienteAtivo);
+  // mais novos primeiro; dia sem evento devolve lista vazia, e isso e resposta valida
+  const eventosDoDia = (dia) => eventos().filter((e) => e.dia === dia).reverse();
+  const diasComEvento = () => [...new Set(eventos().map((e) => e.dia))].sort().reverse();
 
   /* ---------- escopo: TUDO e filtrado por ambiente, sem excecao ---------- */
   const doAmbiente = (col) => col.filter((x) => x.ambiente === S.ambienteAtivo);
@@ -172,13 +212,17 @@
   function editar(lid, campos, quem) {
     const l = S.lancamentos.find((x) => x.id === lid);
     if (!l) return null;
+    const mudou = [];
     Object.keys(campos).forEach((c) => {
       if (l[c] === campos[c]) return;
+      mudou.push({ campo: c, de: l[c], para: campos[c] });
       l.historico.push({ quando: S.hoje, quem: quem || 'V', campo: c, de: l[c], para: campos[c] });
       l[c] = campos[c];
     });
     if (l.fatura) sincronizarPagamentoPrevisto(l.fatura);
-    registrar(`lançamento editado: ${l.descricao}`, 'edit');
+    // edicao que nao mudou campo nenhum nao e evento
+    if (mudou.length) doUsuario('LANCAMENTO_EDITADO', l.id,
+      { descricao: l.descricao, mudou }, l.ambiente);
     return l;
   }
 
@@ -194,7 +238,7 @@
       fatura: alvo ? alvo.id : null
     });
     e.estornoDe = l.id; l.estornadoPor = e.id;
-    registrar(`estorno de ${l.descricao}`, 'estorno');
+    doUsuario('LANCAMENTO_ESTORNADO', e.id, { descricao: l.descricao, valor: l.valor }, l.ambiente);
     return e;
   }
 
@@ -229,13 +273,13 @@
     const atual = saldoRealizado(cid, S.hoje);
     const dif = valorInformado - atual;
     c.ultimaAtualizacao = S.hoje;
-    if (dif === 0) { registrar(`${c.nome}: sem variação`, 'rend'); return null; }
+    if (dif === 0) return null;   // passo que nao mudou nada nao grava evento
     const sentido = dif > 0 ? 'ENTRADA' : 'SAIDA';
     const l = lancar({ conta: cid, sentido, valor: Math.abs(dif),
       descricao: dif > 0 ? 'Rendimento' : 'Desvalorização', situacao: 'REALIZADO',
       categoria: catSistema(c.ambiente, 'Rendimento', sentido), meio: null });
     l.rendimento = true;
-    registrar(`${c.nome}: ${dif > 0 ? 'rendeu' : 'perdeu'} ${M.fmt(Math.abs(dif))}`, 'rend');
+    doUsuario('VALOR_DE_APLICACAO_INFORMADO', c.id, { conta: c.nome, diferenca: dif }, c.ambiente);
     return l;
   }
 
@@ -371,7 +415,8 @@
      O ambiente nasce com as 14 categorias de sistema e NENHUMA do usuario.
      ========================================================================= */
   function criarAmbiente(o) {
-    const a = { id: id('amb'), nome: o.nome, cor: o.cor || '#00f0ff', setor: o.setor || 'NC-77/N' };
+    const a = { id: id('amb'), nome: o.nome, cor: o.cor || '#00f0ff', setor: o.setor || 'NC-77/N',
+      dono: o.dono || 'V' };
     S.ambientes.push(a);
     criarCategoriasDeSistema(a.id);
     return a;
@@ -396,6 +441,7 @@
       cor: o.cor || (pai ? pai.cor : '#00f0ff'), sentido: pai ? pai.sentido : o.sentido,
       pai: o.pai || null, sistema: false, inativa: false };
     S.categorias.push(k);
+    doUsuario('CATEGORIA_CRIADA', k.id, { nome: k.nome, pai: pai ? pai.nome : null }, k.ambiente);
     return k;
   }
 
@@ -426,14 +472,18 @@
     const k = categoria(kid);
     if (!k) throw new Error('categoria inexistente');
     if (k.sistema) throw new Error('categoria de sistema nao se inativa');
+    if (k.inativa) return k;                // ja estava: nada mudou, nada se grava
     k.inativa = true;                       // e so isto: nada desce para os filhos
+    doUsuario('CATEGORIA_INATIVADA', k.id, { nome: k.nome, raiz: !k.pai }, k.ambiente);
     return k;
   }
   function reativarCategoria(kid) {
     const k = categoria(kid);
     if (!k) throw new Error('categoria inexistente');
     if (k.sistema) throw new Error('categoria de sistema nao se inativa');
+    if (!k.inativa) return k;
     k.inativa = false;
+    doUsuario('CATEGORIA_REATIVADA', k.id, { nome: k.nome, raiz: !k.pai }, k.ambiente);
     return k;
   }
   const lancamentosDaCategoria = (kid) => S.lancamentos.filter((l) => l.categoria === kid);
@@ -448,6 +498,7 @@
     const preso = alvo.find((x) => lancamentosDaCategoria(x.id).length);
     if (preso) throw new Error('categoria com lancamento nao se exclui — o caminho e inativar: ' + preso.nome);
     S.categorias = S.categorias.filter((x) => !alvo.some((a) => a.id === x.id));
+    doUsuario('CATEGORIA_EXCLUIDA', null, { nome: k.nome, quantas: alvo.length }, k.ambiente);
     return alvo.length;
   }
   function criarMeio(o) {
@@ -671,8 +722,14 @@
     // 2. as recorrencias ativas do cartao entram na fatura recem-aberta (idempotente)
     sincronizarRecorrencias((r) => noCartao(r) && meio(r.meio) && meio(r.meio).conta === f.contaCartao);
     // 3. nasce o pagamento previsto — e ele que mantem "quanto sobra ate o fim do mes"
-    criarPagamentoPrevisto(f);
-    registrar(`fatura ${f.referencia} fechada em ${M.fmt(totalFatura(fid))}`, 'fatura');
+    const prev = criarPagamentoPrevisto(f);
+    // CADA PASSO QUE DE FATO ACONTECEU GRAVA O SEU (docs/02-dominio/fatura-cartao.md).
+    // A idempotencia vale para o evento tambem: a rotina roda todo dia, e rodada que
+    // nao fecha nada nao grava nada — este trecho so roda quando a fatura fechou.
+    doSistema('FATURA_FECHADA', f.id, { referencia: f.referencia, total: totalFatura(fid) }, f.ambiente);
+    doSistema('FATURA_ABERTA_PELO_CICLO', seg.id, { referencia: seg.referencia }, seg.ambiente);
+    if (prev) doSistema('PAGAMENTO_PREVISTO_CRIADO', f.id,
+      { referencia: f.referencia, valor: prev.valor, vencimento: f.vencimento }, f.ambiente);
     return f;
   }
 
@@ -693,16 +750,20 @@
     prev.forEach((l) => { const par = parDaTransferencia(l.transferenciaId);
       S.lancamentos = S.lancamentos.filter((x) => par.indexOf(x) < 0); });
     f.status = 'ABERTA';
-    registrar(`fatura ${f.referencia} ABERTA — contingência`, 'fatura');
+    doUsuario('FATURA_ABERTA_PELO_USUARIO', f.id, { referencia: f.referencia }, f.ambiente);
     return f;
   }
 
   /* Encerrar = a fatura acabou de cobrar. Quitada ou rolada, os lancamentos dela
      deixam de ser provisao e viram fato liquidado. Pagamento parcial NAO encerra. */
   function encerrarFatura(fid) {
-    lancamentosDaFatura(fid).forEach((l) => {
-      if (l.situacao === 'PROVISIONADO') l.situacao = 'REALIZADO';
-    });
+    const f = S.faturas.find((x) => x.id === fid);
+    const liquidados = lancamentosDaFatura(fid).filter((l) => l.situacao === 'PROVISIONADO');
+    liquidados.forEach((l) => { l.situacao = 'REALIZADO'; });
+    // encerrar so vale a linha no Diario quando de fato liquidou alguma coisa —
+    // encerrar de novo uma fatura ja encerrada nao e evento
+    if (f && liquidados.length) doSistema('FATURA_ENCERRADA', f.id,
+      { referencia: f.referencia, liquidados: liquidados.length }, f.ambiente);
   }
 
   /* ---------- pagar: TRANSFERENCIA. Nao ha duplo computo e nao ha regra dizendo
@@ -735,7 +796,8 @@
     const sit = situacaoPagamento(fid);
     if (sit === 'QUITADA') encerrarFatura(fid);
     if (sit === 'PARCIAL') criarPagamentoPrevisto(f);
-    registrar(`fatura ${f.referencia}: pago ${M.fmt(valor)} de ${conta(de).apelido || conta(de).nome} — ${sit}`, 'fatura');
+    doUsuario('FATURA_PAGA', f.id, { referencia: f.referencia, valor,
+      de: conta(de).apelido || conta(de).nome, situacao: sit }, f.ambiente);
     return f;
   }
 
@@ -777,7 +839,8 @@
       descricao: 'Saldo da fatura ' + f.referencia }));
     // a fatura velha acabou: o que sobrou nela de provisao vira fato liquidado
     encerrarFatura(fid);
-    registrar(`fatura ${f.referencia}: ${M.fmt(falta)} rolado para ${destino.referencia}`, 'fatura');
+    doSistema('FATURA_ROLADA', f.id, { referencia: f.referencia, valor: falta,
+      destino: destino.referencia }, f.ambiente);
     return rid;
   }
 
@@ -797,7 +860,8 @@
     const novo = par[0].valor + p.diferenca;
     if (novo <= 0) return null;
     par.forEach((l) => { l.valor = novo; });
-    registrar(`fatura ${p.fatura.referencia}: pagamento ajustado para ${M.fmt(novo)}`, 'fatura');
+    doSistema('PAGAMENTO_PREVISTO_AJUSTADO', p.fatura.id,
+      { referencia: p.fatura.referencia, valor: novo }, p.fatura.ambiente);
     return novo;
   }
 
@@ -878,7 +942,7 @@
     };
     S.series.push(r);
     sincronizarRecorrencia(r.id);
-    registrar(`recorrência criada: ${r.descricao} — ${M.fmt(r.valor)}/mês`, 'novo');
+    doUsuario('SERIE_CRIADA', r.id, { descricao: r.descricao, valor: r.valor, tipo: 'RECORRENCIA' }, r.ambiente);
     return r;
   }
 
@@ -909,6 +973,11 @@
           const l = lancar({ ambiente: r.ambiente, conta: cc, sentido: 'SAIDA', valor: r.valor,
             dataEvento: quando, dataEfeito: quando, descricao: r.descricao,
             situacao: quando <= S.hoje ? 'PROVISIONADO' : 'PREVISTO',
+            // INATIVA BARRA A ESCOLHA, NAO O CICLO (docs/02-dominio/categoria.md).
+            // A ocorrencia nasce na categoria ORIGINAL mesmo que ela tenha sido
+            // inativada depois que a recorrencia comecou — este e exatamente o caso
+            // para o qual o escape `doCiclo` foi escrito.
+            doCiclo: true,
             categoria: r.categoria, meio: r.meio, fatura: f.id, serie: sid });
           criados.push(l);
         } else {
@@ -916,6 +985,7 @@
           const l = lancar({ ambiente: r.ambiente, conta: r.conta, sentido: 'SAIDA', valor: r.valor,
             dataEvento: quando, dataEfeito: quando, descricao: r.descricao,
             situacao: quando <= S.hoje ? 'REALIZADO' : 'PREVISTO',
+            doCiclo: true,   // idem: a ocorrencia nasce na categoria original
             categoria: r.categoria, meio: r.meio, serie: sid });
           criados.push(l);
         }
@@ -967,7 +1037,8 @@
     const tocadas = faturasAfetadas(ls);
     ls.forEach((l, i) => editar(l.id, { valor: base + (i === 0 ? resto : 0) }, quem));
     r.valorTotal = novoValorTotal;
-    registrar(`parcelamento "${r.descricao}" alterado para ${M.fmt(novoValorTotal)} em ${n}x`, 'edit');
+    doUsuario('SERIE_ALTERADA', r.id, { descricao: r.descricao, tipo: 'PARCELAMENTO',
+      valor: novoValorTotal, parcelas: n }, r.ambiente);
     return { alterados: n, faturasTocadas: tocadas.length };
   }
 
@@ -980,7 +1051,8 @@
     const todos = lancamentosDaSerie(sid);
     const alvo = escopo === 'TODAS' ? todos : todos.filter((l) => l.dataEvento > S.hoje);
     const tocadas = aplicarEdicao(alvo, campos, quem);
-    registrar(`recorrência "${r.descricao}": ${escopo === 'TODAS' ? 'passado também' : 'só as futuras'} (${alvo.length})`, 'edit');
+    doUsuario('SERIE_ALTERADA', r.id, { descricao: r.descricao, tipo: 'RECORRENCIA',
+      escopo, quantos: alvo.length }, r.ambiente);
     return { alterados: alvo.length, faturasTocadas: tocadas.length };
   }
 
@@ -1000,7 +1072,7 @@
     S.lancamentos = S.lancamentos.filter((l) => !ids[l.id]);
     tocadas.forEach((f) => sincronizarPagamentoPrevisto(f.id));
     r.ativa = false; r.canceladaEm = S.hoje;
-    registrar(`"${r.descricao}" cancelada — ${previstos.length} previsto(s) removido(s)`, 'edit');
+    doUsuario('SERIE_CANCELADA', r.id, { descricao: r.descricao, removidos: previstos.length }, r.ambiente);
     return { removidos: previstos.length };
   }
 
@@ -1017,7 +1089,8 @@
           // em fatura, o fato ocorrido vira PROVISAO — quem liquida e o pagamento
           l.situacao = l.fatura ? 'PROVISIONADO' : 'REALIZADO';
           eventos.push(`${D.br(S.hoje)} — ${l.descricao} caiu: ${M.fmt(l.valor)}`);
-          registrar(`${l.descricao} realizado`, 'auto');
+          doSistema('LANCAMENTO_REALIZADO', l.id,
+            { descricao: l.descricao, valor: l.valor, situacao: l.situacao }, l.ambiente);
         }
       });
       // GATILHO 1 — virada do mes: recorrencia fora do cartao ganha a ocorrencia
@@ -1047,7 +1120,8 @@
   }
 
   global.CB = {
-    S, D, M, id, registrar, SEMPRE,
+    S, D, M, id, SEMPRE,
+    evento, eventos, eventosDoDia, diasComEvento,
     contas, meios, categorias, lancamentos, faturas,
     conta, meio, categoria, categorias, raizDe, ehDivida, ehCaixa, jaAconteceu,
     lancar, editar, estornar, transferir, aportar, resgatar, atualizarValorAplicacao,

@@ -59,6 +59,7 @@
     <button class="nav" data-tela="fatura"><span>▤</span>FATURA</button>
     <button class="nav" data-tela="series"><span>∞</span>SÉRIES</button>
     <button class="nav" data-tela="patrimonio"><span>◆</span>RESERVA</button>
+    <button class="nav" data-tela="diario"><span>◷</span>DIÁRIO</button>
     <button class="nav" data-tela="cadastro"><span>⊕</span>CADASTRO</button>
     <div class="railfoot tele">CB<br>NC77</div>
   </nav>
@@ -114,7 +115,7 @@
 
       <div class="panel mt18" id="boxSim">
         <div class="panel-head"><h3>Simulador de ciclo</h3><span class="tele">AVANCE O RELÓGIO E VEJA O MODELO REAGIR</span></div>
-        <p class="hint">O previsto vira realizado quando a data de efeito chega. A fatura fecha sozinha no dia do fechamento. Use os controles <b>+1D / +7D / +30D</b> no topo.</p>
+        <p class="hint">O previsto vira realizado quando a data de efeito chega. A fatura fecha sozinha no dia do fechamento. Use os controles <b>+1D / +7D / +30D</b> no topo — e veja o <b>Diário</b> encher.</p>
         <div class="logbox scroll" id="logBox"></div>
       </div>
     </section>
@@ -163,6 +164,14 @@
         <div class="tele">APORTE NÃO É GASTO — É DINHEIRO TROCANDO DE BOLSO</div>
       </div>
       <div id="patContas"></div>
+    </section>
+
+    <section class="tela hidden" data-tela="diario">
+      <div class="telahead">
+        <div><div class="eyebrow">DIÁRIO // O QUE ACONTECEU</div><h2 class="th">Diário</h2></div>
+        <div class="tele">POR QUE MEU SALDO MUDOU</div>
+      </div>
+      <div id="diario"></div>
     </section>
 
     <section class="tela hidden" data-tela="cadastro">

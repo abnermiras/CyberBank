@@ -47,7 +47,8 @@
     if (b) {
       S.ambienteAtivo = b.dataset.amb; contaFiltro = ''; soPendencias = false; faturaSel = '';
       $('#ambMenu').classList.remove('open');
-      CB.registrar('ambiente trocado para ' + S.ambientes.find((x) => x.id === S.ambienteAtivo).nome, 'sys');
+      // trocar de ambiente e LEITURA: nao muda nada, entao nao e evento
+      //   (docs/02-dominio/evento.md, "O que NAO e evento")
       renderTudo(); toast('CONTEXTO TROCADO // ' + $('#ambNome').textContent);
       return;
     }
@@ -124,8 +125,14 @@
       }
     }
 
-    $('#logBox').innerHTML = S.log.slice(0, 14).map((l) =>
-      '<div><span class="t">' + D.br(l.t) + '</span><span class="' + l.tipo + '">' + esc(l.txt) + '</span></div>').join('');
+    // o log do simulador virou a leitura dos EVENTOS — a mesma fonte do Diario.
+    // Aqui e o resumo corrido; o Diario e a tela que responde dia a dia.
+    $('#logBox').innerHTML = CB.eventos().slice(-14).reverse().map((e) => {
+      const f = FRASE[e.tipo];
+      const txt = f ? f(e.dados || {})[0] : e.tipo;
+      return '<div><span class="t">' + D.br(e.dia) + '</span>' +
+        '<span class="' + (e.origem === 'SISTEMA' ? 'auto' : 'novo') + '">' + txt + '</span></div>';
+    }).join('') || '<div class="vazio">SEM EVENTO AINDA</div>';
   }
 
   // ABRIR so aparece na ULTIMA fechada: e a unica em que "a seguinte volta a FUTURA"
@@ -317,6 +324,118 @@
     const b = e.target.closest('[data-eixo]');
     if (!b) return;
     eixo = b.dataset.eixo; renderTudo();
+  });
+
+  /* ================= DIARIO =================
+     docs/02-dominio/evento.md + docs/06-interface/navegacao.md
+     A unica tela que mostra O QUE ACONTECEU. Todas as outras mostram como as
+     coisas ESTAO. Ela existe porque o sistema mexe no dinheiro sozinho, e sem
+     ela o usuario ve um numero diferente do de ontem e nao tem como perguntar
+     por que.
+     A FRASE E MONTADA AQUI, nunca guardada no evento — texto guardado congela na
+     redacao do dia em que foi escrito e nunca mais melhora.
+     ========================================================================= */
+  let diaDiario = null;                      // null = hoje
+
+  const FRASE = {
+    LANCAMENTO_REALIZADO: (d) => ['a data chegou e <b>' + esc(d.descricao) + '</b> foi realizado',
+      M.fmt(d.valor)],
+    FATURA_FECHADA: (d) => ['a fatura <b>' + d.referencia + '</b> fechou', M.fmt(d.total)],
+    FATURA_ABERTA_PELO_CICLO: (d) => ['a fatura <b>' + d.referencia + '</b> abriu no lugar dela', ''],
+    PAGAMENTO_PREVISTO_CRIADO: (d) => ['nasceu o pagamento previsto da <b>' + d.referencia +
+      '</b>, para ' + D.br(d.vencimento), M.fmt(d.valor)],
+    FATURA_ROLADA: (d) => ['a fatura <b>' + d.referencia + '</b> venceu sem ser quitada e o que faltava ' +
+      'rolou para a <b>' + d.destino + '</b>', M.fmt(d.valor)],
+    FATURA_ENCERRADA: (d) => ['a fatura <b>' + d.referencia + '</b> encerrou · ' + d.liquidados +
+      ' lançamento(s) deixaram de ser provisão', ''],
+    PAGAMENTO_PREVISTO_AJUSTADO: (d) => ['o pagamento previsto da <b>' + d.referencia +
+      '</b> foi ajustado', M.fmt(d.valor)],
+    OCORRENCIA_DE_RECORRENCIA: (d) => ['a recorrência <b>' + esc(d.descricao) + '</b> lançou a ocorrência do ciclo',
+      M.fmt(d.valor)],
+
+    LANCAMENTO_CRIADO: (d) => [(d.credito ? 'compra no crédito' : 'lançamento') + ': <b>' +
+      esc(d.descricao || 'sem descrição') + '</b>', M.fmt(d.valor)],
+    LANCAMENTO_EDITADO: (d) => ['<b>' + esc(d.descricao) + '</b> corrigido · ' +
+      (d.mudou || []).map((m) => m.campo).join(', '), ''],
+    LANCAMENTO_ESTORNADO: (d) => ['estorno de <b>' + esc(d.descricao) + '</b>', M.fmt(d.valor)],
+    FATURA_PAGA: (d) => ['fatura <b>' + d.referencia + '</b> paga de ' + esc(d.de) + ' · ' + d.situacao,
+      M.fmt(d.valor)],
+    FATURA_ABERTA_PELO_USUARIO: (d) => ['a fatura <b>' + d.referencia + '</b> foi reaberta à mão', ''],
+    VALOR_DE_APLICACAO_INFORMADO: (d) => ['valor de <b>' + esc(d.conta) + '</b> atualizado · a diferença virou lançamento',
+      (d.diferenca > 0 ? '+' : '') + M.fmt(d.diferenca)],
+    SERIE_CRIADA: (d) => [(d.tipo === 'RECORRENCIA' ? 'recorrência' : 'parcelamento') +
+      ' <b>' + esc(d.descricao) + '</b> criada', M.fmt(d.valor)],
+    SERIE_ALTERADA: (d) => ['<b>' + esc(d.descricao) + '</b> alterada' +
+      (d.escopo ? ' · ' + (d.escopo === 'TODAS' ? 'passado também' : 'só as futuras') : ''),
+      d.valor ? M.fmt(d.valor) : ''],
+    SERIE_CANCELADA: (d) => ['<b>' + esc(d.descricao) + '</b> cancelada · ' + d.removidos +
+      ' previsto(s) removido(s)', ''],
+    CATEGORIA_CRIADA: (d) => [(d.pai ? 'subcategoria <b>' + esc(d.nome) + '</b> criada em ' + esc(d.pai)
+      : 'categoria raiz <b>' + esc(d.nome) + '</b> criada'), ''],
+    CATEGORIA_INATIVADA: (d) => [(d.raiz ? 'raiz' : 'subcategoria') + ' <b>' + esc(d.nome) +
+      '</b> inativada · saiu da escolha, o histórico continua', ''],
+    CATEGORIA_REATIVADA: (d) => [(d.raiz ? 'raiz' : 'subcategoria') + ' <b>' + esc(d.nome) + '</b> reativada', ''],
+    CATEGORIA_EXCLUIDA: (d) => ['<b>' + esc(d.nome) + '</b> excluída' +
+      (d.quantas > 1 ? ' com ' + (d.quantas - 1) + ' subcategoria(s)' : ''), ''],
+  };
+
+  function renderDiario() {
+    const dias = CB.diasComEvento();
+    const dia = diaDiario || S.hoje;
+    const evs = CB.eventosDoDia(dia);
+    const sis = evs.filter((e) => e.origem === 'SISTEMA');
+    const usr = evs.filter((e) => e.origem === 'USUARIO');
+    // o seletor anda so para TRAS do dia corrente: para frente nao ha Diario, o que
+    // ainda nao aconteceu esta no previsto (docs/06-interface/navegacao.md)
+    // o dia corrente e SEMPRE navegavel, tenha evento ou nao: "hoje nao teve movimento"
+    // e uma resposta legitima, e sem isto o PROXIMO DIA morre num dia parado
+    const nav = [...new Set(dias.concat([S.hoje]))].sort().reverse();
+    const anteriores = nav.filter((d) => d < dia);
+    const posteriores = nav.filter((d) => d > dia && d <= S.hoje);
+
+    const linha = (e) => {
+      const f = FRASE[e.tipo];
+      const [txt, val] = f ? f(e.dados || {}) : [e.tipo, ''];
+      return '<div class="ev"><span class="ev-h">' + e.instante.slice(11, 16) + '</span>' +
+        '<span class="ev-t">' + txt + '</span>' +
+        '<span class="ev-v">' + val + '</span></div>';
+    };
+    const secao = (titulo, lista, sub, marca) => '<div class="panel mt18 ' + marca + '">' +
+      '<div class="panel-head"><h3>' + titulo + '</h3><span class="tele">' + lista.length + ' · ' + sub +
+      '</span></div>' + (lista.length
+        ? '<div class="evlist">' + lista.map(linha).join('') + '</div>'
+        : '<div class="vazio">NADA</div>') + '</div>';
+
+    $('#diario').innerHTML =
+      '<div class="panel"><div class="hstack between wrap gap10">' +
+      '<div class="hstack gap8">' +
+      '<button class="btn sm" id="diaAnt"' + (anteriores.length ? '' : ' disabled') + '>&lt; DIA ANTERIOR</button>' +
+      '<button class="btn sm" id="diaProx"' + (posteriores.length ? '' : ' disabled') + '>PRÓXIMO DIA &gt;</button>' +
+      (dia === S.hoje ? '' : '<button class="btn sm ghost" id="diaHoje">HOJE</button>') + '</div>' +
+      '<div class="metric" style="align-items:flex-end">' +
+      '<span class="val cy" style="font-size:26px">' + D.br(dia) + '</span>' +
+      '<span class="sub">' + (dia === S.hoje ? 'DIA CORRENTE' : dias.indexOf(dia) >= 0 ? 'COM MOVIMENTO' : 'SEM MOVIMENTO') +
+      '</span></div></div>' +
+      '<p class="hint mt10">Para frente do dia corrente <b>não há Diário</b> — o que ainda não ' +
+      'aconteceu está no previsto, e são duas perguntas diferentes. ' +
+      (dias.length ? 'Dias com movimento: <b>' + dias.length + '</b>.' : '') + '</p></div>' +
+
+      secao('O que o sistema fez', sis, 'SOZINHO, SEM VOCÊ MANDAR', 'hot') +
+      secao('O que você fez', usr, 'REGISTRO DAS SUAS AÇÕES', '') +
+
+      (evs.length ? '' : '<div class="panel mt18 vazio">' + D.br(dia) +
+        ' NÃO TEVE MOVIMENTO NENHUM — E ISSO É UMA RESPOSTA, NÃO UM ERRO</div>');
+  }
+
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('#diaAnt, #diaProx, #diaHoje');
+    if (!b) return;
+    const nav = [...new Set(CB.diasComEvento().concat([S.hoje]))].sort().reverse();
+    const dia = diaDiario || S.hoje;
+    if (b.id === 'diaHoje') diaDiario = null;
+    else if (b.id === 'diaAnt') diaDiario = nav.filter((d) => d < dia)[0] || dia;
+    else { const p = nav.filter((d) => d > dia && d <= S.hoje); diaDiario = p[p.length - 1] || null; }
+    renderDiario();
   });
 
   /* ================= CADASTRO =================
@@ -709,14 +828,17 @@
     const v = M.parse($('#qValor').value);
     if (!v) { $('#qErr').textContent = 'VALOR INVÁLIDO'; return; }
     const mid = $('#qMeio').value, m = CB.meio(mid), cat = $('#qCat').value || null, desc = $('#qDesc').value.trim();
+    let novo;
     if (m.tipo === 'CREDITO') {
-      CB.comprarNoCredito({ cartao: mid, valor: v, data: S.hoje, descricao: desc, categoria: cat });
+      novo = CB.comprarNoCredito({ cartao: mid, valor: v, data: S.hoje, descricao: desc, categoria: cat });
       toast('NO CRÉDITO // CAIU NA FATURA, NÃO NO SALDO DE HOJE');
     } else {
-      CB.lancar({ conta: m.conta, sentido: qSent, valor: v, descricao: desc, categoria: cat, meio: mid, autor: quem });
+      novo = CB.lancar({ conta: m.conta, sentido: qSent, valor: v, descricao: desc, categoria: cat, meio: mid, autor: quem });
       toast(cat ? 'LANÇADO' : 'LANÇADO // FOI PARA AS PENDÊNCIAS');
     }
-    CB.registrar((qSent === 'SAIDA' ? 'saída' : 'entrada') + ' ' + M.fmt(v) + ' — ' + desc, 'novo');
+    CB.evento({ origem: 'USUARIO', tipo: 'LANCAMENTO_CRIADO', autor: quem,
+      alvo: (Array.isArray(novo) ? novo[0] : novo) ? (Array.isArray(novo) ? novo[0] : novo).id : null,
+      dados: { descricao: desc, valor: v, sentido: qSent, credito: m.tipo === 'CREDITO' } });
     fecharQA(); renderTudo();
   });
   $('#qFull').addEventListener('click', () => { fecharQA(); abrirFull(); });
@@ -801,7 +923,8 @@
           dataEvento: dt, dataEfeito: dt, descricao: desc, categoria: $('#xCat').value || null, meio: m.id, autor: quem });
         toast('REGISTRADO');
       }
-      CB.registrar(xTipo + ' ' + M.fmt(v) + ' — ' + desc, 'novo');
+      CB.evento({ origem: 'USUARIO', tipo: 'LANCAMENTO_CRIADO', autor: quem,
+        dados: { descricao: desc, valor: v, sentido: xTipo } });
       fecharFull(); renderTudo();
     } catch (err) { $('#xErr').textContent = String(err.message || err).toUpperCase(); }
   });
@@ -820,6 +943,7 @@
     if (tela === 'fatura') renderFatura();
     if (tela === 'series') renderSeries();
     if (tela === 'patrimonio') renderPatrimonio();
+    if (tela === 'diario') renderDiario();
     if (tela === 'cadastro') renderCadastro();
     $('#statusLinha').textContent = 'LEDGER SYNCED \u00b7 ' + CB.lancamentos().length + ' LAN\u00c7AMENTOS NO AMBIENTE';
   }

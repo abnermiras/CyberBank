@@ -148,6 +148,11 @@ conta. Foi escolhido assim porque uma fila de confirmação cobra atrito em **to
 previsto para acertar a minoria que dá errado, e porque a Fase 2 resolve pela raiz: com o
 extrato na mão, a conciliação confirma pelo fato (`docs/02-dominio/importacao-conciliacao.md`).
 
+Toda transição automática **grava um evento** (`docs/02-dominio/evento.md`): é onde o usuário
+vai ler que o boleto foi realizado pela data, e no dia em que isso aconteceu. Sem esse
+registro, o preço acima não tem como ser percebido — e preço invisível é preço que ninguém
+aceitou de verdade.
+
 **A automação só anda para frente** — `PREVISTO → PROVISIONADO → REALIZADO`, com qualquer
 salto válido, e nunca ao contrário. **A correção do usuário anda nos dois sentidos**, porque
 ela não descreve o dinheiro: descreve o registro. Devolver a `PREVISTO` o boleto que o sistema

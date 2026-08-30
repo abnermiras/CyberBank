@@ -187,3 +187,17 @@
 .arv-acoes{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:11px;
   padding-top:10px;border-top:1px dashed var(--line)}
 .arv-acoes .btn{padding:6px 10px;font-size:9px}
+
+/* ---------- diario ----------------------------------------------------------
+   Uma linha por evento: hora, frase, valor. A frase e montada na tela a partir
+   de tipo+dados (docs/02-dominio/evento.md) — o evento nunca guarda texto.
+   -------------------------------------------------------------------------- */
+.evlist{display:flex;flex-direction:column}
+.ev{display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:baseline;
+  padding:9px 0;border-bottom:1px solid rgba(27,43,56,.55)}
+.ev:last-child{border-bottom:0}
+.ev-h{font:10px var(--mono);letter-spacing:.1em;color:var(--dim)}
+.ev-t{font:13px/1.5 var(--disp);color:var(--ink)}
+.ev-t b{font-weight:700;color:var(--cyan)}
+.ev-v{font:600 13px var(--disp);font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}
+@media(max-width:640px){.ev{grid-template-columns:44px 1fr}.ev-v{grid-column:2}}

@@ -177,8 +177,13 @@
   // historia paga: fatura com vencimento no passado ja foi quitada.
   // Pagar e TRANSFERENCIA, entao o ambiente ativo precisa ser o dono do cartao.
   S.ambienteAtivo = PESSOAL;
+  // `em(dia, fn)` roda a operacao COM O RELOGIO NAQUELE DIA, para o evento nascer com o
+  // `dia` certo. E a unica forma honesta de o seed ter historia em varios dias: no
+  // sistema de verdade o relogio andou de verdade, e cada evento foi gravado no dia em
+  // que o sistema agiu (docs/02-dominio/evento.md).
+  const em = (dia, fn) => { const antes = S.hoje; S.hoje = dia; try { return fn(); } finally { S.hoje = antes; } };
   S.faturas.filter((f) => f.vencimento < HOJE && f.status === 'FECHADA')
-    .forEach((f) => { if (CB.totalFatura(f.id) > 0) CB.pagarFatura(f.id, { data: f.vencimento }); });
+    .forEach((f) => { if (CB.totalFatura(f.id) > 0) em(f.vencimento, () => CB.pagarFatura(f.id, { data: f.vencimento })); });
 
   // faxina de seed: o parcelamento cria FUTURA contando a partir da ABERTA e o
   // helper de historico as remaneja, deixando uma fatura vazia na ponta.
@@ -197,6 +202,6 @@
   }());
 
   S.hoje = HOJE;
-  S.log.length = 0;
-  CB.registrar('sessão iniciada — dados de demonstração', 'sys');
+  // o seed NAO limpa nem inventa evento: o Diario mostra o que o ciclo produziu ao
+  // construir a historia, e isso ja foi gravado pelas proprias funcoes do dominio
 })(window.CB);

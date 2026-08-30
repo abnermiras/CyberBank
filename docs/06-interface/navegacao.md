@@ -71,9 +71,28 @@ em algo aprendível.
 | **Reserva** | Contas, aplicações e a diferença entre fluxo de caixa e patrimônio |
 | **Séries** | Os parcelamentos e as recorrências vivos, e o que muda ao alterar cada um |
 | **Cadastro** | As árvores de categoria do usuário: criar, inativar, reativar e excluir |
+| **Diário** (Fase 2) | O que aconteceu num dia: o que o sistema fez sozinho e o que a pessoa fez |
 
 Ainda não existem: cadastro de contas e de meios; convite de pessoas para um ambiente;
 perfil e sessões.
+
+## O Diário responde "por que meu saldo mudou?"
+
+A tela do Diário (`docs/02-dominio/evento.md`) existe porque o sistema mexe no dinheiro
+sozinho — a fatura fecha, o previsto vira realizado, o que não foi pago rola. Toda tela do
+app mostra **como as coisas estão**; o Diário é a única que mostra **o que aconteceu**.
+
+- **Um dia por vez, e o padrão é hoje.** Não é uma lista infinita: a pergunta é sobre um dia.
+- **O seletor de dia anda para trás livremente.** Para frente do dia corrente **não há
+  Diário** — o que ainda não aconteceu está no previsto, e são duas perguntas diferentes.
+- **Duas seções: o que o sistema fez e o que você fez.** A primeira vem primeiro: é a que o
+  usuário não tem como saber sozinho. Num ambiente compartilhado, a segunda diz **quem**.
+- **Dia sem evento é resposta, não erro.** A tela diz que o dia não teve movimento, com o
+  seletor no lugar — nada de tela em branco que parece quebrada.
+- **Cada linha leva ao objeto.** Clicar em "fatura 2026-08 fechada" abre aquela fatura. O
+  Diário é uma porta, não um relatório morto.
+- **A frase é montada na tela, nunca guardada** (`docs/02-dominio/evento.md`) — senão o texto
+  congela na redação do dia em que foi escrito.
 
 ## Dado inativo fica escondido, e a tela diz que escondeu
 

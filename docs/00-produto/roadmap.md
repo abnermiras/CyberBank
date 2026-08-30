@@ -43,6 +43,7 @@ O corte mínimo que substitui o sistema atual no dia a dia. Alvo: ~3 meses.
 | Fatura de cartão e parcelamento | O que o RaspyBank erra hoje e mais dói |
 | Aplicação e patrimônio | A fatia da aposta (ver acima) |
 | Dashboard de gasto por categoria | Mês a mês, com comparação |
+| **Gravar evento** (`docs/02-dominio/evento.md`) | Só a gravação, não a tela. O sistema mexe no dinheiro sozinho em quatro lugares desde o primeiro dia, e **evento não se reconstitui depois**: dia que passou sem registro é dia perdido |
 
 **Aplicação na Fase 1 é exatamente isto:** aporte e resgate como lançamentos que movem
 dinheiro entre conta e aplicação; valor atual atualizado **à mão**; patrimônio = soma de
@@ -63,6 +64,7 @@ schema deixado para o fim é migration em cima de dado real, e tela não é.
 - [ ] Dois usuários no mesmo ambiente, e um terceiro **sem acesso** que não enxerga nada
 - [ ] Um lançamento guarda o **ambiente de quem lançou**, e a política de RLS já traz o `OR`
       do `ADR-0004` — mesmo sem nenhum vínculo existir
+- [ ] Todo passo do ciclo que muda dinheiro deixa um **evento** gravado, com dia e autor
 - [ ] O RaspyBank desligado — não "em paralelo por segurança"
 
 ## Fase 2 — Tirar a digitação do caminho
@@ -70,7 +72,13 @@ schema deixado para o fim é migration em cima de dado real, e tela não é.
 O usuário deixa de digitar lançamento; só confirma categoria.
 
 Captura de notificação de compra · pendência de categorização · regras de categorização
-automática · importação de OFX · conciliação sem duplicar.
+automática · importação de OFX · conciliação sem duplicar · **a tela do Diário**, com seletor
+de dia (`docs/02-dominio/evento.md`).
+
+**Diário na Fase 2 é exatamente o mesmo movimento de `Aplicação` e do compartilhamento:** o
+que contamina schema entra na Fase 1, a tela espera. Aqui o argumento é ainda mais direto,
+porque o dado não é reconstituível — schema deixado para o fim é migration em cima de dado
+real, e evento deixado para o fim é dado que **nunca existiu**.
 
 **Pronto quando:** a maioria dos lançamentos do mês entra sem digitação e nenhum
 lançamento duplicado sobrevive à conciliação.

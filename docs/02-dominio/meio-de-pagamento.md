@@ -62,7 +62,9 @@ a conta de luz que ainda vai ser paga.
 **Chegando o vencimento, o sistema realiza o boleto pela data**, tenha ele sido pago ou não
 (`docs/02-dominio/lancamento.md`). Quando não foi, o conserto é **corrigir o lançamento** —
 devolvê-lo a `PREVISTO` com a data nova. É o único ponto do modelo em que o sistema afirma um
-fato que não observou, e ele existe até a conciliação da Fase 2.
+fato que não observou, e ele existe até a conciliação da Fase 2. Enquanto existir, o
+**evento** é o que torna esse fato visível no dia em que ele acontece
+(`docs/02-dominio/evento.md`).
 
 ## Os cartões de um contrato
 

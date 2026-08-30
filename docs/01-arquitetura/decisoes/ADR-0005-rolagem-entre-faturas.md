@@ -62,6 +62,14 @@ o "saldo anterior" da fatura de papel.
 | "Saldo anterior" como linha só de exibição, derivada | Não custa lançamento, mas quebra "cada fatura é paga na tela dela": o número existiria na tela e não no dado |
 | Um pagamento previsto por cartão, valendo a dívida inteira | Resolve a projeção e não resolve a alocação — continua sem dizer qual fatura foi quitada |
 
+## Registro
+
+A rolagem grava `FATURA_ROLADA` e, junto, `FATURA_ENCERRADA`
+(`docs/02-dominio/evento.md`). É o evento mais importante do Diário: a rolagem é o único passo
+do ciclo que o usuário **não pediu, não previu e não vê** em nenhuma outra tela — o total da
+fatura antiga não cai, a dívida não muda, e o dinheiro simplesmente aparece cobrado no mês
+seguinte. Sem o evento, ela é invisível.
+
 ## Consequências
 
 - **Ganhamos:** cada fatura contém tudo o que cobra, e o total dela bate com o do banco.

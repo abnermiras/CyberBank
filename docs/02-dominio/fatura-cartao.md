@@ -183,6 +183,14 @@ dia diferente, a rotina não rodou quando devia.
 **Fatura sem nenhum lançamento fecha do mesmo jeito**, com total zero, e não gera pagamento
 previsto — não há o que pagar.
 
+**Cada passo que de fato acontece grava um evento** (`docs/02-dominio/evento.md`):
+`FATURA_FECHADA`, `FATURA_ABERTA_PELO_CICLO` e `PAGAMENTO_PREVISTO_CRIADO`. A idempotência
+vale para o evento também: a rotina roda todo dia, e **rodada que não fecha nada não grava
+nada** — Diário cheio de "nada aconteceu" é Diário que ninguém lê. Quando o fechamento
+recupera atraso, cada ciclo recuperado grava os seus eventos **no dia em que a rotina rodou**,
+e não no dia em que o ciclo deveria ter fechado: `dia` é quando o sistema agiu, não quando ele
+deveria ter agido.
+
 ## Abrir a fatura
 
 Serve para uma coisa só: **o ciclo ainda está correndo e o sistema achou que tinha acabado.**

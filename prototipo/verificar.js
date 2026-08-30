@@ -60,6 +60,7 @@ const telas = {
   series: () => CB.series().map((s) => CB.lancamentosDaSerie(s.id)),
   reserva: () => CB.contas().map((c) => [CB.saldoRealizado(c.id), CB.saldoProjetado(c.id, S_HOJE)]),
   cadastro: () => CB.categorias().map((k) => CB.catEscolhivel(k)),
+  diario: () => CB.diasComEvento().map((d) => CB.eventosDoDia(d)),
 };
 Object.keys(telas).forEach((nome) => {
   let erro = null;
@@ -133,6 +134,43 @@ prova('categoria de sistema nao se inativa',
   /sistema/.test(recusa(() => CB.inativarCategoria(CB.categorias().find((k) => k.sistema).id)) || ''));
 prova('nenhuma subcategoria trocou de raiz (mover nao existe)',
   CB.categorias().every((k) => !k.pai || CB.categoria(k.pai)));
+
+/* ---- 7. o Diario ---------------------------------------------------------- */
+secao('7. evento e Diario (docs/02-dominio/evento.md)');
+const evs = CB.eventos();
+prova('o seed produziu evento', evs.length > 0, evs.length + ' evento(s)');
+prova('todo evento tem ambiente, dia, instante, origem, autor e tipo',
+  evs.every((e) => e.ambiente && e.dia && e.instante && e.origem && e.autor && e.tipo));
+prova('origem e sempre SISTEMA ou USUARIO',
+  evs.every((e) => e.origem === 'SISTEMA' || e.origem === 'USUARIO'));
+prova('nenhum evento tem dia maior que o dia corrente',
+  evs.every((e) => e.dia <= CB.S.hoje));
+prova('o evento nao guarda frase pronta',
+  evs.every((e) => !('texto' in e) && !('frase' in e)));
+prova('o seed tem mais de um dia com evento', CB.diasComEvento().length > 1,
+  CB.diasComEvento().join(', '));
+prova('dia sem evento devolve lista vazia, nao erro',
+  Array.isArray(CB.eventosDoDia('1999-01-01')) && CB.eventosDoDia('1999-01-01').length === 0);
+
+// o ciclo grava o que faz, e o que ele NAO fez nao grava
+const antesEv = CB.eventos().length;
+CB.avancar(10);
+const novos = CB.eventos().slice(antesEv);
+prova('avancar o relogio produziu evento do SISTEMA',
+  novos.some((e) => e.origem === 'SISTEMA'), novos.length + ' novo(s)');
+prova('a rolagem da fatura virou evento',
+  novos.some((e) => e.tipo === 'FATURA_ROLADA'));
+prova('o encerramento da fatura virou evento',
+  novos.some((e) => e.tipo === 'FATURA_ENCERRADA'));
+prova('a data realizando lancamento virou evento',
+  novos.some((e) => e.tipo === 'LANCAMENTO_REALIZADO'));
+prova('todo evento do SISTEMA tem o dono do ambiente como autor',
+  novos.filter((e) => e.origem === 'SISTEMA').every((e) => !!e.autor));
+// (c) da inativacao, agora exercitada de verdade: a ocorrencia da recorrencia da
+// Academia nasce na categoria INATIVA porque quem lanca e o ciclo, nao o usuario
+prova('o ciclo lancou na categoria inativa sem estourar',
+  CB.lancamentosDaCategoria(cat('Academia').id).length >= 3,
+  CB.lancamentosDaCategoria(cat('Academia').id).length + ' lancamento(s)');
 
 secao('conferir() depois de mexer em tudo');
 const viol2 = CB.conferir();
