@@ -126,6 +126,17 @@
   /* ================= LANCAMENTO ================= */
   function lancar(o) {
     if (!o.valor || o.valor <= 0) throw new Error('valor tem que ser positivo — o sinal vem do sentido');
+    // INATIVA BARRA A ESCOLHA, NAO O CICLO (docs/02-dominio/categoria.md).
+    // Hoje a excecao e de graca: tudo que o ciclo cria usa categoria de SISTEMA, e
+    // categoria de sistema nunca e inativa. O `doCiclo` existe para quando a
+    // RECORRENCIA chegar — a ocorrencia dela nasce na categoria do usuario, e essa
+    // sim pode ter sido inativada depois que a recorrencia comecou.
+    if (o.categoria && !o.doCiclo) {
+      const kc = categoria(o.categoria);
+      if (kc && kc.inativa) throw new Error('categoria inativa nao recebe lancamento do usuario: ' + kc.nome);
+      if (kc && kc.pai) { const pc = categoria(kc.pai);
+        if (pc && pc.inativa) throw new Error('a raiz esta inativa: ' + pc.nome); }
+    }
     const l = {
       id: id('lan'),
       ambiente: o.ambiente || S.ambienteAtivo,   // o ambiente de QUEM LANCOU, nunca o da conta
@@ -383,9 +394,61 @@
     if (pai && pai.pai) throw new Error('a arvore tem exatamente dois niveis');
     const k = { id: id('cat'), ambiente: o.ambiente || S.ambienteAtivo, nome: o.nome,
       cor: o.cor || (pai ? pai.cor : '#00f0ff'), sentido: pai ? pai.sentido : o.sentido,
-      pai: o.pai || null, sistema: false };
+      pai: o.pai || null, sistema: false, inativa: false };
     S.categorias.push(k);
     return k;
+  }
+
+  /* ---------- INATIVAR: o "excluir" de quem tem historico ----------------------
+     Logico, nunca fisico. O lancamento referencia a categoria por IDENTIDADE, entao
+     apagar a linha apagaria a resposta de "onde meu dinheiro foi" em todo mes que a usou.
+     Tres decisoes de 30/08 vivem aqui (docs/02-dominio/categoria.md, secao Inativar):
+     (a) a raiz ESCONDE a arvore e NAO grava nada nos filhos — heranca na leitura, nao
+         cascata na escrita, senao a volta nao sabe o que o usuario ja tinha inativado;
+     (b) "raiz com subcategoria nao e escolhivel" mede subcategoria ATIVA, entao inativar
+         todos os filhos devolve a raiz para a escolha;
+     (c) inativa barra a ESCOLHA do usuario, nao o CICLO — a parcela 7/10 que ainda vai
+         nascer nasce na categoria original, como ja vale para a conta inativa.
+     O sistema NUNCA inativa nem exclui nada sozinho: por prazo, por desuso, por nada.
+     -------------------------------------------------------------------------- */
+  const filhosDe = (kid) => S.categorias.filter((k) => k.pai === kid);
+
+  // (a) + (b): a unica funcao que responde "isso pode ser escolhido num lancamento agora?"
+  function catEscolhivel(k) {
+    if (!k || k.sistema || k.inativa) return false;
+    if (k.pai) { const p = categoria(k.pai); return !!p && !p.inativa; }
+    return !filhosDe(k.id).some((f) => !f.inativa);
+  }
+  const categoriasEscolhiveis = (sentido) => categorias()
+    .filter((k) => catEscolhivel(k) && (!sentido || k.sentido === sentido));
+
+  function inativarCategoria(kid) {
+    const k = categoria(kid);
+    if (!k) throw new Error('categoria inexistente');
+    if (k.sistema) throw new Error('categoria de sistema nao se inativa');
+    k.inativa = true;                       // e so isto: nada desce para os filhos
+    return k;
+  }
+  function reativarCategoria(kid) {
+    const k = categoria(kid);
+    if (!k) throw new Error('categoria inexistente');
+    if (k.sistema) throw new Error('categoria de sistema nao se inativa');
+    k.inativa = false;
+    return k;
+  }
+  const lancamentosDaCategoria = (kid) => S.lancamentos.filter((l) => l.categoria === kid);
+
+  function excluirCategoria(kid) {
+    const k = categoria(kid);
+    if (!k) throw new Error('categoria inexistente');
+    if (k.sistema) throw new Error('categoria de sistema nao se exclui');
+    // "so se NUNCA teve lancamento" vale para a arvore inteira: excluir a raiz levaria
+    // os filhos junto, e um filho com historico e historico perdido do mesmo jeito
+    const alvo = [k].concat(filhosDe(k.id));
+    const preso = alvo.find((x) => lancamentosDaCategoria(x.id).length);
+    if (preso) throw new Error('categoria com lancamento nao se exclui — o caminho e inativar: ' + preso.nome);
+    S.categorias = S.categorias.filter((x) => !alvo.some((a) => a.id === x.id));
+    return alvo.length;
   }
   function criarMeio(o) {
     const c = conta(o.conta);
@@ -420,6 +483,20 @@
     S.categorias.filter((k) => k.sistema).forEach((k) => {
       diz(!k.pai, `categoria de sistema com pai: ${k.nome}`);
       diz(!S.categorias.some((x) => x.pai === k.id), `categoria de sistema com filho: ${k.nome}`);
+      diz(!k.inativa, `categoria de sistema inativada: ${k.nome}`);
+    });
+    S.categorias.filter((k) => !k.sistema).forEach((k) => {
+      diz(typeof k.inativa === 'boolean', `categoria sem o campo inativa: ${k.nome}`);
+      // "raiz com subcategoria ATIVA nao e escolhivel", nos dois sentidos da regra
+      if (!k.pai) {
+        const temFilhoAtivo = S.categorias.some((x) => x.pai === k.id && !x.inativa);
+        diz(catEscolhivel(k) !== temFilhoAtivo || k.inativa,
+          `raiz escolhivel e com filho ativo ao mesmo tempo: ${k.nome}`);
+      } else {
+        const p = categoria(k.pai);
+        diz(!(p && p.inativa && catEscolhivel(k)),
+          `subcategoria escolhivel sob raiz inativa: ${k.nome}`);
+      }
     });
 
     S.lancamentos.forEach((l) => {
@@ -981,6 +1058,8 @@
     aplicacaoDesatualizada, limiteDesatualizado, patrimonioDesatualizado,
     criarAmbiente, criarConta, criarCategoria, criarMeio,
     categoriasDoUsuario, criarCategoriasDeSistema, catSistema, CAT_SISTEMA,
+    catEscolhivel, categoriasEscolhiveis, filhosDe, lancamentosDaCategoria,
+    inativarCategoria, reativarCategoria, excluirCategoria,
     faturasDe, faturaAberta, faturaNaPosicao, faturaDaReferencia, datasDaRef,
     totalFatura, roladoDaFatura, faltaNaFatura, ehRolagem, lancamentosDaFatura,
     pagamentosDaFatura, pagoDaFatura, situacaoPagamento, rolarSaldo, lancamentosDeRolagem,

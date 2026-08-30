@@ -172,3 +172,18 @@
 .sis-nome{font:12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 
 .gap8{gap:8px}.mt14{margin-top:14px}
+
+/* ---------- cadastro: inativa ------------------------------------------------
+   Inativa NAO e alerta: e um estado escolhido de proposito. Por isso ela apaga
+   (opacidade + cinza), e nunca fica rosa — rosa e alerta (direcao-visual.md).
+   -------------------------------------------------------------------------- */
+.arv.ina{opacity:.5;border-top-color:var(--dim)}
+.arv.ina .arv-nome{color:var(--muted)}
+.sub-chip.ina{opacity:.5;border-style:dashed;color:var(--muted)}
+.chip-x{margin-left:2px;padding:0 2px;background:none;border:0;cursor:pointer;
+  font:12px/1 var(--mono);color:var(--dim);transition:color .12s}
+.chip-x:hover{color:var(--pink)}
+.sub-chip.ina .chip-x:hover{color:var(--lime)}
+.arv-acoes{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:11px;
+  padding-top:10px;border-top:1px dashed var(--line)}
+.arv-acoes .btn{padding:6px 10px;font-size:9px}

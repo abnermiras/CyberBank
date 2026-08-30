@@ -365,28 +365,49 @@
     const cards = raizes.length
       ? '<div class="arvores">' + raizes.map((r) => {
           const fi = cs.filter((k) => k.pai === r.id);
+          const ativos = fi.filter((f) => !f.inativa);
           const nr = usos(r.id);
-          // O ROSA E DE ALERTA (direcao-visual.md), e "raiz com filho" nao e alerta: e o
-          // estado normal de toda raiz madura. Rosa fica so para o RESIDUO — lancamento
-          // que ficou apontando para a raiz depois que ela deixou de ser escolhivel.
-          const estado = fi.length
-            ? '<span class="tag">NÃO ESCOLHÍVEL</span><span class="hint">o lançamento escolhe um filho</span>' +
-              (nr ? '<span class="tag pend">' + nr + ' NA RAIZ</span>' : '')
-            : '<span class="tag real">ESCOLHÍVEL NO LANÇAMENTO</span><span class="hint">' +
-              (nr ? '<b>' + nr + '</b> lançamento(s)' : 'sem lançamento ainda') + '</span>';
+          // ROSA E DE ALERTA (direcao-visual.md), e nem "raiz com filho" nem "raiz inativa"
+          // sao alerta: sao estados normais. Rosa fica so para o RESIDUO — lancamento que
+          // ficou apontando para a raiz depois que ela deixou de ser escolhivel.
+          const estado = r.inativa
+            ? '<span class="tag">INATIVA</span><span class="hint">a árvore inteira saiu do seletor · ' +
+              'o campo dos filhos não mudou</span>'
+            : ativos.length
+              ? '<span class="tag">NÃO ESCOLHÍVEL</span><span class="hint">o lançamento escolhe um filho</span>' +
+                (nr ? '<span class="tag pend">' + nr + ' NA RAIZ</span>' : '')
+              : '<span class="tag real">ESCOLHÍVEL NO LANÇAMENTO</span><span class="hint">' +
+                (fi.length ? 'todas as subcategorias estão inativas · a raiz voltou a ser destino'
+                           : (nr ? '<b>' + nr + '</b> lançamento(s)' : 'sem lançamento ainda')) + '</span>';
           const corpo = fi.length
             ? fi.map((f) => { const n = usos(f.id);
-                return '<span class="sub-chip">' + esc(f.nome) + (n ? '<b>' + n + '</b>' : '') + '</span>'; }).join('')
+                return '<span class="sub-chip' + (f.inativa ? ' ina' : '') + '">' + esc(f.nome) +
+                  (n ? '<b>' + n + '</b>' : '') +
+                  '<button class="chip-x" data-toggle="' + f.id + '" title="' +
+                  (f.inativa ? 'reativar' : 'inativar') + '">' + (f.inativa ? '↺' : '×') + '</button>' +
+                  '</span>'; }).join('')
             : '<span class="hint">SEM SUBCATEGORIA</span>';
-          return '<div class="arv" style="--k:' + r.cor + '">' +
+          // EXCLUIR so aparece quando a regra do doc permite — "so se nunca teve lancamento",
+          // e vale para a arvore inteira. Botao que so existe quando funciona nao precisa
+          // explicar por que esta travado.
+          const podeExcluir = !nr && fi.every((f) => !usos(f.id));
+          const acoes = '<div class="arv-acoes">' +
+            '<button class="btn sm ghost" data-inativa="' + r.id + '">' +
+            (r.inativa ? 'REATIVAR' : 'INATIVAR') + '</button>' +
+            (podeExcluir ? '<button class="btn sm danger" data-excluir="' + r.id + '">EXCLUIR</button>'
+                         : '') + '</div>';
+          // EXCLUIR simplesmente NAO aparece quando ha historico. A explicacao vive uma vez
+          // no rodape do painel, e nao sete vezes dentro dos cards.
+          return '<div class="arv' + (r.inativa ? ' ina' : '') + '" style="--k:' + r.cor + '">' +
             '<div class="arv-head"><span class="arv-nome">' + esc(r.nome) + '</span>' +
-            '<span class="arv-sent">' + r.sentido + ' · ' + fi.length + ' SUB</span></div>' +
+            '<span class="arv-sent">' + r.sentido + ' · ' + ativos.length + '/' + fi.length + ' SUB</span></div>' +
             '<div class="arv-corpo">' + corpo + '</div>' +
             '<div class="arv-estado">' + estado + '</div>' +
-            '<div class="arv-add"><input data-sub="' + r.id + '" autocomplete="off" ' +
-            'placeholder="+ subcategoria de ' + esc(r.nome) + '">' +
-            '<button class="btn sm" data-addsub="' + r.id + '" title="criar subcategoria">+</button></div>' +
-            '</div>';
+            (r.inativa ? '' :
+              '<div class="arv-add"><input data-sub="' + r.id + '" autocomplete="off" ' +
+              'placeholder="+ subcategoria de ' + esc(r.nome) + '">' +
+              '<button class="btn sm" data-addsub="' + r.id + '" title="criar subcategoria">+</button></div>') +
+            acoes + '</div>';
         }).join('') + '</div>'
       : '<div class="vazio mt10">NENHUMA CATEGORIA NESTE AMBIENTE · O SISTEMA NÃO CRIA CATEGORIA ' +
         'DE USUÁRIO · CRIE A PRIMEIRA ACIMA</div>';
@@ -394,7 +415,11 @@
     const arvores =
       '<div class="panel mt18"><div class="panel-head"><h3>Árvores do usuário</h3>' +
       '<span class="tele">' + raizes.length + ' RAIZ(ES) · ' + (cs.length - raizes.length) +
-      ' SUBCATEGORIA(S) · DOIS NÍVEIS, NUNCA TRÊS</span></div>' + cards + '</div>';
+      ' SUBCATEGORIA(S) · ' + cs.filter((k) => k.inativa).length + ' INATIVA(S)</span></div>' + cards +
+      '<p class="hint mt10">Inativar é o <b>excluir de quem tem histórico</b>: some da escolha, e ' +
+      'o que já foi lançado continua exibindo e somando. Nunca é físico, e o sistema nunca inativa ' +
+      'nada sozinho — nem por prazo, nem por desuso. A raiz inativa <b>esconde</b> a árvore sem mexer ' +
+      'nos filhos, e a raiz cujas subcategorias estão todas inativas <b>volta</b> a ser destino.</p></div>';
 
     const sis = CB.categorias().filter((k) => k.sistema);
     const linhas = CB.CAT_SISTEMA.map((nome) =>
@@ -463,6 +488,50 @@
   document.addEventListener('click', (e) => {
     const b = e.target.closest('[data-addsub]');
     if (b) criarSub(b.dataset.addsub);
+  });
+
+  // inativar/reativar uma SUBCATEGORIA pelo chip
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-toggle]');
+    if (!b) return;
+    const k = CB.categoria(b.dataset.toggle);
+    const irmaosAtivos = CB.filhosDe(k.pai).filter((f) => !f.inativa && f.id !== k.id).length;
+    if (k.inativa) { CB.reativarCategoria(k.id); toast('SUBCATEGORIA REATIVADA'); }
+    else {
+      CB.inativarCategoria(k.id);
+      toast(irmaosAtivos ? 'INATIVADA · O HISTÓRICO CONTINUA SOMANDO'
+        : 'ÚLTIMA SUBCATEGORIA ATIVA · A RAIZ VOLTOU A SER ESCOLHÍVEL');
+    }
+    renderTudo();
+  });
+
+  // inativar/reativar a RAIZ — esconde a arvore, e NAO grava nada nos filhos
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-inativa]');
+    if (!b) return;
+    const k = CB.categoria(b.dataset.inativa);
+    if (k.inativa) { CB.reativarCategoria(k.id); toast('RAIZ REATIVADA · A ÁRVORE VOLTOU COMO ESTAVA'); }
+    else {
+      CB.inativarCategoria(k.id);
+      const n = CB.filhosDe(k.id).filter((f) => !f.inativa).length;
+      toast(n ? 'RAIZ INATIVADA · ' + n + ' SUBCATEGORIA(S) SAÍRAM DO SELETOR JUNTO, SEM MUDAR DE ESTADO'
+              : 'RAIZ INATIVADA');
+    }
+    renderTudo();
+  });
+
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-excluir]');
+    if (!b) return;
+    const k = CB.categoria(b.dataset.excluir);
+    const n = CB.filhosDe(k.id).length;
+    // acao destrutiva mostra o impacto antes de confirmar (docs/06-interface/navegacao.md)
+    if (!confirm('EXCLUIR ' + k.nome + (n ? ' e ' + n + ' subcategoria(s)' : '') +
+      '?\n\nNenhuma delas tem lançamento, então nada de histórico se perde. ' +
+      'A exclusão é física e não tem volta — para guardar a categoria sem apagá-la, use INATIVAR.')) return;
+    try { const q = CB.excluirCategoria(k.id); toast(q + ' CATEGORIA(S) EXCLUÍDA(S)'); }
+    catch (err) { toast(String(err.message).toUpperCase(), true); }
+    renderTudo();
   });
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter') return;
@@ -573,14 +642,25 @@
 
   /* ================= SELECTS ================= */
   function optCategorias(sentido, sel) {
-    // categoria de sistema NUNCA aparece no seletor do usuario
-    const raizes = CB.categoriasDoUsuario().filter((c) => !c.pai && (!sentido || c.sentido === sentido));
+    // Uma fonte so: CB.catEscolhivel(). Ela ja sabe que categoria de sistema nunca aparece,
+    // que inativa sai da escolha, que raiz inativa leva os filhos junto e que a raiz volta
+    // a ser destino quando o ultimo filho ativo some. A tela nao reimplementa nada disso.
+    const todas = CB.categoriasDoUsuario();
+    const selK = sel ? CB.categoria(sel) : null;
+    // O lancamento antigo que JA aponta para uma inativa continua exibindo a escolha dele:
+    // sem isto, corrigir o valor de um lancamento de dois anos atras APAGA a categoria e
+    // manda o lancamento para a fila de pendencias (docs/02-dominio/categoria.md).
+    const extra = (selK && !selK.sistema && !CB.catEscolhivel(selK)) ? selK : null;
+    const marca = (c) => esc(c.nome) + (CB.catEscolhivel(c) ? '' : ' · INATIVA');
+    const opt = (c) => '<option value="' + c.id + '"' + (c.id === sel ? ' selected' : '') + '>' +
+      marca(c) + '</option>';
+    const raizes = todas.filter((c) => !c.pai && (!sentido || c.sentido === sentido));
     return '<option value="">— SEM CATEGORIA —</option>' + raizes.map((r) => {
-      const fi = CB.categoriasDoUsuario().filter((c) => c.pai === r.id);
-      const opts = fi.length
-        ? fi.map((f) => '<option value="' + f.id + '"' + (f.id === sel ? ' selected' : '') + '>' + esc(f.nome) + '</option>').join('')
-        : '<option value="' + r.id + '"' + (r.id === sel ? ' selected' : '') + '>' + esc(r.nome) + '</option>';
-      return '<optgroup label="' + esc(r.nome) + '">' + opts + '</optgroup>';
+      const itens = (CB.catEscolhivel(r) || r === extra ? [r] : [])
+        .concat(todas.filter((c) => c.pai === r.id && (CB.catEscolhivel(c) || c === extra)));
+      if (!itens.length) return '';
+      return '<optgroup label="' + esc(r.nome) + (r.inativa ? ' · INATIVA' : '') + '">' +
+        itens.map(opt).join('') + '</optgroup>';
     }).join('');
   }
   const optMeios = (filtro) => CB.meios().filter(filtro || (() => true))

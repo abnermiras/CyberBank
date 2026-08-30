@@ -257,6 +257,10 @@ Nada precisa ser recalculado: como saldo é sempre a soma dos lançamentos
   `PREVISTO → PROVISIONADO → REALIZADO`, nunca ao contrário. Só a **correção** do usuário
   volta, e sempre com histórico.
 - Lançamento de conta inativa não é criado (`docs/02-dominio/conta.md`).
+- Categoria inativa não aparece no seletor, mas continua recebendo o que o ciclo cria —
+  a parcela que ainda vai nascer e a ocorrência de recorrência nascem na categoria
+  original (`docs/02-dominio/categoria.md`). E o seletor de um lançamento que **já
+  aponta** para uma categoria inativa continua exibindo essa categoria, selecionada.
 - A **categoria** é sempre do mesmo ambiente do lançamento.
 - Todo lançamento que o ciclo cria nasce com a **categoria de sistema** da operação dele — e
   por isso nenhum deles aparece na fila de pendências (`docs/02-dominio/categoria.md`).

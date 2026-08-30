@@ -1,7 +1,7 @@
 ---
 id: 02-dominio/categoria
 titulo: Categoria
-dono: a arvore de categorias, o sentido, e o que acontece ao renomear, mover ou excluir
+dono: a arvore de categorias, o sentido, e o que acontece ao renomear, mover, inativar ou excluir
 ler-junto: [02-dominio/lancamento, 02-dominio/regras-categorizacao, 02-dominio/orcamento]
 status: rascunho
 ---
@@ -34,7 +34,9 @@ Regras da árvore:
 - Subcategoria **não tem filhos**. Se algo pede um terceiro nível, ele vira duas
   subcategorias irmãs.
 - O lançamento aponta para **uma** categoria, raiz ou subcategoria. Raiz só é escolhível
-  se não tiver subcategorias — se tem filhos, escolher o pai é escolher "não sei qual".
+  se não tiver subcategoria **ativa** — se tem filhos, escolher o pai é escolher "não sei
+  qual". O "ativa" importa: inativar todas as subcategorias devolve a raiz para a escolha
+  (ver *Inativar*).
 - Todo relatório **agrupa pela raiz**. "Quanto gastei com transporte" é a soma das
   subcategorias mais o que estiver na própria raiz.
 - Em **que mês** cada lançamento conta é regra de `docs/02-dominio/lancamento.md` (seção
@@ -141,11 +143,74 @@ livre e o histórico acompanha sem reescrever nada.
 | Renomear | Livre. O histórico passa a exibir o nome novo |
 | Mover subcategoria para outra raiz | Permitido, e **o relatório do passado muda junto** — aquele gasto passa a contar na raiz nova |
 | Mudar o sentido | Só enquanto a categoria não tiver nenhum lançamento |
-| Inativar | Some da lista de escolha; o histórico continua exibindo e somando normalmente |
+| Inativar | Some da lista de escolha; o histórico continua exibindo e somando normalmente. Reversível — ver *Inativar* abaixo |
 | Excluir | Só se nunca teve lançamento. Com histórico, o caminho é inativar |
 
 **Nada nesta tabela vale para categoria de sistema:** ela não se renomeia, não se move, não se
 inativa e não se exclui. O sistema depende dela por identidade.
+
+## Inativar
+
+Inativar é o **excluir de quem tem histórico**: some da escolha, e nada do que já foi lançado
+se mexe. É lógico, nunca físico — o lançamento referencia a categoria por identidade, e apagar
+a linha apagaria a resposta de "onde meu dinheiro foi" em todo mês que a usou.
+
+`inativa` é campo da categoria, e a decisão de inativar é **do usuário, sempre**. O sistema
+nunca inativa nada por desuso, por prazo ou por qualquer outro critério: uma categoria inativa
+continua no histórico para sempre, e ela "some" só no sentido de que os meses antigos saem da
+tela conforme o usuário olha para frente. Nada de exclusão automática — pela regra 7 do
+`CLAUDE.md`, o sistema não apaga o que o usuário não mandou apagar.
+
+### A raiz esconde a árvore, e não mexe nos filhos
+
+A subcategoria é escolhível se **ela está ativa e a raiz dela está ativa**. É herança na
+leitura, não cascata na escrita: inativar `Sustento` tira `Mercado`, `Restaurante` e `Delivery`
+da escolha sem gravar nada neles, e reativar a raiz devolve exatamente o jogo que estava ativo
+antes.
+
+A alternativa — gravar `inativa = true` em cada filho — destrói na ida a informação de quais
+filhos o usuário já tinha inativado à mão, e a volta não tem como reconstruir. É a mesma forma
+já escrita para a conta inativa, que não toca nos meios dela
+(`docs/02-dominio/conta.md`).
+
+### Escolhível conta filho ATIVO
+
+A regra *"raiz com subcategorias não é escolhível"* mede **subcategoria ativa**. Se todas as
+subcategorias de uma raiz forem inativadas, a raiz **volta a ser escolhível**.
+
+Sem isso, inativar os três filhos de `Sustento` apagaria `Sustento` como destino possível — a
+árvore inteira sairia do seletor e o usuário perderia a categoria sem ter pedido para perdê-la.
+Com a regra medindo o ativo, inativar todas as subcategorias passa a ser o caminho natural para
+**simplificar uma árvore de volta a uma categoria plana**, que é a operação inversa de ganhar a
+primeira subcategoria.
+
+Consequência aceita: a escolhibilidade de uma raiz **oscila**. Ela é escolhível ao nascer,
+deixa de ser no primeiro filho ativo, volta a ser quando o último filho ativo some, e deixa de
+novo se o usuário reativar um. Isso é de propósito — a regra responde *"existe um destino mais
+específico agora?"*, e a resposta muda com o tempo.
+
+### Inativa barra a escolha, não o ciclo
+
+Categoria inativa **não recebe lançamento novo do usuário**, e continua recebendo o que o ciclo
+produz sozinho: a parcela 7/10 que ainda vai nascer e a ocorrência do mês que vem de uma
+recorrência nascem na categoria original, mesmo inativada depois da compra.
+
+É a mesma forma da conta inativa, que já está escrita assim (`docs/02-dominio/conta.md`):
+recusa o lançamento do usuário, e o ciclo continua. O motivo é o relatório — parcela que muda
+de categoria no meio parte o parcelamento em duas metades, e inativar a categoria não é um
+pedido para reclassificar uma compra que já aconteceu.
+
+Consequência aceita: uma categoria inativa pode ganhar lançamento novo depois de inativada. A
+tela mostra a categoria como inativa e o lançamento aparece no histórico dela normalmente.
+
+### Editar lançamento antigo
+
+O seletor de um lançamento que **já aponta** para uma categoria inativa continua exibindo essa
+categoria, marcada como inativa e já selecionada. Sem isso, corrigir o valor de um lançamento
+de dois anos atrás apagaria a categoria dele — a tela ofereceria uma lista que não contém a
+escolha atual, e salvar mandaria o lançamento para a fila de pendências.
+
+Trocar para outra categoria continua livre; o que a tela não faz é **forçar** a troca.
 
 O caso do "mover" é o único que muda o passado. Foi escolhido assim porque a alternativa —
 congelar a árvore depois do primeiro lançamento — deixaria o usuário preso a uma
@@ -172,9 +237,13 @@ Como a categoria é atribuída automaticamente é assunto de
 - Toda categoria pertence a exatamente um ambiente e nunca muda de ambiente.
 - A árvore tem no máximo dois níveis: subcategoria não tem filhos.
 - Subcategoria tem o mesmo `sentido` da raiz.
-- Categoria raiz com subcategorias não é escolhível num lançamento.
+- Categoria raiz com subcategoria **ativa** não é escolhível num lançamento.
 - Categoria com qualquer lançamento não pode ser excluída nem ter o sentido alterado.
 - Categoria inativa não aparece para escolha, mas continua somando no histórico.
+- Subcategoria de raiz inativa não aparece para escolha, **e o campo `inativa` dela não muda**.
+- Categoria inativa não recebe lançamento novo **do usuário**; o que o ciclo produz sozinho
+  continua nascendo nela.
+- Nenhuma categoria é inativada nem excluída pelo sistema: inativar é sempre ato do usuário.
 - Categoria de sistema não se renomeia, não se move, não se inativa e não se exclui.
 - Categoria de sistema é sempre raiz e nunca tem subcategoria.
 - Todo ambiente nasce com o jogo completo de categorias de sistema, no mesmo ato que o cria —

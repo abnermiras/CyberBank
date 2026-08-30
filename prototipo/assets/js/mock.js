@@ -46,9 +46,10 @@
   const novoMeio = (o) => { const m = Object.assign({ id: CB.id('mei') }, o); S.meios.push(m); return m.id; };
 
   function arvore(ambiente, sentido, nome, cor, filhos) {
-    const raiz = { id: CB.id('cat'), ambiente, nome, cor, sentido, pai: null };
+    const raiz = { id: CB.id('cat'), ambiente, nome, cor, sentido, pai: null, inativa: false };
     S.categorias.push(raiz);
-    (filhos || []).forEach((f) => S.categorias.push({ id: CB.id('cat'), ambiente, nome: f, cor, sentido, pai: raiz.id }));
+    (filhos || []).forEach((f) => S.categorias.push({ id: CB.id('cat'), ambiente, nome: f, cor,
+      sentido, pai: raiz.id, inativa: false }));
     return raiz.id;
   }
   const sub = (raizId, nome) => { const r = S.categorias.find((c) => c.id === raizId);
@@ -182,6 +183,18 @@
   // faxina de seed: o parcelamento cria FUTURA contando a partir da ABERTA e o
   // helper de historico as remaneja, deixando uma fatura vazia na ponta.
   S.faturas = S.faturas.filter((f) => !(f.status === 'FUTURA' && CB.totalFatura(f.id) === 0));
+
+  // UMA CATEGORIA INATIVA NO SEED, e de proposito com HISTORICO.
+  // Existe pelo mesmo motivo da Poupanca nunca atualizada: a regra precisa de algo para
+  // marcar. "Academia" tem 3 lancamentos — alguem largou a academia e inativou a
+  // categoria. A prova esta em ver os 3 continuarem somando no relatorio de LAZER
+  // enquanto a categoria NAO aparece mais no seletor do quick-add.
+  // Inativada AQUI, no fim: os lancamentos dela nasceram antes, como na vida real, e o
+  // guarda de `lancar` recusaria cria-los depois.
+  (function () {
+    const aca = S.categorias.find((k) => k.ambiente === PESSOAL && k.nome === 'Academia');
+    if (aca) CB.inativarCategoria(aca.id);
+  }());
 
   S.hoje = HOJE;
   S.log.length = 0;
