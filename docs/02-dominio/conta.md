@@ -90,10 +90,16 @@ Como o lançamento tem situação `PREVISTO`, `PROVISIONADO` ou `REALIZADO`
 (`docs/02-dominio/lancamento.md`), o saldo tem duas leituras, e elas nunca se misturam
 na mesma tela sem rótulo:
 
+A fatura entra no projetado por **consulta**, não por lançamento: o sistema não cria pagamento
+previsto de fatura, porque não sabe de qual conta nem em que dia você vai pagar
+(`docs/02-dominio/fatura-pagamento.md`). Se você já agendou o pagamento, ele é um `PREVISTO`
+como outro qualquer — e o `a pagar` daquela fatura já caiu no mesmo valor, então nada é
+contado duas vezes.
+
 | Leitura | Como se calcula | Para que serve |
 |---|---|---|
 | **Saldo realizado** | Tudo que **já aconteceu** até hoje: `REALIZADO` e `PROVISIONADO` (`ADR-0006`) | Quanto tem na conta agora — e, na `CARTAO`, quanto se deve |
-| **Saldo projetado** | Realizado mais o `PREVISTO` até uma data futura | Quanto sobra até o fim do mês |
+| **Saldo projetado** | Realizado mais o `PREVISTO` até uma data futura, **menos o `a pagar` das faturas que vencem até lá** | Quanto sobra até o fim do mês |
 
 **Saldo inicial é um lançamento**, não um campo: ao criar a conta com saldo existente,
 nasce um lançamento de abertura naquele valor, `REALIZADO` — o dinheiro já está lá. Assim a frase "saldo é a soma dos
@@ -112,7 +118,7 @@ do `CLAUDE.md` e não-objetivo do roadmap.
 | Criação | Nome, tipo e saldo inicial (que vira lançamento de abertura) |
 | Criação de uma `CARTAO` | Mais limite, dia do vencimento, quantos dias antes fecha e conta pagadora padrão. Nasce já com a fatura `ABERTA` do ciclo corrente (`docs/02-dominio/fatura-cartao.md`) |
 | Edição | Nome livre. **Tipo não muda** depois de existir lançamento — mudaria o significado do histórico |
-| Inativação | Não aceita lançamento novo **do usuário**; histórico e saldo continuam existindo e visíveis. Numa `CARTAO`, o ciclo da fatura continua correndo — cancelar cartão não perdoa dívida |
+| Inativação | Não aceita lançamento novo **do usuário**; histórico e saldo continuam existindo e visíveis. **Os `PREVISTO` dela são descartados** — não vão acontecer, a conta saiu da sua vida. Numa `CARTAO`, o ciclo da fatura continua correndo: cancelar cartão não perdoa dívida |
 | Exclusão | Só se a conta nunca teve lançamento. Com histórico, o caminho é inativar |
 
 Quem pode: dono e editor. Leitor não mexe (`docs/02-dominio/ambiente-financeiro.md`).
@@ -126,9 +132,11 @@ Quem pode: dono e editor. Leitor não mexe (`docs/02-dominio/ambiente-financeiro
 - Conta `BENEFICIO` não é origem nem destino de transferência: o saldo dela não é fungível.
   Entra por receita (o crédito do benefício) e sai por gasto no meio dele.
 - Conta inativa não recebe lançamento novo **do usuário** — nem previsto, nem por captura. O
-  que o ciclo da fatura produz sozinho (rolagem e pagamento previsto) continua nascendo numa
-  `CARTAO` inativada, até a dívida acabar (`docs/02-dominio/fatura-cartao.md`).
-- Uma conta com qualquer lançamento não pode ser excluída.
+  que o ciclo da fatura produz sozinho (a rolagem) continua nascendo numa `CARTAO` inativada,
+  até a dívida acabar (`docs/02-dominio/fatura-cartao.md`).
+- Uma conta com qualquer lançamento **realizado** não pode ser excluída: os realizados são
+  histórico e o saldo depende deles. O caminho é inativar, e inativar **descarta os
+  `PREVISTO`** da conta.
 - Conta com `entraNoFluxoDeCaixa = false` não é origem de compra: nenhum meio de
   pagamento aponta para ela.
 - Só meio `CREDITO` aponta para conta `CARTAO`, e todo `CREDITO` aponta para uma.

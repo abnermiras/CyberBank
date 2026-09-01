@@ -39,5 +39,6 @@ nome de variável, ou coisa que cabe no doc do módulo.
 | 0004 | [Conta e cartão podem ser compartilhados entre ambientes](ADR-0004-compartilhamento-entre-ambientes.md) | aceita | 2026-08-28 |
 | 0005 | [O que vence sem ser pago rola para a fatura seguinte](ADR-0005-rolagem-entre-faturas.md) | aceita · substitui uma consequência da 0003 | 2026-08-28 |
 | 0006 | [`PROVISIONADO`, a situação entre o fato e a liquidação](ADR-0006-situacao-provisionado.md) | aceita | 2026-08-28 |
+| 0007 | [O sistema envia e-mail, e só para recuperar senha](ADR-0007-email-so-para-recuperar-senha.md) | aceita | 2026-09-01 |
 
 _(adicione uma linha por ADR)_

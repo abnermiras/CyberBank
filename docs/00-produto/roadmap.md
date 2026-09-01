@@ -92,8 +92,8 @@ corrente** · meta com valor-alvo, prazo e progresso.
 
 **Pronto quando:** o sistema responde "estourei o orçamento" e projeta saldo **além do ciclo
 corrente**, a partir da regra da recorrência e não de lançamento pré-criado. O "quanto sobra
-até o fim do mês" do ciclo corrente já é da Fase 1, pelo pagamento previsto que nasce no
-fechamento da fatura.
+até o fim do mês" do ciclo corrente já é da Fase 1: o projetado desconta o `a pagar` das
+faturas que vencem no período, por consulta (`docs/02-dominio/conta.md`).
 
 > ☐ **Em aberto:** recorrência pode precisar subir para a Fase 2 — ela é barata e é
 > pré-requisito da projeção. Decidir ao fechar a Fase 1, com o modelo de lançamento na mão.

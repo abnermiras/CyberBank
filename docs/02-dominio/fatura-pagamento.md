@@ -31,6 +31,17 @@ contado uma vez, na compra.
 do `fatura` do lançamento de crédito: o pagamento **quita** a fatura, não **entra** nela — e
 por isso não conta no total dela (`docs/02-dominio/lancamento.md`).
 
+**E o pagamento é sempre seu.** O sistema não cria nenhum — nem no fechamento, nem previsto.
+Você abre a fatura e diz o que vai fazer: qual conta paga, em que dia, e quanto. Marcando um
+dia à frente, o lançamento nasce `PREVISTO` e **realiza pela data**, como um boleto
+registrado; marcando hoje, nasce `REALIZADO`. É declaração sua, não palpite do sistema — e
+por isso não precisa de confirmação depois.
+
+> **Exemplo literal.** Fatura de R$ 1.000 fecha em 10/10 e vence em 20/10. O sistema não faz
+> nada. Você agenda R$ 900 pelo Nubank em 19/10: nasce `PREVISTO`, aparece no extrato do
+> Nubank e entra em "quanto sobra até o fim do mês". Dia 19 ele realiza. Dia 21 a rotina acha
+> R$ 100 a pagar e rola para a fatura seguinte.
+
 **Quem liquida é o encerramento da fatura**, e ela encerra de dois jeitos: **quitada** — a
 soma dos pagamentos cobre o total — ou **vencida sem ser quitada**, e aí o que faltou rola.
 Nos dois casos os lançamentos dela saem de `PROVISIONADO` e viram `REALIZADO` (`ADR-0006`).
@@ -41,7 +52,7 @@ dizer. Chamar de liquidado o que ainda se deve é a confusão que o `ADR-0006` d
 
 | Caso | O que acontece |
 |---|---|
-| Pagar tudo | O pagamento previsto vira `REALIZADO`, com a data e a conta reais |
+| Pagar tudo | Uma transferência no valor do `a pagar`. Se você tinha agendado, é o agendamento que realiza |
 | **Pagar menos** | O valor do pagamento é o que foi pago. A fatura fica **parcial** e **nada é liquidado**; se ela vencer assim, o que sobrou rola e ela encerra — ver Encerramento |
 | **Pagar de outra conta** | Troca-se a conta de origem do pagamento. Qualquer conta que o ambiente acesse serve |
 | **Pagar em dois ou mais pedaços** | Duas transferências para a mesma fatura. A soma quita (`docs/02-dominio/compartilhamento.md`) |
@@ -75,8 +86,11 @@ de sistema, fora do relatório de gasto — aplicada entre faturas em vez de ent
    dívida**, e o limite voltaria inteiro sem ninguém ter pago nada.
 3. **Todos os lançamentos da fatura vencida viram `REALIZADO`**, o crédito de rolagem
    inclusive. Ela acabou: parte paga, parte rolada, nada mais a cobrar nela.
-4. **O pagamento previsto que ela ainda tinha é descartado.** Um previsto datado num
-   vencimento que já passou era metade do furo que o `ADR-0005` veio tapar.
+4. **O que você tiver agendado não é tocado.** O sistema não apaga lançamento do usuário. Um
+   pagamento marcado para depois do vencimento realiza no dia que você escolheu e entra na
+   conta `CARTAO` do mesmo jeito — a dívida já está na fatura seguinte, e o dinheiro a abate
+   lá. O `a pagar` da fatura encerrada fica negativo, que é crédito, e isso já é caso
+   conhecido (ver *Corrigir o passado*).
 
 Fatura quitada no prazo não passa por nada disso: o pagamento cobriu o total, os lançamentos
 dela viram `REALIZADO` na hora e não há o que rolar.
@@ -203,7 +217,8 @@ passado é permitido, mas nunca silencioso.
 - O total histórico de uma fatura **não cai** quando ela rola.
 - O **débito** de rolagem nasce `PROVISIONADO`; o crédito e os demais lançamentos da fatura
   encerrada viram `REALIZADO`.
-- Fatura encerrada **não deixa pagamento previsto** datado no passado.
+- **O sistema nunca cria nem apaga pagamento de fatura.** Quem cria, agenda e cancela é o
+  usuário — inclusive o previsto, que é declaração dele e realiza pela data.
 - Nenhum valor de pagamento informado pelo usuário é reescrito sem ele mandar.
 
 ## Fronteiras com outros docs

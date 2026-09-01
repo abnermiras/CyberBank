@@ -48,7 +48,7 @@ O usuário não informa duas datas soltas. Ele informa o que sabe de cabeça, na
 |---|---|
 | `diaVencimento` | 5 |
 | `diasAntesFechamento` | 8 |
-| `contaPagadoraPadrao` | A `Nubank` |
+| `contaPagadoraPadrao` | A `Nubank`. **É só o que vem preenchido** no formulário de pagamento — nada nasce dela sozinho |
 
 Cada fatura nasce com as duas datas calculadas:
 
@@ -154,24 +154,34 @@ A automação decide só onde o lançamento **nasce**. Depois disso, quem manda 
 
 ## Fechamento
 
-Automático, e é o gatilho de mais coisa do que parece:
+Automático, e faz **duas** coisas — nem uma a mais:
 
 1. A fatura `ABERTA` cuja `dataFechamento` chegou vira `FECHADA`. **Nenhuma situação muda
    aqui:** fechar é recortar o período, não liquidar. Quem liquida é o **encerramento**
    (`docs/02-dominio/fatura-pagamento.md`).
 2. A `FUTURA` seguinte vira `ABERTA` — criada na hora se não existir.
-3. Nasce o **pagamento previsto**: uma transferência `PREVISTO` da `contaPagadoraPadrao`
-   para a conta `CARTAO`, no valor da fatura, com `dataEfeito` no vencimento.
+
+**O fechamento não cria pagamento nenhum.** Já criou: nascia aqui uma transferência
+`PREVISTO` da `contaPagadoraPadrao` para a conta `CARTAO`, no valor da fatura, com
+`dataEfeito` no vencimento. Ela caiu pela razão que sustenta o resto do modelo — **o sistema
+não sabe como você vai pagar.** Escolher a conta era afirmar um fato não observado: você pode
+sacar mil reais e pagar em dinheiro, e a saída prevista ficaria parada num banco que nunca
+seria debitado. Era o segundo ponto do modelo em que o sistema afirmava o que não viu, e o
+primeiro já tem preço nomeado (`docs/02-dominio/meio-de-pagamento.md`).
+
+Quem cria o pagamento é o **usuário**, quando quiser, escolhendo fatura, conta, dia e valor
+(`docs/02-dominio/fatura-pagamento.md`).
 
 > **Passo que entra com a recorrência.** O fechamento também varre as **recorrências ativas**
 > do cartão e lança a ocorrência do ciclo na fatura recém-aberta
 > (`docs/02-dominio/recorrencia.md`), **sem repetir** o que já lançou naquele ciclo. A regra
 > está decidida — ela vira código quando a recorrência entrar
-> (`docs/00-produto/roadmap.md`). Até lá o fechamento tem três passos.
+> (`docs/00-produto/roadmap.md`). Até lá o fechamento tem dois passos.
 
-O passo 3 é o que mantém a promessa do produto. Como a compra no crédito não toca mais a
-conta corrente, é o pagamento previsto que faz "quanto sobra até o fim do mês" continuar
-contando a fatura que vai vencer.
+E a promessa do produto continua de pé sem ele: **"quanto sobra até o fim do mês" desconta o
+`a pagar` das faturas que vencem no período** (`docs/02-dominio/conta.md`), por consulta —
+não por um lançamento inventado para segurar o número. É o mesmo movimento da pendência e da
+dívida: o que se deriva não se guarda.
 
 **O fechamento é idempotente e recupera atraso.** Se a rotina não rodou — o Raspberry Pi
 estava desligado, o container caiu — ela roda depois e fecha **todos** os ciclos vencidos,
@@ -180,11 +190,10 @@ um a um, na ordem. Fechar duas vezes a mesma fatura não faz nada.
 **Fechar e abrir à mão existem como contingência**, não como fluxo normal: o banco fechou em
 dia diferente, a rotina não rodou quando devia.
 
-**Fatura sem nenhum lançamento fecha do mesmo jeito**, com total zero, e não gera pagamento
-previsto — não há o que pagar.
+**Fatura sem nenhum lançamento fecha do mesmo jeito**, com total zero.
 
 **Cada passo que de fato acontece grava um evento** (`docs/02-dominio/evento.md`):
-`FATURA_FECHADA`, `FATURA_ABERTA_PELO_CICLO` e `PAGAMENTO_PREVISTO_CRIADO`. A idempotência
+`FATURA_FECHADA` e `FATURA_ABERTA_PELO_CICLO`. A idempotência
 vale para o evento também: a rotina roda todo dia, e **rodada que não fecha nada não grava
 nada** — Diário cheio de "nada aconteceu" é Diário que ninguém lê. Quando o fechamento
 recupera atraso, cada ciclo recuperado grava os seus eventos **no dia em que a rotina rodou**,
@@ -205,7 +214,7 @@ acabou de fechar.
 | A fatura seguinte | Volta a `FUTURA` na hora. Deixa de receber compra nova, e nada mais |
 | O que já estava dentro dela | **Fica onde está.** Parcelas e ocorrências de recorrência não se mexem |
 | Compras que caíram nela por engano | O usuário move, uma a uma, pela edição do lançamento |
-| O pagamento previsto que já tinha nascido | Volta a acompanhar o total, enquanto não tiver sido pago |
+| Um pagamento que você já tinha agendado | **Fica.** É seu, e o sistema não mexe no que você criou |
 
 ## Dívida e limite
 
@@ -238,7 +247,7 @@ mexe.
 - Só a **última fatura fechada** pode ser aberta, e abrir devolve a seguinte para `FUTURA`
   sem mexer no que ela já contém.
 - O fechamento nunca lança a mesma recorrência duas vezes na mesma fatura.
-- Fatura sem lançamento fecha com total zero e não gera pagamento previsto.
+- **O fechamento não cria pagamento.** Quem cria é o usuário, escolhendo conta, dia e valor.
 - **Fechar não liquida nada; encerrar sim.** Uma fatura encerra ao ser quitada ou ao vencer
   e rolar — e só então os lançamentos dela deixam de ser `PROVISIONADO`.
 - Cartão inativado **mantém a fatura em aberto viva** até fechar e ser paga.

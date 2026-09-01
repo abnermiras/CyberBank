@@ -87,8 +87,9 @@ diverge. Recusar um pedido é mover uma linha lá, nunca abrir uma exceção aqu
 
 ## Decisões em aberto
 
-- [ ] Quando abrir cadastro para além do círculo próximo. A Fase 4 do roadmap lista o
-      que precisa estar pronto antes (segurança, backup de dado de terceiro, LGPD), mas
-      o gatilho de "agora dá" ainda não existe.
+- [ ] **Quando FECHAR o cadastro.** A pergunta inverteu: o cadastro **já é aberto** a quem
+      alcança o sistema, e hoje isso quer dizer a rede local
+      (`docs/02-dominio/ambiente-financeiro.md`). O gatilho de fechar é sair dela — a Fase 4
+      lista o que precisa estar pronto antes (segurança, backup de dado de terceiro, LGPD).
 - [ ] Se o Cyberbank continua sendo software de uso pessoal ou vira produto para outros.
       A resposta muda suporte, migração de dado e o que pode quebrar entre versões.

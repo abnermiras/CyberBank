@@ -51,7 +51,7 @@ sem dono nem com dois.
 | Quem convida | Só o dono |
 | Como | O dono digita o **e-mail** do convidado — que é o identificador de login — e o papel |
 | Por onde chega | **Dentro do sistema**, na área de perfil da pessoa: aceitar ou recusar |
-| O sistema manda e-mail? | **Não.** Não há serviço de e-mail no Pi, e custo externo zero é restrição. O e-mail identifica a pessoa; o convite vive no app |
+| O sistema manda e-mail? | **Não — e não é por falta de e-mail.** O sistema tem e-mail, e ele serve a **uma** coisa: recuperar senha (`ADR-0007`). Convite, compartilhamento, vínculo e qualquer aviso a quem já está dentro chegam **pelo sistema**. A razão é de produto, não de infraestrutura: **informação que é do sistema chega pelo sistema** — e isso continua valendo onde quer que o Cyberbank rode |
 | Convidado sem cadastro | O convite fica pendente; ao se cadastrar com aquele e-mail, ele aparece |
 | Antes do aceite | O convidado **não vê nada** do ambiente. Convite pendente não é acesso |
 | Trocar o papel de alguém | Só o dono, a qualquer momento, com efeito imediato |
@@ -83,7 +83,8 @@ ele"*.
 
 | Momento | O que acontece |
 |---|---|
-| Cadastro de usuário | Ganha um ambiente próprio já criado, do qual é dono |
+| Quem pode se cadastrar | **Qualquer pessoa que alcance o sistema** — hoje, quem está na rede local. Sem convite prévio e sem aprovação |
+| Cadastro de usuário | Um ato só, com três efeitos: cria o usuário; cria o ambiente **"Ambiente Pessoal"** (nome padrão, renomeável) do qual ele é dono; e cria nele o jogo completo de categorias de sistema (`docs/02-dominio/categoria.md`) |
 | Criar mais ambientes | Livre. "Pessoal", "Casa", "Empresa" |
 | Renomear | Dono e editor |
 | Exclusão | Ver tabela de convite e saída. Apaga todo o dado do ambiente |

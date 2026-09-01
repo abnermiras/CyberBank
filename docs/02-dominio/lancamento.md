@@ -181,14 +181,18 @@ Regras do par:
 
 ## Lançamento que o sistema cria
 
-Nem todo lançamento sai de alguém digitando. Quatro nascem do ciclo: os dois lados da
-**rolagem**, o **pagamento previsto** que o fechamento gera, o **lançamento de abertura** de
-uma conta e — quando a recorrência entrar — a **ocorrência do ciclo**.
+Nem todo lançamento sai de alguém digitando. Três nascem do ciclo: os dois lados da
+**rolagem**, o **lançamento de abertura** de uma conta e — quando a recorrência entrar — a
+**ocorrência do ciclo**.
+
+**Pagamento de fatura não está nessa lista, e é de propósito**: o sistema não sabe de qual
+conta nem em que dia você vai pagar, então não inventa o lançamento
+(`docs/02-dominio/fatura-pagamento.md`).
 
 | Campo | Valor |
 |---|---|
 | `autor` | O **dono do ambiente** ao qual a conta pertence, no instante em que o lançamento nasce |
-| `ambiente` | O do **dono do objeto**: a conta `CARTAO` na rolagem e no pagamento previsto, a conta no lançamento de abertura. A regra "o ambiente é o de quem lançou" não se aplica quando ninguém lançou |
+| `ambiente` | O do **dono do objeto**: a conta `CARTAO` na rolagem, a conta no lançamento de abertura. A regra "o ambiente é o de quem lançou" não se aplica quando ninguém lançou |
 
 O `autor` continua **obrigatório** de propósito. Um campo que aceita vazio obriga toda
 consulta e toda tela a tratar o vazio, e um bug que esquecesse de preenchê-lo passaria
@@ -237,12 +241,11 @@ A fronteira é uma só, e é o espelho da regra já escrita para conta e categor
 | Um lado de uma transferência | Sim, mas age no **par inteiro**. Não existe metade de transferência |
 | **Parcela isolada** de um parcelamento | **Não.** Quebraria a soma das parcelas, e o usuário já não edita parcela sozinha. Quem se arrepende exclui o parcelamento (`docs/02-dominio/recorrencia.md`) |
 | Lançamento que **tem estorno** apontando para ele | **Não**, enquanto o estorno existir: ele ficaria órfão. Exclui-se o estorno primeiro, se ele também for engano |
-| **Par de rolagem**, **pagamento previsto**, **lançamento de abertura** | **Não.** São do ciclo. O saldo de abertura se corrige editando o valor |
+| **Par de rolagem** e **lançamento de abertura** | **Não.** São do ciclo. O saldo de abertura se corrige editando o valor |
 
-O que o ciclo criou e perdeu o motivo, o próprio ciclo **descarta** — o pagamento previsto de
-uma fatura que encerrou, o de uma fatura que o usuário abriu
-(`docs/02-dominio/fatura-pagamento.md`). Descartar é o sistema agindo sobre o que ele mesmo
-criou, e não é a exclusão desta seção.
+**Pagamento de fatura é do usuário**, inclusive o agendado: ele o cria, o edita e o exclui
+como qualquer outro lançamento (`docs/02-dominio/fatura-pagamento.md`). O sistema não cria e
+não apaga nenhum.
 
 **Nada é recalculado**, porque nada é armazenado: saldo, total de fatura, dívida e patrimônio
 são todos soma de lançamento (`docs/02-dominio/conta.md`), e tirar a linha já refaz tudo que

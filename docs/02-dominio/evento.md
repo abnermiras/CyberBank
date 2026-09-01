@@ -105,7 +105,6 @@ critério do resto do projeto.
 | `LANCAMENTO_REALIZADO` | A `dataEfeito` chegou e o previsto virou realizado |
 | `FATURA_FECHADA` | O ciclo fechou a fatura no dia do fechamento |
 | `FATURA_ABERTA_PELO_CICLO` | A seguinte foi aberta no mesmo passo |
-| `PAGAMENTO_PREVISTO_CRIADO` | O fechamento criou o previsto de pagamento |
 | `FATURA_ROLADA` | Venceu sem quitar e o que faltou rolou (`ADR-0005`) |
 | `FATURA_ENCERRADA` | Quitada, ou vencida e rolada — e só aqui os lançamentos dela saem de `PROVISIONADO` |
 | `OCORRENCIA_DE_RECORRENCIA` | O ciclo lançou a ocorrência (entra com a recorrência) |
