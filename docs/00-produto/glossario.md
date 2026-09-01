@@ -43,8 +43,9 @@ O glossário define **o que a palavra significa**. Quem define **as regras** é 
 | **Meio de pagamento** | *Como* a compra foi paga (débito, crédito, Pix, dinheiro, benefício, boleto). Distinto de conta, e sempre apontando para uma. Só o **boleto** separa as duas datas; em todo o resto, crédito incluído, `dataEfeito = dataEvento`. | `02-dominio/meio-de-pagamento` |
 | **Débito automático** | **Não é meio de pagamento.** O meio é débito; "automático" é fato da recorrência, que se paga sem o usuário agir. | `02-dominio/recorrencia` |
 | **Transferência** | Movimento de dinheiro entre duas contas acessíveis ao ambiente do lançamento — próprias, ou compartilhadas com ele. São **dois lançamentos** ligados pelo mesmo id, sentidos opostos. Carrega **categoria de sistema** e não é gasto. | `02-dominio/lancamento` |
-| **Correção** | Arrumar um registro errado (valor digitado errado, categoria errada). **Edita** o lançamento e guarda o histórico. | `02-dominio/lancamento` |
+| **Correção** | O registro está errado, mas descreve algo que aconteceu (valor digitado errado, categoria errada). **Edita** o lançamento, e o que mudou vira evento. | `02-dominio/lancamento` |
 | **Estorno** | O dinheiro voltou de verdade: compra cancelada, devolução, chargeback. É um **lançamento novo** de sentido oposto, não uma edição. | `02-dominio/lancamento` |
+| **Exclusão** | O lançamento **nunca correspondeu a nada**: duplicata, valor inventado, linha lançada por engano. **Remove** o lançamento, e a remoção vira evento. Só vale para o que o usuário lançou — o que o ciclo cria, só o ciclo descarta. | `02-dominio/lancamento` |
 | **Situação** | Em que ponto entre o **fato** e a **liquidação** o lançamento está. Três valores: `PREVISTO` (vai acontecer), `PROVISIONADO` (aconteceu, falta liquidar) e `REALIZADO` (aconteceu e liquidou). Só anda para frente. O teste de "entra no saldo" é `situacao !== PREVISTO`, **nunca** `=== REALIZADO`. | `02-dominio/lancamento`, `ADR-0006` |
 | **Abrir fatura** | Devolver a **última fatura fechada** ao estado `ABERTA`, porque o ciclo ainda estava correndo. Não existe estado "reaberta", e corrigir o passado **não** exige abrir fatura: fatura fechada não congela nada. | `02-dominio/fatura-cartao` |
 | **Encerrar fatura** | O fim do ciclo de cobrança: a fatura é **quitada**, ou **vence sem ser quitada** e o que faltou rola. É o encerramento que liquida os lançamentos dela — nem o fechamento, nem um pagamento parcial. | `02-dominio/fatura-pagamento` |
@@ -124,7 +125,7 @@ Palavra ambígua vira modelo ambíguo. Não use:
 | "ambiente" para dev/homologação/produção | **ambiente de execução** |
 | "investimento" como sinônimo solto | **aplicação** (investir é o ato, aplicação é a coisa) |
 | "aplicação" para se referir ao software | **o sistema** (aplicação é dinheiro investido) |
-| "estorno" para corrigir digitação errada | **correção** (estorno é o dinheiro voltando de verdade) |
+| "estorno" para corrigir digitação errada | **correção** se o lançamento descreve algo que aconteceu, **exclusão** se ele nunca correspondeu a nada. Estorno é o dinheiro voltando de verdade |
 | "fatura reaberta", estado `REABERTA` | **abrir a fatura** (é ação, não estado — e não existe estado de reabertura) |
 | `REALIZADO` como sinônimo de "entra no saldo" | **`!== PREVISTO`** (`PROVISIONADO` também entra) |
 | valor com sinal negativo | **valor positivo + `sentido`** (ENTRADA ou SAIDA) |

@@ -91,9 +91,9 @@ O procedimento, parcela a parcela:
 
 1. Parcela em fatura **aberta** → altera direto.
 2. Parcela em fatura **fechada** e não paga → altera direto; o total se reapura.
-3. Parcela em fatura **paga** → altera, e o sistema pergunta o que fazer com a diferença:
-   ajustar o pagamento, ou deixá-la como saldo da conta `CARTAO`
-   (`docs/02-dominio/fatura-cartao.md`).
+3. Parcela em fatura **paga** → altera, e **o pagamento não é tocado**: se o total subiu, o
+   que a fatura voltou a dever rola para a aberta; se caiu, sobra crédito na conta `CARTAO`
+   (`docs/02-dominio/fatura-pagamento.md`).
 
 O passo 3 não custa nada além do óbvio: como saldo é sempre a soma dos lançamentos e
 nunca um total armazenado (`docs/02-dominio/conta.md`), reescrever o valor **já refaz
@@ -192,9 +192,10 @@ do que o caso comum, e o caso comum não deve pagar o preço do raro.
 - Editar uma série pode, portanto, **mudar o valor de várias faturas de uma vez** —
   inclusive pagas. O sistema mostra **quais** antes de confirmar: mexer numa fatura paga de
   dois meses atrás é permitido, mas nunca pode ser efeito colateral silencioso.
-- Corrigir uma fatura já paga **pergunta** o que fazer com a diferença: ajustar o pagamento
-  ou deixá-la como saldo da conta `CARTAO`. A memória do que mudou vive no histórico de
-  alteração do lançamento, não numa linha de ajuste no extrato.
+- Corrigir uma fatura já paga **nunca reescreve o pagamento**: a diferença vira lançamento —
+  rolagem se a fatura voltou a dever, crédito na conta `CARTAO` se sobrou
+  (`docs/02-dominio/fatura-pagamento.md`). A memória do que mudou vive no evento, não numa
+  linha de ajuste no extrato.
 
 ## Invariantes
 

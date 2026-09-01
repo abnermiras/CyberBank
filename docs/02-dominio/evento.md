@@ -114,15 +114,27 @@ critério do resto do projeto.
 
 | Tipo | Quando |
 |---|---|
-| `LANCAMENTO_CRIADO` · `LANCAMENTO_EDITADO` · `LANCAMENTO_ESTORNADO` | O `EDITADO` carrega o de/para em `dados`: é ele que cumpre o *"sempre com histórico"* |
+| `LANCAMENTO_CRIADO` · `LANCAMENTO_EDITADO` · `LANCAMENTO_ESTORNADO` · `LANCAMENTO_EXCLUIDO` | O `EDITADO` carrega o de/para em `dados`: é ele que cumpre o *"sempre com histórico"*. O `EXCLUIDO` é o único cujo `alvo` aponta para algo que **não existe mais** — ver abaixo |
 | `FATURA_PAGA` | Pagamento de fatura, parcial ou total |
 | `FATURA_ABERTA_PELO_USUARIO` | A última fechada foi reaberta à mão |
 | `VALOR_DE_APLICACAO_INFORMADO` | O usuário atualizou o valor atual — e a **diferença lançada** vem em `dados` |
 | `LIMITE_INFORMADO` | O usuário informou o limite do cartão |
 | `CATEGORIA_CRIADA` · `CATEGORIA_RENOMEADA` · `CATEGORIA_INATIVADA` · `CATEGORIA_REATIVADA` · `CATEGORIA_EXCLUIDA` | Ciclo de vida da categoria (`docs/02-dominio/categoria.md`) |
 | `CONTA_CRIADA` · `CONTA_INATIVADA` · `MEIO_CRIADO` · `MEIO_INATIVADO` | Idem para conta e meio |
-| `SERIE_ALTERADA` · `SERIE_CANCELADA` | Parcelamento ou recorrência |
+| `SERIE_CRIADA` · `SERIE_ALTERADA` · `SERIE_CANCELADA` | Parcelamento ou recorrência |
 | `ACESSO_CONCEDIDO` · `ACESSO_REVOGADO` · `VINCULO_CRIADO` · `VINCULO_REVOGADO` | Quem entrou e quem saiu do ambiente, e o compartilhamento (`ADR-0004`) |
+
+### O evento de exclusão carrega a linha inteira
+
+`LANCAMENTO_EXCLUIDO` é a única exceção à regra *"`dados` não é um espelho do objeto"*, e por
+um motivo mecânico: o `alvo` aponta para um id que não existe mais, então a tela não tem de
+onde ler nada. Os `dados` precisam bastar sozinhos — descrição, valor, sentido, data e conta.
+
+**É ele que torna a exclusão aceitável.** Num ambiente com mais de uma pessoa, o medo do
+"excluir" é o dado sumir sem rastro — *"cadê os R$ 300 que eu lancei?"*. Com o evento, a linha
+some do extrato e **o fato de ela ter sido excluída fica**, com autor e dia. É o mesmo
+argumento que criou esta entidade, virado da automação para a pessoa
+(`docs/02-dominio/lancamento.md`).
 
 ## O que NÃO é evento
 
@@ -172,5 +184,7 @@ Excluir o ambiente apaga os eventos dele, junto com todo o resto
   evento novo, nunca reescrevendo o antigo.
 - Passo de ciclo que não mudou nada não grava evento.
 - Evento não guarda texto pronto para exibição.
+- `LANCAMENTO_EXCLUIDO` guarda em `dados` o bastante para a frase se sustentar **sem o
+  alvo**: é o único evento cujo alvo não existe mais.
 - Todo lançamento que o ciclo cria tem um evento correspondente no mesmo `dia`.
 - Nenhum evento tem `dia` maior que o dia corrente.

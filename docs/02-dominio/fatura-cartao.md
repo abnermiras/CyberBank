@@ -243,7 +243,9 @@ mexe.
   e rolar — e só então os lançamentos dela deixam de ser `PROVISIONADO`.
 - Cartão inativado **mantém a fatura em aberto viva** até fechar e ser paga.
 - Toda conta `CARTAO` tem uma fatura `ABERTA` **desde o instante em que é criada**.
-- Fatura encerrada não recebe pagamento novo: o `a pagar` dela é zero por construção.
+- Fatura encerrada não recebe pagamento novo: o `a pagar` dela é zero por construção — e
+  quando uma correção o torna positivo de novo, quem o devolve a zero é a **rolagem**
+  (`docs/02-dominio/fatura-pagamento.md`).
 
 ## Fronteiras com outros docs
 

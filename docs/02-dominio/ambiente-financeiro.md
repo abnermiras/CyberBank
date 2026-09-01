@@ -97,7 +97,8 @@ ele"*.
 - Todo ambiente tem exatamente um dono.
 - Um usuário tem no máximo um acesso por ambiente (um papel, não vários).
 - Um lançamento **não muda de ambiente**. Nem por edição, nem por correção — o certo é
-  estornar em um e criar no outro, para o saldo dos dois continuar verdadeiro.
+  **excluir** em um e criar no outro (`docs/02-dominio/lancamento.md`), para o saldo dos
+  dois continuar verdadeiro. Não é estorno: ninguém devolveu dinheiro.
 - A **categoria** de um lançamento é sempre do mesmo ambiente dele. Sem exceção.
 - **Conta e meio** podem ser de outro ambiente, e só num caso: existe um vínculo de
   compartilhamento com o ambiente do lançamento (`ADR-0004`,

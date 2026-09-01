@@ -93,6 +93,17 @@ cronológica**, nunca "fecha tudo e depois rola tudo". Se o Raspberry Pi ficou d
 desligado, janeiro rola para a fatura que estava aberta em janeiro; só então fevereiro fecha,
 vence e rola. Rolar duas vezes a mesma fatura não faz nada.
 
+**O gatilho é o `a pagar`, não um carimbo de "já encerrei esta".** A rotina procura fatura
+vencida com `a pagar` maior que zero — e é isso que a faz funcionar sozinha no caso difícil:
+uma fatura já encerrada cuja correção fez o total **subir** volta a ter `a pagar` positivo, e
+a passagem seguinte rola o que ela voltou a dever (ver *Corrigir o passado*). Não existe
+"encerrada" como estado que impeça isso; existe o número.
+
+**A primeira rolagem de uma fatura é datada no vencimento dela.** Uma rolagem **posterior,
+disparada por correção, é datada no dia em que a rotina rodou**: o vencimento antigo está num
+mês que já foi vivido, e pôr um lançamento lá seria o sistema reescrevendo o passado. O fato é
+de hoje.
+
 Daí sai a frase curta: **`PROVISIONADO` dura da compra até o fim da fatura dela, sempre.**
 
 **O total histórico da fatura não cai.** Agosto continua tendo sido R$ 1.610,60: o crédito
@@ -127,27 +138,50 @@ original (Lei 14.690/2023).
 ## Corrigir o passado
 
 **O sistema não congela nada.** Fatura fechada não trava seus lançamentos, e nenhuma
-correção exige abrir fatura: edita-se o lançamento, escolhendo inclusive **em que fatura ele
-fica**, com ela aberta ou não. O sistema não tem a palavra final sobre o dinheiro do
-usuário — o que ele deve é mostrar a consequência antes de aplicar e guardar quem mudou o
-quê.
+correção exige abrir fatura: **edita-se ou exclui-se o lançamento**
+(`docs/02-dominio/lancamento.md`), escolhendo inclusive **em que fatura ele fica**, com ela
+aberta ou não. O sistema não tem a palavra final sobre o dinheiro do usuário — o que ele deve
+é mostrar a consequência antes de aplicar e guardar quem mudou o quê.
 
-| Fatura do lançamento | O que acontece |
+E há **uma regra só** para o destino da diferença, valendo igual para edição e exclusão:
+
+> **O sistema nunca reescreve um pagamento. Toda diferença que uma correção produza vira
+> lançamento.**
+
+O pagamento é fato do usuário: R$ 1.000 saíram do banco no dia 5. Reescrever esse valor para
+fazer a conta fechar faz o extrato do app discordar do extrato do banco — e *"saldo batendo
+com o extrato do banco"* é critério de pronto da Fase 1 (`docs/00-produto/roadmap.md`). **O
+app não conserta a própria conta mexendo no que o banco fez.**
+
+As três saídas cobrem todo caso:
+
+| O que a correção fez | O que acontece |
 |---|---|
-| `ABERTA`, ou `FECHADA` não paga | O total é reapurado, e o pagamento previsto acompanha. Nada além disso |
-| **Já paga** | O sistema **avisa antes**, nomeando o pagamento, a data e a diferença, e **pergunta** o que fazer com ela |
+| Mexeu em fatura `ABERTA`, ou `FECHADA` não paga | O total é reapurado e o pagamento previsto acompanha. Nada além disso |
+| **Subiu o total** de uma fatura já encerrada | O `a pagar` dela volta a ser positivo, e o **encerramento a pega na passagem seguinte e rola** o que ela voltou a dever. A dívida aparece na fatura aberta, como qualquer saldo anterior |
+| **Baixou o total** de uma fatura já encerrada | O `a pagar` fica negativo: é **crédito** na conta `CARTAO` — a mesma coisa de pagar mais que a fatura, que já existe na vida real. Nada rola e nada é reescrito |
 
-A pergunta na fatura paga tem duas respostas legítimas, e é por isso que ela existe — a
-mesma razão da pergunta ao editar recorrência:
+E quando **o pagamento é que estava errado** — o banco cobrou R$ 1.010 e o registro diz
+R$ 1.000 — o caminho é o direto, e ele já é permitido: **o usuário edita o pagamento**, valor
+e data, inclusive para trás, em qualquer fatura, aberta ou não
+(`docs/02-dominio/lancamento.md`). Não é preciso reabrir nada.
 
-| Resposta | Quando é a certa |
-|---|---|
-| **Ajustar o pagamento** | O banco cobrou o valor novo e o registro é que estava errado. O pagamento passa a valer o valor novo, na data original |
-| **Deixar como saldo** | O pagamento foi o que foi, e a diferença é dívida (ou crédito) que continua na conta `CARTAO` |
+*(Já foi diferente, e a diferença é a razão desta regra existir. O sistema oferecia duas
+respostas na fatura paga — "ajustar o pagamento" ou "deixar como saldo" — e a primeira
+reescrevia o valor do pagamento na data original. Ela caiu por mentir exatamente no caso mais
+comum, a duplicata: a compra some, o pagamento encolhe junto, e o banco continua tendo
+debitado o valor cheio. **Reabrir a fatura e refazer os pagamentos** foi cogitado no lugar
+dela e caiu por dois motivos mecânicos: quebra a invariante da `ABERTA` única — com quatro
+faturas abertas a regra *"a fatura vem do status"* deixa de devolver resposta — e não sobrevive
+à rotina, que roda todo dia e rolaria as quatro sozinha.)*
 
-Nada disso dispara recálculo: saldo é sempre soma de lançamento, então reescrever um valor
-**já refaz tudo que deriva dele**. A memória do que mudou vive no histórico de alteração
-(`docs/02-dominio/lancamento.md`), não numa linha de ajuste no extrato.
+**Editar uma série pode mudar o valor de várias faturas de uma vez** — inclusive pagas. O
+sistema **mostra quais** antes de confirmar (`docs/02-dominio/recorrencia.md`): mexer no
+passado é permitido, mas nunca silencioso.
+
+Nada disso dispara recálculo: saldo é sempre soma de lançamento, então reescrever ou remover
+um valor **já refaz tudo que deriva dele**. A memória do que mudou vive no **evento**
+(`docs/02-dominio/evento.md`), não numa linha de ajuste no extrato.
 
 **Editar uma série pode mudar o valor de várias faturas de uma vez** — inclusive pagas. O
 sistema **mostra quais** antes de confirmar (`docs/02-dominio/recorrencia.md`): mexer no
@@ -161,7 +195,11 @@ passado é permitido, mas nunca silencioso.
 - Rolagem nunca entra em relatório de gasto nem na fila de pendências.
 - O encerramento roda **no dia seguinte ao vencimento**, é idempotente e recupera atraso em
   ordem cronológica.
-- Fatura encerrada **não recebe pagamento**: o `a pagar` dela é zero por construção.
+- Fatura encerrada **não recebe pagamento**: o `a pagar` dela é zero por construção. Quando
+  uma correção o torna positivo de novo, quem o devolve a zero é a **rolagem**, nunca um
+  pagamento novo naquela fatura.
+- **Nenhum pagamento é reescrito pelo sistema.** Diferença de correção vira lançamento:
+  rolagem se a fatura voltou a dever, crédito na conta `CARTAO` se sobrou.
 - O total histórico de uma fatura **não cai** quando ela rola.
 - O **débito** de rolagem nasce `PROVISIONADO`; o crédito e os demais lançamentos da fatura
   encerrada viram `REALIZADO`.

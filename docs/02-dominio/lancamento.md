@@ -200,14 +200,56 @@ descrição desfaz a confusão: ninguém lê "Saldo da fatura anterior" e pensa 
 **Revisitar se** alguém, num ambiente compartilhado, discutir a autoria de um lançamento que
 o ciclo criou. Aí o vazio — ou um campo `origem` ao lado — passa a valer o custo.
 
-## Correção não é estorno
+## Correção, estorno e exclusão
 
-Duas coisas diferentes que a mesma palavra costuma esconder:
+**São três, e a mesma palavra esconde as três:**
 
 | Situação | O que houve | O que o sistema faz |
 |---|---|---|
-| **Correção** | O registro está errado: valor digitado errado, categoria errada, conta errada | **Edita o lançamento** e guarda o que mudou no histórico |
+| **Correção** | O registro está errado, mas descreve algo que aconteceu: valor digitado errado, categoria errada, conta errada | **Edita o lançamento**, e o que mudou vira evento |
 | **Estorno** | O dinheiro voltou de verdade: compra cancelada, devolução, chargeback | **Cria um lançamento novo** de sentido oposto, ligado ao original por `estornoDe` |
+| **Exclusão** | O lançamento **nunca correspondeu a nada**: a duplicata, o valor inventado, a linha lançada por engano | **Remove o lançamento**, e a remoção vira evento |
+
+A exclusão existe porque o lançamento é feito por gente. Estornar uma duplicata inventaria
+**dois** fatos falsos no lugar de um, e deixaria os dois no extrato para sempre.
+
+Isso não contradiz *o sistema não reescreve o passado*, que é o princípio que matou o mover
+(`docs/02-dominio/categoria.md`). A diferença cabe numa frase:
+
+> **O sistema não reescreve o passado; o usuário corrige o que ele mesmo escreveu errado.**
+
+O mover reescrevia março **sem que nada tivesse mudado** — o gasto aconteceu e continuou
+acontecendo, e só a resposta do relatório mudava. A exclusão reescreve março porque **março
+estava errado**. E ela nunca é silenciosa: é sempre ato do usuário, mostra o impacto numérico
+antes de confirmar (`docs/06-interface/navegacao.md`) e grava `LANCAMENTO_EXCLUIDO`
+(`docs/02-dominio/evento.md`).
+
+### O que se exclui: o que o usuário lançou
+
+A fronteira é uma só, e é o espelho da regra já escrita para conta e categoria inativas —
+*recusa o do usuário, o ciclo continua*:
+
+> **O que o usuário lançou, o usuário exclui. O que o ciclo criou não é dele para excluir.**
+
+| Lançamento | Exclui? |
+|---|---|
+| Gasto, receita, transferência, aporte, resgate, estorno | **Sim.** Qualquer data, qualquer fatura, aberta ou não |
+| Um lado de uma transferência | Sim, mas age no **par inteiro**. Não existe metade de transferência |
+| **Parcela isolada** de um parcelamento | **Não.** Quebraria a soma das parcelas, e o usuário já não edita parcela sozinha. Quem se arrepende exclui o parcelamento (`docs/02-dominio/recorrencia.md`) |
+| Lançamento que **tem estorno** apontando para ele | **Não**, enquanto o estorno existir: ele ficaria órfão. Exclui-se o estorno primeiro, se ele também for engano |
+| **Par de rolagem**, **pagamento previsto**, **lançamento de abertura** | **Não.** São do ciclo. O saldo de abertura se corrige editando o valor |
+
+O que o ciclo criou e perdeu o motivo, o próprio ciclo **descarta** — o pagamento previsto de
+uma fatura que encerrou, o de uma fatura que o usuário abriu
+(`docs/02-dominio/fatura-pagamento.md`). Descartar é o sistema agindo sobre o que ele mesmo
+criou, e não é a exclusão desta seção.
+
+**Nada é recalculado**, porque nada é armazenado: saldo, total de fatura, dívida e patrimônio
+são todos soma de lançamento (`docs/02-dominio/conta.md`), e tirar a linha já refaz tudo que
+deriva dela. **E fatura nenhuma trava a exclusão** — nem `FECHADA`, nem paga, nem de cinco
+meses atrás. O que muda conforme a fatura é o destino da **diferença**, e a regra é uma só
+para excluir e editar (`docs/02-dominio/fatura-pagamento.md`, *Corrigir o passado*), porque
+**excluir é o caso extremo de editar**.
 
 No crédito, o estorno de uma compra parcelada credita o **valor total** de uma vez, e as
 parcelas restantes seguem correndo — os dois se compensam **no saldo e no relatório**, este
@@ -236,10 +278,10 @@ Fatura fechada não congela nada — o sistema não tem a palavra final sobre o 
 usuário; o que ele deve é mostrar a consequência antes e guardar quem mudou o quê.
 
 O que muda conforme a fatura é o **aviso**: corrigir lançamento de fatura já paga faz o
-sistema nomear o pagamento e a diferença, e **perguntar** se o pagamento deve ser ajustado
-ou se a diferença fica como saldo da conta `CARTAO`. As regras estão em
-`docs/02-dominio/fatura-cartao.md`. Aqui vale o princípio: **ação retroativa mostra o
-impacto antes de confirmar e vai para o histórico**, sem lançamento de ajuste no extrato.
+sistema nomear o pagamento e a diferença antes de aplicar. **O pagamento não é tocado** — a
+diferença vira lançamento, e as regras estão em `docs/02-dominio/fatura-pagamento.md`. Aqui
+vale o princípio: **ação retroativa mostra o impacto antes de confirmar e vai para o
+evento**, sem lançamento de ajuste no extrato.
 Nada precisa ser recalculado: como saldo é sempre a soma dos lançamentos
 (`docs/02-dominio/conta.md`), reescrever o valor já refaz tudo que deriva dele.
 
@@ -253,7 +295,8 @@ Nada precisa ser recalculado: como saldo é sempre a soma dos lançamentos
 - Todo lançamento tem `autor`, inclusive os que o ciclo cria sozinho — nesses, o dono do
   ambiente da conta.
 - Um lançamento **nunca muda de ambiente** — nem por edição, nem por correção. O certo é
-  apagar em um e criar no outro, para o saldo dos dois continuar verdadeiro.
+  **excluir** em um e criar no outro: ninguém devolveu dinheiro, o registro é que nasceu no
+  lugar errado. Estornar inventaria um fato.
 - `dataEfeito` nunca é anterior à `dataEvento`.
 - `transferenciaId`, quando existe, aparece em exatamente dois lançamentos.
 - `rolagemDeFatura`, quando existe, aparece em exatamente dois — na mesma conta, somando zero.
@@ -270,6 +313,14 @@ Nada precisa ser recalculado: como saldo é sempre a soma dos lançamentos
 - Todo lançamento que o ciclo cria nasce com a **categoria de sistema** da operação dele — e
   por isso nenhum deles aparece na fila de pendências (`docs/02-dominio/categoria.md`).
 - Nenhum lançamento do usuário aponta para uma categoria de sistema.
+- **Lançamento do usuário se exclui; lançamento que o ciclo criou, não.** O que o ciclo
+  criou e perdeu o motivo é **descartado pelo próprio ciclo**.
+- Excluir um lado de uma transferência exclui o **par inteiro**.
+- Parcela isolada não se exclui: exclui-se o parcelamento.
+- Lançamento com `estornoDe` apontando para ele não se exclui enquanto o estorno existir.
+- Toda exclusão é ato do usuário e grava `LANCAMENTO_EXCLUIDO`
+  (`docs/02-dominio/evento.md`). O sistema nunca exclui lançamento por prazo ou critério
+  próprio.
 - A **conta** é do mesmo ambiente, ou de um que a compartilhou com ele.
 
 ## Fronteiras com outros docs
