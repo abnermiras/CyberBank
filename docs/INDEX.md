@@ -75,8 +75,8 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | Documento | Dono do fato | Status |
 |---|---|---|
 | [`catalogo-tabelas.md`](03-dados/catalogo-tabelas.md) | definicao coluna a coluna de cada tabela | stub |
-| [`migrations.md`](03-dados/migrations.md) | ferramenta, convencao de nomes e regras de alteracao de schema | stub |
-| [`modelo-de-dados.md`](03-dados/modelo-de-dados.md) | diagrama logico, entidades, relacionamentos e cardinalidades | stub |
+| [`migrations.md`](03-dados/migrations.md) | ferramenta, numeracao e nomes, o que nunca muda depois de aplicado, e como fazer mudanca destrutiva | ativo |
+| [`modelo-de-dados.md`](03-dados/modelo-de-dados.md) | entidades, relacionamentos, estrategia de chaves, como valor e data sao guardados, e o padrao de RLS | ativo |
 
 ## API — contratos expostos
 
@@ -134,5 +134,5 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 
 ---
 
-**69 documentos · 32 ainda em stub.**
+**69 documentos · 30 ainda em stub.**
 Stub = conteudo inexistente: pergunte, nao deduza.

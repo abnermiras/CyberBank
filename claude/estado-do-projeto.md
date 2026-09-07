@@ -10,12 +10,12 @@
 Última sessão: **2026-09-07**. Objetivo do Abner: *fechar a fatura de forma definitiva, sem
 dúvida nenhuma sobrando para o código*. Feito, e depois nasceu o `ADR-0008`.
 
-**Pendente: o push.** `origin/main` está em `151ed4a`; o local tem **nove commits à frente**.
+**Pendente: o push.** `origin/main` está em `151ed4a`; o local tem **dez commits à frente**.
 Árvore limpa, check em 0 erros e 0 avisos.
 
 | Sessão | O que saiu |
 |---|---|
-| **07/09** | A fatura fechou: **encerrada não abre** · **`CARTAO` não tem saldo de abertura** · **a janela é uma só** (`FECHADA` com `a pagar` > 0 é o que se abre **e** o que se paga) · limpeza dos resíduos do `d42e378` · **`ADR-0008`**, o roteador valendo para o código · este doc veio para o repositório · **`D1` fechado**: `seguranca.md` escrito e **`ADR-0009`** · **`D2` fechado**: `04-api/convencoes.md` e `erros.md` escritos |
+| **07/09** | A fatura fechou: **encerrada não abre** · **`CARTAO` não tem saldo de abertura** · **a janela é uma só** (`FECHADA` com `a pagar` > 0 é o que se abre **e** o que se paga) · limpeza dos resíduos do `d42e378` · **`ADR-0008`**, o roteador valendo para o código · este doc veio para o repositório · **`D1` fechado**: `seguranca.md` escrito e **`ADR-0009`** · **`D2` fechado**: `04-api/convencoes.md` e `erros.md` · **`D3` fechado**: `modelo-de-dados.md` e `migrations.md` |
 | **01/09** | Nasce **excluir lançamento** · **o sistema nunca reescreve um pagamento** · **o fechamento para de criar o pagamento previsto** · **`ADR-0007`** (e-mail só para recuperar senha) · cadastro aberto · dia local = horário de Brasília · **`B26`: nada do RaspyBank atravessa** |
 | **30/08** | Cadastro de subcategoria · inativação · **mover morre** · o Extrato estava morto havia dois dias · nasce o **Evento** e o **Diário** |
 | **29/08** | As 10 contradições, os buracos de regra de Fase 1 e as 5 decisões de negócio que faltavam |
@@ -77,6 +77,14 @@ produzido uma regra correta para um lançamento que não devia existir.
 | Conceito estruturante | **Ambiente financeiro** é o dono do dado; usuário só tem *acesso* a ambientes |
 | Papéis | **Dono, editor, leitor.** Na tela são dois: "autorização completa" = editor; "somente leitura" = leitor. Convidar e excluir são só do dono |
 | Isolamento | Filtro no repositório + RLS no Postgres — `ADR-0002`, estendido pelo `ADR-0004` |
+| **A armadilha que anula o RLS** | O Postgres **não aplica política ao dono da tabela** nem a quem tem `BYPASSRLS`. Então: a aplicação conecta com papel **não-dono**, toda tabela leva `FORCE ROW LEVEL SECURITY`, e migration roda com o dono. Sem os três, a política existe, aparece no `psql` e **não filtra nada** |
+| **Três famílias de tabela, três proteções** | Do **ambiente** (`ambiente_id` + RLS) · do **usuário** (`usuario`, `sessao`, `convite` — protegidas pela sessão) · de **ligação** (`ambiente`, `acesso`, `vinculo` — definem quem vê o quê). **Não há quarta**: tabela nova cai numa delas, e "abrir exceção" não é resposta |
+| **Chave** | `bigint` `GENERATED ALWAYS AS IDENTITY`. Não é UUID, e a razão já estava escrita no `convencoes.md`: o identificador **não é segredo** — quem protege é o `ADR-0002` |
+| **Enum é `varchar` com `CHECK`** | Não o tipo nativo. O projeto **já mudou um enum no meio do desenho** (`situacao` ganhou `PROVISIONADO`), e não há razão para achar que foi a última vez |
+| **Lançamento é uma tabela só** | Sem herança, sem tabela por tipo, sem coluna `tipo`. É consequência de *saldo é a soma dos lançamentos*: tabela por tipo faria toda consulta de saldo unir dez tabelas, e a primeira esquecida daria saldo errado calado |
+| **Nada derivado é coluna** | Saldo, os três números da fatura, dívida, limite, patrimônio, escolhível e pendente. Coluna a mais é fonte de verdade a mais para divergir — e num app de dinheiro ela diverge em silêncio |
+| **Migration: Flyway com SQL puro** | O agnosticismo do Liquibase não vale nada aqui: RLS, `FORCE` e `current_setting` são SQL do Postgres. Migration **aplicada é imutável**, número nunca reaproveitado, e destrutiva vai em expand/contract |
+| **Tabela do ambiente nasce inteira** | `ambiente_id`, RLS habilitado **e forçado**, política já com o `OR` do `ADR-0004` (mesmo com `vinculo` vazia) e índices — tudo na **mesma** migration. Separar cria uma janela em que a tabela existe sem política |
 | Autenticação | E-mail e senha, sessão própria. Nenhuma dependência externa, nenhum provedor de identidade |
 | **Senha** | Hash **Argon2id** (não bcrypt): custa memória além de tempo, e resiste melhor a GPU. Parâmetros **calibrados no host**, porque a memória do Pi é pouca |
 | **Sessão — `ADR-0009`** | **No servidor.** Cookie com identificador **opaco** (`HttpOnly`, `Secure`, `SameSite=Lax`), estado em tabela, expiração absoluta **e** por inatividade. Quem decidiu foi a **revogação**: tirar acesso tem efeito no clique seguinte. Trocar a senha derruba todas as sessões |
@@ -281,9 +289,9 @@ ordem está fixada no `lacunas-para-codigo.md`:
    escrever os **endpoints por agregado** (`endpoints-ambientes`, `-contas`, `-lancamentos`,
    `-categorias`, `-meios-pagamento`, `-relatorios`), que é trabalho de agregado, não de
    convenção.
-3. **`D3` — `03-dados/modelo-de-dados.md`.** Entraram `entraEmCaixa` (conta), `sistemica` e
-   `inativa` (categoria) e a tabela **`evento`** inteira. O `pai` da categoria nasce imutável, e
-   a política de RLS já nasce com o `OR` do `ADR-0004`.
+3. ~~**`D3` — `03-dados/modelo-de-dados.md`**~~ ✅ **Fechado em 07/09**, com o `migrations.md`
+   junto. Falta o **`catalogo-tabelas.md`** — coluna a coluna —, que nasce com a primeira
+   migration e não antes: escrever o catálogo sem a migration é inventar duas vezes.
 4. **`01-arquitetura/`** — visão geral, módulos, estrutura de pastas, padrões de código. É onde
    o `ADR-0008` vira layout concreto.
 5. **`07-operacao/`** — build-e-run e testes, para o código poder rodar.
@@ -341,23 +349,24 @@ a razão de ela ter sumido vale mais que a pergunta.)*
 
 ## Estado da documentação
 
-**69 documentos**, 32 stubs. Stub = conteúdo inexistente: **perguntar, nunca deduzir.**
+**69 documentos**, 30 stubs. Stub = conteúdo inexistente: **perguntar, nunca deduzir.**
 
 Escritos: `CLAUDE.md`, `CONVENTIONS.md`, os 6 fluxos, todo o `00-produto/` menos `jornadas`,
 `02-dominio/` inteiro menos `orcamento`, `regras-categorizacao` e `importacao-conciliacao`,
 `06-interface/` (navegacao, direcao-visual), **`01-arquitetura/seguranca`**,
-**`04-api/convencoes` e `04-api/erros`**, e as ADRs **0001 a 0009**.
+**`04-api/convencoes` e `04-api/erros`**, **`03-dados/modelo-de-dados` e `03-dados/migrations`**,
+e as ADRs **0001 a 0009**.
 
 `fatura-cartao.md` está em **300 linhas, no teto do `CONVENTIONS`** — a próxima coisa que entrar
 ali obriga a quebrar por subdomínio, como o `fatura-pagamento.md` já nasceu.
 
 **Custo de contexto** (`docs.py custo`, fim de 07/09): base ~1.420 tokens; rotas entre ~2,2k e
-~11,9k; ler tudo custaria ~82k.
+~11,9k; ler tudo custaria ~86k.
 
-**A inflação prevista já começou:** `novo-endpoint` saltou de **~2,3k para ~6,3k** ao sair do
-stub — os dois docs novos são reais, e a rota mais usada de código pagou por eles. É
-exatamente o que o `ADR-0008` mandou vigiar, e a resposta dele é o **teto por rota** no
-`check`, ainda não implementado no `docs.py`.
+**A inflação prevista já começou.** `novo-endpoint` foi de **~2,3k para ~6,3k** e
+`nova-migration` de **~2,4k para ~6,5k**, ao os stubs virarem docs reais. O conteúdo é
+necessário; o que falta é o **teto por rota** no `check`, que o `ADR-0008` decidiu e o
+`docs.py` ainda não implementa. **Enquanto ele não existir, a inflação não avisa.**
 
 ## Estado do protótipo
 
@@ -422,6 +431,7 @@ eixos do relatório de gasto.
 - **Nenhum endpoint escrito** — as convenções e o contrato de erro existem, os
   `endpoints-<agregado>` não
 - **`docs.py` ainda não tem o teto por rota** que o `ADR-0008` decidiu, nem conta o código
+- **`catalogo-tabelas.md` segue stub** — nasce com a primeira migration
 - Repositório ainda **sem `.gitignore`**
 - O `ADR-0004` encareceu o isolamento: a política de RLS ganha um `OR` com subconsulta, e isso
   não foi escrito em `03-dados/` — a tabela `evento` também precisa de RLS
