@@ -41,4 +41,6 @@ nome de variável, ou coisa que cabe no doc do módulo.
 | 0006 | [`PROVISIONADO`, a situação entre o fato e a liquidação](ADR-0006-situacao-provisionado.md) | aceita | 2026-08-28 |
 | 0007 | [O sistema envia e-mail, e só para recuperar senha](ADR-0007-email-so-para-recuperar-senha.md) | aceita | 2026-09-01 |
 
+| 0008 | [O roteador vale para o código, e o pacote espelha o doc](ADR-0008-roteador-vale-para-o-codigo.md) | aceita | 2026-09-07 |
+
 _(adicione uma linha por ADR)_

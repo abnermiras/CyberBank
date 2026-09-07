@@ -15,6 +15,9 @@ vida financeira inteira — entrada, gasto, investido, guardado. O **ambiente fi
 inteiro, nada de abrir arquivos "para entender o projeto". Este arquivo é o roteador:
 localize a tarefa na tabela abaixo, leia **apenas** os docs listados e vá.
 
+- **O código tem endereço, e ele é o nome do doc** (`ADR-0008`): o doc dono de um assunto em
+  `docs/02-dominio/` nomeia o pacote de domínio daquele assunto, e a mesma regra vale nas
+  outras camadas. Você nunca precisa procurar o código de uma tarefa — a rota já o entrega.
 - Se a tarefa não estiver na tabela → leia `docs/INDEX.md` (só ele) e escolha de lá.
 - Se um doc listado referenciar outro em `ler-junto:`, leia **só se precisar de fato**.
 - Se um doc estiver com `status: stub`, o conteúdo não existe: **pergunte, não invente**.
@@ -56,6 +59,7 @@ Os fluxos em `docs/08-fluxos/` já trazem, no topo, a lista fechada de docs a ab
 5. Todo valor monetário é inteiro em centavos. **Data de domínio** (`dataEvento`, `dataEfeito`, datas de fatura) é **dia local, sem hora nem fuso**. **Instante** — carimbo de auditoria, hora em que a rotina rodou — é armazenado em UTC. **O dia local é sempre o horário oficial de Brasília**, para todo usuário e em qualquer host: é ele que decide quando o dia virou para as rotinas.
 6. Um fato mora em um doc só. Se você precisou repetir, é sinal de que está no doc errado.
 7. **Valor informado pelo usuário nunca é extrapolado nem corrigido pelo sistema.** Ele carrega a data em que foi informado, e a tela mostra essa idade. Vale para o valor atual de uma aplicação (`docs/02-dominio/aplicacao-patrimonio.md`) e para o limite do cartão (`docs/02-dominio/meio-de-pagamento.md`).
+8. **Um assunto, um pacote** (`ADR-0008`). O pacote tem o nome do doc dono; nenhuma regra dele vive fora dali; não há pasta de topo por camada. Regra que precisa de dois pacotes de domínio é erro de modelagem, não de organização.
 
 ## Comandos
 
