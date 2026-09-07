@@ -101,10 +101,21 @@ contado duas vezes.
 | **Saldo realizado** | Tudo que **já aconteceu** até hoje: `REALIZADO` e `PROVISIONADO` (`ADR-0006`) | Quanto tem na conta agora — e, na `CARTAO`, quanto se deve |
 | **Saldo projetado** | Realizado mais o `PREVISTO` até uma data futura, **menos o `a pagar` das faturas que vencem até lá** | Quanto sobra até o fim do mês |
 
-**Saldo inicial é um lançamento**, não um campo: ao criar a conta com saldo existente,
-nasce um lançamento de abertura naquele valor, `REALIZADO` — o dinheiro já está lá. Assim a frase "saldo é a soma dos
-lançamentos" continua verdadeira literalmente, sem um "mais o saldo inicial" grudado em
-cada cálculo.
+**Saldo inicial é um lançamento**, não um campo: ao criar a conta com saldo existente, nasce
+um lançamento de abertura naquele valor, `REALIZADO` — o dinheiro já está lá. Assim a frase
+"saldo é a soma dos lançamentos" continua verdadeira literalmente, sem um "mais o saldo
+inicial" grudado em cada cálculo.
+
+**Conta `CARTAO` não tem saldo inicial, e é a única exceção.** O saldo dela não é dinheiro
+parado: é dívida, e **dívida de cartão não é um número, é um conjunto de faturas** — com
+vencimentos, com parcelas em curso, com uma parte já fechada no emissor e outra ainda
+correndo. Achatar isso num lançamento só poria na primeira fatura do app um valor que não
+pertence a ciclo nenhum, e `Saldo de abertura` seria a categoria de um fato que não aconteceu
+ali. A `CARTAO` nasce zerada, e a fatura que nasce com ela nasce vazia.
+
+O preço está nomeado e é temporário: **patrimônio e limite disponível ficam otimistas** até as
+faturas do Cyberbank alcançarem as do emissor, um ou dois ciclos depois. A dívida anterior
+você paga no banco, fora do app — como já era antes de o app existir.
 
 ## Valores
 
@@ -115,8 +126,8 @@ do `CLAUDE.md` e não-objetivo do roadmap.
 
 | Momento | Regra |
 |---|---|
-| Criação | Nome, tipo e saldo inicial (que vira lançamento de abertura) |
-| Criação de uma `CARTAO` | Mais limite, dia do vencimento, quantos dias antes fecha e conta pagadora padrão. Nasce já com a fatura `ABERTA` do ciclo corrente (`docs/02-dominio/fatura-cartao.md`) |
+| Criação | Nome, tipo e saldo inicial (que vira lançamento de abertura) — **menos na `CARTAO`** |
+| Criação de uma `CARTAO` | **Sem saldo inicial.** Limite, dia do vencimento, quantos dias antes fecha e conta pagadora padrão. Nasce zerada e já com a fatura `ABERTA` do ciclo corrente, vazia (`docs/02-dominio/fatura-cartao.md`) |
 | Edição | Nome livre. **Tipo não muda** depois de existir lançamento — mudaria o significado do histórico |
 | Inativação | Não aceita lançamento novo **do usuário**; histórico e saldo continuam existindo e visíveis. **Os `PREVISTO` dela são descartados** — não vão acontecer, a conta saiu da sua vida. Numa `CARTAO`, o ciclo da fatura continua correndo: cancelar cartão não perdoa dívida |
 | Exclusão | Só se a conta nunca teve lançamento. Com histórico, o caminho é inativar |
@@ -142,6 +153,8 @@ Quem pode: dono e editor. Leitor não mexe (`docs/02-dominio/ambiente-financeiro
 - Só meio `CREDITO` aponta para conta `CARTAO`, e todo `CREDITO` aponta para uma.
 - Conta `CARTAO` nunca é compartilhada inteira — só os cartões dela
   (`docs/02-dominio/compartilhamento.md`).
+- **Conta `CARTAO` nunca tem lançamento de abertura.** Ela nasce zerada, e a fatura `ABERTA`
+  que nasce junto nasce vazia.
 - Saldo nunca é armazenado como total; é sempre derivado dos lançamentos.
 
 ## Fronteiras com outros docs

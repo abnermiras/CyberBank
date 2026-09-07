@@ -67,10 +67,10 @@ Bordas:
 | Vencimento em fim de semana ou feriado | A data **não muda**. O pagamento real tem a data que tiver, e é ela que vale — o sistema não carrega calendário de feriados |
 | Usuário muda o ciclo | Vale da próxima fatura a nascer. Fatura já criada mantém suas datas |
 
-**A primeira fatura nasce com a conta.** Criar uma conta `CARTAO` cria junto a fatura
-`ABERTA` do ciclo corrente — aquele cuja `dataFechamento` ainda não passou. Sem isso a
-invariante da `ABERTA` única seria falsa entre a criação da conta e o primeiro fechamento, e
-a primeira compra não teria onde cair.
+**A primeira fatura nasce com a conta, e nasce vazia** — a `CARTAO` não tem saldo inicial
+(`docs/02-dominio/conta.md`). Criar a conta cria junto a fatura `ABERTA` do ciclo corrente,
+aquele cuja `dataFechamento` ainda não passou: sem ela a invariante da `ABERTA` única seria
+falsa até o primeiro fechamento, e a primeira compra não teria onde cair.
 
 ## Estados: dois eixos independentes
 

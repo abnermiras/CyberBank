@@ -424,6 +424,7 @@
   function criarConta(o) {
     if (typeof o.entraEmCaixa !== 'boolean') throw new Error('conta sem entraEmCaixa');
     if (o.entraEmCaixa && !o.entraNoFluxoDeCaixa) throw new Error('caixa implica fluxo');
+    if (o.abertura && o.tipo === 'CARTAO') throw new Error('CARTAO nao tem saldo de abertura');
     const c = Object.assign({ id: id('cta'), ambiente: o.ambiente || S.ambienteAtivo }, o);
     S.contas.push(c);
     if (o.abertura) {
