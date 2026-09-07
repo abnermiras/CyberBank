@@ -45,4 +45,6 @@ nome de variável, ou coisa que cabe no doc do módulo.
 
 | 0009 | [Sessão no servidor, não JWT](ADR-0009-sessao-no-servidor.md) | aceita | 2026-09-07 |
 
+| 0010 | [A fronteira entre assuntos é imposta por teste, e domínio referencia domínio por id](ADR-0010-fronteira-imposta-por-teste.md) | aceita | 2026-09-07 |
+
 _(adicione uma linha por ADR)_

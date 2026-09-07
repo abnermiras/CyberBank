@@ -10,12 +10,12 @@
 Última sessão: **2026-09-07**. Objetivo do Abner: *fechar a fatura de forma definitiva, sem
 dúvida nenhuma sobrando para o código*. Feito, e depois nasceu o `ADR-0008`.
 
-**Pendente: o push.** `origin/main` está em `151ed4a`; o local tem **dez commits à frente**.
+**Pendente: o push.** `origin/main` está em `151ed4a`; o local tem **onze commits à frente**.
 Árvore limpa, check em 0 erros e 0 avisos.
 
 | Sessão | O que saiu |
 |---|---|
-| **07/09** | A fatura fechou: **encerrada não abre** · **`CARTAO` não tem saldo de abertura** · **a janela é uma só** (`FECHADA` com `a pagar` > 0 é o que se abre **e** o que se paga) · limpeza dos resíduos do `d42e378` · **`ADR-0008`**, o roteador valendo para o código · este doc veio para o repositório · **`D1` fechado**: `seguranca.md` escrito e **`ADR-0009`** · **`D2` fechado**: `04-api/convencoes.md` e `erros.md` · **`D3` fechado**: `modelo-de-dados.md` e `migrations.md` |
+| **07/09** | A fatura fechou: **encerrada não abre** · **`CARTAO` não tem saldo de abertura** · **a janela é uma só** (`FECHADA` com `a pagar` > 0 é o que se abre **e** o que se paga) · limpeza dos resíduos do `d42e378` · **`ADR-0008`**, o roteador valendo para o código · este doc veio para o repositório · **`D1` fechado**: `seguranca.md` escrito e **`ADR-0009`** · **`D2` fechado**: `04-api/convencoes.md` e `erros.md` · **`D3` fechado**: `modelo-de-dados.md` e `migrations.md` · **`01-arquitetura/` escrito** e **`ADR-0010`** · nasce o fluxo **`novo-caso-de-uso`** |
 | **01/09** | Nasce **excluir lançamento** · **o sistema nunca reescreve um pagamento** · **o fechamento para de criar o pagamento previsto** · **`ADR-0007`** (e-mail só para recuperar senha) · cadastro aberto · dia local = horário de Brasília · **`B26`: nada do RaspyBank atravessa** |
 | **30/08** | Cadastro de subcategoria · inativação · **mover morre** · o Extrato estava morto havia dois dias · nasce o **Evento** e o **Diário** |
 | **29/08** | As 10 contradições, os buracos de regra de Fase 1 e as 5 decisões de negócio que faltavam |
@@ -104,6 +104,16 @@ produzido uma regra correta para um lançamento que não devia existir.
 | **Erro em `problem+json`** | RFC 7807 mais `codigo` (contrato) e `erros` (validação, **todos os campos de uma vez**). **O cliente lê o código, nunca a mensagem** |
 | **O erro não conta o que a pessoa não podia saber** | `404` cobre "não existe" e "não é seu"; `403` só **dentro** de um ambiente a que ela já tem acesso. `500` nunca carrega stack trace, SQL nem valor informado |
 | **Roteador vale para o código — `ADR-0008`** | O endereço do código é **derivável do nome do doc dono**; um assunto, um pacote; sem pasta de topo por camada; a rota tem orçamento e o `check` o cobra |
+| **Monolito modular, cortado por assunto** | Um processo, um banco, um artefato. As quatro camadas (`dominio`, `aplicacao`, `api`, `persistencia`) vivem **dentro** de cada assunto, e a seta aponta para dentro |
+| **A fronteira é imposta por teste — `ADR-0010`** | **Um módulo Maven**, não onze. O multi-módulo foi descartado porque o domínio tem **ciclo real** (fatura ↔ lançamento) e o build obrigaria a recortar o modelo para agradar a ferramenta |
+| **Domínio referencia domínio por `id`** | A metade que torna a outra verdadeira: **o grafo entre domínios fica vazio**, e o ciclo some sem ninguém recortar nada. Não é regra nova — é o que o `lancamento.md` já fazia sem nomear. Virou a **regra dura 9** |
+| **Quem junta dois assuntos é a `aplicacao`** | Sempre. Um caso de uso lê os dois; um domínio nunca lê o outro |
+| **Sem evento de domínio, sem fila, sem barramento** | Chamada direta em transação. E o `Evento` do domínio **não é isso**: é registro, não mecanismo — nada no sistema reage a um evento gravado |
+| **As bordas são clientes, não caminhos paralelos** | Bot, OFX, captura e painel entram **pela mesma API**. Caminho paralelo é regra duplicada, e o Diário contaria história diferente conforme por onde a pessoa entrou |
+| **Três classes para a mesma coisa** | `Fatura` ≠ `FaturaEntity` ≠ `FaturaResponse`, com conversão **escrita à mão**. Compra teste de regra sem Spring e sem banco, e impede schema vazar para o cliente |
+| **Nome: substantivo em português, sufixo em inglês** | `FaturaRepository`, `PagarFaturaUseCase`. O substantivo é vocabulário do domínio e não se traduz; o sufixo é do framework, e traduzir faz a doc do Spring parar de casar com o código |
+| **Sem Lombok** | Java 21 tem `record`. É a regra 3 valendo para o caso mais fácil de aceitar sem pensar — o que ele economiza é digitação, que não é o custo deste projeto |
+| **`@Transactional` só na `aplicacao`** | Não é arrumação: é a transação que faz o `SET LOCAL` do RLS. Transação no lugar errado é **RLS lendo o ambiente errado** |
 | **Congelado é a funcionalidade, não o modelo** | Decisão de modelo que contamina schema ou política de acesso entra na fase em que o schema nasce. Valeu para `Aplicação`, compartilhamento e **Evento** |
 | **Compartilhamento** | **Modelo na Fase 1**; **tela liberada com a Fase 1 concluída** |
 | **Evento** | **Gravar na Fase 1, tela do Diário na Fase 2.** Schema tardio é migration em cima de dado real; **evento tardio é dado que nunca existiu** |
@@ -292,12 +302,15 @@ ordem está fixada no `lacunas-para-codigo.md`:
 3. ~~**`D3` — `03-dados/modelo-de-dados.md`**~~ ✅ **Fechado em 07/09**, com o `migrations.md`
    junto. Falta o **`catalogo-tabelas.md`** — coluna a coluna —, que nasce com a primeira
    migration e não antes: escrever o catálogo sem a migration é inventar duas vezes.
-4. **`01-arquitetura/`** — visão geral, módulos, estrutura de pastas, padrões de código. É onde
-   o `ADR-0008` vira layout concreto.
-5. **`07-operacao/`** — build-e-run e testes, para o código poder rodar.
-6. **Rodada de protótipo** — ver abaixo; o backlog do `dominio.js` está aberto desde 01/09.
-7. **Decidir a cor de categoria** (decisão em aberto 0) e propagar para `direcao-visual.md`.
-8. **Tela de Perfil** com a caixa de convites; **renomear categoria** na tela; cadastro de
+4. ~~**`01-arquitetura/`**~~ ✅ **Fechado em 07/09** — `visao-geral`, `modulos`,
+   `estrutura-de-pastas` e `padroes-de-codigo`, mais o `ADR-0010`. Seguem stub o
+   `observabilidade.md` e o `ambientes-de-execucao.md`, que são de operação.
+5. **`07-operacao/build-e-run.md` e `testes.md`** — **é o que falta para a primeira linha de
+   código rodar.** Como sobe, como testa, e os parâmetros do Argon2id no host.
+6. **A primeira migration** (`V001`), e com ela o `catalogo-tabelas.md`.
+7. **Rodada de protótipo** — ver abaixo; o backlog do `dominio.js` está aberto desde 01/09.
+8. **Decidir a cor de categoria** (decisão em aberto 0) e propagar para `direcao-visual.md`.
+9. **Tela de Perfil** com a caixa de convites; **renomear categoria** na tela; cadastro de
    **conta** e de **meio**.
 
 ## Decisões em aberto
@@ -349,13 +362,13 @@ a razão de ela ter sumido vale mais que a pergunta.)*
 
 ## Estado da documentação
 
-**69 documentos**, 30 stubs. Stub = conteúdo inexistente: **perguntar, nunca deduzir.**
+**71 documentos**, 26 stubs. Stub = conteúdo inexistente: **perguntar, nunca deduzir.**
 
 Escritos: `CLAUDE.md`, `CONVENTIONS.md`, os 6 fluxos, todo o `00-produto/` menos `jornadas`,
 `02-dominio/` inteiro menos `orcamento`, `regras-categorizacao` e `importacao-conciliacao`,
 `06-interface/` (navegacao, direcao-visual), **`01-arquitetura/seguranca`**,
 **`04-api/convencoes` e `04-api/erros`**, **`03-dados/modelo-de-dados` e `03-dados/migrations`**,
-e as ADRs **0001 a 0009**.
+**`01-arquitetura/` menos observabilidade e ambientes-de-execucao**, e as ADRs **0001 a 0010**.
 
 `fatura-cartao.md` está em **300 linhas, no teto do `CONVENTIONS`** — a próxima coisa que entrar
 ali obriga a quebrar por subdomínio, como o `fatura-pagamento.md` já nasceu.
@@ -363,10 +376,14 @@ ali obriga a quebrar por subdomínio, como o `fatura-pagamento.md` já nasceu.
 **Custo de contexto** (`docs.py custo`, fim de 07/09): base ~1.420 tokens; rotas entre ~2,2k e
 ~11,9k; ler tudo custaria ~86k.
 
-**A inflação prevista já começou.** `novo-endpoint` foi de **~2,3k para ~6,3k** e
-`nova-migration` de **~2,4k para ~6,5k**, ao os stubs virarem docs reais. O conteúdo é
+**A inflação prevista já começou.** `novo-endpoint` foi de ~2,3k para ~6,4k e `nova-migration`
+de ~2,4k para ~6,6k, ao os stubs virarem docs reais; o base subiu para ~1.508. O conteúdo é
 necessário; o que falta é o **teto por rota** no `check`, que o `ADR-0008` decidiu e o
 `docs.py` ainda não implementa. **Enquanto ele não existir, a inflação não avisa.**
+
+**A rota que importa é a mais barata das de código.** O fluxo **`novo-caso-de-uso`** custa
+**~4,2k tokens** — é por onde uma funcionalidade nova entra, e ele carrega dois docs: a regra do
+assunto e os padrões. O endereço do código não é procurado, é derivado (`ADR-0008`).
 
 ## Estado do protótipo
 

@@ -34,6 +34,7 @@ localize a tarefa na tabela abaixo, leia **apenas** os docs listados e vá.
 | Mudança de schema / nova migration | `docs/08-fluxos/nova-migration.md` |
 | Papel, convite ou permissão de ambiente | `docs/02-dominio/ambiente-financeiro.md` |
 | Compartilhar conta ou cartão entre ambientes | `docs/02-dominio/compartilhamento.md` |
+| **Funcionalidade nova / caso de uso** | `docs/08-fluxos/novo-caso-de-uso.md` |
 | Nova regra de negócio ou mudança de invariante | `docs/08-fluxos/nova-regra-de-dominio.md` |
 | Corrigir bug | `docs/08-fluxos/correcao-de-bug.md` |
 | Mexer no bot do Telegram | `docs/05-integracoes/telegram-bot.md` + `docs/06-interface/bot-conversas.md` |
@@ -60,6 +61,7 @@ Os fluxos em `docs/08-fluxos/` já trazem, no topo, a lista fechada de docs a ab
 6. Um fato mora em um doc só. Se você precisou repetir, é sinal de que está no doc errado.
 7. **Valor informado pelo usuário nunca é extrapolado nem corrigido pelo sistema.** Ele carrega a data em que foi informado, e a tela mostra essa idade. Vale para o valor atual de uma aplicação (`docs/02-dominio/aplicacao-patrimonio.md`) e para o limite do cartão (`docs/02-dominio/meio-de-pagamento.md`).
 8. **Um assunto, um pacote** (`ADR-0008`). O pacote tem o nome do doc dono; nenhuma regra dele vive fora dali; não há pasta de topo por camada. Regra que precisa de dois pacotes de domínio é erro de modelagem, não de organização.
+9. **Domínio referencia domínio por `id`, nunca pelo objeto** (`ADR-0010`). Quem junta dois assuntos é a camada de aplicação. Um teste no build reprova import entre pacotes de domínio, e ele não tem exceções.
 
 ## Comandos
 
