@@ -206,6 +206,9 @@ passado é permitido, mas nunca silencioso.
 - Pagamento de fatura é **sempre** uma transferência, nunca um lançamento solto.
 - Todo pagamento aponta para **uma** fatura: é assim que se sabe qual ciclo foi quitado.
 - A rolagem tem **sempre dois lados**, na mesma conta `CARTAO`, e a soma deles é zero.
+- A fatura que rola e a que recebe são **sempre duas**, nunca a mesma. Quem garante é o
+  `docs/02-dominio/fatura-cartao.md`: fatura encerrada não abre, então a que venceu nunca
+  chega a ser a `ABERTA`.
 - Rolagem nunca entra em relatório de gasto nem na fila de pendências.
 - O encerramento roda **no dia seguinte ao vencimento**, é idempotente e recupera atraso em
   ordem cronológica.

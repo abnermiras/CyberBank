@@ -86,7 +86,7 @@ a primeira compra não teria onde cair.
 |---|---|---|
 | `FUTURA` | `ABERTA` | A fatura anterior fechou |
 | `ABERTA` | `FECHADA` | Chegou a `dataFechamento` — ou o usuário fechou à mão |
-| `FECHADA` | `ABERTA` | O usuário **abriu** a última fatura fechada. A seguinte volta a `FUTURA` |
+| `FECHADA` | `ABERTA` | O usuário **abriu** a última fatura fechada — e só enquanto ela ainda tem `a pagar`. A seguinte volta a `FUTURA` |
 
 **Não existe estado de "reaberta".** Ele foi cogitado e derrubado: era estado inventado para
 proteger uma edição que já tem proteção melhor no lançamento. Abrir fatura serve para
@@ -209,12 +209,33 @@ acabou de fechar.
 
 | Regra | Valor |
 |---|---|
-| Qual fatura abre | **Só a última fechada.** Nas outras o botão nem aparece |
-| Por quê | É a única em que "a seguinte volta a `FUTURA`" tem sentido. Abrir a de oito meses atrás rebaixaria oito faturas — e para mexer no passado edita-se o lançamento |
+| Qual fatura abre | **Só a última fechada, e só enquanto o `a pagar` dela for maior que zero.** Nas outras o botão nem aparece |
+| Por que a última | É a única em que "a seguinte volta a `FUTURA`" tem sentido. Abrir a de oito meses atrás rebaixaria oito faturas — e para mexer no passado edita-se o lançamento |
+| Por que só a que ainda deve | **Fatura encerrada não abre.** Abrir serve ao ciclo que ainda está correndo, e o de uma fatura quitada ou rolada acabou — ver abaixo |
 | A fatura seguinte | Volta a `FUTURA` na hora. Deixa de receber compra nova, e nada mais |
 | O que já estava dentro dela | **Fica onde está.** Parcelas e ocorrências de recorrência não se mexem |
 | Compras que caíram nela por engano | O usuário move, uma a uma, pela edição do lançamento |
 | Um pagamento que você já tinha agendado | **Fica.** É seu, e o sistema não mexe no que você criou |
+
+### Fatura encerrada não abre
+
+**`a pagar` maior que zero é o mesmo que "não encerrada"**, e não é condição nova: quitada, o
+pago cobre o total; rolada, o que faltava virou `rolado`. É o **mesmo número que o encerramento
+usa como gatilho** (`docs/02-dominio/fatura-pagamento.md`) — duas rotinas, um número só.
+
+Sem ela a rolagem se autoalimenta. Agosto rola no dia 21 e vira a última fechada; abrir agosto
+a torna a `ABERTA` e devolve setembro para `FUTURA`. Uma compra de R$ 50 ali deixa agosto
+vencida com `a pagar` de R$ 50, e a rolagem manda o que sobrou **para a fatura `ABERTA`** — que
+agora é a própria agosto. O crédito sai do total e entra no `rolado`, o débito entra no total,
+e o `a pagar` continua R$ 50: rola de novo amanhã, e no outro dia. Um par e um `FATURA_ROLADA`
+por dia, para sempre.
+
+Deixar abrir e ensinar a rolagem a não rolar para si mesma foi cogitado: seria exceção nomeada
+num passo que não tem nenhuma, e deixaria fatura vencida com dívida que fatura nenhuma cobra.
+
+**Fatura de total zero também não abre** — pago ≥ total a faz ler como quitada — e não precisa:
+pôr um lançamento nela é editar o campo `fatura`, que aponta para qualquer fatura, aberta ou
+não (`docs/02-dominio/lancamento.md`). Abrir serve para **lançar novo** ali, nunca para corrigir.
 
 ## Dívida e limite
 
@@ -244,8 +265,9 @@ mexe.
   usuário move um lançamento de fatura.
 - O valor da fatura **nunca é armazenado**: é sempre a soma dos lançamentos dela.
 - **Nenhum estado de fatura impede edição de lançamento.** Fatura fechada não congela nada.
-- Só a **última fatura fechada** pode ser aberta, e abrir devolve a seguinte para `FUTURA`
-  sem mexer no que ela já contém.
+- Só a **última fatura fechada, e só enquanto o `a pagar` dela for maior que zero**, pode ser
+  aberta; abrir devolve a seguinte para `FUTURA` sem mexer no que ela já contém. **Fatura
+  encerrada não abre** — é o que impede a rolagem de rolar para si mesma.
 - O fechamento nunca lança a mesma recorrência duas vezes na mesma fatura.
 - **O fechamento não cria pagamento.** Quem cria é o usuário, escolhendo conta, dia e valor.
 - **Fechar não liquida nada; encerrar sim.** Uma fatura encerra ao ser quitada ou ao vencer
