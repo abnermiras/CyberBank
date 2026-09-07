@@ -41,12 +41,14 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | [`decisoes/ADR-0005-rolagem-entre-faturas.md`](01-arquitetura/decisoes/ADR-0005-rolagem-entre-faturas.md) | como o saldo nao pago de uma fatura chega na fatura seguinte | ativo |
 | [`decisoes/ADR-0006-situacao-provisionado.md`](01-arquitetura/decisoes/ADR-0006-situacao-provisionado.md) | por que a situacao do lancamento tem tres valores e nao dois | ativo |
 | [`decisoes/ADR-0007-email-so-para-recuperar-senha.md`](01-arquitetura/decisoes/ADR-0007-email-so-para-recuperar-senha.md) | a dependencia de SMTP, e o escopo fechado de para que ela serve | ativo |
+| [`decisoes/ADR-0008-roteador-vale-para-o-codigo.md`](01-arquitetura/decisoes/ADR-0008-roteador-vale-para-o-codigo.md) | a regra que mantem uma tarefa barata depois que houver codigo, e o orcamento por rota | ativo |
+| [`decisoes/ADR-0009-sessao-no-servidor.md`](01-arquitetura/decisoes/ADR-0009-sessao-no-servidor.md) | como a sessao autenticada viaja e por que ela tem estado | ativo |
 | [`decisoes/README.md`](01-arquitetura/decisoes/README.md) | índice das ADRs e regra de quando escrever uma | ativo |
 | [`estrutura-de-pastas.md`](01-arquitetura/estrutura-de-pastas.md) | onde cada tipo de arquivo mora no repositorio | stub |
 | [`modulos.md`](01-arquitetura/modulos.md) | lista canonica dos modulos/bounded contexts e as dependencias permitidas entre eles | stub |
 | [`observabilidade.md`](01-arquitetura/observabilidade.md) | logs, metricas, health checks e alertas | stub |
 | [`padroes-de-codigo.md`](01-arquitetura/padroes-de-codigo.md) | convencoes de nomes, estilo, DTOs, validacao, tratamento de erro no codigo | stub |
-| [`seguranca.md`](01-arquitetura/seguranca.md) | autenticacao, autorizacao, gestao de segredos, superficie exposta | stub |
+| [`seguranca.md`](01-arquitetura/seguranca.md) | autenticacao, sessao, defesa do login, superficie exposta, segredos e dado sensivel em log | ativo |
 | [`visao-geral.md`](01-arquitetura/visao-geral.md) | estilo arquitetural, camadas, fluxo de uma requisicao ponta a ponta | stub |
 
 ## Dominio — as regras de negocio
@@ -132,5 +134,5 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 
 ---
 
-**67 documentos · 35 ainda em stub.**
+**69 documentos · 34 ainda em stub.**
 Stub = conteudo inexistente: pergunte, nao deduza.

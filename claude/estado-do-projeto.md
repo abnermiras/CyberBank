@@ -10,13 +10,12 @@
 Última sessão: **2026-09-07**. Objetivo do Abner: *fechar a fatura de forma definitiva, sem
 dúvida nenhuma sobrando para o código*. Feito, e depois nasceu o `ADR-0008`.
 
-**Pendente: o push.** `origin/main` está em `151ed4a`; o local tem **seis commits à frente** —
-`c040707`, `d42e378`, `3c30a4e`, `6b918c1`, `2525042`, `47b2b5f`. Árvore limpa, check em 0
-erros e 0 avisos.
+**Pendente: o push.** `origin/main` está em `151ed4a`; o local tem **oito commits à frente**.
+Árvore limpa, check em 0 erros e 0 avisos.
 
 | Sessão | O que saiu |
 |---|---|
-| **07/09** | A fatura fechou: **encerrada não abre** · **`CARTAO` não tem saldo de abertura** · **a janela é uma só** (`FECHADA` com `a pagar` > 0 é o que se abre **e** o que se paga) · limpeza dos resíduos do `d42e378` · **`ADR-0008`**, o roteador valendo para o código |
+| **07/09** | A fatura fechou: **encerrada não abre** · **`CARTAO` não tem saldo de abertura** · **a janela é uma só** (`FECHADA` com `a pagar` > 0 é o que se abre **e** o que se paga) · limpeza dos resíduos do `d42e378` · **`ADR-0008`**, o roteador valendo para o código · este doc veio para o repositório · **`D1` fechado**: `seguranca.md` escrito e **`ADR-0009`** |
 | **01/09** | Nasce **excluir lançamento** · **o sistema nunca reescreve um pagamento** · **o fechamento para de criar o pagamento previsto** · **`ADR-0007`** (e-mail só para recuperar senha) · cadastro aberto · dia local = horário de Brasília · **`B26`: nada do RaspyBank atravessa** |
 | **30/08** | Cadastro de subcategoria · inativação · **mover morre** · o Extrato estava morto havia dois dias · nasce o **Evento** e o **Diário** |
 | **29/08** | As 10 contradições, os buracos de regra de Fase 1 e as 5 decisões de negócio que faltavam |
@@ -78,7 +77,14 @@ produzido uma regra correta para um lançamento que não devia existir.
 | Conceito estruturante | **Ambiente financeiro** é o dono do dado; usuário só tem *acesso* a ambientes |
 | Papéis | **Dono, editor, leitor.** Na tela são dois: "autorização completa" = editor; "somente leitura" = leitor. Convidar e excluir são só do dono |
 | Isolamento | Filtro no repositório + RLS no Postgres — `ADR-0002`, estendido pelo `ADR-0004` |
-| Autenticação | E-mail e senha, sessão própria. **Cadastro aberto** a quem alcança o sistema |
+| Autenticação | E-mail e senha, sessão própria. Nenhuma dependência externa, nenhum provedor de identidade |
+| **Senha** | Hash **Argon2id** (não bcrypt): custa memória além de tempo, e resiste melhor a GPU. Parâmetros **calibrados no host**, porque a memória do Pi é pouca |
+| **Sessão — `ADR-0009`** | **No servidor.** Cookie com identificador **opaco** (`HttpOnly`, `Secure`, `SameSite=Lax`), estado em tabela, expiração absoluta **e** por inatividade. Quem decidiu foi a **revogação**: tirar acesso tem efeito no clique seguinte. Trocar a senha derruba todas as sessões |
+| **O login é a superfície mais atacada** | Resposta e tempo **idênticos** para e-mail inexistente e senha errada · atraso progressivo **por conta e por origem** · bloqueio temporário. Vale igual para a recuperação de senha |
+| **Exposição** | **HTTPS sempre**, não "quando sair da rede local" — sem ele o cookie viaja em claro. Só a aplicação escuta; o Postgres nunca é publicado. **O Pi não é fronteira de segurança** |
+| **Ambiente sem acesso responde como inexistente** | `403` distinto de `404` conta ao curioso que aquele ambiente existe |
+| **Log não tem RLS** | Por isso valor, descrição e categoria de lançamento **não vão para log** — o isolamento do `ADR-0002` para na borda do arquivo. Identificador pode ir |
+| **Cadastro aberto** | Mantido em 07/09, com o gatilho já olhado. O que o sustenta é o modelo: **o cadastro não dá acesso a nada** — cria usuário, *Ambiente Pessoal* vazio e as categorias de sistema. Para chegar ao dinheiro de alguém é preciso ser **convidado** |
 | **A pergunta virou "quando fechar"** | Não é mais *quando abrir* o cadastro: o gatilho para fechar é **sair da rede local** |
 | O que o cadastro dispara | Um ato só, três efeitos: usuário · ambiente **"Ambiente Pessoal"** · as categorias de sistema dele |
 | **E-mail — `ADR-0007`** | SMTP do Gmail com senha de app, custo zero. Escopo fechado: **só quando a pessoa não consegue entrar**. Convite, compartilhamento e aviso a quem já está dentro chegam **pelo sistema** |
@@ -262,10 +268,9 @@ tela que ninguém estava mexendo, fez o relógio andar, ou perguntou se a coisa 
 **Não há mais decisão de domínio de Fase 1 esperando resposta.** O que falta é técnico, e a
 ordem está fixada no `lacunas-para-codigo.md`:
 
-1. **`D1` — autenticação e sessão.** `01-arquitetura/seguranca.md` é stub. As decisões de
-   negócio já estão tomadas (senha, cadastro aberto, o que o cadastro dispara); falta o
-   técnico: **como a sessão viaja**, como o ambiente entra no contexto da requisição (o
-   `ADR-0002` exige), segredos e dado sensível em log. **É pré-requisito de todo endpoint.**
+1. ~~**`D1` — autenticação e sessão.**~~ ✅ **Fechado em 07/09.** `seguranca.md` está ativo e
+   o `ADR-0009` registra o porquê da sessão com estado. Ficou aberto só o que é Fase 2 (a
+   identidade no bot do Telegram) e a **contenção do cadastro aberto**, adiada de propósito.
 2. **`D2` — `04-api/convencoes.md`** + `endpoints-ambientes.md`. É onde a decisão do *"ambiente
    ativo na URL"* finalmente vira doc.
 3. **`D3` — `03-dados/modelo-de-dados.md`.** Entraram `entraEmCaixa` (conta), `sistemica` e
@@ -312,7 +317,10 @@ ordem está fixada no `lacunas-para-codigo.md`:
 11. **Estorno parcelado: emissores divergem.** Observar o que vier na fatura
 12. **Débito automático muda comportamento** ou é só rótulo? (vai junto com a recorrência)
 13. **Recorrência é Fase 2 ou 3?** Decidir ao fechar a Fase 1
-14. **Quando fechar o cadastro** (gatilho: sair da rede local) · **uso pessoal ou produto**
+14. **Contenção do cadastro aberto** — limite por origem e verificação de e-mail no cadastro.
+    O gatilho para **fechar de vez** continua sendo sair da rede local; ele foi olhado em 07/09
+    e a escolha foi **manter aberto**, com a lógica de contenção para depois
+15. **Uso pessoal ou produto**
 
 *Saíram desta lista em 07/09:* **antecipar parcelas** e **parcelamento da própria fatura**
 (nunca foram dúvidas — são Fase 2, e agora estão sob *Fora desta fase* no `fatura-cartao.md`);
@@ -325,11 +333,12 @@ a razão de ela ter sumido vale mais que a pergunta.)*
 
 ## Estado da documentação
 
-**68 documentos**, 35 stubs. Stub = conteúdo inexistente: **perguntar, nunca deduzir.**
+**69 documentos**, 34 stubs. Stub = conteúdo inexistente: **perguntar, nunca deduzir.**
 
 Escritos: `CLAUDE.md`, `CONVENTIONS.md`, os 6 fluxos, todo o `00-produto/` menos `jornadas`,
 `02-dominio/` inteiro menos `orcamento`, `regras-categorizacao` e `importacao-conciliacao`,
-`06-interface/` (navegacao, direcao-visual) e as ADRs **0001 a 0008**.
+`06-interface/` (navegacao, direcao-visual), **`01-arquitetura/seguranca`** e as ADRs
+**0001 a 0009**.
 
 `fatura-cartao.md` está em **300 linhas, no teto do `CONVENTIONS`** — a próxima coisa que entrar
 ali obriga a quebrar por subdomínio, como o `fatura-pagamento.md` já nasceu.
@@ -397,7 +406,7 @@ eixos do relatório de gasto.
 
 ## Lacunas conhecidas
 
-- **Sem doc dono** para autenticação/sessão e para `Meta` (Fase 3)
+- **Sem doc dono** para `Meta` (Fase 3)
 - **Sem doc de API nenhum**; a decisão do "ambiente ativo na URL" não está escrita no repositório
 - Repositório ainda **sem `.gitignore`**
 - O `ADR-0004` encareceu o isolamento: a política de RLS ganha um `OR` com subconsulta, e isso

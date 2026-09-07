@@ -43,4 +43,6 @@ nome de variável, ou coisa que cabe no doc do módulo.
 
 | 0008 | [O roteador vale para o código, e o pacote espelha o doc](ADR-0008-roteador-vale-para-o-codigo.md) | aceita | 2026-09-07 |
 
+| 0009 | [Sessão no servidor, não JWT](ADR-0009-sessao-no-servidor.md) | aceita | 2026-09-07 |
+
 _(adicione uma linha por ADR)_
