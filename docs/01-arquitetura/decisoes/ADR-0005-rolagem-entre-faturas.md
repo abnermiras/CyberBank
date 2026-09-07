@@ -42,8 +42,9 @@ Os dois têm o mesmo `rolagemDeFatura`, a data do vencimento que passou, e **som
 a dívida do cartão não muda. A rolagem move dívida de período, não cria dívida.
 
 **A rolagem é o encerramento da fatura**, e faz mais do que o par: o débito nasce
-`PROVISIONADO`, os lançamentos da fatura vencida viram `REALIZADO` e o pagamento previsto
-dela que não foi pago é descartado. Débito `PREVISTO` foi cogitado e derrubado por
+`PROVISIONADO` e os lançamentos da fatura vencida viram `REALIZADO`. O que o usuário tiver
+agendado **não é tocado** (`docs/02-dominio/fatura-pagamento.md`) — o sistema não apaga
+lançamento de ninguém. Débito `PREVISTO` foi cogitado e derrubado por
 aritmética — ele não entraria no saldo, o crédito entraria, e o par que existe justamente
 para somar zero apagaria a dívida.
 
@@ -78,8 +79,11 @@ seguinte. Sem o evento, ela é invisível.
   É o mesmo preço que a transferência já cobra, e pela mesma razão: manter "saldo é a soma
   dos lançamentos" verdadeiro ao pé da letra.
 - **Passa a ser proibido:** rolagem com um lado só; rolagem que altere a dívida total;
-  débito de rolagem `PREVISTO`; pagamento previsto que sobreviva ao vencimento da fatura
-  dele; contar linha de rolagem em relatório de gasto ou na fila de pendências.
+  débito de rolagem `PREVISTO`; contar linha de rolagem em relatório de gasto ou na fila de
+  pendências.
+- **Corrigido pelo `ADR-0007`:** este ADR também proibia *"pagamento previsto que sobreviva
+  ao vencimento da fatura dele"*, e proibia porque na época o **sistema** criava aquele
+  pagamento. Hoje quem cria é o usuário, e o que é dele o sistema não descarta.
 - **Revisitar se:** aparecer um segundo par que existe só para mover valor entre recortes
   do mesmo agregado. Aí a "transferência interna" vira conceito de primeira classe em vez
   de dois casos parecidos.

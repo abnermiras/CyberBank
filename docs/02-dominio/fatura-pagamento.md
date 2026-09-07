@@ -58,6 +58,24 @@ dizer. Chamar de liquidado o que ainda se deve é a confusão que o `ADR-0006` d
 | **Pagar em dois ou mais pedaços** | Duas transferências para a mesma fatura. A soma quita (`docs/02-dominio/compartilhamento.md`) |
 | Pagar mais que a fatura | A conta `CARTAO` fica com saldo a favor. É crédito no cartão, e existe na vida real |
 
+### Qual fatura recebe pagamento
+
+**Só a `FECHADA` que ainda tem `a pagar`.** É a mesma janela em que se pode **abrir** a fatura
+(`docs/02-dominio/fatura-cartao.md`) — uma janela, duas operações, e o código pergunta uma
+coisa só. As três exclusões saem todas da mesma razão, e nenhuma é proibição inventada:
+
+| Fatura | Por que não |
+|---|---|
+| `FUTURA` | Existe só para segurar parcela de mês que ainda não chegou. O emissor nem a emitiu: não há o que quitar |
+| `ABERTA` | O ciclo ainda está correndo e o valor ainda vai mudar. Pagar antes do fechamento é **antecipar**, outra mecânica, com desconto do emissor — Fase 2 |
+| Encerrada | O `a pagar` dela já é zero, por construção — ver abaixo |
+
+O preço de não escrever isso seria alto e silencioso: a quitação **encerra a fatura**, então
+pagar uma `FUTURA` faria os lançamentos dela virarem `REALIZADO` meses antes de o ciclo
+existir, e quitar a `ABERTA` a deixaria encerrada enquanto ainda recebe compra — duas
+situações diferentes convivendo numa fatura que, por regra, só tem uma
+(`docs/02-dominio/fatura-cartao.md`).
+
 **Fatura encerrada não recebe pagamento.** Depois que ela rolou, o `a pagar` dela é zero: a
 dívida inteira está na fatura seguinte, e é lá que se paga. Não é proibição inventada, é
 consequência da fórmula (`docs/02-dominio/fatura-cartao.md`) — pagar a fatura velha
@@ -103,7 +121,11 @@ datados **no vencimento**, não no dia em que a rotina rodou — a fatura nova m
 anterior com a data que o banco usaria.
 
 **É idempotente e recupera atraso, como o fechamento** — e recupera **dia a dia, em ordem
-cronológica**, nunca "fecha tudo e depois rola tudo". Se o Raspberry Pi ficou dois ciclos
+cronológica**, nunca "fecha tudo e depois rola tudo". A ordem cronológica também resolve o dia
+em que os dois passos caem juntos: **encerrar vem antes de fechar**, porque o vencimento que
+disparou o encerramento é anterior à `dataFechamento` que disparou o fechamento. Rolar depois
+mandaria a dívida para a fatura errada — a que acabou de abrir, e não a que estava aberta
+quando aquela fatura venceu. Se o Raspberry Pi ficou dois ciclos
 desligado, janeiro rola para a fatura que estava aberta em janeiro; só então fevereiro fecha,
 vence e rola. Rolar duas vezes a mesma fatura não faz nada.
 
@@ -171,7 +193,7 @@ As três saídas cobrem todo caso:
 
 | O que a correção fez | O que acontece |
 |---|---|
-| Mexeu em fatura `ABERTA`, ou `FECHADA` não paga | O total é reapurado e o pagamento previsto acompanha. Nada além disso |
+| Mexeu em fatura `ABERTA`, ou `FECHADA` não paga | O total é reapurado, e nada mais. Não há pagamento que acompanhe: o que existir ali foi você que criou |
 | **Subiu o total** de uma fatura já encerrada | O `a pagar` dela volta a ser positivo, e o **encerramento a pega na passagem seguinte e rola** o que ela voltou a dever. A dívida aparece na fatura aberta, como qualquer saldo anterior |
 | **Baixou o total** de uma fatura já encerrada | O `a pagar` fica negativo: é **crédito** na conta `CARTAO` — a mesma coisa de pagar mais que a fatura, que já existe na vida real. Nada rola e nada é reescrito |
 
@@ -197,13 +219,12 @@ Nada disso dispara recálculo: saldo é sempre soma de lançamento, então reesc
 um valor **já refaz tudo que deriva dele**. A memória do que mudou vive no **evento**
 (`docs/02-dominio/evento.md`), não numa linha de ajuste no extrato.
 
-**Editar uma série pode mudar o valor de várias faturas de uma vez** — inclusive pagas. O
-sistema **mostra quais** antes de confirmar (`docs/02-dominio/recorrencia.md`): mexer no
-passado é permitido, mas nunca silencioso.
-
 ## Invariantes
 
 - Pagamento de fatura é **sempre** uma transferência, nunca um lançamento solto.
+- Pagamento aponta **só para fatura `FECHADA` com `a pagar` maior que zero** — nunca para uma
+  `FUTURA`, nunca para a `ABERTA`, nunca para uma encerrada. É a mesma janela em que a fatura
+  pode ser aberta (`docs/02-dominio/fatura-cartao.md`).
 - Todo pagamento aponta para **uma** fatura: é assim que se sabe qual ciclo foi quitado.
 - A rolagem tem **sempre dois lados**, na mesma conta `CARTAO`, e a soma deles é zero.
 - A fatura que rola e a que recebe são **sempre duas**, nunca a mesma. Quem garante é o

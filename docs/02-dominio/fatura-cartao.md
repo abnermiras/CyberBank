@@ -290,10 +290,10 @@ mexe.
 | Como a fatura real do banco se casa com os lançamentos | `02-dominio/importacao-conciliacao` |
 | Pagamento, rolagem e correção do passado | `02-dominio/fatura-pagamento` |
 
-## Ainda em aberto
+## Fora desta fase
 
-- [ ] **Antecipar parcelas** — pagar hoje o que venceria em três faturas, com desconto que a
-      operadora informa. Fase 2
-- [ ] **Parcelamento da própria fatura** oferecido pelo emissor: vira um parcelamento novo
-      sobre a dívida que ficou na conta `CARTAO`. Fase 2
-- [ ] Fatura em **moeda estrangeira**: entra já convertida, ou guarda os dois valores?
+**Nada aqui é dúvida.** Duas funcionalidades já datadas em `docs/00-produto/roadmap.md`, as
+duas Fase 2: **antecipar parcelas** e o **parcelamento da própria fatura** oferecido pelo
+emissor, que vira um parcelamento novo sobre a dívida da conta `CARTAO`. E **moeda estrangeira
+não é pergunta**: a fatura entra **já convertida, em centavos de real**, como o emissor cobra —
+multi-moeda é não-objetivo *sem fase* no mesmo roadmap, e guardar o valor de origem seria isso.

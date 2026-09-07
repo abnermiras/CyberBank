@@ -738,7 +738,11 @@
      Serve para uma coisa: o ciclo ainda esta correndo e o sistema achou que tinha
      acabado (a operadora fechou em outro dia). A seguinte volta a FUTURA. */
   const ultimaFechada = (cc) => faturasDe(cc).filter((f) => f.status === 'FECHADA').slice(-1)[0] || null;
-  const podeAbrir = (f) => !!f && f.status === 'FECHADA' && ultimaFechada(f.contaCartao) &&
+  /* A janela e uma so, e serve para abrir E para pagar: FECHADA que ainda deve.
+     `a pagar > 0` E "nao encerrada" — quitada zera pelo pago, rolada zera pelo rolado.
+     Sem isso a rolagem rolaria para si mesma, um par por dia, para sempre. */
+  const podePagar = (f) => !!f && f.status === 'FECHADA' && faltaNaFatura(f.id) > 0;
+  const podeAbrir = (f) => podePagar(f) && ultimaFechada(f.contaCartao) &&
     ultimaFechada(f.contaCartao).id === f.id;
 
   function abrirFatura(fid) {
@@ -746,10 +750,7 @@
     if (!podeAbrir(f)) return null;
     const aberta = faturasDe(f.contaCartao).find((x) => x.status === 'ABERTA');
     if (aberta) aberta.status = 'FUTURA';   // o que ja estava nela FICA onde esta
-    // o pagamento previsto ainda nao pago some; renasce no proximo fechamento
-    const prev = pagamentosDaFatura(fid).filter((l) => l.situacao === 'PREVISTO');
-    prev.forEach((l) => { const par = parDaTransferencia(l.transferenciaId);
-      S.lancamentos = S.lancamentos.filter((x) => par.indexOf(x) < 0); });
+    // o que voce agendou FICA: e seu, e o sistema nao apaga lancamento de usuario (ADR-0007)
     f.status = 'ABERTA';
     doUsuario('FATURA_ABERTA_PELO_USUARIO', f.id, { referencia: f.referencia }, f.ambiente);
     return f;
@@ -772,7 +773,7 @@
      contado uma vez, na compra. ---------- */
   function pagarFatura(fid, o) {
     const f = S.faturas.find((x) => x.id === fid);
-    if (!f || f.status === 'ABERTA') return null;
+    if (!podePagar(f)) return null;   // FUTURA, ABERTA e encerrada nao recebem pagamento
     o = o || {};
     const c = conta(f.contaCartao);
     const falta = faltaNaFatura(fid);
@@ -1138,7 +1139,7 @@
     faturasDe, faturaAberta, faturaNaPosicao, faturaDaReferencia, datasDaRef,
     totalFatura, roladoDaFatura, faltaNaFatura, ehRolagem, lancamentosDaFatura,
     pagamentosDaFatura, pagoDaFatura, situacaoPagamento, rolarSaldo, lancamentosDeRolagem,
-    fecharFatura, abrirFatura, podeAbrir, ultimaFechada, pagarFatura,
+    fecharFatura, abrirFatura, podeAbrir, podePagar, ultimaFechada, pagarFatura,
     previaCorrecaoFatura, ajustarPagamento, criarPagamentoPrevisto, sincronizarPagamentoPrevisto,
     comprarNoCredito, registrarBoleto, avancar,
     series, serie, lancamentosDaSerie, criarRecorrencia,

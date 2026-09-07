@@ -332,6 +332,7 @@ Nada precisa ser recalculado: como saldo é sempre a soma dos lançamentos
 |---|---|
 | Como `dataEfeito` é calculada por tipo de meio | `02-dominio/meio-de-pagamento` |
 | Como as parcelas nascem e o que acontece ao editar a compra | `02-dominio/recorrencia` |
-| Fechamento, pagamento e reabertura de fatura | `02-dominio/fatura-cartao` |
+| Ciclo da fatura: fechamento, abertura e a que fatura o lançamento vai | `02-dominio/fatura-cartao` |
+| Pagamento de fatura, rolagem e correção do passado | `02-dominio/fatura-pagamento` |
 | Como um lançamento capturado vira realizado sem duplicar | `02-dominio/importacao-conciliacao` |
 | Como a categoria é atribuída automaticamente | `02-dominio/regras-categorizacao` |

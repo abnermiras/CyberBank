@@ -23,7 +23,7 @@ O Cyberbank mexe no dinheiro do usuário **sozinho** em quatro lugares:
 | O que o sistema faz sem ser mandado | Onde está escrito |
 |---|---|
 | Previsto vira realizado quando a `dataEfeito` chega | `docs/02-dominio/lancamento.md` |
-| A fatura fecha, abre a seguinte e cria o pagamento previsto | `docs/02-dominio/fatura-cartao.md` |
+| A fatura fecha e abre a seguinte | `docs/02-dominio/fatura-cartao.md` |
 | A fatura vencida e não quitada **rola** para a seguinte | `docs/01-arquitetura/decisoes/ADR-0005-rolagem-entre-faturas.md` |
 | A recorrência ganha a ocorrência do ciclo | `docs/02-dominio/recorrencia.md` |
 
