@@ -10,12 +10,12 @@
 Última sessão: **2026-09-07**. Objetivo do Abner: *fechar a fatura de forma definitiva, sem
 dúvida nenhuma sobrando para o código*. Feito, e depois nasceu o `ADR-0008`.
 
-**Pendente: o push.** `origin/main` está em `151ed4a`; o local tem **oito commits à frente**.
+**Pendente: o push.** `origin/main` está em `151ed4a`; o local tem **nove commits à frente**.
 Árvore limpa, check em 0 erros e 0 avisos.
 
 | Sessão | O que saiu |
 |---|---|
-| **07/09** | A fatura fechou: **encerrada não abre** · **`CARTAO` não tem saldo de abertura** · **a janela é uma só** (`FECHADA` com `a pagar` > 0 é o que se abre **e** o que se paga) · limpeza dos resíduos do `d42e378` · **`ADR-0008`**, o roteador valendo para o código · este doc veio para o repositório · **`D1` fechado**: `seguranca.md` escrito e **`ADR-0009`** |
+| **07/09** | A fatura fechou: **encerrada não abre** · **`CARTAO` não tem saldo de abertura** · **a janela é uma só** (`FECHADA` com `a pagar` > 0 é o que se abre **e** o que se paga) · limpeza dos resíduos do `d42e378` · **`ADR-0008`**, o roteador valendo para o código · este doc veio para o repositório · **`D1` fechado**: `seguranca.md` escrito e **`ADR-0009`** · **`D2` fechado**: `04-api/convencoes.md` e `erros.md` escritos |
 | **01/09** | Nasce **excluir lançamento** · **o sistema nunca reescreve um pagamento** · **o fechamento para de criar o pagamento previsto** · **`ADR-0007`** (e-mail só para recuperar senha) · cadastro aberto · dia local = horário de Brasília · **`B26`: nada do RaspyBank atravessa** |
 | **30/08** | Cadastro de subcategoria · inativação · **mover morre** · o Extrato estava morto havia dois dias · nasce o **Evento** e o **Diário** |
 | **29/08** | As 10 contradições, os buracos de regra de Fase 1 e as 5 decisões de negócio que faltavam |
@@ -89,7 +89,12 @@ produzido uma regra correta para um lançamento que não devia existir.
 | O que o cadastro dispara | Um ato só, três efeitos: usuário · ambiente **"Ambiente Pessoal"** · as categorias de sistema dele |
 | **E-mail — `ADR-0007`** | SMTP do Gmail com senha de app, custo zero. Escopo fechado: **só quando a pessoa não consegue entrar**. Convite, compartilhamento e aviso a quem já está dentro chegam **pelo sistema** |
 | **Informação do sistema chega pelo sistema** | A razão durável no lugar da circunstancial ("não há e-mail no Pi"). Sobrevive a mudar de host, provedor ou rede |
-| Ambiente ativo | No caminho da URL: `/api/v1/ambientes/{id}/...` — **decidido, e ainda não escrito em doc nenhum** |
+| Ambiente ativo | No caminho da URL: `/api/v1/ambientes/{id}/...`. **Escrito em 07/09** no `04-api/convencoes.md`, com a regra: se o dado tem `ambiente_id`, o endpoint dele está sob `/ambientes/{id}/`, sem exceção |
+| **API — a borda não inventa vocabulário** | Recurso e campo em **português**, `camelCase`, com os nomes do domínio. Dinheiro **inteiro em centavos**; data de domínio `"AAAA-MM-DD"` sem fuso; instante em UTC. **Verbo em caminho é proibido** — ação de domínio vira sub-recurso (`POST .../faturas/42/fechamento`) |
+| **`GET` nunca muda estado** | É segurança, não estilo: o `SameSite=Lax` barra CSRF nos outros métodos e **deixa o `GET` passar** |
+| **Paginação por cursor**, não página | O Extrato **cresce por cima**: com página numerada, um lançamento novo faz um item repetir ou **sumir** enquanto a pessoa lê. O cursor aponta para uma linha, não para uma contagem — e a chave de ordenação é sempre única. Preço aceito: não existe "pular para a página 7", e o total é consulta separada |
+| **Erro em `problem+json`** | RFC 7807 mais `codigo` (contrato) e `erros` (validação, **todos os campos de uma vez**). **O cliente lê o código, nunca a mensagem** |
+| **O erro não conta o que a pessoa não podia saber** | `404` cobre "não existe" e "não é seu"; `403` só **dentro** de um ambiente a que ela já tem acesso. `500` nunca carrega stack trace, SQL nem valor informado |
 | **Roteador vale para o código — `ADR-0008`** | O endereço do código é **derivável do nome do doc dono**; um assunto, um pacote; sem pasta de topo por camada; a rota tem orçamento e o `check` o cobra |
 | **Congelado é a funcionalidade, não o modelo** | Decisão de modelo que contamina schema ou política de acesso entra na fase em que o schema nasce. Valeu para `Aplicação`, compartilhamento e **Evento** |
 | **Compartilhamento** | **Modelo na Fase 1**; **tela liberada com a Fase 1 concluída** |
@@ -271,8 +276,11 @@ ordem está fixada no `lacunas-para-codigo.md`:
 1. ~~**`D1` — autenticação e sessão.**~~ ✅ **Fechado em 07/09.** `seguranca.md` está ativo e
    o `ADR-0009` registra o porquê da sessão com estado. Ficou aberto só o que é Fase 2 (a
    identidade no bot do Telegram) e a **contenção do cadastro aberto**, adiada de propósito.
-2. **`D2` — `04-api/convencoes.md`** + `endpoints-ambientes.md`. É onde a decisão do *"ambiente
-   ativo na URL"* finalmente vira doc.
+2. ~~**`D2` — `04-api/convencoes.md`**~~ ✅ **Fechado em 07/09**, junto com o `erros.md` — o
+   fluxo `novo-endpoint` lê os dois, e convenção sem contrato de erro é meia decisão. Falta
+   escrever os **endpoints por agregado** (`endpoints-ambientes`, `-contas`, `-lancamentos`,
+   `-categorias`, `-meios-pagamento`, `-relatorios`), que é trabalho de agregado, não de
+   convenção.
 3. **`D3` — `03-dados/modelo-de-dados.md`.** Entraram `entraEmCaixa` (conta), `sistemica` e
    `inativa` (categoria) e a tabela **`evento`** inteira. O `pai` da categoria nasce imutável, e
    a política de RLS já nasce com o `OR` do `ADR-0004`.
@@ -333,19 +341,23 @@ a razão de ela ter sumido vale mais que a pergunta.)*
 
 ## Estado da documentação
 
-**69 documentos**, 34 stubs. Stub = conteúdo inexistente: **perguntar, nunca deduzir.**
+**69 documentos**, 32 stubs. Stub = conteúdo inexistente: **perguntar, nunca deduzir.**
 
 Escritos: `CLAUDE.md`, `CONVENTIONS.md`, os 6 fluxos, todo o `00-produto/` menos `jornadas`,
 `02-dominio/` inteiro menos `orcamento`, `regras-categorizacao` e `importacao-conciliacao`,
-`06-interface/` (navegacao, direcao-visual), **`01-arquitetura/seguranca`** e as ADRs
-**0001 a 0009**.
+`06-interface/` (navegacao, direcao-visual), **`01-arquitetura/seguranca`**,
+**`04-api/convencoes` e `04-api/erros`**, e as ADRs **0001 a 0009**.
 
 `fatura-cartao.md` está em **300 linhas, no teto do `CONVENTIONS`** — a próxima coisa que entrar
 ali obriga a quebrar por subdomínio, como o `fatura-pagamento.md` já nasceu.
 
-**Custo de contexto** (`docs.py custo`, 07/09): base ~1.420 tokens; rotas entre ~2.0k e ~11.7k;
-ler tudo custaria ~73k. **A conta muda quando os stubs forem escritos** — e o `ADR-0008` manda
-o `custo` passar a contar o código e entrar no `check`, com teto por rota.
+**Custo de contexto** (`docs.py custo`, fim de 07/09): base ~1.420 tokens; rotas entre ~2,2k e
+~11,9k; ler tudo custaria ~82k.
+
+**A inflação prevista já começou:** `novo-endpoint` saltou de **~2,3k para ~6,3k** ao sair do
+stub — os dois docs novos são reais, e a rota mais usada de código pagou por eles. É
+exatamente o que o `ADR-0008` mandou vigiar, e a resposta dele é o **teto por rota** no
+`check`, ainda não implementado no `docs.py`.
 
 ## Estado do protótipo
 
@@ -407,7 +419,9 @@ eixos do relatório de gasto.
 ## Lacunas conhecidas
 
 - **Sem doc dono** para `Meta` (Fase 3)
-- **Sem doc de API nenhum**; a decisão do "ambiente ativo na URL" não está escrita no repositório
+- **Nenhum endpoint escrito** — as convenções e o contrato de erro existem, os
+  `endpoints-<agregado>` não
+- **`docs.py` ainda não tem o teto por rota** que o `ADR-0008` decidiu, nem conta o código
 - Repositório ainda **sem `.gitignore`**
 - O `ADR-0004` encareceu o isolamento: a política de RLS ganha um `OR` com subconsulta, e isso
   não foi escrito em `03-dados/` — a tabela `evento` também precisa de RLS
