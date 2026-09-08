@@ -23,6 +23,9 @@ localize a tarefa na tabela abaixo, leia **apenas** os docs listados e vá.
 - Se um doc estiver com `status: stub`, o conteúdo não existe: **pergunte, não invente**.
 - Terminou uma tarefa? Atualize o doc dono do fato que mudou (a tabela diz qual é).
 - Antes de mudar de tarefa, rode `/clear`. Contexto de tarefa anterior é desperdício.
+- **Sessão nova, antes da primeira tarefa:** leia `claude/estado-do-projeto.md` — onde o
+  projeto parou, o que já foi decidido e qual é o próximo passo. Ele **não** entra em rota de
+  tarefa nenhuma (`ADR-0008`), então nunca o abra junto com um fluxo.
 
 ## Roteamento: tarefa → documentos
 
