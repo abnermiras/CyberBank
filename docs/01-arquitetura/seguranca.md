@@ -32,6 +32,11 @@ melhor a quebra com GPU, porque custa **memória** além de tempo. É justamente
 obriga a calibrar: o Pi tem pouca, e parâmetro copiado de tutorial ou trava o login ou não
 protege nada. O número calibrado vive em `docs/07-operacao/deploy.md`, não aqui.
 
+No código é o `Argon2PasswordEncoder` do Spring Security, e ele **exige o BouncyCastle**
+(`bcprov-jdk18on`) — a JDK não traz Argon2. É a única razão de a dependência existir no
+`pom.xml`: ela é consequência desta decisão, não escolha de biblioteca de criptografia
+(`CLAUDE.md`, regra 3).
+
 **O token de recuperação não loga ninguém.** Ele só autoriza **trocar a senha**: uso único,
 validade curta, invalidado ao ser usado, ao expirar ou ao pedido de um novo. Token que
 autentica é uma segunda porta de entrada, e uma porta a mais é uma porta a mais.
