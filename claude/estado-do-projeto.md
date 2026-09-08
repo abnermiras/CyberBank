@@ -10,12 +10,15 @@
 Última sessão: **2026-09-07**. Objetivo do Abner: *fechar a fatura de forma definitiva, sem
 dúvida nenhuma sobrando para o código*. Feito, e depois nasceu o `ADR-0008`.
 
-**Pendente: o push.** `origin/main` está em `151ed4a`; o local tem **doze commits à frente**.
+**Pendente: o push, e ele virou o único bloqueio real.** `origin/main` está em `151ed4a`; o
+local tem **catorze commits à frente**. **O desenvolvimento passa a acontecer numa máquina
+Linux, com o Claude Code no terminal** — ela clona do GitHub, então **sem o push ela não
+recebe nada disto**.
 Árvore limpa, check em 0 erros e 0 avisos.
 
 | Sessão | O que saiu |
 |---|---|
-| **07/09** | A fatura fechou: **encerrada não abre** · **`CARTAO` não tem saldo de abertura** · **a janela é uma só** (`FECHADA` com `a pagar` > 0 é o que se abre **e** o que se paga) · limpeza dos resíduos do `d42e378` · **`ADR-0008`**, o roteador valendo para o código · este doc veio para o repositório · **`D1` fechado**: `seguranca.md` escrito e **`ADR-0009`** · **`D2` fechado**: `04-api/convencoes.md` e `erros.md` · **`D3` fechado**: `modelo-de-dados.md` e `migrations.md` · **`01-arquitetura/` escrito** e **`ADR-0010`** · nasce o fluxo **`novo-caso-de-uso`** · **`07-operacao/build-e-run` e `testes`**, **`ambientes-de-execucao`**, **`ADR-0011`** e finalmente o **`.gitignore`** |
+| **07/09** | A fatura fechou: **encerrada não abre** · **`CARTAO` não tem saldo de abertura** · **a janela é uma só** (`FECHADA` com `a pagar` > 0 é o que se abre **e** o que se paga) · limpeza dos resíduos do `d42e378` · **`ADR-0008`**, o roteador valendo para o código · este doc veio para o repositório · **`D1` fechado**: `seguranca.md` escrito e **`ADR-0009`** · **`D2` fechado**: `04-api/convencoes.md` e `erros.md` · **`D3` fechado**: `modelo-de-dados.md` e `migrations.md` · **`01-arquitetura/` escrito** e **`ADR-0010`** · nasce o fluxo **`novo-caso-de-uso`** · **`07-operacao/build-e-run` e `testes`**, **`ambientes-de-execucao`**, **`ADR-0011`** e finalmente o **`.gitignore`** · o `CLAUDE.md` passa a apontar para este doc no início de sessão, e nascem os comandos `/esqueleto` e `/caso-de-uso` |
 | **01/09** | Nasce **excluir lançamento** · **o sistema nunca reescreve um pagamento** · **o fechamento para de criar o pagamento previsto** · **`ADR-0007`** (e-mail só para recuperar senha) · cadastro aberto · dia local = horário de Brasília · **`B26`: nada do RaspyBank atravessa** |
 | **30/08** | Cadastro de subcategoria · inativação · **mover morre** · o Extrato estava morto havia dois dias · nasce o **Evento** e o **Diário** |
 | **29/08** | As 10 contradições, os buracos de regra de Fase 1 e as 5 decisões de negócio que faltavam |
@@ -311,8 +314,11 @@ ordem está fixada no `lacunas-para-codigo.md`:
 5. ~~**`07-operacao/build-e-run.md` e `testes.md`**~~ ✅ **Fechado em 07/09**, com o
    `ambientes-de-execucao.md` e o `ADR-0011`. **Não há mais doc bloqueando a primeira linha de
    código.**
-6. **O esqueleto do projeto:** `pom.xml`, `compose.yml` com os **dois papéis** de banco,
-   `.env.exemplo` e a `CyberbankApplication`. É o primeiro commit de código.
+6. **O esqueleto do projeto** — comando **`/esqueleto`**, uma vez só. `pom.xml` (módulo único,
+   Java 21, Flyway, Argon2, e ArchUnit + Testcontainers como teste), `compose.yml` com os
+   **dois papéis** de banco, `.env.exemplo`, `application.yml` com `ddl-auto: validate`, a
+   classe de aplicação e o teste de arquitetura vazio. **Nada de domínio.** Pronto quando
+   `./mvnw verify` passa.
 7. **A primeira migration** (`V001`), e com ela o `catalogo-tabelas.md` — que nasce junto, não
    antes.
 8. **Rodada de protótipo** — ver abaixo; o backlog do `dominio.js` está aberto desde 01/09.
@@ -469,13 +475,27 @@ eixos do relatório de gasto.
 - `03-dados/modelo-de-dados.md` não conhece nada de hoje
 - O protótipo não exercita os dois eixos do relatório de gasto nem renomear categoria
 
-## Nota de ambiente
+## Como o trabalho acontece
+
+**Documentação e decisão** vêm sendo feitas pelo Cowork, com a pasta do Windows conectada pela
+ponte. **O código passa a ser escrito na máquina Linux, com o Claude Code no terminal** — que
+clona do GitHub e entra sempre pelo `CLAUDE.md`.
+
+Duas consequências práticas: **o push deixa de ser detalhe e vira o que sincroniza as duas
+pontas**; e a *Nota de ambiente* abaixo é sobre a **ponte do Windows**, não sobre o terminal
+Linux — lá o git funciona normalmente e nada daquilo se aplica.
+
+Comandos em `.claude/commands/`: **`/esqueleto`** (uma vez só), **`/caso-de-uso`**, `/regra`,
+`/endpoint`, `/migration`, `/bug`, `/meio-pagamento`, `/integracao`, `/docs-check`.
+
+## Nota de ambiente (só na ponte do Windows)
 
 **Deletar arquivo na máquina do Abner precisa de permissão explícita**, e o git precisa disso
 para `.git/index.lock` e `.git/HEAD.lock`. **Já derrubou três commits.** Existe ferramenta para
-pedir (`device_request_delete_permission`, uma vez por sessão, e o Abner aprova no app); depois
-disso `rm -f .git/*.lock` e a limpeza dos `tmp_obj_*` resolve. **A permissão se perde quando a
-ponte reconecta.**
+pedir (`device_request_delete_permission`, e o Abner aprova no app); depois disso
+`rm -f .git/*.lock` e a limpeza dos `tmp_obj_*` resolve. **A permissão se perde quando a ponte
+reconecta** — aconteceu de novo no meio da sessão de 07/09, exatamente como esta nota previa.
+Sintoma: `Operation not permitted` no `rm`. Basta pedir de novo.
 
 `git commit -am` **não pega arquivo novo** — recém-criado precisa de `git add` explícito. E
 `git commit -m` sem `-a` só commita o que está no index: conferir o `N files changed` contra o
