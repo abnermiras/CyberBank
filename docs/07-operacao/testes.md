@@ -63,6 +63,12 @@ dinheiro:
   teste. É o que o `conferir()` do protótipo já faz do lado do modelo.
 - **O isolamento entre ambientes**, com dois ambientes reais e a conexão da aplicação — o teste
   do `ADR-0011`, que precisa **falhar de verdade** se a política sumir.
+- **Os dois papéis do banco**, e antes de qualquer tabela existir: o papel da aplicação **não é
+  superusuário, não tem `BYPASSRLS` e não é dono do `public`** (`PapeisDoBancoIT`). É a
+  montagem de que o `ADR-0002` inteiro depende, e é a única parte dele que quebra **em
+  silêncio** — um `DB_APP_USER` apontando para o dono deixa tudo funcionando, nenhuma suíte
+  vermelha, e o RLS deixa de existir. O contêiner sobe com o **mesmo script** do `compose.yml`,
+  senão o teste prova uma montagem que ele mesmo inventou.
 - **Todo passo que o sistema dá sozinho:** fechamento, encerramento, rolagem e realização por
   data. E cada um duas vezes: **idempotência** (rodar de novo não faz nada) e **recuperação de
   atraso** (dois ciclos parados voltam em ordem cronológica).
@@ -94,7 +100,7 @@ teste tem que conter esse caso**, senão a previsão nunca é executada.
 - A suíte de domínio não sobe Spring, não abre banco e não pede Docker.
 - Nenhum teste usa banco em memória (`ADR-0011`).
 - Teste de integração conecta com o papel **não-dono** das tabelas, e aplica as migrations do
-  zero.
+  zero. O contêiner nasce com os dois papéis, pelo script do `compose.yml`.
 - Nenhum teste depende de estado deixado por outro, nem do seed do protótipo.
 - Toda invariante escrita em `02-dominio/` tem teste.
 - Todo passo automático tem teste de idempotência **e** de recuperação de atraso.

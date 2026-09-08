@@ -10,14 +10,14 @@
 Última sessão: **2026-09-07**, já na máquina Linux, com o Claude Code no terminal.
 **O esqueleto do projeto existe: o repositório tem Java, e `./mvnw verify` passa.**
 
-**O push saiu, e o bloqueio acabou:** `origin/main` e o local estão os dois em `1b330bc`, e a
-máquina Linux recebeu tudo. O esqueleto (`pom.xml`, `mvnw`, `compose.yml`, `docker/`,
-`.env.exemplo`, `src/`) está **escrito e verde, mas ainda não commitado**.
-Check de docs em 0 erros e 0 avisos.
+**O esqueleto está commitado e no GitHub:** `4be103d` na branch `esqueleto-do-projeto`,
+mergeado em `main` por `9e015a2` — e `origin/main` está no mesmo ponto. O bloqueio do push
+acabou.
+Árvore limpa, `./mvnw verify` verde, check de docs em 0 erros e 0 avisos.
 
 | Sessão | O que saiu |
 |---|---|
-| **07/09 (noite)** | **`/esqueleto` executado, uma vez só**: `pom.xml` (módulo único, Java 21, **Spring Boot 4.0.8**, Flyway, Argon2 do Spring Security, ArchUnit e Testcontainers), `mvnw`, `compose.yml` com **`postgres:18.4` na 5433** e o script dos **dois papéis**, `.env.exemplo`, `application.yml` com `ddl-auto: validate`, `CyberbankApplication` e o **teste de arquitetura com as três regras do `ADR-0010`** — passando vazio, que é o esperado. `./mvnw verify` verde e a aplicação sobe, com o Flyway conectando **como dono**. **Nada de domínio.** |
+| **07/09 (noite)** | **`/esqueleto` executado, uma vez só**: `pom.xml` (módulo único, Java 21, **Spring Boot 4.0.8**, Flyway, Argon2 do Spring Security, ArchUnit e Testcontainers), `mvnw`, `compose.yml` com **`postgres:18.4` na 5433** e o script dos **dois papéis**, `.env.exemplo`, `application.yml` com `ddl-auto: validate`, `CyberbankApplication` e o **teste de arquitetura com as três regras do `ADR-0010`** — passando vazio, que é o esperado. `./mvnw verify` verde e a aplicação sobe, com o Flyway conectando **como dono**. **Nada de domínio.** Depois, o **`PapeisDoBancoIT`**: a suíte de integração sobe o contêiner com o **mesmo script do compose** e exige que o papel da aplicação não seja superusuário, não tenha `BYPASSRLS` e não seja dono do `public` — a montagem de que o `ADR-0002` depende, e a única parte dele que quebrava em silêncio. E o **BouncyCastle** ficou registrado no `seguranca.md`, que é de onde ele vem (regra 3). |
 | **07/09** | A fatura fechou: **encerrada não abre** · **`CARTAO` não tem saldo de abertura** · **a janela é uma só** (`FECHADA` com `a pagar` > 0 é o que se abre **e** o que se paga) · limpeza dos resíduos do `d42e378` · **`ADR-0008`**, o roteador valendo para o código · este doc veio para o repositório · **`D1` fechado**: `seguranca.md` escrito e **`ADR-0009`** · **`D2` fechado**: `04-api/convencoes.md` e `erros.md` · **`D3` fechado**: `modelo-de-dados.md` e `migrations.md` · **`01-arquitetura/` escrito** e **`ADR-0010`** · nasce o fluxo **`novo-caso-de-uso`** · **`07-operacao/build-e-run` e `testes`**, **`ambientes-de-execucao`**, **`ADR-0011`** e finalmente o **`.gitignore`** · o `CLAUDE.md` passa a apontar para este doc no início de sessão, e nascem os comandos `/esqueleto` e `/caso-de-uso` |
 | **01/09** | Nasce **excluir lançamento** · **o sistema nunca reescreve um pagamento** · **o fechamento para de criar o pagamento previsto** · **`ADR-0007`** (e-mail só para recuperar senha) · cadastro aberto · dia local = horário de Brasília · **`B26`: nada do RaspyBank atravessa** |
 | **30/08** | Cadastro de subcategoria · inativação · **mover morre** · o Extrato estava morto havia dois dias · nasce o **Evento** e o **Diário** |
