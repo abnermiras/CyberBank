@@ -32,7 +32,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 
 | Documento | Dono do fato | Status |
 |---|---|---|
-| [`ambientes-de-execucao.md`](01-arquitetura/ambientes-de-execucao.md) | quais ambientes existem, hosts, portas, diferencas de configuracao | stub |
+| [`ambientes-de-execucao.md`](01-arquitetura/ambientes-de-execucao.md) | quais ambientes existem, em que maquina cada um roda e o que muda entre eles | ativo |
 | [`decisoes/ADR-0000-template.md`](01-arquitetura/decisoes/ADR-0000-template.md) | formato padrão de uma ADR | ativo |
 | [`decisoes/ADR-0001-nome-ambiente-financeiro.md`](01-arquitetura/decisoes/ADR-0001-nome-ambiente-financeiro.md) | a decisão sobre a colisão do termo ambiente | ativo |
 | [`decisoes/ADR-0002-isolamento-por-ambiente.md`](01-arquitetura/decisoes/ADR-0002-isolamento-por-ambiente.md) | como o isolamento entre ambientes financeiros e imposto | ativo |
@@ -44,6 +44,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | [`decisoes/ADR-0008-roteador-vale-para-o-codigo.md`](01-arquitetura/decisoes/ADR-0008-roteador-vale-para-o-codigo.md) | a regra que mantem uma tarefa barata depois que houver codigo, e o orcamento por rota | ativo |
 | [`decisoes/ADR-0009-sessao-no-servidor.md`](01-arquitetura/decisoes/ADR-0009-sessao-no-servidor.md) | como a sessao autenticada viaja e por que ela tem estado | ativo |
 | [`decisoes/ADR-0010-fronteira-imposta-por-teste.md`](01-arquitetura/decisoes/ADR-0010-fronteira-imposta-por-teste.md) | quem impede a violacao do "um assunto, um pacote", e por que o grafo entre dominios e vazio | ativo |
+| [`decisoes/ADR-0011-teste-contra-postgres-real.md`](01-arquitetura/decisoes/ADR-0011-teste-contra-postgres-real.md) | por que nao ha banco em memoria nos testes, e o que isso custa | ativo |
 | [`decisoes/README.md`](01-arquitetura/decisoes/README.md) | índice das ADRs e regra de quando escrever uma | ativo |
 | [`estrutura-de-pastas.md`](01-arquitetura/estrutura-de-pastas.md) | a arvore do projeto, a convencao de pacotes, onde criar cada arquivo novo e o que nao se versiona | ativo |
 | [`modulos.md`](01-arquitetura/modulos.md) | quais assuntos existem, quem pode depender de quem, e como dois assuntos conversam | ativo |
@@ -117,10 +118,10 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | Documento | Dono do fato | Status |
 |---|---|---|
 | [`backup-restore.md`](07-operacao/backup-restore.md) | o que e salvo, com que frequencia e como restaurar | stub |
-| [`build-e-run.md`](07-operacao/build-e-run.md) | comandos para compilar, rodar e subir dependencias | stub |
+| [`build-e-run.md`](07-operacao/build-e-run.md) | pre-requisitos, comandos exatos, como subir o banco local e as variaveis de ambiente | ativo |
 | [`deploy.md`](07-operacao/deploy.md) | como uma versao chega em producao | stub |
 | [`runbook.md`](07-operacao/runbook.md) | sintomas conhecidos e o procedimento de resposta | stub |
-| [`testes.md`](07-operacao/testes.md) | tipos de teste, o que cada um cobre e como rodar | stub |
+| [`testes.md`](07-operacao/testes.md) | as quatro suites, o que e obrigatorio testar, e como rodar cada uma | ativo |
 
 ## Fluxos — roteiros de tarefa (entre por aqui)
 
@@ -136,5 +137,5 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 
 ---
 
-**71 documentos · 26 ainda em stub.**
+**72 documentos · 23 ainda em stub.**
 Stub = conteudo inexistente: pergunte, nao deduza.

@@ -10,12 +10,12 @@
 Última sessão: **2026-09-07**. Objetivo do Abner: *fechar a fatura de forma definitiva, sem
 dúvida nenhuma sobrando para o código*. Feito, e depois nasceu o `ADR-0008`.
 
-**Pendente: o push.** `origin/main` está em `151ed4a`; o local tem **onze commits à frente**.
+**Pendente: o push.** `origin/main` está em `151ed4a`; o local tem **doze commits à frente**.
 Árvore limpa, check em 0 erros e 0 avisos.
 
 | Sessão | O que saiu |
 |---|---|
-| **07/09** | A fatura fechou: **encerrada não abre** · **`CARTAO` não tem saldo de abertura** · **a janela é uma só** (`FECHADA` com `a pagar` > 0 é o que se abre **e** o que se paga) · limpeza dos resíduos do `d42e378` · **`ADR-0008`**, o roteador valendo para o código · este doc veio para o repositório · **`D1` fechado**: `seguranca.md` escrito e **`ADR-0009`** · **`D2` fechado**: `04-api/convencoes.md` e `erros.md` · **`D3` fechado**: `modelo-de-dados.md` e `migrations.md` · **`01-arquitetura/` escrito** e **`ADR-0010`** · nasce o fluxo **`novo-caso-de-uso`** |
+| **07/09** | A fatura fechou: **encerrada não abre** · **`CARTAO` não tem saldo de abertura** · **a janela é uma só** (`FECHADA` com `a pagar` > 0 é o que se abre **e** o que se paga) · limpeza dos resíduos do `d42e378` · **`ADR-0008`**, o roteador valendo para o código · este doc veio para o repositório · **`D1` fechado**: `seguranca.md` escrito e **`ADR-0009`** · **`D2` fechado**: `04-api/convencoes.md` e `erros.md` · **`D3` fechado**: `modelo-de-dados.md` e `migrations.md` · **`01-arquitetura/` escrito** e **`ADR-0010`** · nasce o fluxo **`novo-caso-de-uso`** · **`07-operacao/build-e-run` e `testes`**, **`ambientes-de-execucao`**, **`ADR-0011`** e finalmente o **`.gitignore`** |
 | **01/09** | Nasce **excluir lançamento** · **o sistema nunca reescreve um pagamento** · **o fechamento para de criar o pagamento previsto** · **`ADR-0007`** (e-mail só para recuperar senha) · cadastro aberto · dia local = horário de Brasília · **`B26`: nada do RaspyBank atravessa** |
 | **30/08** | Cadastro de subcategoria · inativação · **mover morre** · o Extrato estava morto havia dois dias · nasce o **Evento** e o **Diário** |
 | **29/08** | As 10 contradições, os buracos de regra de Fase 1 e as 5 decisões de negócio que faltavam |
@@ -114,6 +114,9 @@ produzido uma regra correta para um lançamento que não devia existir.
 | **Nome: substantivo em português, sufixo em inglês** | `FaturaRepository`, `PagarFaturaUseCase`. O substantivo é vocabulário do domínio e não se traduz; o sufixo é do framework, e traduzir faz a doc do Spring parar de casar com o código |
 | **Sem Lombok** | Java 21 tem `record`. É a regra 3 valendo para o caso mais fácil de aceitar sem pensar — o que ele economiza é digitação, que não é o custo deste projeto |
 | **`@Transactional` só na `aplicacao`** | Não é arrumação: é a transação que faz o `SET LOCAL` do RLS. Transação no lugar errado é **RLS lendo o ambiente errado** |
+| **Teste contra Postgres real — `ADR-0011`** | **O H2 não tem RLS.** Testar o isolamento nele não é teste mais fraco: é teste que **passa sempre**, inclusive com a política ausente. E o contêiner sobe com os **dois papéis**, senão o teste roda como dono e o RLS não se aplica |
+| **O critério de teste não é cobertura, é consequência** | Percentual cobre `getter` e deixa passar a regra que muda dinheiro. Há uma lista do que é **obrigatório**: toda invariante de `02-dominio/`, o isolamento, todo passo automático (idempotência **e** recuperação de atraso), e a aritmética que já quebrou |
+| **Dois ambientes, e o que NÃO muda entre eles** | Mesma versão de Postgres, mesmas migrations, os dois papéis, **HTTPS nos dois** e o dia local em Brasília. O que difere é **valor de variável** — nunca perfil com comportamento de domínio diferente, que é como nasce o bug que só aparece em produção |
 | **Congelado é a funcionalidade, não o modelo** | Decisão de modelo que contamina schema ou política de acesso entra na fase em que o schema nasce. Valeu para `Aplicação`, compartilhamento e **Evento** |
 | **Compartilhamento** | **Modelo na Fase 1**; **tela liberada com a Fase 1 concluída** |
 | **Evento** | **Gravar na Fase 1, tela do Diário na Fase 2.** Schema tardio é migration em cima de dado real; **evento tardio é dado que nunca existiu** |
@@ -305,12 +308,16 @@ ordem está fixada no `lacunas-para-codigo.md`:
 4. ~~**`01-arquitetura/`**~~ ✅ **Fechado em 07/09** — `visao-geral`, `modulos`,
    `estrutura-de-pastas` e `padroes-de-codigo`, mais o `ADR-0010`. Seguem stub o
    `observabilidade.md` e o `ambientes-de-execucao.md`, que são de operação.
-5. **`07-operacao/build-e-run.md` e `testes.md`** — **é o que falta para a primeira linha de
-   código rodar.** Como sobe, como testa, e os parâmetros do Argon2id no host.
-6. **A primeira migration** (`V001`), e com ela o `catalogo-tabelas.md`.
-7. **Rodada de protótipo** — ver abaixo; o backlog do `dominio.js` está aberto desde 01/09.
-8. **Decidir a cor de categoria** (decisão em aberto 0) e propagar para `direcao-visual.md`.
-9. **Tela de Perfil** com a caixa de convites; **renomear categoria** na tela; cadastro de
+5. ~~**`07-operacao/build-e-run.md` e `testes.md`**~~ ✅ **Fechado em 07/09**, com o
+   `ambientes-de-execucao.md` e o `ADR-0011`. **Não há mais doc bloqueando a primeira linha de
+   código.**
+6. **O esqueleto do projeto:** `pom.xml`, `compose.yml` com os **dois papéis** de banco,
+   `.env.exemplo` e a `CyberbankApplication`. É o primeiro commit de código.
+7. **A primeira migration** (`V001`), e com ela o `catalogo-tabelas.md` — que nasce junto, não
+   antes.
+8. **Rodada de protótipo** — ver abaixo; o backlog do `dominio.js` está aberto desde 01/09.
+9. **Decidir a cor de categoria** (decisão em aberto 0) e propagar para `direcao-visual.md`.
+10. **Tela de Perfil** com a caixa de convites; **renomear categoria** na tela; cadastro de
    **conta** e de **meio**.
 
 ## Decisões em aberto
@@ -350,6 +357,9 @@ ordem está fixada no `lacunas-para-codigo.md`:
     O gatilho para **fechar de vez** continua sendo sair da rede local; ele foi olhado em 07/09
     e a escolha foi **manter aberto**, com a lógica de contenção para depois
 15. **Uso pessoal ou produto**
+16. **Integração contínua?** Não bloqueia nada — `./mvnw verify` já reprova localmente, e o
+    push sai da máquina do Abner. A pergunta é se vale um GitHub Actions rodando a suíte a cada
+    push, ou se isso é cerimônia para um desenvolvedor
 
 *Saíram desta lista em 07/09:* **antecipar parcelas** e **parcelamento da própria fatura**
 (nunca foram dúvidas — são Fase 2, e agora estão sob *Fora desta fase* no `fatura-cartao.md`);
@@ -362,13 +372,14 @@ a razão de ela ter sumido vale mais que a pergunta.)*
 
 ## Estado da documentação
 
-**71 documentos**, 26 stubs. Stub = conteúdo inexistente: **perguntar, nunca deduzir.**
+**72 documentos**, 23 stubs. Stub = conteúdo inexistente: **perguntar, nunca deduzir.**
 
 Escritos: `CLAUDE.md`, `CONVENTIONS.md`, os 6 fluxos, todo o `00-produto/` menos `jornadas`,
 `02-dominio/` inteiro menos `orcamento`, `regras-categorizacao` e `importacao-conciliacao`,
 `06-interface/` (navegacao, direcao-visual), **`01-arquitetura/seguranca`**,
 **`04-api/convencoes` e `04-api/erros`**, **`03-dados/modelo-de-dados` e `03-dados/migrations`**,
-**`01-arquitetura/` menos observabilidade e ambientes-de-execucao**, e as ADRs **0001 a 0010**.
+**`01-arquitetura/` menos observabilidade**, **`07-operacao/build-e-run` e `testes`**, e as
+ADRs **0001 a 0011**.
 
 `fatura-cartao.md` está em **300 linhas, no teto do `CONVENTIONS`** — a próxima coisa que entrar
 ali obriga a quebrar por subdomínio, como o `fatura-pagamento.md` já nasceu.
@@ -449,7 +460,10 @@ eixos do relatório de gasto.
   `endpoints-<agregado>` não
 - **`docs.py` ainda não tem o teto por rota** que o `ADR-0008` decidiu, nem conta o código
 - **`catalogo-tabelas.md` segue stub** — nasce com a primeira migration
-- Repositório ainda **sem `.gitignore`**
+- **`deploy.md`, `runbook.md`, `backup-restore.md` e `observabilidade.md` seguem stub** — são
+  de operação e nascem quando houver o que operar
+- **Não existe uma linha de código Java ainda.** O `.env.exemplo` que o `build-e-run.md`
+  promete nasce com o esqueleto do projeto
 - O `ADR-0004` encareceu o isolamento: a política de RLS ganha um `OR` com subconsulta, e isso
   não foi escrito em `03-dados/` — a tabela `evento` também precisa de RLS
 - `03-dados/modelo-de-dados.md` não conhece nada de hoje

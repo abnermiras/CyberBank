@@ -47,4 +47,6 @@ nome de variável, ou coisa que cabe no doc do módulo.
 
 | 0010 | [A fronteira entre assuntos é imposta por teste, e domínio referencia domínio por id](ADR-0010-fronteira-imposta-por-teste.md) | aceita | 2026-09-07 |
 
+| 0011 | [Teste de integração roda contra Postgres real](ADR-0011-teste-contra-postgres-real.md) | aceita | 2026-09-07 |
+
 _(adicione uma linha por ADR)_

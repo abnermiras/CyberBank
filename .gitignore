@@ -1,0 +1,28 @@
+# Build
+target/
+*.jar
+*.war
+
+# Segredo — NUNCA versionado (docs/01-arquitetura/seguranca.md)
+.env
+*.env
+!.env.exemplo
+
+# IDE
+.idea/
+.vscode/
+*.iml
+.settings/
+.classpath
+.project
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Log e dump de banco
+*.log
+logs/
+*.sql.gz
+*.dump
