@@ -53,7 +53,15 @@ docker compose down       para
 docker compose down -v    para e APAGA o volume: a próxima subida recria do zero
 ```
 
-**O banco nasce com dois papéis, e isso não é detalhe de arrumação.** O script de inicialização
+**Ele publica na porta 5433 do host**, e só no `127.0.0.1` — a 5432 continua com o Postgres do
+RaspyBank, e os dois convivem enquanto a migração não termina. Dentro do contêiner é 5432
+como sempre; quem sabe da 5433 é o `DB_URL` do `.env`.
+
+A imagem é `postgres:18.4`, e a mesma string está no `<postgres.imagem>` do `pom.xml`, que é
+de onde a suíte de integração tira o contêiner dela (`ADR-0011`). Mudou uma, muda a outra.
+
+**O banco nasce com dois papéis, e isso não é detalhe de arrumação.** O script de
+inicialização `docker/postgres-init/01-papeis.sh` roda **uma vez**, na criação do volume, e
 cria o papel dono das tabelas e o papel da aplicação — que **não é dono e não tem
 `BYPASSRLS`**. Sem os dois, a aplicação conecta como dono, o Postgres não aplica política
 nenhuma, e o `ADR-0002` inteiro vira decoração (`docs/03-dados/modelo-de-dados.md`).
@@ -74,6 +82,11 @@ de fora, e localmente de um `.env` que o `.gitignore` mantém fora do git.
 | `ARGON2_MEMORIA`, `ARGON2_ITERACOES`, `ARGON2_PARALELISMO` | Os parâmetros calibrados por host (`docs/01-arquitetura/seguranca.md`) |
 | `SMTP_USUARIO`, `SMTP_SENHA_DE_APP` | A senha de app do Gmail, e só para recuperar senha (`ADR-0007`) |
 | `CYBERBANK_URL_BASE` | O que entra no link de recuperação de senha |
+| `POSTGRES_SENHA_ADMIN` | O superusuário de bootstrap do contêiner, que cria os dois papéis e some da história. Não é o dono e não é a aplicação |
+
+O `compose.yml` lê essas variáveis do `.env` sozinho. A aplicação **não**: `./mvnw
+spring-boot:run` herda o ambiente do terminal, então carregue o arquivo antes —
+`set -a; . ./.env; set +a`.
 
 **Falta de variável obrigatória derruba a aplicação na subida**, com o nome da variável na
 mensagem. Não há valor padrão para segredo: padrão silencioso é como uma senha de

@@ -1,0 +1,41 @@
+# Um servico so: o Postgres local, na mesma versao de producao
+# (docs/07-operacao/build-e-run.md). A aplicacao roda fora do conteiner.
+#
+# A versao da imagem e a fonte da verdade do projeto: o conteiner da suite de
+# integracao (ADR-0011) e o Pi usam exatamente esta (ver <postgres.imagem> no pom.xml).
+services:
+  postgres:
+    image: postgres:18.4
+    container_name: cyberbank-postgres
+    environment:
+      # Superusuario de bootstrap do conteiner. Nao e o dono das tabelas e nao e
+      # a aplicacao: existe so para o script de inicializacao criar os dois papeis.
+      POSTGRES_DB: cyberbank
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_SENHA_ADMIN:?defina POSTGRES_SENHA_ADMIN no .env}
+      # Lidos por docker/postgres-init/01-papeis.sh
+      DB_OWNER_USER: ${DB_OWNER_USER:?defina DB_OWNER_USER no .env}
+      DB_OWNER_PASSWORD: ${DB_OWNER_PASSWORD:?defina DB_OWNER_PASSWORD no .env}
+      DB_APP_USER: ${DB_APP_USER:?defina DB_APP_USER no .env}
+      DB_APP_PASSWORD: ${DB_APP_PASSWORD:?defina DB_APP_PASSWORD no .env}
+    ports:
+      # So o loopback: o Postgres nunca e publicado na rede
+      # (docs/01-arquitetura/seguranca.md).
+      # 5433 no host porque o RaspyBank ainda ocupa a 5432: os dois convivem
+      # enquanto a migracao nao termina. Dentro do conteiner e sempre 5432.
+      - "127.0.0.1:5433:5432"
+    volumes:
+      # A partir do 18 a imagem quer o volume em /var/lib/postgresql (o dado fica
+      # num subdiretorio por versao maior, e o pg_upgrade funciona).
+      - postgres-dados:/var/lib/postgresql
+      # Roda uma unica vez, na criacao do volume. `docker compose down -v` recria.
+      - ./docker/postgres-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d cyberbank"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  postgres-dados:
