@@ -8,7 +8,9 @@
 > de tarefa, e não deve entrar no custo de rota nenhuma.
 
 Última sessão: **2026-09-07**, já na máquina Linux, com o Claude Code no terminal.
-**O esqueleto do projeto existe: o repositório tem Java, e `./mvnw verify` passa.**
+**A fatia 1 do primeiro vertical está de pé: dá para cadastrar, entrar e ver o Ambiente
+Pessoal nascido com as quatorze categorias de sistema — e um segundo usuário não enxerga nada
+do primeiro.**
 
 **O esqueleto está commitado e no GitHub:** `4be103d` na branch `esqueleto-do-projeto`,
 mergeado em `main` por `9e015a2` — e `origin/main` está no mesmo ponto. O bloqueio do push
@@ -17,6 +19,7 @@ acabou.
 
 | Sessão | O que saiu |
 |---|---|
+| **07/09 (fatia 1)** | **`V001`** (usuario, sessao, ambiente, acesso) e **`V002`** (categoria, e com ela o padrão de RLS que as outras oito copiam) · o **`catalogo-tabelas.md` nasceu** · **cadastro, login, logout e sessão** ponta a ponta, com as quatro regras de login · o **filtro do `{ambienteId}`** que valida acesso e faz o `SET LOCAL` · **`endpoints-ambientes.md`** nasceu e **`endpoints-categorias.md`** saiu de stub · `EMAIL_JA_CADASTRADO` entrou no catálogo de erros · 29 testes de domínio/arquitetura e 10 de integração, verdes |
 | **07/09 (noite)** | **`/esqueleto` executado, uma vez só**: `pom.xml` (módulo único, Java 21, **Spring Boot 4.0.8**, Flyway, Argon2 do Spring Security, ArchUnit e Testcontainers), `mvnw`, `compose.yml` com **`postgres:18.4` na 5433** e o script dos **dois papéis**, `.env.exemplo`, `application.yml` com `ddl-auto: validate`, `CyberbankApplication` e o **teste de arquitetura com as três regras do `ADR-0010`** — passando vazio, que é o esperado. `./mvnw verify` verde e a aplicação sobe, com o Flyway conectando **como dono**. **Nada de domínio.** Depois, o **`PapeisDoBancoIT`**: a suíte de integração sobe o contêiner com o **mesmo script do compose** e exige que o papel da aplicação não seja superusuário, não tenha `BYPASSRLS` e não seja dono do `public` — a montagem de que o `ADR-0002` depende, e a única parte dele que quebrava em silêncio. E o **BouncyCastle** ficou registrado no `seguranca.md`, que é de onde ele vem (regra 3). |
 | **07/09** | A fatura fechou: **encerrada não abre** · **`CARTAO` não tem saldo de abertura** · **a janela é uma só** (`FECHADA` com `a pagar` > 0 é o que se abre **e** o que se paga) · limpeza dos resíduos do `d42e378` · **`ADR-0008`**, o roteador valendo para o código · este doc veio para o repositório · **`D1` fechado**: `seguranca.md` escrito e **`ADR-0009`** · **`D2` fechado**: `04-api/convencoes.md` e `erros.md` · **`D3` fechado**: `modelo-de-dados.md` e `migrations.md` · **`01-arquitetura/` escrito** e **`ADR-0010`** · nasce o fluxo **`novo-caso-de-uso`** · **`07-operacao/build-e-run` e `testes`**, **`ambientes-de-execucao`**, **`ADR-0011`** e finalmente o **`.gitignore`** · o `CLAUDE.md` passa a apontar para este doc no início de sessão, e nascem os comandos `/esqueleto` e `/caso-de-uso` |
 | **01/09** | Nasce **excluir lançamento** · **o sistema nunca reescreve um pagamento** · **o fechamento para de criar o pagamento previsto** · **`ADR-0007`** (e-mail só para recuperar senha) · cadastro aberto · dia local = horário de Brasília · **`B26`: nada do RaspyBank atravessa** |
@@ -317,8 +320,9 @@ ordem está fixada no `lacunas-para-codigo.md`:
 6. ~~**O esqueleto do projeto**~~ ✅ **Fechado em 07/09**, pelo `/esqueleto`. `./mvnw verify`
    passa com o Postgres do compose no ar, e a aplicação sobe com o Flyway rodando como dono.
    **O `/esqueleto` não se repete** — daqui em diante o caminho é `/caso-de-uso`.
-7. **A primeira migration** (`V001`), e com ela o `catalogo-tabelas.md` — que nasce junto, não
-   antes.
+7. ~~**A primeira migration** (`V001`), e com ela o `catalogo-tabelas.md`~~ ✅ **Fechado em
+   07/09**, junto com a `V002` e a fatia 1 inteira. O `catalogo-tabelas.md` está ativo, com as
+   cinco tabelas que existem.
 8. **Rodada de protótipo** — ver abaixo; o backlog do `dominio.js` está aberto desde 01/09.
 9. **Decidir a cor de categoria** (decisão em aberto 0) e propagar para `direcao-visual.md`.
 10. **Tela de Perfil** com a caixa de convites; **renomear categoria** na tela; cadastro de
@@ -460,14 +464,16 @@ eixos do relatório de gasto.
 ## Lacunas conhecidas
 
 - **Sem doc dono** para `Meta` (Fase 3)
-- **Nenhum endpoint escrito** — as convenções e o contrato de erro existem, os
-  `endpoints-<agregado>` não
+- **Faltam os endpoints de conta, meio, lançamento e relatório** — `endpoints-ambientes` e
+  `endpoints-categorias` já existem; os outros quatro seguem stub
 - **`docs.py` ainda não tem o teto por rota** que o `ADR-0008` decidiu, nem conta o código
-- **`catalogo-tabelas.md` segue stub** — nasce com a primeira migration
 - **`deploy.md`, `runbook.md`, `backup-restore.md` e `observabilidade.md` seguem stub** — são
   de operação e nascem quando houver o que operar
-- **O código é só esqueleto**: não há entidade, controlador, repositório nem migration — o
-  primeiro caso de uso é que traz a primeira `V001`
+- **O código tem dois assuntos**, `ambiente` e `categoria`. Não há conta, meio, lançamento,
+  fatura, patrimônio nem evento — e o `Evento` é Fase 1, então ele entra antes de a fase fechar
+- **Falta a gestão de papel e o convite**: a política de `acesso` não tem `UPDATE`, e criar
+  acesso para *outro* usuário precisa de uma função `SECURITY DEFINER` (a condição "sou dono
+  daqui" lê a própria tabela `acesso` e recursiona). Está escrito no `catalogo-tabelas.md`
 - O `ADR-0004` encareceu o isolamento: a política de RLS ganha um `OR` com subconsulta, e isso
   não foi escrito em `03-dados/` — a tabela `evento` também precisa de RLS
 - `03-dados/modelo-de-dados.md` não conhece nada de hoje

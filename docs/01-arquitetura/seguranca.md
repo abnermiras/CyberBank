@@ -37,6 +37,12 @@ No código é o `Argon2PasswordEncoder` do Spring Security, e ele **exige o Boun
 `pom.xml`: ela é consequência desta decisão, não escolha de biblioteca de criptografia
 (`CLAUDE.md`, regra 3).
 
+**Tamanho mínimo da senha: 8 caracteres.** Escolhido ao implementar o cadastro, porque este
+doc não tinha número e *cadastro aberto sem mínimo aceita senha de um caractere*. É o único
+requisito de senha: nada de exigir símbolo, dígito ou maiúscula — regra de composição empurra
+todo mundo para a mesma senha previsível com um `1!` no fim, e o que protege de verdade aqui é
+o Argon2id mais o bloqueio por tentativa.
+
 **O token de recuperação não loga ninguém.** Ele só autoriza **trocar a senha**: uso único,
 validade curta, invalidado ao ser usado, ao expirar ou ao pedido de um novo. Token que
 autentica é uma segunda porta de entrada, e uma porta a mais é uma porta a mais.
@@ -52,6 +58,10 @@ autentica é uma segunda porta de entrada, e uma porta a mais é uma porta a mai
 | Expiração | Duas, e as duas valem: **absoluta** desde a criação, e por **inatividade** |
 | Revogação | Apagar a linha. **Tem efeito no clique seguinte**, sem esperar token nenhum expirar |
 | Trocar a senha | **Derruba todas as sessões** daquele usuário, inclusive a que trocou |
+| Quanto dura | **30 dias** de expiração absoluta, **7 dias** de inatividade |
+| O que fica no banco | O **hash** do identificador, nunca ele — cópia do banco não vira sessão viva de ninguém |
+
+Os dois prazos foram escolhidos ao implementar; o que não é escolha é haver **os dois**.
 
 ## O login é a superfície mais atacada
 
@@ -66,6 +76,20 @@ autentica é uma segunda porta de entrada, e uma porta a mais é uma porta a mai
   tela que o próprio atacante alcança.
 - **A recuperação de senha segue as mesmas quatro.** Ela é login por outro nome: aceita
   e-mail de desconhecido e responde. A resposta é idêntica exista ou não a conta.
+
+Os números, escolhidos ao implementar: o atraso dobra a cada falha, de 250 ms até um teto de
+4 s, e **5 falhas** bloqueiam a chave por **15 minutos**.
+
+**O que faz o tempo ser igual é o Argon2id rodar dos dois lados.** Sem usuário para conferir, o
+sistema confere contra um hash de mentira e responde falso — se voltasse na hora, a diferença
+de milissegundos entregaria a lista de usuários antes de qualquer senha ser tentada. E a
+contagem de falhas é mantida **também para e-mail que não existe**: contar só o que existe
+seria o mesmo oráculo por outro caminho.
+
+**A contagem vive na memória do processo**, e o preço está dito: reiniciar zera, e um segundo
+processo teria a sua. É aceitável pelo que ela protege — ela atrasa e bloqueia, não autoriza
+ninguém —, ao contrário da sessão, que em memória sumiria no restart e derrubaria todo mundo
+(`ADR-0009`). Vira tabela quando a contenção do cadastro aberto entrar.
 
 ## O preço do cadastro aberto
 
