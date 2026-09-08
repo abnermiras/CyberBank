@@ -80,6 +80,7 @@ Erro previsível tem código, e **o código entra aqui antes de existir no códi
 | `MUITAS_TENTATIVAS` | 429 | Login ou recuperação de senha barrados pelo atraso progressivo |
 | `SEM_PERMISSAO` | 403 | O papel no ambiente não permite a operação |
 | `NAO_ENCONTRADO` | 404 | Recurso inexistente, ou de um ambiente a que o usuário não tem acesso |
+| `EMAIL_JA_CADASTRADO` | 409 | Cadastro com e-mail que já existe. **É o único ponto do sistema que revela a existência de uma conta**, e não tem como não revelar: dois cadastros com o mesmo e-mail seriam o mesmo login. Login e recuperação continuam respondendo igual — a contenção do cadastro aberto é o que fecha esta porta, e está adiada de propósito (`docs/01-arquitetura/seguranca.md`) |
 | `VALIDACAO` | 422 | Um ou mais campos inválidos. Traz `erros` |
 | `CONTA_INATIVA` | 409 | Lançamento **do usuário** numa conta inativa. O que o ciclo cria não passa por aqui |
 | `CATEGORIA_NAO_ESCOLHIVEL` | 409 | Categoria inativa, raiz com filho ativo, ou categoria de sistema |

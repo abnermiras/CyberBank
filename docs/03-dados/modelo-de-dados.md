@@ -134,13 +134,30 @@ exclusão física só acontece onde o domínio permite — quem nunca teve lanç
 
 O `ADR-0002` decidiu; aqui está a forma:
 
-1. A transação faz `SET LOCAL app.ambiente_id = <id>`, posto pelo filtro que já validou o
-   acesso (`docs/01-arquitetura/seguranca.md`).
-2. Toda tabela **do ambiente** tem política lendo `current_setting('app.ambiente_id')`.
-3. A política já nasce com o **`OR` do `ADR-0004`**: a linha é visível se o `ambiente_id` bate
+1. A transação faz `SET LOCAL` de **duas** variáveis, postas pelo filtro que já validou o
+   acesso (`docs/01-arquitetura/seguranca.md`): `app.usuario_id` e `app.ambiente_id`. São duas
+   porque as famílias são duas: a tabela **do ambiente** pergunta *qual ambiente*, e a **de
+   ligação** pergunta *qual usuário* — `acesso` não tem um ambiente corrente para comparar,
+   ela é quem o autoriza.
+2. Quem lê as variáveis são duas funções, `app_usuario_id()` e `app_ambiente_id()`, e as duas
+   devolvem **`NULL` quando a variável não foi posta**, em vez de estourar. Sem contexto, toda
+   comparação é falsa e **nada é visível** — é o lado certo para errar.
+3. Toda tabela **do ambiente** tem política lendo `app_ambiente_id()`.
+4. A política já nasce com o **`OR` do `ADR-0004`**: a linha é visível se o `ambiente_id` bate
    **ou** se existe `vinculo` que empreste aquela conta ou aquele meio ao ambiente ativo —
    **mesmo com a tabela `vinculo` vazia**. Escrever o `OR` depois é migration em cima de dado
    real; escrever agora custa uma linha.
+
+**As tabelas de ligação também levam RLS**, com política por acesso do usuário — a forma exata
+de cada uma está no `catalogo-tabelas.md`. As **do usuário** (`usuario`, `sessao`) não levam, e
+não é omissão: o login procura o usuário pelo e-mail e a sessão é achada pelo cookie **antes de
+existir contexto**. A proteção delas é a sessão, como esta página já dizia.
+
+**`INSERT ... RETURNING` aplica a política de `SELECT` à linha inserida.** Vale lembrar porque
+o driver do Postgres usa `RETURNING` para devolver a chave gerada: uma linha que a política não
+enxerga **não pode ser inserida por quem precisa do id de volta**. Onde isso aperta — o
+ambiente, que nasce antes do acesso que o torna visível — a saída está escrita no
+`catalogo-tabelas.md`.
 
 **A armadilha que faz RLS não valer nada:** o Postgres **não aplica política ao dono da
 tabela** nem a quem tem `BYPASSRLS`. Por isso:
