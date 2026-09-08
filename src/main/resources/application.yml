@@ -1,0 +1,45 @@
+# Nenhum segredo mora aqui: o arquivo so NOMEIA a variavel de ambiente
+# (docs/07-operacao/build-e-run.md). Nenhum ${VAR} tem valor padrao — variavel
+# obrigatoria ausente derruba a subida, e a mensagem diz qual e.
+spring:
+  application:
+    name: cyberbank
+
+  datasource:
+    # O papel da aplicacao: nao e dono das tabelas e nao tem BYPASSRLS (ADR-0002).
+    url: ${DB_URL}
+    username: ${DB_APP_USER}
+    password: ${DB_APP_PASSWORD}
+    hikari:
+      pool-name: cyberbank-app
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    # As migrations rodam com o papel dono, na subida (docs/03-dados/migrations.md).
+    url: ${DB_URL}
+    user: ${DB_OWNER_USER}
+    password: ${DB_OWNER_PASSWORD}
+    # Checksum divergente se investiga, nunca se contorna.
+    validate-on-migrate: true
+    baseline-on-migrate: false
+    clean-disabled: true
+
+  jpa:
+    hibernate:
+      # O schema e o que as migrations dizem, e so isso. Nunca `update`.
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate.jdbc.time_zone: UTC
+
+cyberbank:
+  url-base: ${CYBERBANK_URL_BASE}
+  argon2:
+    # Calibrado por host: os numeros do Pi nao sao os do WSL.
+    memoria: ${ARGON2_MEMORIA}
+    iteracoes: ${ARGON2_ITERACOES}
+    paralelismo: ${ARGON2_PARALELISMO}
+  smtp:
+    usuario: ${SMTP_USUARIO}
+    senha-de-app: ${SMTP_SENHA_DE_APP}

@@ -19,6 +19,10 @@ CyberBank/
 ├── claude/                estado do projeto e sessões. Fora do roteador
 ├── docs/                  a documentação, e a ferramenta em docs/_tools
 ├── prototipo/             banco de provas navegável, sem build
+├── docker/postgres-init/  o script que cria os dois papéis do banco local
+├── compose.yml            só o Postgres, na versão de produção
+├── .env.exemplo           os nomes das variáveis, sem valor nenhum. Versionado
+├── mvnw, .mvn/            o wrapper do Maven: a versão vem do repositório
 ├── pom.xml                módulo único (ADR-0010)
 └── src/
     ├── main/
@@ -89,8 +93,8 @@ depósito de tudo que ninguém quis classificar — e aí o roteador perde o end
 
 ## O que não se versiona
 
-Não há `.gitignore` no repositório ainda, e ele é parte da defesa
-(`docs/01-arquitetura/seguranca.md`): **nenhum segredo é versionado**.
+O `.gitignore` é parte da defesa (`docs/01-arquitetura/seguranca.md`): **nenhum segredo é
+versionado**.
 
 Ficam de fora: `target/`, artefatos de build, `.env` e qualquer arquivo de segredo,
 configuração local de IDE (`.idea/`, `.vscode/`, `*.iml`), log e dump de banco.

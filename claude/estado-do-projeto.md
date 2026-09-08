@@ -7,17 +7,17 @@
 > **Ele está fora do roteador de propósito** (`ADR-0008`): é doc de passagem entre sessões, não
 > de tarefa, e não deve entrar no custo de rota nenhuma.
 
-Última sessão: **2026-09-07**. Objetivo do Abner: *fechar a fatura de forma definitiva, sem
-dúvida nenhuma sobrando para o código*. Feito, e depois nasceu o `ADR-0008`.
+Última sessão: **2026-09-07**, já na máquina Linux, com o Claude Code no terminal.
+**O esqueleto do projeto existe: o repositório tem Java, e `./mvnw verify` passa.**
 
-**Pendente: o push, e ele virou o único bloqueio real.** `origin/main` está em `151ed4a`; o
-local tem **catorze commits à frente**. **O desenvolvimento passa a acontecer numa máquina
-Linux, com o Claude Code no terminal** — ela clona do GitHub, então **sem o push ela não
-recebe nada disto**.
-Árvore limpa, check em 0 erros e 0 avisos.
+**O push saiu, e o bloqueio acabou:** `origin/main` e o local estão os dois em `1b330bc`, e a
+máquina Linux recebeu tudo. O esqueleto (`pom.xml`, `mvnw`, `compose.yml`, `docker/`,
+`.env.exemplo`, `src/`) está **escrito e verde, mas ainda não commitado**.
+Check de docs em 0 erros e 0 avisos.
 
 | Sessão | O que saiu |
 |---|---|
+| **07/09 (noite)** | **`/esqueleto` executado, uma vez só**: `pom.xml` (módulo único, Java 21, **Spring Boot 4.0.8**, Flyway, Argon2 do Spring Security, ArchUnit e Testcontainers), `mvnw`, `compose.yml` com **`postgres:18.4` na 5433** e o script dos **dois papéis**, `.env.exemplo`, `application.yml` com `ddl-auto: validate`, `CyberbankApplication` e o **teste de arquitetura com as três regras do `ADR-0010`** — passando vazio, que é o esperado. `./mvnw verify` verde e a aplicação sobe, com o Flyway conectando **como dono**. **Nada de domínio.** |
 | **07/09** | A fatura fechou: **encerrada não abre** · **`CARTAO` não tem saldo de abertura** · **a janela é uma só** (`FECHADA` com `a pagar` > 0 é o que se abre **e** o que se paga) · limpeza dos resíduos do `d42e378` · **`ADR-0008`**, o roteador valendo para o código · este doc veio para o repositório · **`D1` fechado**: `seguranca.md` escrito e **`ADR-0009`** · **`D2` fechado**: `04-api/convencoes.md` e `erros.md` · **`D3` fechado**: `modelo-de-dados.md` e `migrations.md` · **`01-arquitetura/` escrito** e **`ADR-0010`** · nasce o fluxo **`novo-caso-de-uso`** · **`07-operacao/build-e-run` e `testes`**, **`ambientes-de-execucao`**, **`ADR-0011`** e finalmente o **`.gitignore`** · o `CLAUDE.md` passa a apontar para este doc no início de sessão, e nascem os comandos `/esqueleto` e `/caso-de-uso` |
 | **01/09** | Nasce **excluir lançamento** · **o sistema nunca reescreve um pagamento** · **o fechamento para de criar o pagamento previsto** · **`ADR-0007`** (e-mail só para recuperar senha) · cadastro aberto · dia local = horário de Brasília · **`B26`: nada do RaspyBank atravessa** |
 | **30/08** | Cadastro de subcategoria · inativação · **mover morre** · o Extrato estava morto havia dois dias · nasce o **Evento** e o **Diário** |
@@ -314,11 +314,9 @@ ordem está fixada no `lacunas-para-codigo.md`:
 5. ~~**`07-operacao/build-e-run.md` e `testes.md`**~~ ✅ **Fechado em 07/09**, com o
    `ambientes-de-execucao.md` e o `ADR-0011`. **Não há mais doc bloqueando a primeira linha de
    código.**
-6. **O esqueleto do projeto** — comando **`/esqueleto`**, uma vez só. `pom.xml` (módulo único,
-   Java 21, Flyway, Argon2, e ArchUnit + Testcontainers como teste), `compose.yml` com os
-   **dois papéis** de banco, `.env.exemplo`, `application.yml` com `ddl-auto: validate`, a
-   classe de aplicação e o teste de arquitetura vazio. **Nada de domínio.** Pronto quando
-   `./mvnw verify` passa.
+6. ~~**O esqueleto do projeto**~~ ✅ **Fechado em 07/09**, pelo `/esqueleto`. `./mvnw verify`
+   passa com o Postgres do compose no ar, e a aplicação sobe com o Flyway rodando como dono.
+   **O `/esqueleto` não se repete** — daqui em diante o caminho é `/caso-de-uso`.
 7. **A primeira migration** (`V001`), e com ela o `catalogo-tabelas.md` — que nasce junto, não
    antes.
 8. **Rodada de protótipo** — ver abaixo; o backlog do `dominio.js` está aberto desde 01/09.
@@ -468,8 +466,8 @@ eixos do relatório de gasto.
 - **`catalogo-tabelas.md` segue stub** — nasce com a primeira migration
 - **`deploy.md`, `runbook.md`, `backup-restore.md` e `observabilidade.md` seguem stub** — são
   de operação e nascem quando houver o que operar
-- **Não existe uma linha de código Java ainda.** O `.env.exemplo` que o `build-e-run.md`
-  promete nasce com o esqueleto do projeto
+- **O código é só esqueleto**: não há entidade, controlador, repositório nem migration — o
+  primeiro caso de uso é que traz a primeira `V001`
 - O `ADR-0004` encareceu o isolamento: a política de RLS ganha um `OR` com subconsulta, e isso
   não foi escrito em `03-dados/` — a tabela `evento` também precisa de RLS
 - `03-dados/modelo-de-dados.md` não conhece nada de hoje
