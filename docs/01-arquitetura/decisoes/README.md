@@ -49,4 +49,6 @@ nome de variável, ou coisa que cabe no doc do módulo.
 
 | 0011 | [Teste de integração roda contra Postgres real](ADR-0011-teste-contra-postgres-real.md) | aceita | 2026-09-07 |
 
+| 0012 | [O front é estático e o próprio Spring Boot o serve](ADR-0012-front-estatico-servido-pelo-spring.md) | aceita | 2026-09-15 |
+
 _(adicione uma linha por ADR)_

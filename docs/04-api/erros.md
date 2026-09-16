@@ -79,12 +79,15 @@ Erro previsível tem código, e **o código entra aqui antes de existir no códi
 | `CREDENCIAIS_INVALIDAS` | 401 | Login. **A mesma resposta para e-mail inexistente e senha errada** |
 | `MUITAS_TENTATIVAS` | 429 | Login ou recuperação de senha barrados pelo atraso progressivo |
 | `SEM_PERMISSAO` | 403 | O papel no ambiente não permite a operação |
-| `NAO_ENCONTRADO` | 404 | Recurso inexistente, ou de um ambiente a que o usuário não tem acesso |
+| `NAO_ENCONTRADO` | 404 | Recurso inexistente, ou de um ambiente a que o usuário não tem acesso. **Cobre também rota e arquivo estático que não existem** — um `404` de asset não é falha nossa, e mandá-lo para o `500` enche o log de stack trace por erro de digitação |
 | `EMAIL_JA_CADASTRADO` | 409 | Cadastro com e-mail que já existe. **É o único ponto do sistema que revela a existência de uma conta**, e não tem como não revelar: dois cadastros com o mesmo e-mail seriam o mesmo login. Login e recuperação continuam respondendo igual — a contenção do cadastro aberto é o que fecha esta porta, e está adiada de propósito (`docs/01-arquitetura/seguranca.md`) |
 | `VALIDACAO` | 422 | Um ou mais campos inválidos. Traz `erros` |
 | `CONTA_INATIVA` | 409 | Lançamento **do usuário** numa conta inativa. O que o ciclo cria não passa por aqui |
 | `CATEGORIA_NAO_ESCOLHIVEL` | 409 | Categoria inativa, raiz com filho ativo, ou categoria de sistema |
 | `CATEGORIA_COM_LANCAMENTO` | 409 | Excluir categoria cuja árvore tem lançamento. O caminho é inativar |
+| `CATEGORIA_DE_SISTEMA_PROTEGIDA` | 409 | Renomear, inativar, excluir uma categoria de sistema — ou pendurar subcategoria nela. O sistema depende dela **por identidade**, e sem ela o ciclo não consegue lançar |
+| `CATEGORIA_PAI_INVALIDO` | 409 | O `paiId` aponta para uma **subcategoria**. A árvore tem exatamente dois níveis: subcategoria não tem filhos |
+| `CATEGORIA_COM_SUBCATEGORIA` | 409 | Excluir uma raiz que ainda tem subcategoria. Excluir a raiz orfanaria a filha; o caminho é esvaziar a árvore antes, ou inativar a raiz |
 | `FATURA_NAO_RECEBE_PAGAMENTO` | 409 | A fatura não é `FECHADA` com `a pagar` maior que zero |
 | `FATURA_NAO_ABRE` | 409 | Não é a última fechada, ou já encerrou |
 | `LANCAMENTO_DO_CICLO` | 409 | Excluir o que o ciclo criou: parcela isolada, par de rolagem, lançamento de abertura |
@@ -98,6 +101,11 @@ por trás é sinal de regra inventada no controller — e regra no controller é
 
 ## O que o erro não conta
 
+- **Rota de `/api/**` sem sessão responde `401`, não `404`.** O interceptador de sessão roda
+  **antes** do roteamento, então um anônimo recebe a mesma resposta para rota existente e
+  inexistente — ele não descobre a superfície da API pelo código de erro. Com sessão válida, a
+  rota inexistente responde `404` normalmente. Arquivo estático não passa pelo interceptador e
+  responde `404` direto.
 - **`404` cobre "não existe" e "não é seu".** Distinguir `403` de `404` num ambiente alheio
   conta ao curioso que aquele ambiente existe, e o identificador é sequencial. O `403` só
   aparece **dentro** de um ambiente a que a pessoa já tem acesso — ali ela já sabe que ele

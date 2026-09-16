@@ -12,7 +12,11 @@ public enum CodigoDeErro {
     SEM_PERMISSAO(403, "Seu papel neste ambiente não permite esta operação"),
     NAO_ENCONTRADO(404, "Não encontrado"),
     EMAIL_JA_CADASTRADO(409, "Este e-mail já está cadastrado"),
-    VALIDACAO(422, "Requisição inválida");
+    VALIDACAO(422, "Requisição inválida"),
+    CATEGORIA_DE_SISTEMA_PROTEGIDA(409, "Esta categoria é do sistema"),
+    CATEGORIA_PAI_INVALIDO(409, "A árvore de categorias tem só dois níveis"),
+    CATEGORIA_COM_SUBCATEGORIA(409, "Esta categoria ainda tem subcategorias"),
+    CATEGORIA_COM_LANCAMENTO(409, "Esta categoria já tem lançamento");
 
     private final int status;
     private final String titulo;
