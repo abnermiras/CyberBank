@@ -1,9 +1,3 @@
-/* =========================================================================
-   CYBERBANK // linguagem visual do prototipo
-   Direcao: HUD denso. Telemetria e moldura; o numero que importa e o maior
-   elemento da tela. Regras em docs/06-interface/direcao-visual.md
-   ========================================================================= */
-
 :root{
   --void:#04070c;
   --bg:#06090f;
@@ -17,6 +11,15 @@
   --acid:#f7f13c;
   --lime:#5cff9d;
   --rust:#ff6b35;
+
+  --cat-violeta:#8f7ad6;
+  --cat-azul:#5c90cc;
+  --cat-teal:#4fa39a;
+  --cat-oliva:#93a75f;
+  --cat-ocre:#c9954e;
+  --cat-terracota:#c47a6a;
+  --cat-ardosia:#78899b;
+  --cat-malva:#b578a8;
 
   --ink:#e8f4f8;
   --muted:#5f7688;
@@ -38,16 +41,15 @@ body{
   overflow-x:hidden;
 }
 
-/* ---------- atmosfera: grid, scanline, vinheta ---------- */
 .atmos{position:fixed;inset:0;pointer-events:none;z-index:0}
-.atmos::before{ /* grade de perspectiva */
+.atmos::before{ 
   content:'';position:absolute;inset:0;
   background:
     linear-gradient(rgba(0,240,255,.045) 1px,transparent 1px) 0 0/100% 46px,
     linear-gradient(90deg,rgba(0,240,255,.045) 1px,transparent 1px) 0 0/46px 100%;
   mask-image:radial-gradient(ellipse at 50% 0%,#000 10%,transparent 78%);
 }
-.atmos::after{ /* scanlines + vinheta */
+.atmos::after{ 
   content:'';position:absolute;inset:0;
   background:
     repeating-linear-gradient(to bottom,rgba(0,0,0,.34) 0 1px,transparent 1px 3px),
@@ -58,7 +60,6 @@ body{
 .glow-cyan{width:52vw;height:52vw;left:-18vw;top:-16vw;background:rgba(0,240,255,.10)}
 .glow-pink{width:46vw;height:46vw;right:-16vw;bottom:-20vw;background:rgba(255,31,145,.09)}
 
-/* ---------- tipografia ---------- */
 .eyebrow{font:10px/1.4 var(--mono);letter-spacing:.22em;color:var(--cyan);text-transform:uppercase}
 .tele{font:10px/1.5 var(--mono);letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
 .tele b{color:var(--cyan);font-weight:400}
@@ -78,7 +79,6 @@ h1,h2,h3{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter
 @keyframes gl1{0%,92%,100%{transform:translate(-2px,-1px)}94%{transform:translate(-7px,1px)}97%{transform:translate(3px,-2px)}}
 @keyframes gl2{0%,90%,100%{transform:translate(2px,1px)}93%{transform:translate(8px,-1px)}96%{transform:translate(-4px,2px)}}
 
-/* ---------- paineis ---------- */
 .panel{
   position:relative;background:var(--panel);
   border:1px solid var(--line);clip-path:var(--chamfer);
@@ -91,7 +91,6 @@ h1,h2,h3{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter
 .corner.tr{top:6px;right:6px;border-left:0;border-bottom:0}
 .corner.bl{bottom:6px;left:6px;border-right:0;border-top:0}
 
-/* ---------- botoes ---------- */
 .btn{
   font:600 12px/1 var(--disp);letter-spacing:.14em;text-transform:uppercase;
   padding:12px 18px;background:transparent;color:var(--cyan);
@@ -108,7 +107,6 @@ h1,h2,h3{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter
 .btn:disabled{opacity:.32;cursor:not-allowed;box-shadow:none;background:transparent}
 .btn.sm{padding:8px 12px;font-size:10px}
 
-/* ---------- campos ---------- */
 .field{margin-bottom:14px}
 .field label{display:block;font:10px var(--mono);letter-spacing:.16em;color:var(--cyan);margin-bottom:6px;text-transform:uppercase}
 .field input,.field select,.field textarea{
@@ -119,7 +117,6 @@ h1,h2,h3{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter
 .field select{cursor:pointer}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 
-/* ---------- numeros ---------- */
 .metric{display:flex;flex-direction:column;gap:4px}
 .metric .lbl{font:10px var(--mono);letter-spacing:.16em;color:var(--muted);text-transform:uppercase}
 .metric .val{font:700 clamp(28px,4vw,44px)/1 var(--disp);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
@@ -131,7 +128,6 @@ h1,h2,h3{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter
 .neg{color:var(--pink)}
 .pos{color:var(--lime)}
 
-/* ---------- tags ---------- */
 .tag{
   display:inline-flex;align-items:center;gap:5px;
   font:9px var(--mono);letter-spacing:.14em;text-transform:uppercase;
@@ -143,11 +139,9 @@ h1,h2,h3{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter
 .tag.pend{color:var(--pink);border-color:rgba(255,31,145,.45)}
 .tag.transf{color:var(--cyan);border-color:rgba(0,240,255,.35)}
 
-/* ---------- barra de progresso HUD ---------- */
 .bar{height:4px;background:#0b1622;overflow:hidden;position:relative}
 .bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--pink))}
 
-/* ---------- utilitarios ---------- */
 .stack{display:flex;flex-direction:column}
 .hstack{display:flex;align-items:center}
 .gap6{gap:6px}.gap10{gap:10px}.gap14{gap:14px}.gap20{gap:20px}

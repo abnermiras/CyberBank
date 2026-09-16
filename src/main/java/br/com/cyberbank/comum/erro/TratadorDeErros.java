@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
@@ -28,6 +29,11 @@ public class TratadorDeErros {
         ProblemDetail problema = problema(CodigoDeErro.VALIDACAO, null);
         problema.setProperty("erros", e.erros());
         return problema;
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ProblemDetail corpoInvalido(HttpMessageNotReadableException e) {
+        return problema(CodigoDeErro.CORPO_INVALIDO, null);
     }
 
     @ExceptionHandler(NoResourceFoundException.class)

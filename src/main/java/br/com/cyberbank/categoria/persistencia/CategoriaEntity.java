@@ -2,6 +2,7 @@ package br.com.cyberbank.categoria.persistencia;
 
 import java.time.Instant;
 
+import br.com.cyberbank.categoria.dominio.CorDeCategoria;
 import br.com.cyberbank.categoria.dominio.OperacaoDeSistema;
 import br.com.cyberbank.categoria.dominio.Sentido;
 
@@ -40,6 +41,10 @@ public class CategoriaEntity {
     @Column(nullable = false)
     private Sentido sentido;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "cor")
+    private CorDeCategoria cor;
+
     @Column(nullable = false)
     private boolean sistema;
 
@@ -57,12 +62,14 @@ public class CategoriaEntity {
     }
 
     public CategoriaEntity(Long id, Long ambienteId, Long paiId, String nome, Sentido sentido,
-            boolean sistema, OperacaoDeSistema operacao, boolean inativa, Instant criadaEm) {
+            CorDeCategoria cor, boolean sistema, OperacaoDeSistema operacao, boolean inativa,
+            Instant criadaEm) {
         this.id = id;
         this.ambienteId = ambienteId;
         this.paiId = paiId;
         this.nome = nome;
         this.sentido = sentido;
+        this.cor = cor;
         this.sistema = sistema;
         this.operacao = operacao;
         this.inativa = inativa;
@@ -87,6 +94,10 @@ public class CategoriaEntity {
 
     public Sentido getSentido() {
         return sentido;
+    }
+
+    public CorDeCategoria getCor() {
+        return cor;
     }
 
     public boolean isSistema() {

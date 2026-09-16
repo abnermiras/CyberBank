@@ -39,6 +39,8 @@ const API = {
     CATEGORIA_COM_SUBCATEGORIA:
       'Esta raiz ainda tem subcategorias. Esvazie a árvore antes, ou inative a raiz.',
     CATEGORIA_COM_LANCAMENTO: 'Esta categoria já tem lançamento. O caminho é inativar.',
+    CATEGORIA_SEM_COR_PROPRIA: 'Subcategoria herda a cor da raiz e não tem cor própria.',
+    CORPO_INVALIDO: 'Requisição malformada.',
     ERRO_INTERNO: 'Falha nossa. Tente de novo.',
   },
 

@@ -6,6 +6,7 @@ package br.com.cyberbank.comum.erro;
  */
 public enum CodigoDeErro {
 
+    CORPO_INVALIDO(400, "Requisição malformada"),
     NAO_AUTENTICADO(401, "Não autenticado"),
     CREDENCIAIS_INVALIDAS(401, "E-mail ou senha inválidos"),
     MUITAS_TENTATIVAS(429, "Tentativas demais. Tente de novo mais tarde"),
@@ -16,7 +17,8 @@ public enum CodigoDeErro {
     CATEGORIA_DE_SISTEMA_PROTEGIDA(409, "Esta categoria é do sistema"),
     CATEGORIA_PAI_INVALIDO(409, "A árvore de categorias tem só dois níveis"),
     CATEGORIA_COM_SUBCATEGORIA(409, "Esta categoria ainda tem subcategorias"),
-    CATEGORIA_COM_LANCAMENTO(409, "Esta categoria já tem lançamento");
+    CATEGORIA_COM_LANCAMENTO(409, "Esta categoria já tem lançamento"),
+    CATEGORIA_SEM_COR_PROPRIA(409, "Subcategoria herda a cor da raiz");
 
     private final int status;
     private final String titulo;

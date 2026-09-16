@@ -75,6 +75,7 @@ Erro previsível tem código, e **o código entra aqui antes de existir no códi
 
 | Código | Status | Quando |
 |---|---|---|
+| `CORPO_INVALIDO` | 400 | O corpo não é JSON válido, ou um valor não cabe no tipo — enum fora da lista, número onde se espera texto. **Não repete o valor recebido**: ecoar entrada em mensagem de erro é como se planta XSS na tela que a mostra |
 | `NAO_AUTENTICADO` | 401 | Sem sessão, ou sessão expirada |
 | `CREDENCIAIS_INVALIDAS` | 401 | Login. **A mesma resposta para e-mail inexistente e senha errada** |
 | `MUITAS_TENTATIVAS` | 429 | Login ou recuperação de senha barrados pelo atraso progressivo |
@@ -88,6 +89,7 @@ Erro previsível tem código, e **o código entra aqui antes de existir no códi
 | `CATEGORIA_DE_SISTEMA_PROTEGIDA` | 409 | Renomear, inativar, excluir uma categoria de sistema — ou pendurar subcategoria nela. O sistema depende dela **por identidade**, e sem ela o ciclo não consegue lançar |
 | `CATEGORIA_PAI_INVALIDO` | 409 | O `paiId` aponta para uma **subcategoria**. A árvore tem exatamente dois níveis: subcategoria não tem filhos |
 | `CATEGORIA_COM_SUBCATEGORIA` | 409 | Excluir uma raiz que ainda tem subcategoria. Excluir a raiz orfanaria a filha; o caminho é esvaziar a árvore antes, ou inativar a raiz |
+| `CATEGORIA_SEM_COR_PROPRIA` | 409 | Trocar a cor de uma **subcategoria**. Ela herda a cor da raiz e não tem cor própria (`docs/02-dominio/categoria.md`) |
 | `FATURA_NAO_RECEBE_PAGAMENTO` | 409 | A fatura não é `FECHADA` com `a pagar` maior que zero |
 | `FATURA_NAO_ABRE` | 409 | Não é a última fechada, ou já encerrou |
 | `LANCAMENTO_DO_CICLO` | 409 | Excluir o que o ciclo criou: parcela isolada, par de rolagem, lançamento de abertura |

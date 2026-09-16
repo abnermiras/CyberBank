@@ -12,11 +12,11 @@ class ArvoreDeCategoriasTest {
     private static final Instant AGORA = Instant.parse("2026-09-07T12:00:00Z");
 
     private Categoria raiz(long id, String nome, boolean inativa) {
-        return new Categoria(id, 1L, null, nome, Sentido.SAIDA, false, null, inativa, AGORA);
+        return new Categoria(id, 1L, null, nome, Sentido.SAIDA, CorDeCategoria.OCRE, false, null, inativa, AGORA);
     }
 
     private Categoria filha(long id, long paiId, String nome, boolean inativa) {
-        return new Categoria(id, 1L, paiId, nome, Sentido.SAIDA, false, null, inativa, AGORA);
+        return new Categoria(id, 1L, paiId, nome, Sentido.SAIDA, null, false, null, inativa, AGORA);
     }
 
     private ArvoreDeCategorias.No primeira(List<Categoria> categorias) {

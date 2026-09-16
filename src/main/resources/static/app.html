@@ -110,31 +110,36 @@
           <span class="corner tr"></span><span class="corner bl"></span>
           <div class="panel-head">
             <h3>Nova categoria raiz</h3>
-            <span class="tele">NÍVEL <b>1</b></span>
+            <span class="tele">O SISTEMA NÃO CRIA NENHUMA · A NOMENCLATURA É SUA</span>
           </div>
           <form id="fRaiz" autocomplete="off">
-            <div class="row">
-              <div class="field">
+            <div class="formraiz">
+              <div class="field" style="margin:0">
                 <label for="raizNome">Nome</label>
-                <input id="raizNome" type="text" placeholder="Transporte" maxlength="80" required>
+                <input id="raizNome" type="text" placeholder="MORADIA" maxlength="80" required>
               </div>
-              <div class="field">
+              <div class="field" style="margin:0">
                 <label for="raizSentido">Sentido</label>
                 <select id="raizSentido" required>
-                  <option value="SAIDA">SAÍDA — para onde o dinheiro vai</option>
-                  <option value="ENTRADA">ENTRADA — de onde o dinheiro vem</option>
+                  <option value="SAIDA">SAÍDA</option>
+                  <option value="ENTRADA">ENTRADA</option>
                 </select>
               </div>
+              <div class="field" style="margin:0">
+                <label>Cor</label>
+                <div class="swatches" id="swatches"></div>
+              </div>
+              <button class="btn primary" type="submit" id="btnRaiz">Criar raiz</button>
             </div>
-            <button class="btn primary" type="submit" id="btnRaiz">Criar raiz</button>
-            <p class="tele mt10">A subcategoria herda o sentido da raiz, e o sentido só muda
-              enquanto a categoria não tiver nenhum lançamento.</p>
+            <p class="dica mt10">Raiz nasce sem filha, então já é <b>destino de lançamento</b>.
+              Ao ganhar a primeira subcategoria ela deixa de ser — e volta a ser quando a última
+              é inativada. A filha herda <b>sentido e cor</b> da raiz: não há o que escolher.</p>
           </form>
         </section>
 
         <section class="panel">
           <div class="panel-head">
-            <h3>Suas categorias</h3>
+            <h3>Suas árvores</h3>
             <div class="hstack gap14 wrap">
               <span class="contagem" id="contagem">—</span>
               <button class="interruptor" id="btnInativas" type="button" aria-pressed="false">
@@ -142,7 +147,11 @@
               </button>
             </div>
           </div>
-          <div class="arvore" id="arvore"></div>
+          <div id="arvore"></div>
+          <p class="rodape-regra">Inativar é o <b>excluir de quem tem histórico</b>: some da
+            escolha, e o que já foi lançado continua somando. Nunca é físico, e o sistema nunca
+            inativa nada sozinho — nem por prazo, nem por desuso. A raiz inativa <b>esconde</b>
+            a árvore sem mexer nas filhas.</p>
         </section>
 
         <details class="panel painel-sistema">
@@ -150,9 +159,9 @@
             <h3>Categorias de sistema</h3>
             <span class="abrir">14 REGISTROS</span>
           </summary>
-          <p class="tele mt10">São do sistema, não suas: elas existem para o ciclo conseguir
-            lançar sozinho. Não aparecem em seletor de lançamento nem em relatório, e não se
-            renomeiam, inativam ou excluem.</p>
+          <p class="dica mt10">São do sistema, não suas: existem para o ciclo conseguir lançar
+            sozinho. Não aparecem em seletor de lançamento nem em relatório, não têm cor, e não
+            se renomeiam, inativam ou excluem.</p>
           <div class="sistema-lista" id="listaSistema"></div>
         </details>
       </div>
