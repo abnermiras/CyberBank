@@ -39,7 +39,8 @@ CyberBank/
     │   │   └── evento/
     │   └── resources/
     │       ├── application.yml
-    │       └── db/migration/   V001__... (Flyway, SQL puro)
+    │       ├── db/migration/   V001__... (Flyway, SQL puro)
+    │       └── static/         o FRONT: html, css e js, sem build (ADR-0012)
     └── test/java/br/com/cyberbank/
         ├── arquitetura/        o teste de fronteira do ADR-0010
         └── <assunto>/          espelha main, sempre
@@ -48,6 +49,11 @@ CyberBank/
 **Um pacote por assunto**, e o nome sai do doc dono de `docs/02-dominio/`
 (`docs/01-arquitetura/modulos.md`). Nomes curtos onde o doc é composto: `meio-de-pagamento` →
 `meio`, `aplicacao-patrimonio` → `patrimonio`, `ambiente-financeiro` → `ambiente`.
+
+**O front mora em `resources/static/`** e o próprio Spring Boot o serve, na mesma porta da
+API (`ADR-0012`). Ele **não** tem pasta por assunto: `assets/js/api.js` é a conversa com a API,
+e cada tela tem o seu arquivo (`login.js`, `cadastro.js`). O corte por assunto é do Java — no
+front, o corte é por tela.
 
 **`patrimonio`, e não `aplicacao`**, por uma razão boba e cara: `aplicacao` já é o nome de uma
 camada. Duas coisas com o mesmo nome em níveis diferentes da árvore é confusão garantida em

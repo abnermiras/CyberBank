@@ -10,12 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-/**
- * O tratador UNICO: toda excecao de dominio vira problem+json aqui, e em lugar nenhum mais
- * (docs/01-arquitetura/padroes-de-codigo.md). try/catch em controlador e onde o mapeamento
- * erro-para-resposta comeca a divergir entre endpoints.
- */
 @RestControllerAdvice
 public class TratadorDeErros {
 
@@ -34,11 +30,11 @@ public class TratadorDeErros {
         return problema;
     }
 
-    /**
-     * 500 NUNCA carrega detalhe: sem stack trace, sem mensagem de excecao, sem SQL
-     * (docs/04-api/erros.md). O que vai para o cliente e um identificador de ocorrencia; o
-     * resto vai para o log — que obedece docs/01-arquitetura/seguranca.md.
-     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ProblemDetail rotaInexistente(NoResourceFoundException e) {
+        return problema(CodigoDeErro.NAO_ENCONTRADO, null);
+    }
+
     @ExceptionHandler(Exception.class)
     public ProblemDetail inesperado(Exception e) {
         String ocorrencia = UUID.randomUUID().toString();

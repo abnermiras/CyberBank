@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CYBERBANK // ACCESS TERMINAL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/cyber.css">
+<style>
+body{display:flex;flex-direction:column;min-height:100vh}
+.topbar{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:center;padding:16px 28px;border-bottom:1px solid var(--line)}
+.brand b{font:700 20px var(--disp);letter-spacing:.16em}.brand b i{color:var(--cyan);font-style:normal}
+main{position:relative;z-index:1;flex:1;display:grid;place-items:center;padding:36px 20px}
+.card{width:min(1020px,100%);display:grid;grid-template-columns:1.05fr .95fr;
+  background:rgba(6,10,16,.94);border:1px solid var(--line-hot);
+  box-shadow:0 40px 120px #000,0 0 40px rgba(0,240,255,.06);clip-path:var(--chamfer)}
+.side{padding:46px 44px;border-right:1px solid rgba(0,240,255,.14);display:flex;flex-direction:column}
+.side h1{font-size:clamp(46px,6vw,74px);margin:14px 0 18px}
+.side .l2{color:var(--cyan)}
+.side p{color:#9fb3c0;font-size:16px;max-width:400px;line-height:1.5}
+.boot{margin-top:auto;padding-top:26px;font:10px/1.9 var(--mono);color:var(--dim);letter-spacing:.1em;min-height:104px}
+.boot b{color:var(--lime);font-weight:400}
+.boot .cur{color:var(--cyan);animation:bl 1s steps(1) infinite}
+@keyframes bl{50%{opacity:0}}
+.auth{padding:42px 40px;background:linear-gradient(140deg,rgba(255,255,255,.022),transparent 70%)}
+.auth-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:26px}
+.auth-head h2{font-size:32px;line-height:.92}
+.auth-head .code{font:9px/1.6 var(--mono);color:var(--dim);text-align:right;letter-spacing:.16em}
+.msg{font:10px/1.5 var(--mono);letter-spacing:.1em;min-height:30px;margin:-4px 0 10px;text-transform:uppercase}
+.msg.err{color:var(--pink)}
+.msg.ok{color:var(--lime)}
+.note{font:10px/1.7 var(--mono);color:var(--dim);letter-spacing:.1em;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.swap{margin-top:10px;background:none;border:0;cursor:pointer;font:10px var(--mono);letter-spacing:.12em;color:var(--cyan);text-transform:uppercase;padding:0}
+.swap:hover{color:var(--acid)}
+@media(max-width:860px){.card{grid-template-columns:1fr}.side{border-right:0;border-bottom:1px solid rgba(0,240,255,.14);padding:34px 26px}.auth{padding:30px 26px}.boot{min-height:0}}
+</style>
+</head>
+<body>
+<div class="atmos"></div><div class="glow-cyan"></div><div class="glow-pink"></div>
+
+<header class="topbar">
+  <div class="brand hstack gap14"><b>CYBER<i>BANK</i></b><span class="tele">ACCESS TERMINAL // AUTH GATE</span></div>
+  <span class="tele">SECURE NODE <b>ONLINE</b></span>
+</header>
+
+<main>
+  <section class="card">
+    <div class="side">
+      <div class="eyebrow">IDENTITY GATE // 01</div>
+      <h1><span class="glitch" data-t="ACESSO">ACESSO</span><br><span class="l2">AO NÓ</span></h1>
+      <p>Cada ambiente financeiro é um espaço fechado. Você não entra no sistema — você entra
+        <b style="color:var(--ink)">num ambiente</b>, e só vê o que ele contém.</p>
+      <div class="boot" id="boot"></div>
+    </div>
+
+    <div class="auth">
+      <!-- entrar -->
+      <div id="viewLogin">
+        <div class="auth-head">
+          <h2>Access<br>terminal</h2>
+          <div class="code">AUTH/01<br>CB-NC77<br>SESSÃO</div>
+        </div>
+        <form id="fLogin" autocomplete="off">
+          <div class="field">
+            <label for="loginEmail">Identidade</label>
+            <input id="loginEmail" name="email" type="email" placeholder="voce@exemplo.com" required>
+          </div>
+          <div class="field">
+            <label for="loginSenha">Chave</label>
+            <input id="loginSenha" name="senha" type="password" placeholder="••••••••" required>
+          </div>
+          <div class="msg" id="msgLogin"></div>
+          <button class="btn primary" style="width:100%" type="submit" id="btnLogin">Entrar no nó</button>
+          <div class="note">
+            Sem identidade ainda?
+            <button class="swap" type="button" data-ir="cadastro">Provisionar uma →</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- cadastrar -->
+      <div id="viewCadastro" class="hidden">
+        <div class="auth-head">
+          <h2>Provisionar<br>identidade</h2>
+          <div class="code">AUTH/02<br>CB-NC77<br>NOVA</div>
+        </div>
+        <form id="fCadastro" autocomplete="off">
+          <div class="field">
+            <label for="cadNome">Designação</label>
+            <input id="cadNome" name="nome" type="text" placeholder="Seu nome" required>
+          </div>
+          <div class="field">
+            <label for="cadEmail">Identidade</label>
+            <input id="cadEmail" name="email" type="email" placeholder="voce@exemplo.com" required>
+          </div>
+          <div class="field">
+            <label for="cadSenha">Chave <span style="color:var(--dim)">// mín. 8</span></label>
+            <input id="cadSenha" name="senha" type="password" placeholder="••••••••" required minlength="8">
+          </div>
+          <div class="msg" id="msgCadastro"></div>
+          <button class="btn primary" style="width:100%" type="submit" id="btnCadastro">Provisionar e entrar</button>
+          <div class="note">
+            O seu <b style="color:var(--cyan)">Ambiente Pessoal</b> nasce junto, e com ele as
+            categorias que o sistema usa para lançar sozinho.
+            <br><br>
+            Já tem identidade?
+            <button class="swap" type="button" data-ir="login">← Voltar ao acesso</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="assets/js/api.js"></script>
+<script src="assets/js/login.js"></script>
+</body>
+</html>

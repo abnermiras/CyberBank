@@ -1,6 +1,7 @@
 package br.com.cyberbank.categoria.persistencia;
 
 import java.util.List;
+import java.util.Optional;
 
 import br.com.cyberbank.categoria.dominio.Categoria;
 import br.com.cyberbank.categoria.dominio.CategoriaRepository;
@@ -25,10 +26,30 @@ public class CategoriaRepositoryJpa implements CategoriaRepository {
     }
 
     @Override
+    public Categoria salvar(Categoria categoria) {
+        return paraDominio(jpa.save(paraEntidade(categoria)));
+    }
+
+    @Override
+    public Optional<Categoria> buscarDoAmbiente(Long id, Long ambienteId) {
+        return jpa.findByIdAndAmbienteId(id, ambienteId).map(CategoriaRepositoryJpa::paraDominio);
+    }
+
+    @Override
     public List<Categoria> listarDoAmbiente(Long ambienteId) {
         return jpa.findByAmbienteId(ambienteId).stream()
                 .map(CategoriaRepositoryJpa::paraDominio)
                 .toList();
+    }
+
+    @Override
+    public void excluir(Long id, Long ambienteId) {
+        jpa.deleteByIdAndAmbienteId(id, ambienteId);
+    }
+
+    @Override
+    public boolean temFilhas(Long id, Long ambienteId) {
+        return jpa.existsByPaiIdAndAmbienteId(id, ambienteId);
     }
 
     private static CategoriaEntity paraEntidade(Categoria c) {

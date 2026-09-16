@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CYBERBANK // TERMINAL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/cyber.css">
+<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+<div class="atmos"></div><div class="glow-cyan"></div><div class="glow-pink"></div>
+
+<header class="hdr">
+  <div class="hstack gap14">
+    <b class="mark">CYBER<i>BANK</i></b>
+    <div class="amb" id="chipAmbiente" title="Ambiente ativo">
+      <span class="dot"></span>
+      <div class="stack">
+        <span class="tele" style="letter-spacing:.18em">AMBIENTE ATIVO</span>
+        <strong id="ambienteNome">—</strong>
+      </div>
+      <span class="papel" id="ambientePapel"></span>
+    </div>
+  </div>
+
+  <div class="hstack gap10">
+    <div class="stack" style="text-align:right">
+      <span class="tele">IDENTIDADE</span>
+      <strong id="quemSou">—</strong>
+    </div>
+    <div class="avatar" id="avatar">?</div>
+    <button class="btn ghost sm" id="btnSair" type="button">Sair</button>
+  </div>
+</header>
+
+<div class="shell">
+  <nav class="rail" id="rail"></nav>
+
+  <main class="main scroll" id="main">
+    <section class="tela" data-tela="home">
+      <div class="telahead">
+        <div>
+          <div class="eyebrow">VISÃO GERAL</div>
+          <h2 class="th"><span class="glitch" data-t="Home">Home</span></h2>
+        </div>
+        <div class="tele" id="statusLinha">NÓ ONLINE</div>
+      </div>
+
+      <div class="grid4">
+        <div class="panel metric semdado"><span class="corner tr"></span>
+          <span class="lbl">Em caixa · agora</span><span class="val" id="mEmCaixa">—</span>
+          <span class="sub">PRECISA DE CONTA E LANÇAMENTO</span></div>
+        <div class="panel metric semdado">
+          <span class="lbl">Sobra até o fim do mês</span><span class="val" id="mSobra">—</span>
+          <span class="sub">PRECISA DO PREVISTO</span></div>
+        <div class="panel metric semdado">
+          <span class="lbl">Guardado</span><span class="val" id="mGuardado">—</span>
+          <span class="sub">PRECISA DE APLICAÇÃO</span></div>
+        <div class="panel metric semdado">
+          <span class="lbl">Patrimônio</span><span class="val" id="mPatrimonio">—</span>
+          <span class="sub">PRECISA DE CONTA</span></div>
+      </div>
+
+      <div class="grid-2-1 mt18">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Por que os números estão vazios</h3>
+            <span class="tele">ESTADO REAL</span>
+          </div>
+          <div class="emespera">
+            <h4>Nada foi inventado aqui</h4>
+            <p>Os quatro cartões acima mostram um traço, e não <b>R$ 0,00</b>, porque zero
+              afirmaria que você não tem dinheiro — e o sistema não afirma o que não observou.
+              Eles preenchem sozinhos quando existir conta e lançamento.</p>
+            <div class="falta">FALTA PARA A HOME RESPONDER: <b>conta</b> · <b>lançamento</b> · <b>fatura</b></div>
+          </div>
+        </div>
+
+        <div class="stack gap14">
+          <div class="panel">
+            <div class="panel-head"><h3>O que já existe</h3></div>
+            <div class="stack gap10" id="oQueExiste"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tela hidden" data-tela="extrato"></section>
+    <section class="tela hidden" data-tela="fatura"></section>
+    <section class="tela hidden" data-tela="series"></section>
+    <section class="tela hidden" data-tela="reserva"></section>
+    <section class="tela hidden" data-tela="diario"></section>
+
+    <section class="tela hidden" data-tela="cadastro">
+      <div class="telahead">
+        <div>
+          <div class="eyebrow">CADASTRO // O QUE O USUÁRIO CRIA</div>
+          <h2 class="th"><span class="glitch" data-t="Cadastro">Cadastro</span></h2>
+        </div>
+        <div class="tele">O SISTEMA SÓ CRIA AS CATEGORIAS DE SISTEMA</div>
+      </div>
+
+      <div id="aviso"></div>
+
+      <div class="paineis stack gap20">
+        <section class="panel hot">
+          <span class="corner tr"></span><span class="corner bl"></span>
+          <div class="panel-head">
+            <h3>Nova categoria raiz</h3>
+            <span class="tele">NÍVEL <b>1</b></span>
+          </div>
+          <form id="fRaiz" autocomplete="off">
+            <div class="row">
+              <div class="field">
+                <label for="raizNome">Nome</label>
+                <input id="raizNome" type="text" placeholder="Transporte" maxlength="80" required>
+              </div>
+              <div class="field">
+                <label for="raizSentido">Sentido</label>
+                <select id="raizSentido" required>
+                  <option value="SAIDA">SAÍDA — para onde o dinheiro vai</option>
+                  <option value="ENTRADA">ENTRADA — de onde o dinheiro vem</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn primary" type="submit" id="btnRaiz">Criar raiz</button>
+            <p class="tele mt10">A subcategoria herda o sentido da raiz, e o sentido só muda
+              enquanto a categoria não tiver nenhum lançamento.</p>
+          </form>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h3>Suas categorias</h3>
+            <div class="hstack gap14 wrap">
+              <span class="contagem" id="contagem">—</span>
+              <button class="interruptor" id="btnInativas" type="button" aria-pressed="false">
+                <span class="luz"></span> Mostrar inativas
+              </button>
+            </div>
+          </div>
+          <div class="arvore" id="arvore"></div>
+        </section>
+
+        <details class="panel painel-sistema">
+          <summary>
+            <h3>Categorias de sistema</h3>
+            <span class="abrir">14 REGISTROS</span>
+          </summary>
+          <p class="tele mt10">São do sistema, não suas: elas existem para o ciclo conseguir
+            lançar sozinho. Não aparecem em seletor de lançamento nem em relatório, e não se
+            renomeiam, inativam ou excluem.</p>
+          <div class="sistema-lista" id="listaSistema"></div>
+        </details>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="assets/js/api.js"></script>
+<script src="assets/js/telas/home.js"></script>
+<script src="assets/js/telas/cadastro.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

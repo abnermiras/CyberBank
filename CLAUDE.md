@@ -65,6 +65,14 @@ Os fluxos em `docs/08-fluxos/` já trazem, no topo, a lista fechada de docs a ab
 7. **Valor informado pelo usuário nunca é extrapolado nem corrigido pelo sistema.** Ele carrega a data em que foi informado, e a tela mostra essa idade. Vale para o valor atual de uma aplicação (`docs/02-dominio/aplicacao-patrimonio.md`) e para o limite do cartão (`docs/02-dominio/meio-de-pagamento.md`).
 8. **Um assunto, um pacote** (`ADR-0008`). O pacote tem o nome do doc dono; nenhuma regra dele vive fora dali; não há pasta de topo por camada. Regra que precisa de dois pacotes de domínio é erro de modelagem, não de organização.
 9. **Domínio referencia domínio por `id`, nunca pelo objeto** (`ADR-0010`). Quem junta dois assuntos é a camada de aplicação. Um teste no build reprova import entre pacotes de domínio, e ele não tem exceções.
+10. **Código não leva comentário.** O *porquê* mora no doc dono — e `ADR-0008` garante que ele
+    tem endereço fixo. O código diz *o quê*, e quem carrega a intenção é o nome: da classe, do
+    método, da variável, do teste. Nada de Javadoc, nada de comentário de bloco, nada de `//`
+    explicando a linha de baixo. É a mesma economia de contexto da regra lá em cima: comentário
+    é o doc repetido dentro do arquivo, e as duas cópias divergem. Precisou explicar? O texto
+    vai para o doc, e a tabela de roteamento diz qual é. Vale para **código novo**: migration já
+    aplicada não se edita (checksum do Flyway), e o que foi escrito antes desta regra só é
+    limpo quando alguém encostar no arquivo (`docs/01-arquitetura/padroes-de-codigo.md`).
 
 ## Comandos
 

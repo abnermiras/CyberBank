@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CYBERBANK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/cyber.css">
+<style>
+body{display:grid;place-items:center;min-height:100vh;text-align:center}
+.porta{position:relative;z-index:1;padding:20px}
+.porta h1{font-size:clamp(52px,10vw,120px);letter-spacing:-.02em}
+.porta h1 i{color:var(--cyan);font-style:normal}
+.porta p{color:var(--muted);font:11px/1.9 var(--mono);letter-spacing:.14em;text-transform:uppercase;margin:18px 0 30px}
+</style>
+</head>
+<body>
+<div class="atmos"></div><div class="glow-cyan"></div><div class="glow-pink"></div>
+<div class="porta">
+  <div class="eyebrow">FINANCE NODE // SELF-HOSTED</div>
+  <h1><span class="glitch" data-t="CYBERBANK">CYBER<i>BANK</i></span></h1>
+  <p>A vida financeira inteira — entrada, gasto, investido, guardado</p>
+  <a class="btn primary" href="login.html">Acessar o nó</a>
+</div>
+<script src="assets/js/api.js"></script>
+<script>
+  /* Quem ja tem sessao nao passa pela landing. */
+  API.listarAmbientes()
+    .then(() => { window.location.href = 'app.html'; })
+    .catch(() => { /* visitante e o caso normal aqui */ });
+</script>
+</body>
+</html>

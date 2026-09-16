@@ -84,6 +84,50 @@ repositório, nunca no domínio.
 Não é só arrumação: é a transação que faz o `SET LOCAL` do ambiente que a política de RLS lê
 (`ADR-0002`). Transação aberta no lugar errado é **RLS lendo o ambiente errado** — ou nenhum.
 
+## Sem comentário no código
+
+**Nenhum arquivo de código leva comentário.** Nem Javadoc, nem bloco, nem `//` explicando a
+linha de baixo. Vale para Java, CSS e JavaScript do front.
+
+O motivo é o mesmo que decidiu o resto deste projeto: **um fato mora em um doc só** (regra 6
+do `CLAUDE.md`). Comentário é o doc copiado para dentro do arquivo, e a cópia diverge — a
+regra muda no doc, o comentário fica afirmando a versão antiga, e quem lê o código acredita
+nele. Pior que doc desatualizado é doc desatualizado ao lado da linha que ele descreve.
+
+E tem o custo de contexto, que aqui é medido (`docs/_tools/docs.py custo`): comentário entope
+o arquivo de texto que já existe em outro lugar, e quem lê o código paga por ele toda vez.
+
+### O que fica no lugar dele
+
+| O que o comentário faria | Onde isso vai agora |
+|---|---|
+| Explicar **por que** a regra é assim | O doc dono de `docs/02-dominio/`, que o `ADR-0008` garante ter endereço fixo |
+| Explicar **o que** o método faz | O nome do método. `exigirSentidoCompativel` não precisa de legenda |
+| Avisar de uma armadilha do código | O doc dono, na seção de invariantes — e um **teste** que falha se alguém a pisar |
+| Marcar o que falta (`TODO`) | A seção *"O que ainda não existe"* do doc do agregado |
+
+**Nome é a única documentação que o compilador verifica.** Classe, método, variável e, acima
+de tudo, **nome de teste**: `inativar_a_raiz_nao_grava_nada_na_filha` diz o que três linhas de
+comentário diriam, e quebra quando deixa de ser verdade.
+
+**Para código novo, exceção nenhuma — nem a do "mas este é sutil".** Regra sutil demais para o
+nome carregar é regra que merece um teste com o nome dela e um parágrafo no doc dono, não uma
+legenda.
+
+### Duas ressalvas, e as duas são honestas
+
+**Migration é a exceção permanente.** O Flyway valida o *checksum* de cada arquivo já aplicado:
+tirar um comentário de uma `V00N__*.sql` quebra a subida da aplicação e exige `flyway repair`.
+Migration é artefato histórico — não se edita depois de aplicada, comentário incluído
+(`docs/03-dados/migrations.md`).
+
+**O código escrito antes desta regra continua comentado, e isso é de propósito.** A regra entrou
+em 2026-09-15, com o repositório já em ~530 linhas de comentário. Nada foi varrido: limpar tudo
+de uma vez é um diff enorme que ninguém revisa de verdade, e o risco de levar junto uma razão
+que não está escrita em doc nenhum é real. **O comentário sai quando alguém encostar no
+arquivo** — e, se ele carregava um porquê, o porquê vai antes para o doc dono. Até lá, código
+comentado é dívida conhecida, não contradição.
+
 ## Sem Lombok
 
 Java 21 tem `record`, que cobre DTO e objeto de valor com uma linha. O resto se escreve.
@@ -105,6 +149,7 @@ digitação — que não é o custo deste projeto.
 - Valor monetário em `double` ou `BigDecimal` com casas — é inteiro em centavos, sempre.
 - Código de erro que não está no catálogo.
 - Pasta de topo por camada.
+- Comentário em código novo, de qualquer tipo — Javadoc incluído. Migration aplicada é a única exceção.
 
 ## Invariantes
 
@@ -113,6 +158,7 @@ digitação — que não é o custo deste projeto.
 - `dominio` não tem anotação de Spring, de JPA nem de JSON.
 - Toda exceção de domínio carrega um código do catálogo, e um tratador único a converte.
 - A transação abre na `aplicacao` e carrega o ambiente para o RLS.
+- Código novo não tem comentário; o porquê está no doc dono e o quê está no nome.
 
 ## Fronteiras com outros docs
 

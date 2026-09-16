@@ -176,6 +176,30 @@ class CadastroELoginIT {
                 .isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
+    @Test
+    void arquivo_estatico_inexistente_responde_404_e_nao_500() {
+        var arquivo = get("/assets/js/nao-existe.js", null);
+
+        assertThat(arquivo.getStatusCode())
+                .as("404 de asset não é falha nossa e não vira stack trace no log")
+                .isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(arquivo.getBody()).containsEntry("codigo", "NAO_ENCONTRADO");
+    }
+
+    @Test
+    void rota_de_api_inexistente_responde_401_sem_sessao_e_404_com_ela() {
+        assertThat(get("/api/v1/nao-existe", null).getStatusCode())
+                .as("sem sessão, /api/** para no interceptador antes de rotear")
+                .isEqualTo(HttpStatus.UNAUTHORIZED);
+
+        cadastrar("Perdida", "perdida@exemplo.com", "uma senha longa");
+        String cookie = entrar("perdida@exemplo.com", "uma senha longa");
+
+        var comSessao = get("/api/v1/nao-existe", cookie);
+        assertThat(comSessao.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(comSessao.getBody()).containsEntry("codigo", "NAO_ENCONTRADO");
+    }
+
     // --- o que faz a conversa com a API ---
 
     @SuppressWarnings("unchecked")
