@@ -5,6 +5,7 @@ import java.util.List;
 
 import br.com.cyberbank.categoria.dominio.Categoria;
 import br.com.cyberbank.categoria.dominio.CategoriaRepository;
+import br.com.cyberbank.categoria.dominio.CorDeCategoria;
 import br.com.cyberbank.categoria.dominio.Sentido;
 import br.com.cyberbank.comum.erro.CodigoDeErro;
 import br.com.cyberbank.comum.erro.ErroDeValidacao;
@@ -35,9 +36,11 @@ public class CriarCategoriaUseCase {
     }
 
     @Transactional
-    public Categoria executar(Long ambienteId, Long paiId, String nome, Sentido sentido) {
+    public Categoria executar(Long ambienteId, Long paiId, String nome, Sentido sentido,
+            CorDeCategoria cor) {
         if (paiId == null) {
-            return categorias.salvar(Categoria.novaRaiz(ambienteId, nome, sentido, relogio.instant()));
+            return categorias.salvar(
+                    Categoria.novaRaiz(ambienteId, nome, sentido, cor, relogio.instant()));
         }
 
         Categoria pai = categorias.buscarDoAmbiente(paiId, ambienteId)

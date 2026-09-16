@@ -7,9 +7,11 @@ import br.com.cyberbank.categoria.aplicacao.AlterarAtivacaoCategoriaUseCase;
 import br.com.cyberbank.categoria.aplicacao.CriarCategoriaUseCase;
 import br.com.cyberbank.categoria.aplicacao.ExcluirCategoriaUseCase;
 import br.com.cyberbank.categoria.aplicacao.ListarCategoriasUseCase;
+import br.com.cyberbank.categoria.aplicacao.RecolorirCategoriaUseCase;
 import br.com.cyberbank.categoria.aplicacao.RenomearCategoriaUseCase;
 import br.com.cyberbank.categoria.dominio.ArvoreDeCategorias;
 import br.com.cyberbank.categoria.dominio.Categoria;
+import br.com.cyberbank.categoria.dominio.CorDeCategoria;
 import br.com.cyberbank.categoria.dominio.OperacaoDeSistema;
 import br.com.cyberbank.categoria.dominio.Sentido;
 import br.com.cyberbank.comum.erro.ErroDeValidacao;
@@ -43,6 +45,7 @@ public class CategoriaController {
             Long id,
             String nome,
             Sentido sentido,
+            CorDeCategoria cor,
             boolean sistema,
             boolean inativa,
             boolean escolhivel,
@@ -61,21 +64,22 @@ public class CategoriaController {
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record CategoriaGravadaResponse(
-            Long id, Long paiId, String nome, Sentido sentido, boolean inativa) {
+            Long id, Long paiId, String nome, Sentido sentido, CorDeCategoria cor, boolean inativa) {
     }
 
     /** {@code sentido} e nulo numa subcategoria: ela herda o da raiz e nao pode divergir. */
-    public record CriacaoRequest(Long paiId, String nome, Sentido sentido) {
+    public record CriacaoRequest(Long paiId, String nome, Sentido sentido, CorDeCategoria cor) {
     }
 
     /** Ambos opcionais, e ausente e diferente de nulo: o que nao veio nao muda. */
-    public record AlteracaoRequest(String nome, Boolean inativa) {
+    public record AlteracaoRequest(String nome, Boolean inativa, CorDeCategoria cor) {
     }
 
     private final ListarCategoriasUseCase listarCategorias;
     private final CriarCategoriaUseCase criarCategoria;
     private final RenomearCategoriaUseCase renomearCategoria;
     private final AlterarAtivacaoCategoriaUseCase alterarAtivacao;
+    private final RecolorirCategoriaUseCase recolorirCategoria;
     private final ExcluirCategoriaUseCase excluirCategoria;
 
     public CategoriaController(
@@ -83,11 +87,13 @@ public class CategoriaController {
             CriarCategoriaUseCase criarCategoria,
             RenomearCategoriaUseCase renomearCategoria,
             AlterarAtivacaoCategoriaUseCase alterarAtivacao,
+            RecolorirCategoriaUseCase recolorirCategoria,
             ExcluirCategoriaUseCase excluirCategoria) {
         this.listarCategorias = listarCategorias;
         this.criarCategoria = criarCategoria;
         this.renomearCategoria = renomearCategoria;
         this.alterarAtivacao = alterarAtivacao;
+        this.recolorirCategoria = recolorirCategoria;
         this.excluirCategoria = excluirCategoria;
     }
 
@@ -105,8 +111,8 @@ public class CategoriaController {
     @PostMapping
     public ResponseEntity<CategoriaGravadaResponse> criar(
             @PathVariable Long ambienteId, @RequestBody CriacaoRequest requisicao) {
-        Categoria criada = criarCategoria.executar(
-                ambienteId, requisicao.paiId(), requisicao.nome(), requisicao.sentido());
+        Categoria criada = criarCategoria.executar(ambienteId, requisicao.paiId(),
+                requisicao.nome(), requisicao.sentido(), requisicao.cor());
         return ResponseEntity
                 .created(URI.create("/api/v1/ambientes/" + ambienteId + "/categorias/" + criada.id()))
                 .body(paraRespostaGravada(criada));
@@ -123,14 +129,17 @@ public class CategoriaController {
             @PathVariable Long categoriaId,
             @RequestBody AlteracaoRequest requisicao) {
 
-        if (requisicao.nome() == null && requisicao.inativa() == null) {
+        if (requisicao.nome() == null && requisicao.inativa() == null && requisicao.cor() == null) {
             throw new ValidacaoException(List.of(new ErroDeValidacao("nome", "OBRIGATORIO",
-                    "Informe o que mudar: nome, inativa, ou os dois.")));
+                    "Informe o que mudar: nome, cor, inativa, ou uma combinação deles.")));
         }
 
         Categoria categoria = null;
         if (requisicao.nome() != null) {
             categoria = renomearCategoria.executar(ambienteId, categoriaId, requisicao.nome());
+        }
+        if (requisicao.cor() != null) {
+            categoria = recolorirCategoria.executar(ambienteId, categoriaId, requisicao.cor());
         }
         if (requisicao.inativa() != null) {
             categoria = alterarAtivacao.executar(ambienteId, categoriaId, requisicao.inativa());
@@ -148,7 +157,7 @@ public class CategoriaController {
 
     private static CategoriaGravadaResponse paraRespostaGravada(Categoria categoria) {
         return new CategoriaGravadaResponse(categoria.id(), categoria.paiId(), categoria.nome(),
-                categoria.sentido(), categoria.inativa());
+                categoria.sentido(), categoria.cor(), categoria.inativa());
     }
 
     private static CategoriaResponse paraResposta(ArvoreDeCategorias.No no) {
@@ -157,6 +166,7 @@ public class CategoriaController {
                 categoria.id(),
                 categoria.nome(),
                 categoria.sentido(),
+                categoria.cor(),
                 categoria.sistema(),
                 categoria.inativa(),
                 no.escolhivel(),

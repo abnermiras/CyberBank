@@ -1,14 +1,19 @@
 const Cadastro = {
+  PALETA: ['VIOLETA', 'AZUL', 'TEAL', 'OLIVA', 'OCRE', 'TERRACOTA', 'ARDOSIA', 'MALVA'],
+
   arvore: [],
   mostrarInativas: false,
-  renomeando: null,
-  subEm: null,
+  corEscolhida: 'OCRE',
+  editandoRaiz: null,
+  editandoSub: null,
+  corEmEdicao: null,
   confirmando: null,
   ligado: false,
   apagarAviso: null,
 
   async montar() {
     if (!Cadastro.ligado) {
+      Cadastro.montarSwatches();
       Cadastro.ligarOuvintes();
       Cadastro.ligado = true;
       Cadastro.carregarSistema();
@@ -16,20 +21,43 @@ const Cadastro = {
     await Cadastro.recarregar();
   },
 
+  tom: (cor) => `var(--cat-${String(cor || 'ardosia').toLowerCase()})`,
+
+  montarSwatches() {
+    document.getElementById('swatches').innerHTML = Cadastro.PALETA.map((cor) =>
+      `<button type="button" class="swatch${cor === Cadastro.corEscolhida ? ' on' : ''}"
+         data-cor="${cor}" style="--sw:${Cadastro.tom(cor)}" title="${cor}"></button>`).join('');
+  },
+
   ligarOuvintes() {
+    document.getElementById('swatches').addEventListener('click', (evento) => {
+      const alvo = evento.target.closest('[data-cor]');
+      if (!alvo) return;
+      Cadastro.corEscolhida = alvo.dataset.cor;
+      Cadastro.montarSwatches();
+    });
+
     const arvore = document.getElementById('arvore');
 
     arvore.addEventListener('click', async (evento) => {
+      const paleta = evento.target.closest('[data-cor-edicao]');
+      if (paleta) {
+        Cadastro.corEmEdicao = paleta.dataset.corEdicao;
+        Cadastro.desenhar();
+        return;
+      }
+
       const botao = evento.target.closest('[data-acao]');
       if (!botao) return;
       const id = Number(botao.dataset.id);
       const acoes = {
-        sub: () => Cadastro.abrir({ subEm: id }, 'campoSub'),
-        renomear: () => Cadastro.abrir({ renomeando: id }, 'campoRenome'),
+        'editar-raiz': () => Cadastro.abrirEdicaoDeRaiz(id),
+        'editar-sub': () => Cadastro.abrir({ editandoSub: id }, `nomeSub${id}`),
         confirmar: () => Cadastro.abrir({ confirmando: id }),
         cancelar: () => Cadastro.abrir({}),
-        'salvar-nome': () => Cadastro.salvarNome(id),
+        'salvar-raiz': () => Cadastro.salvarRaiz(id),
         'salvar-sub': () => Cadastro.salvarSub(id),
+        'criar-sub': () => Cadastro.criarSub(id),
         inativar: () => Cadastro.alterarAtivacao(id, true),
         reativar: () => Cadastro.alterarAtivacao(id, false),
         excluir: () => Cadastro.excluir(id),
@@ -41,8 +69,10 @@ const Cadastro = {
       if (evento.key === 'Escape') { Cadastro.abrir({}); return; }
       if (evento.key !== 'Enter') return;
       evento.preventDefault();
-      if (evento.target.id === 'campoRenome') Cadastro.salvarNome(Cadastro.renomeando);
-      if (evento.target.id === 'campoSub') Cadastro.salvarSub(Cadastro.subEm);
+      const campo = evento.target;
+      if (campo.dataset.novaSub) Cadastro.criarSub(Number(campo.dataset.novaSub));
+      if (campo.id === `nomeRaiz${Cadastro.editandoRaiz}`) Cadastro.salvarRaiz(Cadastro.editandoRaiz);
+      if (campo.id === `nomeSub${Cadastro.editandoSub}`) Cadastro.salvarSub(Cadastro.editandoSub);
     });
 
     document.getElementById('btnInativas').addEventListener('click', () => {
@@ -58,6 +88,7 @@ const Cadastro = {
         await API.criarCategoria(Contexto.ambiente.id, {
           nome: document.getElementById('raizNome').value.trim(),
           sentido: document.getElementById('raizSentido').value,
+          cor: Cadastro.corEscolhida,
         });
         document.getElementById('raizNome').value = '';
         await Cadastro.recarregar();
@@ -71,9 +102,15 @@ const Cadastro = {
     });
   },
 
+  abrirEdicaoDeRaiz(id) {
+    const raiz = Cadastro.arvore.find((r) => r.id === id);
+    Cadastro.corEmEdicao = raiz ? raiz.cor : null;
+    Cadastro.abrir({ editandoRaiz: id }, `nomeRaiz${id}`);
+  },
+
   abrir(estado, focar) {
-    Cadastro.renomeando = estado.renomeando ?? null;
-    Cadastro.subEm = estado.subEm ?? null;
+    Cadastro.editandoRaiz = estado.editandoRaiz ?? null;
+    Cadastro.editandoSub = estado.editandoSub ?? null;
     Cadastro.confirmando = estado.confirmando ?? null;
     Cadastro.desenhar();
     if (!focar) return;
@@ -95,8 +132,7 @@ const Cadastro = {
       const todas = (await API.categoriasDeSistema(Contexto.ambiente.id)).itens;
       document.getElementById('listaSistema').innerHTML = todas
         .filter((c) => c.sistema)
-        .map((c) => `<span class="tag ${c.sentido === 'ENTRADA' ? 'entrada' : 'saida'}">
-            ${Cadastro.esc(c.nome)} · ${c.sentido}</span>`)
+        .map((c) => `<span class="tag ${c.sentido === 'ENTRADA' ? 'entrada' : 'saida'}">${Cadastro.esc(c.nome)} · ${c.sentido}</span>`)
         .join('');
     } catch (erro) {
       Cadastro.tratar(erro);
@@ -111,17 +147,18 @@ const Cadastro = {
     Cadastro.desenharContagem();
     document.getElementById('btnInativas').setAttribute('aria-pressed', String(Cadastro.mostrarInativas));
 
-    if (!visiveis.length) {
-      document.getElementById('arvore').innerHTML = Cadastro.arvore.length
-        ? `<div class="vazio">Tudo o que existe aqui está <b>inativo</b>.<br>
-             Use o interruptor acima para revelar.</div>`
-        : `<div class="vazio">Nenhuma categoria ainda.<br>
-             O sistema <b>não inventa</b> categoria nenhuma — a nomenclatura é sua.<br>
-             Crie a primeira raiz acima.</div>`;
-      return;
-    }
+    document.getElementById('arvore').innerHTML = visiveis.length
+      ? `<div class="arvores">${visiveis.map(Cadastro.desenharCard).join('')}</div>`
+      : Cadastro.desenharVazio();
+  },
 
-    document.getElementById('arvore').innerHTML = visiveis.map(Cadastro.desenharRaiz).join('');
+  desenharVazio() {
+    return Cadastro.arvore.length
+      ? `<div class="vazio">TODAS AS ${Cadastro.arvore.length} RAÍZES ESTÃO <b>INATIVAS</b> E ESCONDIDAS<br>
+           USE O INTERRUPTOR ACIMA PARA REVELAR</div>`
+      : `<div class="vazio">NENHUMA CATEGORIA NESTE AMBIENTE<br>
+           O SISTEMA <b>NÃO CRIA</b> CATEGORIA DE USUÁRIO — A NOMENCLATURA É SUA<br>
+           CRIE A PRIMEIRA ACIMA</div>`;
   },
 
   desenharContagem() {
@@ -137,111 +174,152 @@ const Cadastro = {
       : `<b>${todas.length}</b> categoria${todas.length > 1 ? 's' : ''}`;
   },
 
-  desenharRaiz(raiz) {
-    const filhas = Cadastro.mostrarInativas ? raiz.filhas : raiz.filhas.filter((f) => !f.inativa);
-    const cor = raiz.sentido === 'ENTRADA' ? 'var(--lime)' : 'var(--pink)';
+  desenharCard(raiz) {
+    const tom = Cadastro.tom(raiz.cor);
+    const ativas = raiz.filhas.filter((f) => !f.inativa).length;
 
-    const rodape = raiz.filhas.length
-      ? `<div class="filhas">
-           ${filhas.map((f) => `<div class="no-filha">${Cadastro.desenharLinha(f, true)}</div>`).join('')}
-           ${Cadastro.desenharContagemDeFilhas(raiz, filhas)}
-         </div>`
-      : '';
+    const cabeca = Cadastro.editandoRaiz === raiz.id
+      ? Cadastro.edicaoDeRaiz(raiz)
+      : `<div class="arv-head">
+           <span class="arv-nome">${Cadastro.esc(raiz.nome)}</span>
+           <span class="arv-sent">${raiz.sentido} · ${ativas}/${raiz.filhas.length} SUB</span>
+         </div>`;
 
-    return `<div class="no raiz ${raiz.inativa ? 'inativa' : ''}" style="--cor-sentido:${cor}">
-              ${Cadastro.desenharLinha(raiz, false)}
-              ${Cadastro.subEm === raiz.id ? Cadastro.formularioDeSub(raiz) : ''}
-              ${rodape}
+    const adicionar = raiz.inativa ? '' : `<div class="arv-add">
+         <input data-nova-sub="${raiz.id}" maxlength="80" autocomplete="off"
+                placeholder="+ subcategoria de ${Cadastro.esc(raiz.nome)}">
+         <button class="btn sm" data-acao="criar-sub" data-id="${raiz.id}" title="criar subcategoria">+</button>
+       </div>`;
+
+    return `<div class="arv ${raiz.inativa ? 'ina' : ''}" style="--k:${tom}">
+              ${cabeca}
+              <div class="arv-corpo">${Cadastro.desenharFilhas(raiz)}</div>
+              <div class="arv-estado">${Cadastro.desenharEstado(raiz, ativas)}</div>
+              ${adicionar}
+              <div class="arv-acoes">${Cadastro.desenharAcoesDaRaiz(raiz)}</div>
             </div>`;
   },
 
-  desenharContagemDeFilhas(raiz, visiveis) {
-    const escondidas = raiz.filhas.length - visiveis.length;
-    if (!escondidas) return '';
-    return `<div class="linha"><span class="contagem">
-              <b>${visiveis.length}</b> de ${raiz.filhas.length} ·
-              <span class="escondidas">${escondidas} inativa${escondidas > 1 ? 's' : ''}</span>
-            </span></div>`;
-  },
+  edicaoDeRaiz(raiz) {
+    const swatches = Cadastro.PALETA.map((cor) =>
+      `<button type="button" class="swatch${cor === Cadastro.corEmEdicao ? ' on' : ''}"
+         data-cor-edicao="${cor}" style="--sw:${Cadastro.tom(cor)}" title="${cor}"></button>`).join('');
 
-  desenharLinha(categoria, ehFilha) {
-    if (Cadastro.renomeando === categoria.id) return Cadastro.formularioDeRenome(categoria);
-
-    const tags = [
-      `<span class="tag ${categoria.sentido === 'ENTRADA' ? 'entrada' : 'saida'}">${categoria.sentido}</span>`,
-      categoria.inativa ? '<span class="tag inativa">INATIVA</span>' : '',
-      categoria.escolhivel ? '<span class="tag destino" title="Pode receber lançamento">DESTINO</span>' : '',
-    ].join('');
-
-    return `<div class="linha">
-              <span class="nome ${ehFilha ? 'sub' : ''}">${Cadastro.esc(categoria.nome)}</span>
-              ${tags}
-              <span class="acoes">${Cadastro.desenharAcoes(categoria, ehFilha)}</span>
+    return `<div class="arv-edicao">
+              <input id="nomeRaiz${raiz.id}" maxlength="80" value="${Cadastro.esc(raiz.nome)}">
+              <div class="swatches">${swatches}</div>
             </div>`;
   },
 
-  desenharAcoes(categoria, ehFilha) {
-    if (Cadastro.confirmando === categoria.id) {
-      return `<span class="tele" style="color:var(--pink)">EXCLUIR DE VEZ?</span>
-              <button class="btn danger sm" data-acao="excluir" data-id="${categoria.id}">Sim</button>
-              <button class="btn ghost sm" data-acao="cancelar">Não</button>`;
+  desenharFilhas(raiz) {
+    const visiveis = Cadastro.mostrarInativas ? raiz.filhas : raiz.filhas.filter((f) => !f.inativa);
+
+    const emEdicao = raiz.filhas.find((f) => f.id === Cadastro.editandoSub);
+    if (emEdicao) {
+      return `<div class="arv-edicao" style="width:100%">
+                <input id="nomeSub${emEdicao.id}" maxlength="80" value="${Cadastro.esc(emEdicao.nome)}">
+                <div class="hstack gap6 wrap">
+                  <button class="btn primary sm" data-acao="salvar-sub" data-id="${emEdicao.id}">Salvar</button>
+                  <button class="btn ghost sm" data-acao="cancelar">Cancelar</button>
+                  <button class="btn danger sm" data-acao="confirmar" data-id="${emEdicao.id}">Excluir</button>
+                </div>
+              </div>`;
     }
 
-    const sub = ehFilha ? '' : `<button class="btn sm" data-acao="sub" data-id="${categoria.id}">+ Sub</button>`;
+    if (raiz.filhas.some((f) => f.id === Cadastro.confirmando)) {
+      return `<div class="hstack gap6 wrap">${Cadastro.confirmacao(Cadastro.confirmando)}</div>`;
+    }
 
-    return `${sub}
-      <button class="btn ghost sm" data-acao="renomear" data-id="${categoria.id}">Renomear</button>
-      <button class="btn ghost sm" data-acao="${categoria.inativa ? 'reativar' : 'inativar'}"
-              data-id="${categoria.id}">${categoria.inativa ? 'Reativar' : 'Inativar'}</button>
-      <button class="btn danger sm" data-acao="confirmar" data-id="${categoria.id}">Excluir</button>`;
+    if (!visiveis.length) {
+      return `<span class="dica">${raiz.filhas.length
+        ? `${raiz.filhas.length} SUBCATEGORIA(S) INATIVA(S), ESCONDIDA(S)`
+        : 'SEM SUBCATEGORIA'}</span>`;
+    }
+
+    return visiveis.map((f) => `<span class="sub-chip ${f.inativa ? 'ina' : ''}">${Cadastro.esc(f.nome)}
+        <button class="chip-b" data-acao="editar-sub" data-id="${f.id}" title="renomear">&#9998;</button>
+        <button class="chip-b perigo" data-acao="${f.inativa ? 'reativar' : 'inativar'}" data-id="${f.id}"
+                title="${f.inativa ? 'reativar' : 'inativar'}">${f.inativa ? '&#8634;' : '&times;'}</button>
+      </span>`).join('');
   },
 
-  formularioDeRenome(categoria) {
-    return `<div class="linha renomeando">
-              <input id="campoRenome" type="text" maxlength="80" value="${Cadastro.esc(categoria.nome)}">
-              <span class="acoes">
-                <button class="btn primary sm" data-acao="salvar-nome" data-id="${categoria.id}">Salvar</button>
-                <button class="btn ghost sm" data-acao="cancelar">Cancelar</button>
-              </span>
-            </div>`;
+  desenharEstado(raiz, ativas) {
+    if (raiz.inativa) {
+      return `<span class="tag inativa">INATIVA</span>
+              <span class="dica">a árvore inteira saiu do seletor · o campo das filhas não mudou</span>`;
+    }
+    if (ativas) {
+      return `<span class="tag">NÃO É DESTINO</span>
+              <span class="dica">o lançamento escolhe uma subcategoria</span>`;
+    }
+    return `<span class="tag destino">DESTINO DE LANÇAMENTO</span>
+            <span class="dica">${raiz.filhas.length
+              ? 'todas as subcategorias estão inativas · a raiz voltou a ser destino'
+              : 'sem subcategoria ainda'}</span>`;
   },
 
-  formularioDeSub(raiz) {
-    return `<div class="form-inline">
-              <div class="field">
-                <label for="campoSub">Nova subcategoria de ${Cadastro.esc(raiz.nome)}</label>
-                <input id="campoSub" type="text" maxlength="80" placeholder="Gasolina">
-              </div>
-              <button class="btn primary sm" data-acao="salvar-sub" data-id="${raiz.id}">Criar</button>
-              <button class="btn ghost sm" data-acao="cancelar">Cancelar</button>
-              <p class="tele" style="flex-basis:100%">
-                Herda o sentido <b>${raiz.sentido}</b> da raiz. Com uma subcategoria ativa, a raiz
-                deixa de ser destino de lançamento.
-              </p>
-            </div>`;
+  desenharAcoesDaRaiz(raiz) {
+    if (Cadastro.editandoRaiz === raiz.id) {
+      return `<button class="btn primary sm" data-acao="salvar-raiz" data-id="${raiz.id}">Salvar</button>
+              <button class="btn ghost sm" data-acao="cancelar">Cancelar</button>`;
+    }
+    if (Cadastro.confirmando === raiz.id) {
+      return Cadastro.confirmacao(raiz.id);
+    }
+    return `<button class="btn ghost sm" data-acao="editar-raiz" data-id="${raiz.id}">Renomear</button>
+            <button class="btn ghost sm" data-acao="${raiz.inativa ? 'reativar' : 'inativar'}"
+                    data-id="${raiz.id}">${raiz.inativa ? 'Reativar' : 'Inativar'}</button>
+            <button class="btn danger sm" data-acao="confirmar" data-id="${raiz.id}">Excluir</button>`;
   },
 
-  async salvarNome(id) {
+  confirmacao(id) {
+    return `<span class="dica" style="color:var(--pink)">EXCLUIR DE VEZ?</span>
+            <button class="btn danger sm" data-acao="excluir" data-id="${id}">Sim</button>
+            <button class="btn ghost sm" data-acao="cancelar">Não</button>`;
+  },
+
+  async salvarRaiz(id) {
+    const raiz = Cadastro.arvore.find((r) => r.id === id);
+    const nome = document.getElementById(`nomeRaiz${id}`).value.trim();
+    const mudou = {};
+    if (nome !== raiz.nome) mudou.nome = nome;
+    if (Cadastro.corEmEdicao !== raiz.cor) mudou.cor = Cadastro.corEmEdicao;
+
+    if (!Object.keys(mudou).length) { Cadastro.abrir({}); return; }
+
     try {
-      await API.alterarCategoria(Contexto.ambiente.id, id, {
-        nome: document.getElementById('campoRenome').value.trim(),
-      });
+      await API.alterarCategoria(Contexto.ambiente.id, id, mudou);
       Cadastro.abrir({});
       await Cadastro.recarregar();
-      Cadastro.avisar('Nome alterado. O histórico passa a exibir o nome novo.', 'ok');
+      Cadastro.avisar('Raiz atualizada. O histórico acompanha o nome novo.', 'ok');
     } catch (erro) {
       Cadastro.tratar(erro);
     }
   },
 
-  async salvarSub(paiId) {
+  async salvarSub(id) {
     try {
-      await API.criarCategoria(Contexto.ambiente.id, {
-        nome: document.getElementById('campoSub').value.trim(),
-        paiId,
+      await API.alterarCategoria(Contexto.ambiente.id, id, {
+        nome: document.getElementById(`nomeSub${id}`).value.trim(),
       });
       Cadastro.abrir({});
       await Cadastro.recarregar();
+      Cadastro.avisar('Subcategoria renomeada.', 'ok');
+    } catch (erro) {
+      Cadastro.tratar(erro);
+    }
+  },
+
+  async criarSub(paiId) {
+    const campo = document.querySelector(`[data-nova-sub="${paiId}"]`);
+    const nome = campo.value.trim();
+    if (!nome) { campo.focus(); return; }
+
+    try {
+      await API.criarCategoria(Contexto.ambiente.id, { nome, paiId });
+      await Cadastro.recarregar();
+      const proximo = document.querySelector(`[data-nova-sub="${paiId}"]`);
+      if (proximo) proximo.focus();
       Cadastro.avisar('Subcategoria criada.', 'ok');
     } catch (erro) {
       Cadastro.tratar(erro);
@@ -255,7 +333,7 @@ const Cadastro = {
       await Cadastro.recarregar();
       Cadastro.avisar(
         inativa
-          ? 'Inativada. Ela some da escolha e continua somando no histórico.'
+          ? 'Inativada. Some da escolha e continua somando no histórico.'
           : 'Reativada, com o mesmo jogo de subcategorias que estava ativo antes.',
         'ok',
       );

@@ -57,7 +57,7 @@ class CadastroDeCategoriaIT {
 
         assertThat(itens(arvore(sessao))).as("o sistema não cria categoria de usuário nenhuma").isEmpty();
 
-        Integer transporte = criar(sessao, Map.of("nome", "Transporte", "sentido", "SAIDA"));
+        Integer transporte = criar(sessao, raiz("Transporte", "SAIDA", "OCRE"));
 
         assertThat(itens(arvore(sessao))).singleElement().satisfies(raiz -> {
             assertThat(raiz).containsEntry("nome", "Transporte");
@@ -83,7 +83,7 @@ class CadastroDeCategoriaIT {
     @Test
     void inativar_a_ultima_filha_ativa_devolve_a_raiz_para_a_escolha() {
         var sessao = novaSessao("oscila");
-        Integer raiz = criar(sessao, Map.of("nome", "Sustento", "sentido", "SAIDA"));
+        Integer raiz = criar(sessao, raiz("Sustento", "SAIDA", "OLIVA"));
         Integer filha = criar(sessao, Map.of("nome", "Mercado", "paiId", raiz));
 
         assertThat(primeiraRaiz(sessao)).containsEntry("escolhivel", false);
@@ -104,7 +104,7 @@ class CadastroDeCategoriaIT {
     @Test
     void inativar_a_raiz_esconde_a_filha_sem_gravar_nada_nela() {
         var sessao = novaSessao("cascata");
-        Integer raiz = criar(sessao, Map.of("nome", "Lazer", "sentido", "SAIDA"));
+        Integer raiz = criar(sessao, raiz("Lazer", "SAIDA", "MALVA"));
         criar(sessao, Map.of("nome", "Cinema", "paiId", raiz));
 
         patch(sessao, raiz, campos("inativa", true));
@@ -120,7 +120,7 @@ class CadastroDeCategoriaIT {
     @Test
     void renomear_muda_so_o_nome_e_mantem_a_identidade() {
         var sessao = novaSessao("renome");
-        Integer raiz = criar(sessao, Map.of("nome", "Academia", "sentido", "SAIDA"));
+        Integer raiz = criar(sessao, raiz("Academia", "SAIDA", "TEAL"));
 
         var resposta = patch(sessao, raiz, campos("nome", "Saúde"));
 
@@ -132,7 +132,7 @@ class CadastroDeCategoriaIT {
     @Test
     void excluir_tira_a_categoria_e_a_raiz_com_filha_e_recusada() {
         var sessao = novaSessao("excluir");
-        Integer raiz = criar(sessao, Map.of("nome", "Transporte", "sentido", "SAIDA"));
+        Integer raiz = criar(sessao, raiz("Transporte", "SAIDA", "OCRE"));
         Integer filha = criar(sessao, Map.of("nome", "Uber", "paiId", raiz));
 
         var comFilha = excluir(sessao, raiz);
@@ -165,7 +165,7 @@ class CadastroDeCategoriaIT {
     @Test
     void a_arvore_tem_dois_niveis_e_o_terceiro_e_recusado() {
         var sessao = novaSessao("niveis");
-        Integer raiz = criar(sessao, Map.of("nome", "Transporte", "sentido", "SAIDA"));
+        Integer raiz = criar(sessao, raiz("Transporte", "SAIDA", "OCRE"));
         Integer filha = criar(sessao, Map.of("nome", "Gasolina", "paiId", raiz));
 
         var neta = criarCru(sessao, Map.of("nome", "Aditivada", "paiId", filha));
@@ -177,7 +177,7 @@ class CadastroDeCategoriaIT {
     @Test
     void a_subcategoria_recusa_sentido_divergente_em_vez_de_corrigir_em_silencio() {
         var sessao = novaSessao("sentido");
-        Integer raiz = criar(sessao, Map.of("nome", "Salário", "sentido", "ENTRADA"));
+        Integer raiz = criar(sessao, raiz("Salário", "ENTRADA", "AZUL"));
 
         var divergente = criarCru(sessao, Map.of("nome", "Bônus", "paiId", raiz, "sentido", "SAIDA"));
 
@@ -192,13 +192,15 @@ class CadastroDeCategoriaIT {
         var resposta = criarCru(sessao, Map.of("nome", "  "));
 
         assertThat(resposta.getStatusCode().value()).isEqualTo(422);
-        assertThat((List<?>) resposta.getBody().get("erros")).hasSize(2);
+        assertThat((List<?>) resposta.getBody().get("erros"))
+                .as("nome, sentido e cor voltam juntos")
+                .hasSize(3);
     }
 
     @Test
     void categoria_de_outro_ambiente_responde_igual_a_inexistente() {
         var dona = novaSessao("dona");
-        Integer daDona = criar(dona, Map.of("nome", "Particular", "sentido", "SAIDA"));
+        Integer daDona = criar(dona, raiz("Particular", "SAIDA", "VIOLETA"));
 
         var curioso = novaSessao("curioso");
         var alvo = new Sessao(curioso.ambienteId(), curioso.cookie());
@@ -209,11 +211,55 @@ class CadastroDeCategoriaIT {
     }
 
     @Test
+    void a_cor_e_da_raiz_a_filha_herda_e_trocar_e_livre() {
+        var sessao = novaSessao("cores");
+        Integer raizId = criar(sessao, raiz("Moradia", "SAIDA", "OCRE"));
+        Integer filha = criar(sessao, Map.of("nome", "Aluguel", "paiId", raizId));
+
+        var arvore = itens(arvore(sessao)).get(0);
+        assertThat(arvore).containsEntry("cor", "OCRE");
+        assertThat(filhas(arvore)).singleElement().satisfies(f -> assertThat(f)
+                .as("campo que não se aplica não vem: a filha lê a cor da raiz")
+                .doesNotContainKey("cor"));
+
+        assertThat(patch(sessao, raizId, campos("cor", "TEAL")).getBody())
+                .containsEntry("cor", "TEAL");
+        assertThat(itens(arvore(sessao)).get(0)).containsEntry("cor", "TEAL");
+
+        var naFilha = patch(sessao, filha, campos("cor", "MALVA"));
+        assertThat(naFilha.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(naFilha.getBody()).containsEntry("codigo", "CATEGORIA_SEM_COR_PROPRIA");
+    }
+
+    @Test
+    void cor_fora_da_paleta_nao_entra() {
+        var sessao = novaSessao("paleta");
+
+        var resposta = criarCru(sessao, Map.of("nome", "Neon", "sentido", "SAIDA", "cor", "PINK"));
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(resposta.getBody())
+                .as("a paleta de identidade não inclui as cores de sinalização")
+                .containsEntry("codigo", "CORPO_INVALIDO");
+        assertThat(resposta.getBody().toString())
+                .as("o erro não repete o valor que o cliente mandou")
+                .doesNotContain("PINK");
+    }
+
+    @Test
+    void a_categoria_de_sistema_nao_tem_cor() {
+        var sessao = novaSessao("semcor");
+
+        assertThat(itens(get(sessao, "/categorias?sistema=true")))
+                .allSatisfy(c -> assertThat(c).doesNotContainKey("cor"));
+    }
+
+    @Test
     void sem_sessao_nao_se_cria_categoria_nenhuma() {
         var sessao = novaSessao("semcookie");
         var semCookie = new Sessao(sessao.ambienteId(), null);
 
-        assertThat(criarCru(semCookie, Map.of("nome", "X", "sentido", "SAIDA")).getStatusCode())
+        assertThat(criarCru(semCookie, raiz("X", "SAIDA", "OCRE")).getStatusCode())
                 .isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
@@ -223,6 +269,10 @@ class CadastroDeCategoriaIT {
     }
 
     /** {@code Map.of} nao aceita valor nulo, e inativa=false precisa viajar. */
+    private static Map<String, Object> raiz(String nome, String sentido, String cor) {
+        return Map.of("nome", nome, "sentido", sentido, "cor", cor);
+    }
+
     private static Map<String, Object> campos(String chave, Object valor) {
         Map<String, Object> corpo = new HashMap<>();
         corpo.put(chave, valor);

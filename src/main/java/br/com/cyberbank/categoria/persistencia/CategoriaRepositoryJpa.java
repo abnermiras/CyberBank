@@ -54,11 +54,12 @@ public class CategoriaRepositoryJpa implements CategoriaRepository {
 
     private static CategoriaEntity paraEntidade(Categoria c) {
         return new CategoriaEntity(c.id(), c.ambienteId(), c.paiId(), c.nome(), c.sentido(),
-                c.sistema(), c.operacao(), c.inativa(), c.criadaEm());
+                c.cor(), c.sistema(), c.operacao(), c.inativa(), c.criadaEm());
     }
 
     private static Categoria paraDominio(CategoriaEntity e) {
         return new Categoria(e.getId(), e.getAmbienteId(), e.getPaiId(), e.getNome(),
-                e.getSentido(), e.isSistema(), e.getOperacao(), e.isInativa(), e.getCriadaEm());
+                e.getSentido(), e.getCor(), e.isSistema(), e.getOperacao(), e.isInativa(),
+                e.getCriadaEm());
     }
 }

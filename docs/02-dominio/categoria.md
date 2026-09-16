@@ -61,6 +61,23 @@ invariante de dado a tornava falsa — o protótipo mostrou isso somando os núm
   vezes, em `ENTRADA` e em `SAIDA` — ver *As categorias de sistema*. A invariante não abre
   exceção para ninguém.
 
+## Cor
+
+Toda categoria **raiz do usuário** tem uma `cor`, escolhida por ele na criação. Ela não
+significa nada — serve para reconhecer a árvore antes de ler o nome, e é por isso que sai de
+uma paleta **separada** da de sinalização (`docs/06-interface/direcao-visual.md`).
+
+- **O dado é o nome do tom, nunca o hexadecimal:** `VIOLETA`, `AZUL`, `TEAL`, `OLIVA`, `OCRE`,
+  `TERRACOTA`, `ARDOSIA`, `MALVA`. O valor de cada um é decisão de tela, e muda sem migration.
+- **Subcategoria não tem cor: herda a da raiz**, como herda o sentido. A árvore é uma coisa só
+  na tela, e filho de cor diferente desmancharia o que a cor existe para fazer.
+- **Categoria de sistema não tem cor.** Ela nunca aparece para o usuário escolher, então não
+  há o que identificar.
+- **Renomear é livre e trocar a cor também.** Diferente do `sentido`, a cor não governa escolha
+  nenhuma — nenhum lançamento fica errado porque `MORADIA` deixou de ser ocre.
+
+A invariante que o banco cobra é exatamente uma: **tem cor quem é raiz do usuário, e só.**
+
 ## De sistema e do usuário
 
 Toda categoria tem um campo `sistema`, e ele separa duas coisas que não se misturam.
@@ -141,6 +158,7 @@ livre e o histórico acompanha sem reescrever nada.
 | Ação | Regra |
 |---|---|
 | Renomear | Livre. O histórico passa a exibir o nome novo |
+| Trocar a cor | Livre, e a qualquer momento. A cor não governa escolha nenhuma |
 | Mover subcategoria para outra raiz | **Não existe.** O caminho é inativar a subcategoria e criar outra na raiz nova — ver *Não existe mover* |
 | Mudar o sentido | Só enquanto a categoria não tiver nenhum lançamento |
 | Inativar | Some da lista de escolha; o histórico continua exibindo e somando normalmente. Reversível — ver *Inativar* abaixo |
@@ -258,6 +276,8 @@ Como a categoria é atribuída automaticamente é assunto de
 - Toda categoria pertence a exatamente um ambiente e nunca muda de ambiente.
 - A árvore tem no máximo dois níveis: subcategoria não tem filhos.
 - Subcategoria tem o mesmo `sentido` da raiz.
+- Categoria raiz do usuário tem `cor`; subcategoria e categoria de sistema não têm.
+- A `cor` é o nome de um tom da paleta de identidade, nunca um valor hexadecimal.
 - Categoria raiz com subcategoria **ativa** não é escolhível num lançamento.
 - Categoria com qualquer lançamento não pode ser excluída nem ter o sentido alterado.
 - Categoria inativa não aparece para escolha, mas continua somando no histórico.

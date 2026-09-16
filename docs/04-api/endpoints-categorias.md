@@ -29,7 +29,7 @@ GET /api/v1/ambientes/1/categorias?sistema=true
 200 OK
 {
   "itens": [
-    { "id": 15, "nome": "Transporte", "sentido": "SAIDA", "sistema": false,
+    { "id": 15, "nome": "Transporte", "sentido": "SAIDA", "cor": "OCRE", "sistema": false,
       "inativa": false, "escolhivel": false,
       "filhas": [
         { "id": 16, "nome": "Gasolina", "sentido": "SAIDA", "sistema": false,
@@ -43,6 +43,7 @@ GET /api/v1/ambientes/1/categorias?sistema=true
 
 | Campo | Nota |
 |---|---|
+| `cor` | Só vem na **raiz do usuário**. Subcategoria e categoria de sistema não têm — a filha lê a cor da raiz, que na árvore está sempre à mão (`docs/02-dominio/categoria.md`) |
 | `escolhivel` | **Derivado, nunca coluna**: a categoria está ativa, a raiz dela está ativa, ela não tem filha ativa e não é de sistema (`docs/02-dominio/categoria.md`). É a regra do modelo virando estado na tela |
 | `operacao` | Só vem em categoria de sistema — campo que não se aplica **não vem** |
 | `filhas` | Sempre presente; `[]` numa subcategoria, que nunca tem filhas |
@@ -58,8 +59,8 @@ Cria categoria **do usuário**. Quem decide se é raiz ou subcategoria é o `pai
 
 ```
 POST /api/v1/ambientes/1/categorias
-{ "nome": "Transporte", "sentido": "SAIDA" }        raiz
-{ "nome": "Gasolina",   "paiId": 15 }               subcategoria
+{ "nome": "Transporte", "sentido": "SAIDA", "cor": "OCRE" }   raiz
+{ "nome": "Gasolina",   "paiId": 15 }                        subcategoria
 
 201 Created
 Location: /api/v1/ambientes/1/categorias/16
@@ -71,6 +72,7 @@ Location: /api/v1/ambientes/1/categorias/16
 | `nome` | Obrigatório, no máximo 80 caracteres. Gravado sem o espaço das pontas |
 | `sentido` | Obrigatório **na raiz**. Numa subcategoria ele é **herdado** — mandar um valor divergente é `422`, nunca correção silenciosa (regra 7 do `CLAUDE.md`) |
 | `paiId` | Ausente é raiz. Presente, tem de apontar para uma raiz **do usuário**, no mesmo ambiente |
+| `cor` | Obrigatória **na raiz**, e um dos oito nomes da paleta de identidade: `VIOLETA`, `AZUL`, `TEAL`, `OLIVA`, `OCRE`, `TERRACOTA`, `ARDOSIA`, `MALVA`. Numa subcategoria **não vem** — ela herda a da raiz |
 
 **Nome repetido é aceito**, inclusive entre irmãs. O doc de domínio aceita `Academia` sob
 `Lazer` e `Academia` sob `Saúde` como duas categorias — são dois períodos da vida do usuário,
@@ -85,16 +87,18 @@ depois de escrever, e um `escolhivel` calculado no vazio só a faria confiar num
 | `VALIDACAO` (422) | `nome` vazio ou longo demais, `sentido` ausente na raiz ou divergente do pai |
 | `CATEGORIA_PAI_INVALIDO` (409) | O `paiId` aponta para uma subcategoria — a árvore tem dois níveis |
 | `CATEGORIA_DE_SISTEMA_PROTEGIDA` (409) | O `paiId` aponta para uma categoria de sistema, que nunca tem filhas |
+| `CORPO_INVALIDO` (400) | `cor` ou `sentido` fora da lista. A paleta de identidade **não** inclui as cores de sinalização |
 | `NAO_ENCONTRADO` (404) | O `paiId` não existe **ou é de outro ambiente** |
 
 ## `PATCH /api/v1/ambientes/{ambienteId}/categorias/{categoriaId}`
 
-Renomeia, inativa e reativa. Os dois campos são opcionais e **o que não vem não muda**;
-mandar o corpo vazio é `422`.
+Renomeia, troca a cor, inativa e reativa. Os três campos são opcionais e **o que não vem não
+muda**; mandar o corpo vazio é `422`.
 
 ```
 PATCH /api/v1/ambientes/1/categorias/16
 { "nome": "Combustível" }      renomeia
+{ "cor": "TEAL" }              troca a cor, e só na raiz
 { "inativa": true }            inativa
 { "inativa": false }           reativa
 
@@ -113,8 +117,9 @@ contar.
 
 | Erro | Quando |
 |---|---|
-| `VALIDACAO` (422) | Corpo sem `nome` e sem `inativa`, ou `nome` inválido |
-| `CATEGORIA_DE_SISTEMA_PROTEGIDA` (409) | Categoria de sistema não se renomeia nem se inativa |
+| `VALIDACAO` (422) | Corpo sem `nome`, sem `cor` e sem `inativa`, ou `nome` inválido |
+| `CATEGORIA_SEM_COR_PROPRIA` (409) | Trocar a `cor` de uma subcategoria — ela herda a da raiz |
+| `CATEGORIA_DE_SISTEMA_PROTEGIDA` (409) | Categoria de sistema não se renomeia, não se recolore nem se inativa |
 | `NAO_ENCONTRADO` (404) | Não existe **ou é de outro ambiente** |
 
 ## `DELETE /api/v1/ambientes/{ambienteId}/categorias/{categoriaId}`
