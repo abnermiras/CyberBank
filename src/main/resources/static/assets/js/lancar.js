@@ -78,6 +78,8 @@ const Lancar = {
       const botao = evento.target.closest('[data-sentido]');
       if (!botao) return;
       Lancar.sentidoRapido = botao.dataset.sentido;
+      document.getElementById('qaSemCategoria').querySelector('b').textContent =
+        Lancar.sentidoRapido === 'SAIDA' ? 'saída' : 'entrada';
       Lancar.montarRapido();
     });
 
@@ -136,15 +138,27 @@ const Lancar = {
     if (escolhido) meio.value = escolhido;
 
     const raizes = Lancar.raizesDoSentido(Lancar.sentidoRapido);
+    const proprias = raizes.filter((raiz) => raiz.escolhivel);
+    const comFilhas = raizes.filter((raiz) => !raiz.escolhivel);
+
     document.getElementById('qaCategoria').innerHTML =
       '<option value="">— sem categoria (fica pendente) —</option>'
-      + raizes.flatMap((raiz) => (raiz.escolhivel
-        ? [`<option value="${raiz.id}">${Formato.texto(raiz.nome)}</option>`]
-        : raiz.filhas.filter((f) => f.escolhivel).map((f) =>
-          `<option value="${f.id}">${Formato.texto(raiz.nome)} › ${Formato.texto(f.nome)}</option>`)))
-        .join('');
+      + proprias.map((raiz) =>
+        `<option value="${raiz.id}">${Formato.texto(raiz.nome)}</option>`).join('')
+      + comFilhas.map(Lancar.grupoDaRaiz).join('');
+
+    document.getElementById('qaSemCategoria').classList.toggle('hidden', raizes.length > 0);
 
     document.getElementById('btnRapido').disabled = !Lancar.meios.length;
+  },
+
+  grupoDaRaiz(raiz) {
+    const filhas = raiz.filhas.filter((filha) => filha.escolhivel);
+    if (!filhas.length) return '';
+
+    return `<optgroup label="${Formato.texto(raiz.nome)}">`
+      + filhas.map((f) => `<option value="${f.id}">${Formato.texto(f.nome)}</option>`).join('')
+      + '</optgroup>';
   },
 
   trocarAba(aba) {
@@ -180,6 +194,7 @@ const Lancar = {
 
   montarCategorias() {
     const raizes = Lancar.raizesDoSentido(Lancar.SENTIDO_DA_ABA[Lancar.aba]);
+    document.getElementById('compSemCategoria').classList.toggle('hidden', raizes.length > 0);
     document.getElementById('compCategoria').innerHTML =
       '<option value="">— sem categoria (fica pendente) —</option>'
       + raizes.map((r) => `<option value="${r.id}">${Formato.texto(r.nome)}</option>`).join('');
