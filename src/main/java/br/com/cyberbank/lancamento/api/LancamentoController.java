@@ -136,8 +136,8 @@ public class LancamentoController {
     public ExtratoResponse corrigir(@PathVariable Long ambienteId,
             @PathVariable Long lancamentoId, @RequestBody CorrecaoRequest requisicao) {
 
-        List<Lancamento> alterados = editarLancamento.executar(ambienteId, lancamentoId,
-                requisicao.contaId(), requisicao.categoriaId(), requisicao.sentido(),
+        List<Lancamento> alterados = editarLancamento.executar(ambienteId,
+                ContextoDaRequisicao.usuarioId(), lancamentoId, requisicao.contaId(), requisicao.categoriaId(), requisicao.sentido(),
                 requisicao.valor(), requisicao.dataEvento(), requisicao.dataEfeito(),
                 requisicao.descricao(), requisicao.situacao());
 
@@ -162,7 +162,8 @@ public class LancamentoController {
     @DeleteMapping("/{lancamentoId}")
     public ResponseEntity<Void> excluir(@PathVariable Long ambienteId,
             @PathVariable Long lancamentoId) {
-        excluirLancamento.executar(ambienteId, lancamentoId);
+        excluirLancamento.executar(ambienteId, ContextoDaRequisicao.usuarioId(),
+                lancamentoId);
         return ResponseEntity.noContent().build();
     }
 

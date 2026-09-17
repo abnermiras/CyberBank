@@ -4,6 +4,7 @@ import java.util.List;
 
 import br.com.cyberbank.ambiente.dominio.AcessoAoAmbiente;
 import br.com.cyberbank.ambiente.dominio.Ambiente;
+import br.com.cyberbank.ambiente.dominio.AmbienteDaRotina;
 import br.com.cyberbank.ambiente.dominio.AmbienteRepository;
 import br.com.cyberbank.ambiente.dominio.Papel;
 
@@ -30,6 +31,14 @@ public class AmbienteRepositoryJpa implements AmbienteRepository {
         return jpa.listarComPapel(usuarioId).stream()
                 .map(linha -> new AcessoAoAmbiente(
                         paraDominio((AmbienteEntity) linha[0]), (Papel) linha[1]))
+                .toList();
+    }
+
+    @Override
+    public List<AmbienteDaRotina> listarParaRotina() {
+        return jpa.listarParaRotina().stream()
+                .map(linha -> new AmbienteDaRotina(
+                        ((Number) linha[0]).longValue(), ((Number) linha[1]).longValue()))
                 .toList();
     }
 

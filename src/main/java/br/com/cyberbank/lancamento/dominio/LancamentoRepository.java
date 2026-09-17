@@ -14,6 +14,8 @@ public interface LancamentoRepository {
 
     List<Lancamento> listarDaTransferencia(Long transferenciaId, Long ambienteId);
 
+    List<Lancamento> listarPrevistosVencidos(Long ambienteId, LocalDate ate);
+
     Pagina listarDoAmbiente(Long ambienteId, FiltroDeExtrato filtro, Cursor apos, int limite);
 
     long saldoRealizadoDaConta(Long contaId, LocalDate ate);
@@ -23,6 +25,8 @@ public interface LancamentoRepository {
     boolean contaTemLancamento(Long contaId);
 
     boolean meioTemLancamento(Long meioId);
+
+    boolean categoriaTemLancamento(Long categoriaId);
 
     boolean temEstorno(Long lancamentoId);
 

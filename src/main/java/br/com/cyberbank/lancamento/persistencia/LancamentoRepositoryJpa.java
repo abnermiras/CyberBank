@@ -52,6 +52,13 @@ public class LancamentoRepositoryJpa implements LancamentoRepository {
     }
 
     @Override
+    public List<Lancamento> listarPrevistosVencidos(Long ambienteId, LocalDate ate) {
+        return jpa.previstosVencidos(ambienteId, ate, Situacao.PREVISTO).stream()
+                .map(LancamentoRepositoryJpa::paraDominio)
+                .toList();
+    }
+
+    @Override
     public Pagina listarDoAmbiente(Long ambienteId, FiltroDeExtrato filtro, Cursor apos,
             int limite) {
         var pedido = PageRequest.of(0, limite + 1);
@@ -85,6 +92,11 @@ public class LancamentoRepositoryJpa implements LancamentoRepository {
     @Override
     public boolean meioTemLancamento(Long meioId) {
         return jpa.existsByMeioId(meioId);
+    }
+
+    @Override
+    public boolean categoriaTemLancamento(Long categoriaId) {
+        return jpa.existsByCategoriaId(categoriaId);
     }
 
     @Override

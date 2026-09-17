@@ -51,4 +51,6 @@ nome de variável, ou coisa que cabe no doc do módulo.
 
 | 0012 | [O front é estático e o próprio Spring Boot o serve](ADR-0012-front-estatico-servido-pelo-spring.md) | aceita | 2026-09-15 |
 
+| 0013 | [A rotina diária enxerga os ambientes por função `SECURITY DEFINER`](ADR-0013-rotina-enxerga-ambientes-por-funcao.md) | aceita | 2026-09-17 |
+
 _(adicione uma linha por ADR)_

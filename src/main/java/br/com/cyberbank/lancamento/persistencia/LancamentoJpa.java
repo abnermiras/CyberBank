@@ -24,6 +24,8 @@ interface LancamentoJpa extends JpaRepository<LancamentoEntity, Long> {
 
     boolean existsByMeioId(Long meioId);
 
+    boolean existsByCategoriaId(Long categoriaId);
+
     boolean existsByEstornoDeId(Long estornoDeId);
 
     void deleteByIdAndAmbienteId(Long id, Long ambienteId);
@@ -91,6 +93,17 @@ interface LancamentoJpa extends JpaRepository<LancamentoEntity, Long> {
     List<Object[]> somarRealizadoPorConta(@Param("ambienteId") Long ambienteId,
             @Param("ate") LocalDate ate,
             @Param("entrada") Sentido entrada,
+            @Param("previsto") Situacao previsto);
+
+    @Query("""
+            select l from LancamentoEntity l
+             where l.ambienteId = :ambienteId
+               and l.situacao = :previsto
+               and l.dataEfeito <= :ate
+             order by l.dataEfeito asc, l.id asc
+            """)
+    List<LancamentoEntity> previstosVencidos(@Param("ambienteId") Long ambienteId,
+            @Param("ate") LocalDate ate,
             @Param("previsto") Situacao previsto);
 
     @Query(value = "select nextval('transferencia_id_seq')", nativeQuery = true)

@@ -7,10 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 
 interface AmbienteJpa extends JpaRepository<AmbienteEntity, Long> {
 
-    /**
-     * O RLS ja limita as duas pontas — acesso pelo usuario, ambiente pelo acesso. A condicao
-     * aqui e a mesma coisa dita na aplicacao, e e o desenho do ADR-0002: duas camadas.
-     */
     @Query("""
             select a, ac.papel
               from AcessoEntity ac
@@ -19,4 +15,7 @@ interface AmbienteJpa extends JpaRepository<AmbienteEntity, Long> {
              order by a.id
             """)
     List<Object[]> listarComPapel(Long usuarioId);
+
+    @Query(value = "select ambiente_id, dono_id from ambientes_para_rotina()", nativeQuery = true)
+    List<Object[]> listarParaRotina();
 }

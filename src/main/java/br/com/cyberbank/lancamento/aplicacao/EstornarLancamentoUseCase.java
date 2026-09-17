@@ -6,6 +6,10 @@ import java.time.LocalDate;
 import br.com.cyberbank.comum.erro.CodigoDeErro;
 import br.com.cyberbank.comum.erro.RegraDeDominioException;
 import br.com.cyberbank.comum.tempo.DiaLocal;
+import br.com.cyberbank.evento.dominio.Alvo;
+import br.com.cyberbank.evento.dominio.Evento;
+import br.com.cyberbank.evento.dominio.EventoRepository;
+import br.com.cyberbank.evento.dominio.TipoDeEvento;
 import br.com.cyberbank.lancamento.dominio.Lancamento;
 import br.com.cyberbank.lancamento.dominio.LancamentoRepository;
 
@@ -16,12 +20,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class EstornarLancamentoUseCase {
 
     private final LancamentoRepository lancamentos;
+    private final EventoRepository eventos;
     private final DiaLocal diaLocal;
     private final Clock relogio;
 
-    public EstornarLancamentoUseCase(LancamentoRepository lancamentos, DiaLocal diaLocal,
-            Clock relogio) {
+    public EstornarLancamentoUseCase(LancamentoRepository lancamentos, EventoRepository eventos,
+            DiaLocal diaLocal, Clock relogio) {
         this.lancamentos = lancamentos;
+        this.eventos = eventos;
         this.diaLocal = diaLocal;
         this.relogio = relogio;
     }
@@ -32,6 +38,18 @@ public class EstornarLancamentoUseCase {
                 .orElseThrow(() -> new RegraDeDominioException(CodigoDeErro.NAO_ENCONTRADO));
 
         LocalDate quando = dia == null ? diaLocal.hoje() : dia;
-        return lancamentos.salvar(original.estornadoEm(quando, autorId, relogio.instant()));
+        Lancamento estorno = lancamentos.salvar(
+                original.estornadoEm(quando, autorId, relogio.instant()));
+
+        eventos.registrar(Evento.doUsuario(ambienteId, autorId, TipoDeEvento.LANCAMENTO_ESTORNADO,
+                Alvo.lancamento(lancamentoId),
+                Evento.dados(
+                        "descricao", original.descricao(),
+                        "valor", original.valorCentavos(),
+                        "estornoId", estorno.id(),
+                        "dataDoEstorno", quando.toString()),
+                diaLocal.hoje(), relogio.instant()));
+
+        return estorno;
     }
 }

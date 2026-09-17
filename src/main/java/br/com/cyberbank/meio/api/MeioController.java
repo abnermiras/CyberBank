@@ -3,6 +3,7 @@ package br.com.cyberbank.meio.api;
 import java.net.URI;
 import java.util.List;
 
+import br.com.cyberbank.comum.contexto.ContextoDaRequisicao;
 import br.com.cyberbank.comum.erro.ErroDeValidacao;
 import br.com.cyberbank.comum.erro.ValidacaoException;
 import br.com.cyberbank.meio.aplicacao.AlterarAtivacaoMeioUseCase;
@@ -76,7 +77,7 @@ public class MeioController {
     public ResponseEntity<MeioResponse> cadastrar(@PathVariable Long ambienteId,
             @RequestBody CadastroRequest requisicao) {
 
-        Meio criado = cadastrarMeio.executar(ambienteId, requisicao.nome(), requisicao.tipo(),
+        Meio criado = cadastrarMeio.executar(ambienteId, ContextoDaRequisicao.usuarioId(), requisicao.nome(), requisicao.tipo(),
                 requisicao.contaId());
 
         return ResponseEntity
@@ -96,10 +97,11 @@ public class MeioController {
 
         Meio meio = null;
         if (requisicao.nome() != null) {
-            meio = renomearMeio.executar(ambienteId, meioId, requisicao.nome());
+            meio = renomearMeio.executar(ambienteId, ContextoDaRequisicao.usuarioId(), meioId, requisicao.nome());
         }
         if (requisicao.inativo() != null) {
-            meio = alterarAtivacao.executar(ambienteId, meioId, requisicao.inativo());
+            meio = alterarAtivacao.executar(ambienteId, ContextoDaRequisicao.usuarioId(), meioId,
+                    requisicao.inativo());
         }
         return paraResposta(meio);
     }
@@ -107,7 +109,7 @@ public class MeioController {
     @DeleteMapping("/{meioId}")
     public ResponseEntity<Void> excluir(@PathVariable Long ambienteId,
             @PathVariable Long meioId) {
-        excluirMeio.executar(ambienteId, meioId);
+        excluirMeio.executar(ambienteId, ContextoDaRequisicao.usuarioId(), meioId);
         return ResponseEntity.noContent().build();
     }
 

@@ -46,6 +46,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | [`decisoes/ADR-0010-fronteira-imposta-por-teste.md`](01-arquitetura/decisoes/ADR-0010-fronteira-imposta-por-teste.md) | quem impede a violacao do "um assunto, um pacote", e por que o grafo entre dominios e vazio | ativo |
 | [`decisoes/ADR-0011-teste-contra-postgres-real.md`](01-arquitetura/decisoes/ADR-0011-teste-contra-postgres-real.md) | por que nao ha banco em memoria nos testes, e o que isso custa | ativo |
 | [`decisoes/ADR-0012-front-estatico-servido-pelo-spring.md`](01-arquitetura/decisoes/ADR-0012-front-estatico-servido-pelo-spring.md) | como o front é construído, onde ele mora e quem o entrega | ativo |
+| [`decisoes/ADR-0013-rotina-enxerga-ambientes-por-funcao.md`](01-arquitetura/decisoes/ADR-0013-rotina-enxerga-ambientes-por-funcao.md) | como uma rotina sem sessao atravessa o RLS sem virar bypass | ativo |
 | [`decisoes/README.md`](01-arquitetura/decisoes/README.md) | índice das ADRs e regra de quando escrever uma | ativo |
 | [`estrutura-de-pastas.md`](01-arquitetura/estrutura-de-pastas.md) | a arvore do projeto, a convencao de pacotes, onde criar cada arquivo novo e o que nao se versiona | ativo |
 | [`modulos.md`](01-arquitetura/modulos.md) | quais assuntos existem, quem pode depender de quem, e como dois assuntos conversam | ativo |
@@ -140,5 +141,5 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 
 ---
 
-**75 documentos · 18 ainda em stub.**
+**76 documentos · 18 ainda em stub.**
 Stub = conteudo inexistente: pergunte, nao deduza.

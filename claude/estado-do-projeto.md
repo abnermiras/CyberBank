@@ -15,11 +15,13 @@ patrimônio, os dois conferidos contra Postgres real.
 
 **O esqueleto está commitado e no GitHub:** `4be103d` na branch `esqueleto-do-projeto`,
 mergeado em `main` por `9e015a2`. O bloqueio do push acabou.
-Árvore limpa, check de docs em 0 erros e 0 avisos. **`main` está à frente de `origin/main`**,
-do `51edd8e` para cá: o push é comando entregue ao Abner, e o de 17/09 ainda não saiu.
+`./mvnw verify` verde — **114 testes de unidade e 54 de integração** —, check de docs em 0
+erros e 0 avisos. **`main` está à frente de `origin/main`**, do `51edd8e` para cá: o push é
+comando entregue ao Abner, e o de 17/09 ainda não saiu.
 
 | Sessão | O que saiu |
 |---|---|
+| **17/09 (evento e a rotina)** | **`V006`**: a tabela `evento`, imutável por ausência de política de `UPDATE` e `DELETE` · nasce o pacote `evento/` e a **rotina diária**, que vira `PREVISTO` em `REALIZADO` pela data — a regra existia no domínio desde a fatia 3 e **ninguém a chamava** · **`ADR-0013`**: a rotina atravessa o RLS por função `SECURITY DEFINER` mais uma política escrita para o papel dono, porque `FORCE ROW LEVEL SECURITY` sujeita o dono às políticas · a lista fechada de tipos ganha os **sete** que o app já fazia e o doc não previa (renomear/reativar/excluir conta e meio, recolorir categoria) · treze casos de uso passam a gravar evento · e apareceu de brinde o **`CATEGORIA_COM_LANCAMENTO`**, que estava no catálogo de erros e em nenhum lugar do código |
 | **17/09 (o calendário)** | O botão ▦ do campo de data abria o **seletor nativo do navegador**, cinza do Windows dentro de um app cyberpunk. Não era ajuste de CSS: aquele painel é pintado pelo sistema operacional e não aceita tema. Nasce o **`Calendario`**, desenhado no CSS do projeto — e ele mora no `body` em `position:fixed`, porque `.panel` usa `clip-path` e recortaria um popup absoluto pela metade. Os três `input[type=date]` escondidos morreram com o `showPicker` |
 | **15/09 (fatia 2 e a cor)** | O front encosta na API: **cadastro de categorias** na tela. E a **decisão 0 fechou** — cor de categoria é **identidade, não semântica**, e por isso são **duas paletas** separadas, escritas em `direcao-visual.md`. A exceção que o seed já praticava (`LAZER` rosa sem alertar nada) virou regra em vez de continuar sendo desvio |
 | **16/09 (o seletor de categoria)** | Bug do Abner: o combo de categoria do Extrato achatava a árvore e mostrava só as subcategorias, sem a raiz. Virou **dois combos** — categoria e subcategoria —, com o segundo aparecendo só quando a raiz deixa de ser escolhível. E ao conferir a regra apareceu a **segunda metade**: *"na hora de lançar, só aparecem as categorias compatíveis com o sentido"* **não estava implementada em lugar nenhum** — nem na tela, nem no servidor. Nasce `CATEGORIA_DE_OUTRO_SENTIDO` |
@@ -368,9 +370,9 @@ ordem está fixada no `lacunas-para-codigo.md`:
    cinco tabelas que existem.
 8. ~~**Cadastro de conta e de meio, lançamento e Extrato**~~ ✅ **Fechado em 16/09**, pela
    fatia 3. Ver a linha da sessão lá em cima e a lista do que ficou de fora, logo abaixo.
-9. **`evento` e a rotina diária** — é o próximo passo natural, e é **Fase 1**: sem ele a
-   transição `PREVISTO → REALIZADO` pela data não acontece (um boleto previsto fica previsto
-   para sempre) e nenhuma exclusão é registrada. *"Gravar na Fase 1, tela do Diário na Fase 2."*
+9. ~~**`evento` e a rotina diária**~~ ✅ **Fechado em 17/09.** A gravação está de pé, em
+   `V006`, com a rotina e o `ADR-0013`. **A tela do Diário continua sendo Fase 2** — o que
+   entrou é o registro, que é o que não se reconstitui depois.
 10. **Cartão e fatura** — conta `CARTAO`, meio `CREDITO`, as cinco colunas adiadas de
    `lancamento`, fechamento, pagamento e rolagem. É a fatia grande, e os dois docs dela já
    estão fechados desde 07/09.
@@ -429,7 +431,7 @@ a razão de ela ter sumido vale mais que a pergunta.)*
 
 ## Estado da documentação
 
-**75 documentos**, 19 stubs. Stub = conteúdo inexistente: **perguntar, nunca deduzir.**
+**76 documentos**, 18 stubs. Stub = conteúdo inexistente: **perguntar, nunca deduzir.**
 
 Escritos: `CLAUDE.md`, `CONVENTIONS.md`, os 6 fluxos, todo o `00-produto/` menos `jornadas`,
 `02-dominio/` inteiro menos `orcamento`, `regras-categorizacao` e `importacao-conciliacao`,
@@ -437,15 +439,15 @@ Escritos: `CLAUDE.md`, `CONVENTIONS.md`, os 6 fluxos, todo o `00-produto/` menos
 **`04-api/` inteiro menos `endpoints-relatorios`**, **`03-dados/` inteiro** (o
 `catalogo-tabelas` virou **dois**, quebrado por família em 16/09),
 **`01-arquitetura/` menos observabilidade**, **`07-operacao/build-e-run` e `testes`**, e as
-ADRs **0001 a 0011**.
+ADRs **0001 a 0013**.
 
 `fatura-cartao.md` está em **300 linhas, no teto do `CONVENTIONS`** — a próxima coisa que entrar
 ali obriga a quebrar por subdomínio, como o `fatura-pagamento.md` já nasceu. O
 `catalogo-tabelas.md` **já passou por isso** em 16/09: virou ele mais o
 `catalogo-tabelas-do-ambiente.md`, e o corte foi a família, que é o eixo do próprio doc.
 
-**Custo de contexto** (`docs.py custo`, fim de 16/09): base **~1.813** tokens; rotas entre
-~2,6k e **~16,3k**; ler tudo custaria ~119k.
+**Custo de contexto** (`docs.py custo`, fim de 17/09): rotas entre ~2,6k e **~17,7k**; ler
+tudo custaria ~125k. A rota que importa, `novo-caso-de-uso`, está em **~5,4k**.
 
 **A inflação prevista continua, e agora dói.** `novo-meio-de-pagamento` está em **~16,3k**,
 `nova-integracao-externa` em ~10,8k e `nova-migration` em ~9,7k — as três passaram do que o
@@ -527,9 +529,8 @@ Extrato funcionando abre o app, não ele.
 - **`docs.py` ainda não tem o teto por rota** que o `ADR-0008` decidiu, nem conta o código
 - **`deploy.md`, `runbook.md`, `backup-restore.md` e `observabilidade.md` seguem stub** — são
   de operação e nascem quando houver o que operar
-- **O código tem cinco assuntos**: `ambiente`, `categoria`, `conta`, `meio` e `lancamento`.
-  Não há fatura, patrimônio nem evento — e o `Evento` é Fase 1, então ele entra antes de a
-  fase fechar
+- **O código tem seis assuntos**: `ambiente`, `categoria`, `conta`, `meio`, `lancamento` e
+  `evento`. Não há fatura nem patrimônio
 - **Ninguém verifica papel em lugar nenhum.** Dono, editor e leitor estão no modelo e no banco;
   nenhum caso de uso os consulta. Não é buraco de segurança hoje — sem convite, todo ambiente
   tem exatamente um acesso, o do dono — mas **entra junto com o convite**, e não depois
@@ -538,8 +539,9 @@ Extrato funcionando abre o app, não ele.
 - **Falta a gestão de papel e o convite**: a política de `acesso` não tem `UPDATE`, e criar
   acesso para *outro* usuário precisa de uma função `SECURITY DEFINER` (a condição "sou dono
   daqui" lê a própria tabela `acesso` e recursiona). Está escrito no `catalogo-tabelas.md`
-- A tabela `evento` também vai precisar de RLS quando nascer. O `OR` do `ADR-0004` **foi**
-  escrito em `03-dados/` em 16/09, em `catalogo-tabelas-do-ambiente.md`
+- `evento` nasceu com RLS em 17/09, e é a **única tabela do ambiente sem o `OR` do
+  `ADR-0004`**: o que o destino de um compartilhamento vê no Diário é a decisão 9, que está em
+  aberto. A migration diz isso no arquivo, e o `OR` entra com o compartilhamento
 - `03-dados/modelo-de-dados.md` não conhece nada de hoje
 - O protótipo não exercita os dois eixos do relatório de gasto nem renomear categoria
 
