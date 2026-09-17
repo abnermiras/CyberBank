@@ -217,8 +217,29 @@ details.painel-sistema:not([open]) summary .abrir::after{content:' ▼'}
 .grid-data{flex:none;width:42px;background:transparent;border:1px solid var(--line);
   color:var(--cyan);font-size:15px;line-height:1;cursor:pointer;clip-path:var(--chamfer-sm)}
 .grid-data:hover{background:rgba(0,240,255,.12);border-color:var(--cyan)}
-.campo-data input[type="date"]{position:absolute;right:0;bottom:0;width:42px;height:1px;
-  opacity:0;border:0;padding:0;pointer-events:none}
+
+.calendario{position:fixed;z-index:120;width:252px;padding:12px;
+  background:var(--panel-2);border:1px solid var(--cyan);clip-path:var(--chamfer-sm);
+  box-shadow:0 0 0 1px rgba(0,240,255,.08),0 0 30px rgba(0,240,255,.14),0 22px 60px rgba(0,0,0,.72)}
+.cal-topo{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.cal-mes{font:12px var(--mono);letter-spacing:.16em;color:var(--cyan)}
+.cal-nav{width:26px;height:24px;background:transparent;border:1px solid var(--line);
+  color:var(--muted);font-size:14px;line-height:1;cursor:pointer}
+.cal-nav:hover{color:var(--cyan);border-color:var(--cyan);background:rgba(0,240,255,.1)}
+.cal-semana,.cal-grade{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-semana{margin-bottom:4px}
+.cal-semana i{font:9px var(--mono);letter-spacing:.1em;font-style:normal;color:var(--dim);text-align:center}
+.cal-dia{height:29px;background:transparent;border:1px solid transparent;color:var(--ink);
+  font:12px var(--mono);cursor:pointer}
+.cal-dia:hover{border-color:var(--cyan);background:rgba(0,240,255,.12);color:var(--cyan)}
+.cal-dia.fora{color:var(--dim)}
+.cal-dia.hoje{border-color:var(--line-hot);color:var(--cyan)}
+.cal-dia.on{background:var(--acid);border-color:var(--acid);color:var(--void);font-weight:700;
+  box-shadow:0 0 14px rgba(247,241,60,.45)}
+.cal-rodape{margin-top:10px;padding-top:9px;border-top:1px solid var(--line)}
+.cal-hoje{width:100%;padding:6px 0;background:transparent;border:1px dashed var(--line-hot);
+  color:var(--cyan);font:10px var(--mono);letter-spacing:.12em;cursor:pointer}
+.cal-hoje:hover{background:rgba(0,240,255,.1);border-style:solid}
 
 @media(max-width:1100px){.grid4{grid-template-columns:1fr 1fr}.grid-2-1{grid-template-columns:1fr}}
 @media(max-width:700px){

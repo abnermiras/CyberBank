@@ -124,7 +124,11 @@ coisas bem. Então o campo é um par:
 
 - **Texto**, para digitar e **colar**. O nativo de data não aceita colar, e colar uma data de
   outro lugar é o caminho mais comum quando se está transcrevendo um extrato.
-- **Botão de calendário ao lado**, que abre o grid nativo do navegador para escolher no mouse.
+- **Botão de calendário ao lado**, que abre um grid próprio, desenhado no CSS do projeto,
+  para escolher no mouse. O grid nativo do navegador é pintado pelo sistema operacional e
+  não aceita tema — num app que é todo cyberpunk, ele abria como uma janela cinza do Windows.
+  O grid próprio navega mês a mês, marca o dia de hoje na borda ciano, o dia escolhido em
+  ácido, e tem um atalho `HOJE` no rodapé. Fecha no `Esc`, no clique fora e ao rolar a tela.
 
 **O campo é tolerante na entrada e rígido na saída.** Aceita `14/09/2026`, `14-09-2026`,
 `14092026`, `140926`, `1409` (ano corrente), `2026-09-14` e os atalhos `hoje`, `ontem`,
