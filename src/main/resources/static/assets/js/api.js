@@ -44,6 +44,8 @@ const API = {
     TRANSFERENCIA_MESMA_CONTA: 'Origem e destino são a mesma conta.',
     BENEFICIO_NAO_TRANSFERE:
       'O saldo de um benefício não é fungível: entra por receita e sai por gasto no meio dele.',
+    SENHA_ATUAL_INVALIDA: 'A senha atual não confere.',
+    TELEGRAM_JA_VINCULADO: 'Este chat do Telegram já está vinculado a outro usuário.',
     CORPO_INVALIDO: 'Requisição malformada.',
     ERRO_INTERNO: 'Falha nossa. Tente de novo.',
   },
@@ -67,6 +69,7 @@ const API = {
   get: (caminho) => API.requisitar('GET', caminho),
   post: (caminho, corpo) => API.requisitar('POST', caminho, corpo),
   patch: (caminho, corpo) => API.requisitar('PATCH', caminho, corpo),
+  put: (caminho, corpo) => API.requisitar('PUT', caminho, corpo),
   remover: (caminho) => API.requisitar('DELETE', caminho),
 
   doAmbiente: (ambienteId, sufixo) => `/api/v1/ambientes/${ambienteId}${sufixo}`,
@@ -75,6 +78,13 @@ const API = {
   entrar: (email, senha) => API.post('/api/v1/sessoes', { email, senha }),
   sair: () => API.remover('/api/v1/sessoes/atual'),
   listarAmbientes: () => API.get('/api/v1/ambientes'),
+
+  verPerfil: () => API.get('/api/v1/usuarios/atual'),
+  alterarPerfil: (corpo) => API.patch('/api/v1/usuarios/atual', corpo),
+  vincularTelegram: (chatId) => API.put('/api/v1/usuarios/atual/telegram', { chatId }),
+  desvincularTelegram: () => API.remover('/api/v1/usuarios/atual/telegram'),
+  trocarSenha: (senhaAtual, novaSenha) =>
+    API.put('/api/v1/usuarios/atual/senha', { senhaAtual, novaSenha }),
 
   arvoreDeCategorias: (ambienteId) =>
     API.get(API.doAmbiente(ambienteId, '/categorias?inativas=true')),

@@ -5,12 +5,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import br.com.cyberbank.ambiente.dominio.Usuario;
-import br.com.cyberbank.ambiente.dominio.UsuarioRepository;
 import br.com.cyberbank.comum.tempo.DiaLocal;
 import br.com.cyberbank.evento.dominio.DiaDoDiario;
 import br.com.cyberbank.evento.dominio.Evento;
 import br.com.cyberbank.evento.dominio.EventoRepository;
+import br.com.cyberbank.usuario.dominio.Usuario;
+import br.com.cyberbank.usuario.dominio.UsuarioRepository;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

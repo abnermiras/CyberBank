@@ -31,7 +31,8 @@
       <span class="tele">IDENTIDADE</span>
       <strong id="quemSou">—</strong>
     </div>
-    <div class="avatar" id="avatar">?</div>
+    <a class="avatar" id="avatar" href="#/perfil" title="Seu perfil"
+       aria-label="Seu perfil">?</a>
     <button class="btn ghost sm" id="btnSair" type="button">Sair</button>
   </div>
 </header>
@@ -163,6 +164,154 @@
           perguntas diferentes. A frase de cada linha é montada aqui, nunca guardada: assim ela
           pode melhorar sem reescrever o passado.</p>
       </section>
+    </section>
+
+    <section class="tela hidden" data-tela="perfil">
+      <div class="telahead">
+        <div>
+          <div class="eyebrow">PERFIL // QUEM EU SOU AQUI</div>
+          <h2 class="th"><span class="glitch" data-t="Perfil">Perfil</span></h2>
+        </div>
+        <div class="tele">A ÚNICA TELA QUE NÃO É SOBRE DINHEIRO</div>
+      </div>
+
+      <div class="grid-2-1">
+        <div class="stack gap14">
+          <section class="panel">
+            <div class="panel-head">
+              <h3>Identidade</h3>
+              <span class="tele">NO SISTEMA DESDE <b id="perfilDesde">—</b></span>
+            </div>
+
+            <div id="avisoPerfil"></div>
+
+            <div class="field">
+              <label>Avatar <i>— dez desenhos, e a forma é o que distingue</i></label>
+              <div class="av-grade" id="perfilAvatares"></div>
+            </div>
+
+            <div class="row">
+              <div class="field">
+                <label for="perfilNome">Nome</label>
+                <input id="perfilNome" type="text" maxlength="120" autocomplete="name">
+              </div>
+              <div class="field">
+                <label for="perfilEmail">E-mail <i>— travado</i></label>
+                <input id="perfilEmail" type="text" readonly>
+              </div>
+            </div>
+
+            <p class="rodape-regra">O e-mail é o seu <b>login</b> e a <b>chave dos convites</b>:
+              convite para quem ainda não tem cadastro fica esperando nele. Por isso ele não
+              muda.</p>
+
+            <div class="hstack gap10 mt10">
+              <button class="btn primary" type="button" id="perfilSalvar">Salvar identidade</button>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h3>Senha</h3>
+              <span class="tele">MÍNIMO DE 8 CARACTERES</span>
+            </div>
+
+            <div id="avisoSenha"></div>
+
+            <div class="explica"><b>Trocar a senha encerra todas as sessões, inclusive esta.</b>
+              Você vai voltar para o login.</div>
+
+            <div class="field">
+              <label for="senhaAtual">Senha atual</label>
+              <input id="senhaAtual" type="password" autocomplete="current-password">
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="senhaNova">Nova senha</label>
+                <input id="senhaNova" type="password" autocomplete="new-password">
+              </div>
+              <div class="field">
+                <label for="senhaRepetida">De novo</label>
+                <input id="senhaRepetida" type="password" autocomplete="new-password">
+              </div>
+            </div>
+
+            <div class="hstack gap10">
+              <button class="btn" type="button" id="perfilSenhaTrocar">Trocar a senha</button>
+            </div>
+
+            <p class="rodape-regra">Não existe <b>esqueci a senha</b>: sem a senha atual não há
+              caminho de volta hoje.</p>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h3>Telegram</h3>
+              <span class="tele" id="perfilTelegramEstado">SEM VÍNCULO</span>
+            </div>
+
+            <div id="avisoTelegram"></div>
+
+            <div class="field">
+              <label for="perfilTelegram">Id do chat <i>— não é o @</i></label>
+              <input id="perfilTelegram" type="text" inputmode="numeric" placeholder="184712993">
+            </div>
+
+            <div class="hstack gap10 wrap">
+              <button class="btn" type="button" id="perfilTelegramSalvar">Vincular</button>
+              <button class="btn ghost hidden" type="button" id="perfilTelegramTirar">Desvincular</button>
+            </div>
+
+            <p class="rodape-regra">O campo é o <b>id do chat</b>, não o <b>@</b> — o @ é
+              trocável pelo dono e não identifica ninguém. <b>O sistema não confere o número</b>,
+              e nada é enviado ainda: falta o bot. Como descobrir o seu id é instrução que nasce
+              com ele.</p>
+          </section>
+        </div>
+
+        <div class="stack gap14">
+          <section class="panel">
+            <div class="panel-head">
+              <h3>Convites recebidos</h3>
+              <span class="tele">AINDA NÃO EXISTE</span>
+            </div>
+            <div class="emespera">
+              <h4>É aqui que o convite chega</h4>
+              <p>Convite para um ambiente chega <b>dentro do sistema</b>, nunca por e-mail — o
+                e-mail serve só para recuperar senha. Aceitar ou recusar vai ser feito neste
+                bloco.</p>
+              <div class="falta">FALTA PARA ELE EXISTIR: <b>convite</b></div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h3>Convidar alguém</h3>
+              <span class="tele">AINDA NÃO EXISTE</span>
+            </div>
+            <div class="emespera">
+              <h4>Convidar é do dono do ambiente</h4>
+              <p>O dono digita o <b>e-mail</b> da pessoa e escolhe entre <b>autorização
+                completa</b> e <b>somente leitura</b>. Antes do aceite, o convidado não vê nada
+                do ambiente.</p>
+              <div class="falta">FALTA PARA ELE EXISTIR: <b>convite</b> · <b>troca de papel</b></div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h3>Sessões ativas</h3>
+              <span class="tele">AINDA NÃO EXISTE</span>
+            </div>
+            <div class="emespera">
+              <h4>Onde a sua conta está aberta</h4>
+              <p>A sessão vive no servidor, e por isso dá para <b>ver e encerrar</b> uma a uma —
+                com efeito no clique seguinte. A lista entra depois.</p>
+              <div class="falta">FALTA PARA ELA EXISTIR: <b>lista de sessões</b></div>
+            </div>
+          </section>
+        </div>
+      </div>
     </section>
 
     <section class="tela hidden" data-tela="cadastro">
@@ -409,12 +558,14 @@
 <script src="assets/js/formato.js"></script>
 <script src="assets/js/calendario.js"></script>
 <script src="assets/js/data.js"></script>
+<script src="assets/js/avatares.js"></script>
 <script src="assets/js/telas/home.js"></script>
 <script src="assets/js/telas/cadastro.js"></script>
 <script src="assets/js/telas/contas.js"></script>
 <script src="assets/js/lancar.js"></script>
 <script src="assets/js/telas/extrato.js"></script>
 <script src="assets/js/telas/diario.js"></script>
+<script src="assets/js/telas/perfil.js"></script>
 <script src="assets/js/app.js"></script>
 </body>
 </html>

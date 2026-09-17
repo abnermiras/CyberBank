@@ -15,12 +15,13 @@ patrimônio, os dois conferidos contra Postgres real.
 
 **O esqueleto está commitado e no GitHub:** `4be103d` na branch `esqueleto-do-projeto`,
 mergeado em `main` por `9e015a2`. O bloqueio do push acabou.
-`./mvnw verify` verde — **118 testes de unidade e 58 de integração** —, check de docs em 0
+`./mvnw verify` verde — **129 testes de unidade e 65 de integração** —, check de docs em 0
 erros e 0 avisos. **`main` está à frente de `origin/main`**, do `51edd8e` para cá: o push é
 comando entregue ao Abner, e o de 17/09 ainda não saiu.
 
 | Sessão | O que saiu |
 |---|---|
+| **17/09 (o perfil, de pé)** | Três commits, na ordem combinada. **O `ADR-0014` saiu do papel**: `usuario/` é pacote, e `CriarAmbientePessoalUseCase` passa a ser o encontro dos dois assuntos na aplicação · **`V007`**, `Avatar` com os dez nomes fechados, o sorteio recebendo a aleatoriedade de fora, e o backfill dando avatar a quem já existia · `GET`/`PATCH /usuarios/atual`, `PUT`/`DELETE /usuarios/atual/telegram` e `PUT /usuarios/atual/senha` · **o Telegram virou sub-recurso no meio do caminho**: o doc dizia campo do `PATCH` com `null` apagando, e o `PerfilIT` provou que ausente e `null` chegam iguais em JSON — o preço seria o vínculo sumir ao trocar só o nome · a **tela** nasce com os dez SVGs, os três blocos reservados e a porta no avatar do canto superior direito · **129 testes de unidade e 65 de integração**, e o navegador dirigido em 13 passos |
 | **17/09 (o perfil, no papel)** | **Sessão só de documento, sem uma linha de código.** O usuário vira **assunto** (`ADR-0014`): `usuario.md` nasce, e com ele o pacote `usuario/` para onde `Usuario`, `Sessao`, `Senhas` e o login saem de `ambiente/` — o `ADR-0008` derivava o endereço de um doc que não possuía nem avatar nem Telegram · nasce a **tela de Perfil** (`06-interface/perfil.md`), com a porta no avatar do canto superior direito, e os blocos de **convite** e de **sessões** como espaço reservado que diz o que espera · **dez avatares monocromáticos**, e a razão saiu da regra que já existia: a paleta de identidade tem oito tons e o nono está proibido, então quem distingue é a **forma** · o **chat id do Telegram é declarado pela pessoa, sem pareamento** — e o doc nomeia o preço, que é poder mandar dado para o chat errado · `endpoints-usuario.md` leva cadastro, login e logout embora de `endpoints-ambientes.md` |
 | **17/09 (lançar em qualquer tela)** | **O código alcançou o `navegacao.md`**, que desde sempre dizia *"um botão presente em qualquer tela (e a tecla `N`)"* e *"o formulário completo é a saída do quick-add, não um caminho paralelo"* — e a fatia 3 tinha construído o oposto: dois painéis sempre abertos dentro do Extrato, e nenhum jeito de lançar de fora dele. Nasce `Lancar`, global: FAB, tecla `N`, painel curto e modal completo com **GASTO · RECEITA · TRANSFERÊNCIA** e **CRÉDITO desabilitado dizendo o que falta**. **Não há aba de boleto**, e a ausência é a regra no lugar certo: boleto é um *meio*, e é o meio que decide se existem duas datas · o seletor de categoria do quick-add agrupa por `optgroup` em vez de achatar em "Raiz › Filha" |
 | **17/09 (a tela do Diário)** | O Diário **saiu da Fase 2** e foi antecipado: evento gravado e nunca olhado é evento que ninguém sabe se está certo, e a tela é como se valida a gravação. Nasce `GET /eventos?dia=`, a **única lista do sistema sem cursor** — a pergunta é sobre um dia, e um dia fecha quando acaba. Dia no futuro é **422**, não lista vazia: vazio diria "nada aconteceu", e amanhã é um dia que não aconteceu. A frase de cada linha é montada na tela, por tipo |
@@ -269,7 +270,7 @@ classifica — registra.
 | Formulário completo | **Explica o que o modelo vai fazer** antes de fazer |
 | Ação destrutiva ou retroativa | Mostra o **impacto numérico** antes de confirmar |
 | Densidade | HUD denso. O número que importa é o maior elemento da tela |
-| Telas | Home · Extrato · Fatura · Séries · Reserva · **Diário** · Cadastro · **Perfil**. **De pé: Home, Extrato, Cadastro e Diário.** O **Perfil está desenhado e não construído** — `06-interface/perfil.md` |
+| Telas | Home · Extrato · Fatura · Séries · Reserva · **Diário** · Cadastro · **Perfil**. **De pé: Home, Extrato, Cadastro, Diário e Perfil** — este último fora do rail, com a porta no avatar do canto superior direito |
 | **Dashboard da Home** | O do protótipo, agrupado por categoria, com a linha **"guardado"** separada do gasto |
 | **Dado que envelhece na tela** | Aplicação mostra a data do último valor; o limite avisa quando a dívida passa dele |
 | **Hierarquia mora no lugar, não num campo** | Um card por raiz, "+ subcategoria" **dentro** do card |
@@ -381,10 +382,10 @@ ordem está fixada no `lacunas-para-codigo.md`:
    estão fechados desde 07/09.
 11. **Rodada de protótipo** — ver abaixo; o backlog do `dominio.js` está aberto desde 01/09,
    e agora o `prototipo/` está **atrás do app de verdade**, não só do modelo.
-12. **Tela de Perfil** — **os docs estão escritos** (17/09) e o código não existe. A ordem
-    combinada: (a) commit mecânico movendo `ambiente/` → `usuario/`, sem comportamento novo;
-    (b) `V007`, avatar sorteado, `GET`/`PATCH /usuarios/atual` e a troca de senha; (c) a tela,
-    com os dez SVGs e os dois blocos reservados. **Renomear categoria** na tela continua aberto.
+12. ~~**Tela de Perfil**~~ ✅ **Fechada em 17/09**, nos três commits combinados. Ficaram
+    reservados na tela, dizendo o que esperam: **convites recebidos**, **convidar alguém** e
+    **sessões ativas** — os três entram com o convite. **Renomear categoria** na tela continua
+    aberto.
 13. ~~**A tela do Diário**~~ ✅ **Fechada em 17/09**, antecipada da Fase 2. Falta nela o
     **link para o objeto exato** — hoje a linha leva à tela do alvo, e apontar para o
     lançamento exige o Extrato aceitar um id no endereço.
@@ -544,12 +545,13 @@ Extrato funcionando abre o app, não ele.
 - **`docs.py` ainda não tem o teto por rota** que o `ADR-0008` decidiu, nem conta o código
 - **`deploy.md`, `runbook.md`, `backup-restore.md` e `observabilidade.md` seguem stub** — são
   de operação e nascem quando houver o que operar
-- **O código tem seis assuntos**: `ambiente`, `categoria`, `conta`, `meio`, `lancamento` e
-  `evento`. Não há fatura nem patrimônio
-- **`usuario` é o sétimo assunto, e só existe no papel.** O `ADR-0014` está aceito e nenhum
-  arquivo se moveu: `Usuario`, `Sessao`, `Senhas` e o login seguem dentro de `ambiente/`, e o
-  `estrutura-de-pastas.md` já mostra a árvore de depois. É a única divergência conhecida entre
-  doc e código
+- **Não há fatura nem patrimônio** no código: os assuntos são `usuario`, `ambiente`,
+  `categoria`, `conta`, `meio`, `lancamento` e `evento`
+- **O código tem sete assuntos** desde 17/09: `usuario` saiu de dentro de `ambiente` pelo
+  `ADR-0014`, com `Usuario`, `Sessao`, `Senhas`, o login e os quatro casos de uso. O encontro
+  dos dois no cadastro virou `CriarAmbientePessoalUseCase`, na `aplicacao` de `ambiente` —
+  aplicação chama aplicação, como já era com `categoria`
+- **O `LD_LIBRARY_PATH` do navegador dirigido é `~/.cache/cyberbank-driver/libs/raiz/usr/lib/x86_64-linux-gnu`** — com o `raiz/` no meio, que a nota de 17/09 tinha omitido. E `spring-boot:run` serve o front de `target/classes`: mexeu em `static/`, roda `./mvnw resources:resources` antes de recarregar, senão o navegador mostra a versão velha e a conclusão sai errada
 - **Ninguém verifica papel em lugar nenhum.** Dono, editor e leitor estão no modelo e no banco;
   nenhum caso de uso os consulta. Não é buraco de segurança hoje — sem convite, todo ambiente
   tem exatamente um acesso, o do dono — mas **entra junto com o convite**, e não depois

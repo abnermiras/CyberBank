@@ -8,8 +8,12 @@ body{display:flex;flex-direction:column;min-height:100vh}
 .mark{font:700 19px var(--disp);letter-spacing:.16em}
 .mark i{color:var(--cyan);font-style:normal}
 .hdr strong{font:600 14px var(--disp);letter-spacing:.08em;color:var(--ink)}
-.avatar{width:34px;height:34px;display:grid;place-items:center;background:var(--pink);color:#fff;
-  font:700 15px var(--disp);clip-path:var(--chamfer-sm)}
+.avatar{width:36px;height:36px;display:grid;place-items:center;background:var(--panel-2);
+  color:var(--ink);border:1px solid var(--line);font:700 15px var(--disp);text-decoration:none;
+  clip-path:var(--chamfer-sm)}
+.avatar svg{width:26px;height:26px}
+.avatar:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(0,240,255,.08)}
+.avatar.on{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 0 1px rgba(0,240,255,.25)}
 
 .amb{display:flex;align-items:center;gap:10px;padding:6px 12px;
   border:1px solid var(--cor-ambiente,var(--line-hot));
@@ -63,6 +67,18 @@ body{display:flex;flex-direction:column;min-height:100vh}
 
 .formraiz{display:grid;grid-template-columns:minmax(160px,1fr) 190px auto auto;gap:12px;align-items:end}
 @media(max-width:820px){.formraiz{grid-template-columns:1fr 1fr}}
+
+.av-grade{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.av-op{display:flex;flex-direction:column;align-items:center;gap:6px;padding:11px 4px 7px;
+  background:var(--panel-2);border:1px solid var(--line);color:var(--ink);opacity:.62;
+  cursor:pointer;clip-path:var(--chamfer-sm);transition:opacity .12s,border-color .12s}
+.av-op svg{width:44px;height:44px}
+.av-op i{font:8px var(--mono);letter-spacing:.1em;font-style:normal;color:var(--muted)}
+.av-op:hover{opacity:1;border-color:var(--dim)}
+.av-op.on{color:var(--cyan);opacity:1;border-color:var(--cyan);background:rgba(0,240,255,.07);
+  box-shadow:0 0 0 1px rgba(0,240,255,.2)}
+.av-op.on i{color:var(--cyan)}
+@media(max-width:700px){.av-grade{grid-template-columns:repeat(4,1fr)}}
 
 .swatches{display:flex;gap:6px;flex-wrap:wrap}
 .swatch{width:26px;height:26px;padding:0;background:var(--sw);border:0;cursor:pointer;

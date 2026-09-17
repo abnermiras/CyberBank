@@ -20,7 +20,7 @@ tem** e do que ele pode mudar em si mesmo.
 
 | Campo | Regra | Muda? |
 |---|---|---|
-| `email` | Identificador de login, único no sistema inteiro, sempre minúsculo | **Não** — ver abaixo |
+| `email` | Identificador de login, único no sistema inteiro, sempre minúsculo. **O formato é validado; a existência, não** — quem provaria que ele existe é a recuperação de senha (`ADR-0007`), que não está construída | **Não** — ver abaixo |
 | `nome` | Exibição. É o `autor` que o lançamento mostra em ambiente compartilhado. 1 a 120 caracteres | Sim, livremente |
 | `senhaHash` | Argon2id (`docs/01-arquitetura/seguranca.md`) | Sim, pela troca de senha |
 | `avatar` | O **nome** de um dos dez desta página. Nunca nulo | Sim, livremente |
@@ -54,6 +54,10 @@ usuário procura na tela errada.
 
 Os três numa transação só: usuário sem ambiente, ou ambiente sem as categorias, é estado que
 nenhuma tela sabe mostrar e nenhum caminho do sistema sabe consertar depois.
+
+**A ordem dentro da transação não é livre:** o contexto do banco passa a apontar para o usuário
+**antes** de o ambiente nascer. Sem isso o ambiente que ele acabou de criar é invisível para ele
+mesmo, porque a política de RLS lê o contexto e ele estaria vazio (`ADR-0002`).
 
 **O cadastro não dá acesso a nada além disso** — é o que sustenta o cadastro aberto
 (`docs/01-arquitetura/seguranca.md`). Para chegar ao dinheiro de alguém é preciso ser
@@ -103,7 +107,7 @@ digitou. **Informar o id errado é responsabilidade de quem informou.**
 |---|---|
 | É o **`chat id`**, não o `@` | O `@` é trocável pelo dono a qualquer momento e não identifica ninguém. Quem identifica um destino no Telegram é o `chat id` |
 | **Único no sistema** | Dois usuários com o mesmo id tornam ambígua qualquer mensagem que chegue daquele chat. A unicidade não impede o erro de digitação — impede a **ambiguidade** |
-| Opcional, e apagável | Apagar o campo desfaz o vínculo. Ninguém é obrigado a ter Telegram |
+| Opcional, e apagável | Desfazer o vínculo é uma ação própria, não um campo em branco (`docs/04-api/endpoints-usuario.md`). Ninguém é obrigado a ter Telegram |
 | Inteiro diferente de zero | É tudo que se valida. O resto é do bot |
 | **Nada é enviado hoje** | O bot é Fase 2 (`docs/05-integracoes/telegram-bot.md`, hoje stub) |
 

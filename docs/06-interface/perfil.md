@@ -27,7 +27,7 @@ botão** e abre o Perfil; o `Sair`, ao lado, continua sendo um botão solto.
 
 | # | Seção | O que tem | Estado |
 |---|---|---|---|
-| 1 | **IDENTIDADE** | Avatar, nome e e-mail | funciona |
+| 1 | **IDENTIDADE** | Avatar, nome, e-mail e a data de cadastro | funciona |
 | 2 | **SENHA** | Senha atual, nova senha, e o aviso do que vai acontecer | funciona |
 | 3 | **TELEGRAM** | O `chat id` declarado, e o botão de desvincular | funciona, e **nada o consome ainda** |
 | 4 | **CONVITES** | Recebidos, e os que a pessoa faz | **espaço reservado** |
@@ -80,8 +80,10 @@ Um campo, um número, e três frases de verdade:
 sabe responder isso. Até lá a tela não inventa um passo a passo: ela diz que o vínculo só
 passa a valer quando o bot existir.
 
-Com o campo preenchido, aparece **DESVINCULAR**, que apaga o número. É o mesmo `PATCH` com
-`null`.
+Com o campo preenchido, aparece **DESVINCULAR**, que apaga o número — é o `DELETE` do
+sub-recurso (`docs/04-api/endpoints-usuario.md`), e ele não passa pelo botão de salvar do
+nome e do avatar: são duas decisões diferentes, e juntá-las faria trocar de avatar mexer no
+chat.
 
 ## CONVITES e SESSÕES — o espaço reservado
 
