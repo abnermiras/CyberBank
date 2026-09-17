@@ -27,7 +27,7 @@ botão** e abre o Perfil; o `Sair`, ao lado, continua sendo um botão solto.
 
 | # | Seção | O que tem | Estado |
 |---|---|---|---|
-| 1 | **IDENTIDADE** | Avatar, nome e e-mail | funciona |
+| 1 | **IDENTIDADE** | Avatar, nome, e-mail e a data de cadastro | funciona |
 | 2 | **SENHA** | Senha atual, nova senha, e o aviso do que vai acontecer | funciona |
 | 3 | **TELEGRAM** | O `chat id` declarado, e o botão de desvincular | funciona, e **nada o consome ainda** |
 | 4 | **CONVITES** | Recebidos, e os que a pessoa faz | **espaço reservado** |

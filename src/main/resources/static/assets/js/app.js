@@ -1,4 +1,4 @@
-const Contexto = { ambiente: null };
+const Contexto = { ambiente: null, usuario: null };
 
 const TELAS = [
   { id: 'home', rotulo: 'HOME', icone: '◈' },
@@ -8,6 +8,7 @@ const TELAS = [
   { id: 'reserva', rotulo: 'RESERVA', icone: '◆' },
   { id: 'diario', rotulo: 'DIÁRIO', icone: '◷' },
   { id: 'cadastro', rotulo: 'CADASTRO', icone: '⊕' },
+  { id: 'perfil', rotulo: 'PERFIL', icone: '◉', foraDoRail: true },
 ];
 
 const EM_ESPERA = {
@@ -35,7 +36,8 @@ const seletor = (id) => document.querySelector(`[data-tela="${id}"]`);
 
 function montarRail() {
   document.getElementById('rail').innerHTML =
-    TELAS.map((t) => `<a class="nav${EM_ESPERA[t.id] ? ' vazia' : ''}" href="#/${t.id}"
+    TELAS.filter((t) => !t.foraDoRail)
+      .map((t) => `<a class="nav${EM_ESPERA[t.id] ? ' vazia' : ''}" href="#/${t.id}"
         data-nav="${t.id}"><span>${t.icone}</span>${t.rotulo}</a>`).join('')
     + '<div class="railfoot tele">CB<br>NC77</div>';
 }
@@ -64,6 +66,7 @@ const AO_ENTRAR = {
   extrato: () => Extrato.montar(),
   diario: () => Diario.montar(),
   cadastro: () => abrirAba(document.querySelector('#abasCadastro .aba.on').dataset.aba),
+  perfil: () => Perfil.montar(),
 };
 
 function abrirAba(nome) {
@@ -81,8 +84,11 @@ function irPara(id) {
 
   TELAS.forEach((t) => {
     seletor(t.id).classList.toggle('hidden', t.id !== destino);
-    document.querySelector(`[data-nav="${t.id}"]`).classList.toggle('on', t.id === destino);
+    const atalho = document.querySelector(`[data-nav="${t.id}"]`);
+    if (atalho) atalho.classList.toggle('on', t.id === destino);
   });
+
+  document.getElementById('avatar').classList.toggle('on', destino === 'perfil');
 
   document.getElementById('main').scrollTop = 0;
   document.title = `CYBERBANK // ${destino.toUpperCase()}`;
@@ -97,6 +103,12 @@ async function recarregarTelaAtual() {
 
 function trocarPeloHash() {
   irPara((window.location.hash || '').replace(/^#\/?/, ''));
+}
+
+function atualizarIdentidade(usuario) {
+  Contexto.usuario = usuario;
+  document.getElementById('quemSou').textContent = usuario.nome;
+  document.getElementById('avatar').innerHTML = Avatares.svg(usuario.avatar);
 }
 
 function tratarFalha(erro) {
@@ -119,8 +131,12 @@ async function iniciar() {
   Contexto.ambiente = ambientes.itens[0];
   document.getElementById('ambienteNome').textContent = Contexto.ambiente.nome;
   document.getElementById('ambientePapel').textContent = Contexto.ambiente.papel;
-  document.getElementById('quemSou').textContent = `NÓ ${Contexto.ambiente.id}`;
-  document.getElementById('avatar').textContent = Contexto.ambiente.nome.charAt(0).toUpperCase();
+
+  try {
+    atualizarIdentidade(await API.verPerfil());
+  } catch (erro) {
+    if (tratarFalha(erro)) return;
+  }
 
   montarRail();
   montarEmEspera();
