@@ -90,6 +90,11 @@ function irPara(id) {
   if (AO_ENTRAR[destino]) AO_ENTRAR[destino]();
 }
 
+async function recarregarTelaAtual() {
+  const atual = TELAS.find((t) => !seletor(t.id).classList.contains('hidden'));
+  if (atual && AO_ENTRAR[atual.id]) await AO_ENTRAR[atual.id]();
+}
+
 function trocarPeloHash() {
   irPara((window.location.hash || '').replace(/^#\/?/, ''));
 }
@@ -119,6 +124,7 @@ async function iniciar() {
 
   montarRail();
   montarEmEspera();
+  Lancar.ligar();
 
   document.getElementById('abasCadastro').addEventListener('click', async (evento) => {
     const botao = evento.target.closest('[data-aba]');

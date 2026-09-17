@@ -101,96 +101,7 @@
 
       <div id="avisoExtrato"></div>
 
-      <div class="grid-2-1">
-        <section class="panel hot">
-          <span class="corner tr"></span>
-          <div class="panel-head">
-            <h3>Lançar</h3>
-            <span class="tele">GASTO E RECEITA REAIS · O MEIO DIZ A CONTA</span>
-          </div>
-          <form id="fLancar" autocomplete="off">
-            <div class="formlanc">
-              <div class="field" style="margin:0">
-                <label for="lancDescricao">Descrição</label>
-                <input id="lancDescricao" type="text" maxlength="200" placeholder="MERCADO" required>
-              </div>
-              <div class="field" style="margin:0">
-                <label for="lancValor">Valor</label>
-                <input id="lancValor" type="text" inputmode="decimal" placeholder="300,00" required>
-              </div>
-              <div class="field" style="margin:0">
-                <label for="lancSentido">Sentido</label>
-                <select id="lancSentido">
-                  <option value="SAIDA">SAÍDA</option>
-                  <option value="ENTRADA">ENTRADA</option>
-                </select>
-              </div>
-              <div class="field" style="margin:0">
-                <label for="lancMeio">Meio de pagamento</label>
-                <select id="lancMeio"></select>
-              </div>
-              <div class="field" style="margin:0">
-                <label for="lancCategoria">Categoria</label>
-                <select id="lancCategoria"></select>
-              </div>
-              <div class="field hidden" style="margin:0" id="campoSubcategoria">
-                <label for="lancSubcategoria">Subcategoria</label>
-                <select id="lancSubcategoria"></select>
-              </div>
-              <div class="field" style="margin:0">
-                <label for="lancData">Data do evento</label>
-                <div class="campo-data">
-                  <input id="lancData" type="text" inputmode="numeric"
-                         placeholder="dd/mm/aaaa" maxlength="10" required>
-                  <button class="grid-data" type="button" id="lancDataGrid"
-                          aria-label="Escolher no calendário" title="Escolher no calendário">▦</button>
-                </div>
-              </div>
-              <div class="field hidden" style="margin:0" id="campoDataEfeito">
-                <label for="lancDataEfeito">Vencimento</label>
-                <div class="campo-data">
-                  <input id="lancDataEfeito" type="text" inputmode="numeric"
-                         placeholder="dd/mm/aaaa" maxlength="10">
-                  <button class="grid-data" type="button" id="lancDataEfeitoGrid"
-                          aria-label="Escolher no calendário" title="Escolher no calendário">▦</button>
-                </div>
-              </div>
-              <button class="btn primary" type="submit" id="btnLancar">Lançar</button>
-            </div>
-            <p class="dica mt10" id="lancExplica"></p>
-            <p class="dica" id="categoriaExplica"></p>
-          </form>
-        </section>
-
-        <section class="panel">
-          <div class="panel-head">
-            <h3>Transferir</h3>
-            <span class="tele">UM PAR, NÃO UM LANÇAMENTO</span>
-          </div>
-          <form id="fTransferir" autocomplete="off">
-            <div class="field"><label for="transfOrigem">De</label><select id="transfOrigem"></select></div>
-            <div class="field"><label for="transfDestino">Para</label><select id="transfDestino"></select></div>
-            <div class="row">
-              <div class="field"><label for="transfValor">Valor</label>
-                <input id="transfValor" type="text" inputmode="decimal" placeholder="200,00" required></div>
-              <div class="field"><label for="transfData">Data</label>
-                <div class="campo-data">
-                  <input id="transfData" type="text" inputmode="numeric"
-                         placeholder="dd/mm/aaaa" maxlength="10" required>
-                  <button class="grid-data" type="button" id="transfDataGrid"
-                          aria-label="Escolher no calendário" title="Escolher no calendário">▦</button>
-                </div></div>
-            </div>
-            <div class="field"><label for="transfDescricao">Descrição</label>
-              <input id="transfDescricao" type="text" maxlength="200" placeholder="APORTE" required></div>
-            <button class="btn" type="submit" id="btnTransferir">Transferir</button>
-            <p class="dica mt10">Aporte, resgate e saque são transferência. O dinheiro não saiu
-              da sua vida: mudou de bolso, e <b>o patrimônio não muda</b>.</p>
-          </form>
-        </section>
-      </div>
-
-      <section class="panel mt18">
+      <section class="panel">
         <div class="panel-head">
           <h3>Movimento</h3>
           <div class="hstack gap14 wrap">
@@ -390,6 +301,106 @@
   </main>
 </div>
 
+<button class="fab" id="fab" type="button" title="Lançar (tecla N)"
+        aria-label="Lançar">+</button>
+
+<div class="qa" id="qa" hidden>
+  <div class="panel hot qabox">
+    <span class="corner tr"></span>
+    <div class="panel-head">
+      <h3>Lançar rápido</h3>
+      <span class="tele">ESC PARA FECHAR</span>
+    </div>
+    <form id="fRapido" autocomplete="off">
+      <div class="seg" id="qaSentido">
+        <button type="button" class="on" data-sentido="SAIDA">SAÍDA</button>
+        <button type="button" data-sentido="ENTRADA">ENTRADA</button>
+      </div>
+      <div class="field"><label for="qaValor">Valor</label>
+        <input id="qaValor" type="text" inputmode="decimal" placeholder="0,00" required></div>
+      <div class="field"><label for="qaDescricao">O que foi</label>
+        <input id="qaDescricao" type="text" maxlength="200" placeholder="DESCRIÇÃO" required></div>
+      <div class="row">
+        <div class="field"><label for="qaMeio">Meio</label><select id="qaMeio"></select></div>
+        <div class="field"><label for="qaCategoria">Categoria <i>(opcional)</i></label>
+          <select id="qaCategoria"></select></div>
+      </div>
+      <div id="qaAviso"></div>
+      <button class="btn primary" style="width:100%" type="submit" id="btnRapido">Lançar</button>
+    </form>
+    <button class="btn ghost mt10" style="width:100%" type="button" id="btnAbrirCompleto">
+      Abrir formulário completo →</button>
+    <p class="dica mt10">Sem categoria o lançamento entra e vai para a <b>fila de
+      pendências</b>. O sistema aceita exigir a categorização — nunca a digitação.</p>
+  </div>
+</div>
+
+<div class="modal" id="modalCompleto" hidden>
+  <div class="panel hot modalbox">
+    <span class="corner tr"></span><span class="corner bl"></span>
+    <div class="panel-head">
+      <h3>Novo lançamento</h3>
+      <button class="btn sm ghost" type="button" id="btnFecharCompleto">FECHAR</button>
+    </div>
+
+    <div class="seg wide" id="compAbas">
+      <button type="button" class="on" data-aba="GASTO">GASTO</button>
+      <button type="button" data-aba="RECEITA">RECEITA</button>
+      <button type="button" data-aba="TRANSFERENCIA">TRANSFERÊNCIA</button>
+      <button type="button" data-aba="CREDITO" disabled
+              title="Entra com o cartão de crédito">CRÉDITO</button>
+    </div>
+    <p class="dica" id="compAbaCredito">A aba <b>CRÉDITO</b> — compra parcelada no cartão —
+      espera a conta <b>CARTAO</b> e a <b>fatura</b>, que ainda não existem.</p>
+
+    <form id="fCompleto" autocomplete="off">
+      <div class="row">
+        <div class="field"><label for="compValor">Valor</label>
+          <input id="compValor" type="text" inputmode="decimal" placeholder="0,00" required></div>
+        <div class="field"><label for="compData">Data do evento</label>
+          <div class="campo-data">
+            <input id="compData" type="text" inputmode="numeric" placeholder="dd/mm/aaaa"
+                   maxlength="10" required>
+            <button class="grid-data" type="button" id="compDataGrid"
+                    aria-label="Escolher no calendário" title="Escolher no calendário">▦</button>
+          </div></div>
+      </div>
+
+      <div class="field"><label for="compDescricao">Descrição</label>
+        <input id="compDescricao" type="text" maxlength="200" placeholder="O QUE FOI" required></div>
+
+      <div class="row" id="linhaMeioCategoria">
+        <div class="field"><label for="compMeio">Meio</label><select id="compMeio"></select></div>
+        <div class="field"><label for="compCategoria">Categoria</label>
+          <select id="compCategoria"></select></div>
+      </div>
+      <div class="field hidden" id="campoCompSubcategoria">
+        <label for="compSubcategoria">Subcategoria</label>
+        <select id="compSubcategoria"></select>
+      </div>
+
+      <div class="row hidden" id="linhaTransferencia">
+        <div class="field"><label for="compDe">De</label><select id="compDe"></select></div>
+        <div class="field"><label for="compPara">Para</label><select id="compPara"></select></div>
+      </div>
+
+      <div class="field hidden" id="campoCompVencimento">
+        <label for="compVencimento">Vencimento</label>
+        <div class="campo-data">
+          <input id="compVencimento" type="text" inputmode="numeric" placeholder="dd/mm/aaaa"
+                 maxlength="10">
+          <button class="grid-data" type="button" id="compVencimentoGrid"
+                  aria-label="Escolher no calendário" title="Escolher no calendário">▦</button>
+        </div>
+      </div>
+
+      <div class="explica" id="compExplica"></div>
+      <div id="compAviso"></div>
+      <button class="btn primary" style="width:100%" type="submit" id="btnCompleto">Registrar</button>
+    </form>
+  </div>
+</div>
+
 <script src="assets/js/api.js"></script>
 <script src="assets/js/formato.js"></script>
 <script src="assets/js/calendario.js"></script>
@@ -397,6 +408,7 @@
 <script src="assets/js/telas/home.js"></script>
 <script src="assets/js/telas/cadastro.js"></script>
 <script src="assets/js/telas/contas.js"></script>
+<script src="assets/js/lancar.js"></script>
 <script src="assets/js/telas/extrato.js"></script>
 <script src="assets/js/telas/diario.js"></script>
 <script src="assets/js/app.js"></script>

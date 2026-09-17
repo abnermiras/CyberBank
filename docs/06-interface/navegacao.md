@@ -61,6 +61,20 @@ que não é gasto — são invisíveis num formulário comum, e o usuário só d
 entendeu errado quando o saldo não bate. A linha de explicação é o que transforma a regra
 em algo aprendível.
 
+### As abas do formulário completo
+
+**GASTO · RECEITA · TRANSFERÊNCIA**, e **CRÉDITO desabilitado**.
+
+**Não há aba de boleto**, e a ausência é a regra aparecendo no lugar certo: boleto é um
+**meio**, e é o meio que decide se existem duas datas (`docs/02-dominio/meio-de-pagamento.md`).
+O campo de vencimento aparece sozinho quando o meio escolhido separa as duas datas. Uma aba de
+boleto duplicaria na tela uma decisão que o meio já carrega — e no dia em que entrar outro meio
+com vencimento futuro, ela estaria errada calada.
+
+**A aba desabilitada diz o que falta**, em vez de ficar cinza e muda. É o mesmo tratamento que
+as telas em espera recebem: tela — ou aba — que existe sem funcionar precisa dizer o que está
+esperando, senão ensina que o app está quebrado.
+
 ## Estrutura de telas
 
 | Tela | Responde |
