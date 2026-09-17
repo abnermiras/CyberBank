@@ -29,6 +29,8 @@ interface LancamentoJpa extends JpaRepository<LancamentoEntity, Long> {
 
     boolean existsByEstornoDeId(Long estornoDeId);
 
+    Optional<LancamentoEntity> findByEstornoDeIdAndAmbienteId(Long estornoDeId, Long ambienteId);
+
     void deleteByIdAndAmbienteId(Long id, Long ambienteId);
 
     @Modifying

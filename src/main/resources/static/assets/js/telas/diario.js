@@ -7,7 +7,7 @@ const Diario = {
   ligado: false,
 
   TELA_DO_ALVO: {
-    LANCAMENTO: '#/extrato',
+    LANCAMENTO: (id) => `#/extrato/${id}`,
     CONTA: '#/cadastro',
     MEIO: '#/cadastro',
     CATEGORIA: '#/cadastro',
@@ -171,14 +171,15 @@ const Diario = {
 
   destino(e) {
     if (!e.alvo || e.tipo.endsWith('_EXCLUIDO') || e.tipo.endsWith('_EXCLUIDA')) return null;
-    return Diario.TELA_DO_ALVO[e.alvo.tipo] || null;
+    const destino = Diario.TELA_DO_ALVO[e.alvo.tipo];
+    if (!destino) return null;
+    return typeof destino === 'function' ? destino(e.alvo.id) : destino;
   },
 
   deParas(dados) {
     const campos = Object.keys(dados)
-      .filter((chave) => chave.endsWith('De'))
-      .map((chave) => chave.slice(0, -2))
-      .filter((campo) => dados[`${campo}Para`] !== undefined);
+      .filter((chave) => chave.endsWith('Para'))
+      .map((chave) => chave.slice(0, -4));
 
     if (!campos.length) return '';
 
@@ -191,7 +192,23 @@ const Diario = {
     if (bruto == null) return '—';
     if (campo === 'valor') return Formato.dinheiro(bruto);
     if (campo === 'dataEvento' || campo === 'dataEfeito') return Formato.dia(bruto);
+    if (campo === 'categoriaId') return Formato.texto(Diario.nomeDaCategoria(bruto));
+    if (campo === 'contaId') return Formato.texto(Diario.nomeDaConta(bruto));
     return Formato.texto(bruto);
+  },
+
+  nomeDaCategoria(id) {
+    for (const raiz of Extrato.arvore || []) {
+      if (raiz.id === id) return raiz.nome;
+      const filha = raiz.filhas.find((f) => f.id === id);
+      if (filha) return `${raiz.nome} › ${filha.nome}`;
+    }
+    return `#${id}`;
+  },
+
+  nomeDaConta(id) {
+    const conta = (Extrato.contas || []).find((c) => c.id === id);
+    return conta ? conta.nome : `#${id}`;
   },
 
   desc(dados) {

@@ -1,0 +1,25 @@
+package br.com.cyberbank.lancamento.aplicacao;
+
+import br.com.cyberbank.lancamento.dominio.Lancamento;
+
+public record DetalheDoLancamento(
+        Lancamento lancamento,
+        ContaDoLancamento conta,
+        MeioDoLancamento meio,
+        CategoriaDoLancamento categoria,
+        String autor,
+        Long outroLadoDaTransferenciaId,
+        Long estornadoPorId) {
+
+    public record ContaDoLancamento(Long id, String nome, String tipo) {
+    }
+
+    public record MeioDoLancamento(Long id, String tipo, String nome) {
+    }
+
+    public record CategoriaDoLancamento(Long id, String nome, RaizDaCategoria raiz) {
+    }
+
+    public record RaizDaCategoria(Long id, String nome, String cor) {
+    }
+}

@@ -75,6 +75,12 @@ public class LancamentoRepositoryJpa implements LancamentoRepository {
     }
 
     @Override
+    public Optional<Lancamento> buscarEstornoDe(Long lancamentoId, Long ambienteId) {
+        return jpa.findByEstornoDeIdAndAmbienteId(lancamentoId, ambienteId)
+                .map(LancamentoRepositoryJpa::paraDominio);
+    }
+
+    @Override
     public List<RelatorioDoMes.Bucket> somarPorCategoria(
             Long ambienteId, LocalDate de, LocalDate ate, Collection<Long> contas) {
         if (contas.isEmpty()) {
