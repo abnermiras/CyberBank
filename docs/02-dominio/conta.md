@@ -157,6 +157,18 @@ Quem pode: dono e editor. Leitor não mexe (`docs/02-dominio/ambiente-financeiro
   que nasce junto nasce vazia.
 - Saldo nunca é armazenado como total; é sempre derivado dos lançamentos.
 
+## O que ainda não existe
+
+Escrito aqui, e **não** implementado — a Fase 1 entrou por fatias, e esta é a lista honesta do
+que o código ainda não faz (`docs/04-api/endpoints-contas.md` tem o contrato do que faz).
+
+| O que falta | Por quê |
+|---|---|
+| **Criar conta `CARTAO`** | Ela nasce com a fatura `ABERTA` do ciclo corrente, e guarda limite, dia de vencimento, dias de fechamento e conta pagadora padrão. Nada disso existe enquanto a fatura não existir. O `CHECK` da coluna `tipo` **já aceita** `CARTAO`: quem recusa é o caso de uso, e a fatia da fatura não vai precisar de migration sobre dado real |
+| **Trocar o `tipo`** | O endpoint não expõe o campo. A regra — *não muda depois de existir lançamento* — está escrita e o código `TIPO_DE_CONTA_IMUTAVEL` está no catálogo de erros, esperando a tela que precisar dele |
+| **Saldo projetado** | O realizado mais o `PREVISTO` até uma data, **menos o `a pagar` das faturas que vencem até lá**. A segunda metade depende da fatura, e meia conta daria um número que ninguém pode usar |
+| **Dono e editor × leitor** | Nenhum caso de uso verifica papel. Hoje todo ambiente tem exatamente um acesso, o do dono, porque convite e compartilhamento não existem — não há leitor no sistema para barrar. A verificação entra com o convite (`docs/02-dominio/ambiente-financeiro.md`) |
+
 ## Fronteiras com outros docs
 
 - **Conta ≠ meio de pagamento.** A conta é *de onde* o dinheiro sai; o meio é *como* ele

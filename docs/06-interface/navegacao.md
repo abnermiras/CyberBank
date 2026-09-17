@@ -117,6 +117,25 @@ ausência; sumido é o usuário achando que perdeu o dado.
 **Nada de esconder pelo tempo.** O sistema não infere desuso e não recolhe nada sozinho
 (`docs/02-dominio/categoria.md`): só está escondido o que o usuário inativou.
 
+## Campo de data: digitar e apontar, nos dois
+
+Data é o campo que mais se repete no sistema, e o controle nativo de data faz **uma** das duas
+coisas bem. Então o campo é um par:
+
+- **Texto**, para digitar e **colar**. O nativo de data não aceita colar, e colar uma data de
+  outro lugar é o caminho mais comum quando se está transcrevendo um extrato.
+- **Botão de calendário ao lado**, que abre o grid nativo do navegador para escolher no mouse.
+
+**O campo é tolerante na entrada e rígido na saída.** Aceita `14/09/2026`, `14-09-2026`,
+`14092026`, `140926`, `1409` (ano corrente), `2026-09-14` e os atalhos `hoje`, `ontem`,
+`anteontem` e `amanhã`; ao sair do campo, normaliza tudo para `dd/mm/aaaa`. Data impossível
+— `31/02` — fica marcada em rosa e o envio é barrado com o motivo, em vez de ser corrigida em
+silêncio (regra 7 do `CLAUDE.md`).
+
+**Por que o clique no campo não abre o calendário:** ele abriria por cima do teclado, e quem
+digita perderia o caminho mais rápido. O grid fica a um clique, no botão — e quem prefere o
+mouse nunca toca no texto.
+
 ## Regras de leitura de número
 
 - **Saldo realizado e projetado nunca aparecem juntos sem rótulo.** São perguntas

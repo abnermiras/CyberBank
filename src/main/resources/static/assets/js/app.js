@@ -11,35 +11,29 @@ const TELAS = [
 ];
 
 const EM_ESPERA = {
-  extrato: {
-    olho: 'MOVIMENTO // TODO O AMBIENTE',
-    titulo: 'Extrato',
-    responde: 'Todo movimento do ambiente, filtrável por conta e por pendência. Cada lançamento previsto vem marcado como tal — sem a marca, uma parcela de dezembro se lê como gasto de hoje.',
-    falta: ['conta', 'lançamento'],
-  },
   fatura: {
     olho: 'CARTÃO // O CICLO',
     titulo: 'Fatura',
     responde: 'O ciclo do cartão e as ações de fechar, pagar e abrir — esta última só na última fatura fechada. O que vence sem ser pago rola para a seguinte.',
-    falta: ['conta CARTAO', 'lançamento', 'fatura'],
+    falta: ['conta CARTAO', 'fatura'],
   },
   series: {
     olho: 'SÉRIES // O QUE SE REPETE',
     titulo: 'Séries',
     responde: 'Os parcelamentos e as recorrências vivos, e o que muda ao alterar cada um. Parcelamento altera todas as parcelas sempre; recorrência pergunta se é só o futuro ou o passado também.',
-    falta: ['lançamento', 'parcelamento', 'recorrência'],
+    falta: ['parcelamento', 'recorrência'],
   },
   reserva: {
     olho: 'PATRIMÔNIO // FORA DO CAIXA',
     titulo: 'Reserva',
     responde: 'Contas, aplicações e a diferença entre fluxo de caixa e patrimônio. É onde o valor informado de uma aplicação mostra a idade dele — o sistema nunca extrapola rendimento.',
-    falta: ['conta', 'aplicação'],
+    falta: ['valor informado da aplicação', 'a tela de patrimônio'],
   },
   diario: {
     olho: 'DIÁRIO // FASE 2',
     titulo: 'Diário',
     responde: 'O que aconteceu num dia: o que o sistema fez sozinho e o que a pessoa fez. Toda outra tela mostra como as coisas estão; esta é a única que mostra o que aconteceu.',
-    falta: ['evento', 'lançamento', 'fatura'],
+    falta: ['evento', 'fatura'],
   },
 };
 
@@ -69,7 +63,23 @@ function montarEmEspera() {
   });
 }
 
-const AO_ENTRAR = { home: () => Home.montar(), cadastro: () => Cadastro.montar() };
+const ABA_DO_CADASTRO = { categorias: () => Cadastro.montar(), contas: () => Contas.montar() };
+
+const AO_ENTRAR = {
+  home: () => Home.montar(),
+  extrato: () => Extrato.montar(),
+  cadastro: () => abrirAba(document.querySelector('#abasCadastro .aba.on').dataset.aba),
+};
+
+function abrirAba(nome) {
+  document.querySelectorAll('#abasCadastro .aba').forEach((botao) => {
+    botao.classList.toggle('on', botao.dataset.aba === nome);
+  });
+  document.querySelectorAll('[data-painel]').forEach((painel) => {
+    painel.classList.toggle('hidden', painel.dataset.painel !== nome);
+  });
+  return ABA_DO_CADASTRO[nome]();
+}
 
 function irPara(id) {
   const destino = TELAS.some((t) => t.id === id) ? id : 'home';
@@ -114,6 +124,12 @@ async function iniciar() {
 
   montarRail();
   montarEmEspera();
+
+  document.getElementById('abasCadastro').addEventListener('click', async (evento) => {
+    const botao = evento.target.closest('[data-aba]');
+    if (botao) await abrirAba(botao.dataset.aba);
+  });
+
   window.addEventListener('hashchange', trocarPeloHash);
   trocarPeloHash();
 }

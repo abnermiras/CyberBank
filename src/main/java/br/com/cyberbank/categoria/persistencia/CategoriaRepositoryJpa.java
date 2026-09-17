@@ -5,6 +5,8 @@ import java.util.Optional;
 
 import br.com.cyberbank.categoria.dominio.Categoria;
 import br.com.cyberbank.categoria.dominio.CategoriaRepository;
+import br.com.cyberbank.categoria.dominio.OperacaoDeSistema;
+import br.com.cyberbank.categoria.dominio.Sentido;
 
 import org.springframework.stereotype.Repository;
 
@@ -33,6 +35,13 @@ public class CategoriaRepositoryJpa implements CategoriaRepository {
     @Override
     public Optional<Categoria> buscarDoAmbiente(Long id, Long ambienteId) {
         return jpa.findByIdAndAmbienteId(id, ambienteId).map(CategoriaRepositoryJpa::paraDominio);
+    }
+
+    @Override
+    public Optional<Categoria> buscarDeSistema(Long ambienteId, OperacaoDeSistema operacao,
+            Sentido sentido) {
+        return jpa.findByAmbienteIdAndOperacaoAndSentido(ambienteId, operacao, sentido)
+                .map(CategoriaRepositoryJpa::paraDominio);
     }
 
     @Override

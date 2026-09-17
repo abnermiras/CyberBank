@@ -1,10 +1,3 @@
-/* =========================================================================
-   CYBERBANK // a conversa com /api/v1
-   Mesma origem: o cookie de sessao (ADR-0009) viaja sozinho, e nao ha header
-   de autenticacao nenhum (docs/04-api/convencoes.md).
-   ========================================================================= */
-
-/** O cliente le o CODIGO, nunca a mensagem (docs/04-api/erros.md). */
 class ErroDaApi extends Error {
   constructor(status, corpo) {
     super((corpo && corpo.codigo) || 'ERRO_INTERNO');
@@ -13,10 +6,6 @@ class ErroDaApi extends Error {
     this.erros = (corpo && corpo.erros) || [];
   }
 
-  /**
-   * A frase e daqui, do cliente — o servidor manda codigo. Erro de campo mostra os campos,
-   * porque a validacao devolve TODOS de uma vez e esconder isso desperdica a resposta.
-   */
   paraGente() {
     if (this.codigo === 'VALIDACAO' && this.erros.length) {
       return this.erros.map((e) => e.mensagem).join(' ');
@@ -40,6 +29,21 @@ const API = {
       'Esta raiz ainda tem subcategorias. Esvazie a árvore antes, ou inative a raiz.',
     CATEGORIA_COM_LANCAMENTO: 'Esta categoria já tem lançamento. O caminho é inativar.',
     CATEGORIA_SEM_COR_PROPRIA: 'Subcategoria herda a cor da raiz e não tem cor própria.',
+    CATEGORIA_NAO_ESCOLHIVEL:
+      'Esta categoria não é destino de lançamento: ou está inativa, ou tem subcategoria ativa.',
+    CONTA_INATIVA: 'Esta conta está inativa e não recebe lançamento novo.',
+    CONTA_COM_LANCAMENTO: 'Esta conta já tem lançamento. O caminho é inativar.',
+    CARTAO_SEM_SALDO_INICIAL:
+      'Cartão de crédito não tem saldo de abertura: a dívida é o conjunto das faturas.',
+    MEIO_INCOMPATIVEL_COM_CONTA: 'Este meio de pagamento não serve para esta conta.',
+    MEIO_COM_LANCAMENTO: 'Este meio já tem lançamento. O caminho é inativar.',
+    MEIO_INATIVO: 'Este meio está inativo e não recebe lançamento novo.',
+    LANCAMENTO_DO_CICLO:
+      'Este lançamento foi criado pelo sistema. O saldo de abertura se corrige editando o valor.',
+    LANCAMENTO_COM_ESTORNO: 'Exclua primeiro o estorno, senão ele fica órfão.',
+    TRANSFERENCIA_MESMA_CONTA: 'Origem e destino são a mesma conta.',
+    BENEFICIO_NAO_TRANSFERE:
+      'O saldo de um benefício não é fungível: entra por receita e sai por gasto no meio dele.',
     CORPO_INVALIDO: 'Requisição malformada.',
     ERRO_INTERNO: 'Falha nossa. Tente de novo.',
   },
@@ -65,33 +69,60 @@ const API = {
   patch: (caminho, corpo) => API.requisitar('PATCH', caminho, corpo),
   remover: (caminho) => API.requisitar('DELETE', caminho),
 
-  // --- os endpoints, com o nome que o doc deu ---
+  doAmbiente: (ambienteId, sufixo) => `/api/v1/ambientes/${ambienteId}${sufixo}`,
 
   cadastrarUsuario: (nome, email, senha) => API.post('/api/v1/usuarios', { nome, email, senha }),
   entrar: (email, senha) => API.post('/api/v1/sessoes', { email, senha }),
   sair: () => API.remover('/api/v1/sessoes/atual'),
   listarAmbientes: () => API.get('/api/v1/ambientes'),
 
-  /**
-   * SEMPRE com {@code inativas=true}, e por duas razoes que a tela precisa das duas:
-   * a contagem tem que INCLUIR o escondido ("3 de 4" — senao a tela mente), e o
-   * interruptor de revelar nao pode custar uma ida ao servidor. Quem esconde e o front.
-   *
-   * <p>O {@code escolhivel} vem certo assim: o servidor o calcula sobre a arvore INTEIRA
-   * antes de filtrar, entao pedir as inativas nao muda o valor de ninguem.
-   */
   arvoreDeCategorias: (ambienteId) =>
-    API.get(`/api/v1/ambientes/${ambienteId}/categorias?inativas=true`),
+    API.get(API.doAmbiente(ambienteId, '/categorias?inativas=true')),
 
   categoriasDeSistema: (ambienteId) =>
-    API.get(`/api/v1/ambientes/${ambienteId}/categorias?sistema=true`),
+    API.get(API.doAmbiente(ambienteId, '/categorias?sistema=true')),
 
   criarCategoria: (ambienteId, corpo) =>
-    API.post(`/api/v1/ambientes/${ambienteId}/categorias`, corpo),
+    API.post(API.doAmbiente(ambienteId, '/categorias'), corpo),
 
   alterarCategoria: (ambienteId, id, corpo) =>
-    API.patch(`/api/v1/ambientes/${ambienteId}/categorias/${id}`, corpo),
+    API.patch(API.doAmbiente(ambienteId, `/categorias/${id}`), corpo),
 
   excluirCategoria: (ambienteId, id) =>
-    API.remover(`/api/v1/ambientes/${ambienteId}/categorias/${id}`),
+    API.remover(API.doAmbiente(ambienteId, `/categorias/${id}`)),
+
+  listarContas: (ambienteId) => API.get(API.doAmbiente(ambienteId, '/contas?inativas=true')),
+
+  abrirConta: (ambienteId, corpo) => API.post(API.doAmbiente(ambienteId, '/contas'), corpo),
+
+  alterarConta: (ambienteId, id, corpo) =>
+    API.patch(API.doAmbiente(ambienteId, `/contas/${id}`), corpo),
+
+  excluirConta: (ambienteId, id) => API.remover(API.doAmbiente(ambienteId, `/contas/${id}`)),
+
+  listarMeios: (ambienteId) =>
+    API.get(API.doAmbiente(ambienteId, '/meios-de-pagamento?inativos=true')),
+
+  cadastrarMeio: (ambienteId, corpo) =>
+    API.post(API.doAmbiente(ambienteId, '/meios-de-pagamento'), corpo),
+
+  alterarMeio: (ambienteId, id, corpo) =>
+    API.patch(API.doAmbiente(ambienteId, `/meios-de-pagamento/${id}`), corpo),
+
+  excluirMeio: (ambienteId, id) =>
+    API.remover(API.doAmbiente(ambienteId, `/meios-de-pagamento/${id}`)),
+
+  extrato: (ambienteId, parametros) =>
+    API.get(API.doAmbiente(ambienteId, `/lancamentos?${new URLSearchParams(parametros)}`)),
+
+  lancar: (ambienteId, corpo) => API.post(API.doAmbiente(ambienteId, '/lancamentos'), corpo),
+
+  transferir: (ambienteId, corpo) =>
+    API.post(API.doAmbiente(ambienteId, '/lancamentos/transferencias'), corpo),
+
+  excluirLancamento: (ambienteId, id) =>
+    API.remover(API.doAmbiente(ambienteId, `/lancamentos/${id}`)),
+
+  estornarLancamento: (ambienteId, id, corpo) =>
+    API.post(API.doAmbiente(ambienteId, `/lancamentos/${id}/estorno`), corpo),
 };

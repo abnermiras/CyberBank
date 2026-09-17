@@ -77,7 +77,8 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 
 | Documento | Dono do fato | Status |
 |---|---|---|
-| [`catalogo-tabelas.md`](03-dados/catalogo-tabelas.md) | definicao coluna a coluna de cada tabela, com constraints, indices e politicas | ativo |
+| [`catalogo-tabelas-do-ambiente.md`](03-dados/catalogo-tabelas-do-ambiente.md) | definicao coluna a coluna das tabelas com ambiente_id, com constraints, indices e politicas | ativo |
+| [`catalogo-tabelas.md`](03-dados/catalogo-tabelas.md) | indice das tabelas e definicao coluna a coluna das familias do usuario e de ligacao | ativo |
 | [`migrations.md`](03-dados/migrations.md) | ferramenta, numeracao e nomes, o que nunca muda depois de aplicado, e como fazer mudanca destrutiva | ativo |
 | [`modelo-de-dados.md`](03-dados/modelo-de-dados.md) | entidades, relacionamentos, estrategia de chaves, como valor e data sao guardados, e o padrao de RLS | ativo |
 
@@ -88,9 +89,9 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | [`convencoes.md`](04-api/convencoes.md) | forma da URL, versionamento, nomes, formatos no JSON, paginacao e compatibilidade | ativo |
 | [`endpoints-ambientes.md`](04-api/endpoints-ambientes.md) | cadastro, login, logout e a lista de ambientes do usuario — rota, payload e erros | ativo |
 | [`endpoints-categorias.md`](04-api/endpoints-categorias.md) | contrato dos endpoints de categoria e regras de categorizacao | ativo |
-| [`endpoints-contas.md`](04-api/endpoints-contas.md) | contrato dos endpoints de conta e saldo | stub |
-| [`endpoints-lancamentos.md`](04-api/endpoints-lancamentos.md) | contrato dos endpoints de lancamento | stub |
-| [`endpoints-meios-pagamento.md`](04-api/endpoints-meios-pagamento.md) | contrato dos endpoints de meio de pagamento | stub |
+| [`endpoints-contas.md`](04-api/endpoints-contas.md) | contrato dos endpoints de conta e saldo | ativo |
+| [`endpoints-lancamentos.md`](04-api/endpoints-lancamentos.md) | contrato dos endpoints de lancamento, extrato, transferencia e estorno | ativo |
+| [`endpoints-meios-pagamento.md`](04-api/endpoints-meios-pagamento.md) | contrato dos endpoints de meio de pagamento | ativo |
 | [`endpoints-relatorios.md`](04-api/endpoints-relatorios.md) | contrato dos endpoints de agregacao e relatorio | stub |
 | [`erros.md`](04-api/erros.md) | o corpo de resposta de erro, o catalogo de codigos e a regra do que o erro nao conta | ativo |
 
@@ -139,5 +140,5 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 
 ---
 
-**74 documentos · 21 ainda em stub.**
+**75 documentos · 18 ainda em stub.**
 Stub = conteudo inexistente: pergunte, nao deduza.

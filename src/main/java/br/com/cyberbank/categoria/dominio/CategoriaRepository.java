@@ -17,6 +17,8 @@ public interface CategoriaRepository {
      */
     Optional<Categoria> buscarDoAmbiente(Long id, Long ambienteId);
 
+    Optional<Categoria> buscarDeSistema(Long ambienteId, OperacaoDeSistema operacao, Sentido sentido);
+
     /** Todas as do ambiente, inclusive as de sistema e as inativas. Quem filtra e quem le. */
     List<Categoria> listarDoAmbiente(Long ambienteId);
 
