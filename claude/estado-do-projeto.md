@@ -544,12 +544,12 @@ Extrato funcionando abre o app, não ele.
 - **`docs.py` ainda não tem o teto por rota** que o `ADR-0008` decidiu, nem conta o código
 - **`deploy.md`, `runbook.md`, `backup-restore.md` e `observabilidade.md` seguem stub** — são
   de operação e nascem quando houver o que operar
-- **O código tem seis assuntos**: `ambiente`, `categoria`, `conta`, `meio`, `lancamento` e
-  `evento`. Não há fatura nem patrimônio
-- **`usuario` é o sétimo assunto, e só existe no papel.** O `ADR-0014` está aceito e nenhum
-  arquivo se moveu: `Usuario`, `Sessao`, `Senhas` e o login seguem dentro de `ambiente/`, e o
-  `estrutura-de-pastas.md` já mostra a árvore de depois. É a única divergência conhecida entre
-  doc e código
+- **Não há fatura nem patrimônio** no código: os assuntos são `usuario`, `ambiente`,
+  `categoria`, `conta`, `meio`, `lancamento` e `evento`
+- **O código tem sete assuntos** desde 17/09: `usuario` saiu de dentro de `ambiente` pelo
+  `ADR-0014`, com `Usuario`, `Sessao`, `Senhas`, o login e os quatro casos de uso. O encontro
+  dos dois no cadastro virou `CriarAmbientePessoalUseCase`, na `aplicacao` de `ambiente` —
+  aplicação chama aplicação, como já era com `categoria`
 - **Ninguém verifica papel em lugar nenhum.** Dono, editor e leitor estão no modelo e no banco;
   nenhum caso de uso os consulta. Não é buraco de segurança hoje — sem convite, todo ambiente
   tem exatamente um acesso, o do dono — mas **entra junto com o convite**, e não depois

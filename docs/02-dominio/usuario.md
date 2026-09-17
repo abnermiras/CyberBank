@@ -20,7 +20,7 @@ tem** e do que ele pode mudar em si mesmo.
 
 | Campo | Regra | Muda? |
 |---|---|---|
-| `email` | Identificador de login, único no sistema inteiro, sempre minúsculo | **Não** — ver abaixo |
+| `email` | Identificador de login, único no sistema inteiro, sempre minúsculo. **O formato é validado; a existência, não** — quem provaria que ele existe é a recuperação de senha (`ADR-0007`), que não está construída | **Não** — ver abaixo |
 | `nome` | Exibição. É o `autor` que o lançamento mostra em ambiente compartilhado. 1 a 120 caracteres | Sim, livremente |
 | `senhaHash` | Argon2id (`docs/01-arquitetura/seguranca.md`) | Sim, pela troca de senha |
 | `avatar` | O **nome** de um dos dez desta página. Nunca nulo | Sim, livremente |
@@ -54,6 +54,10 @@ usuário procura na tela errada.
 
 Os três numa transação só: usuário sem ambiente, ou ambiente sem as categorias, é estado que
 nenhuma tela sabe mostrar e nenhum caminho do sistema sabe consertar depois.
+
+**A ordem dentro da transação não é livre:** o contexto do banco passa a apontar para o usuário
+**antes** de o ambiente nascer. Sem isso o ambiente que ele acabou de criar é invisível para ele
+mesmo, porque a política de RLS lê o contexto e ele estaria vazio (`ADR-0002`).
 
 **O cadastro não dá acesso a nada além disso** — é o que sustenta o cadastro aberto
 (`docs/01-arquitetura/seguranca.md`). Para chegar ao dinheiro de alguém é preciso ser

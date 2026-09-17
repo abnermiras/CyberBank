@@ -118,7 +118,9 @@ O `ADR-0002` exige o ambiente no contexto da requisição autenticada. Como isso
 
 1. O ambiente ativo vem no **caminho da URL** (`/api/v1/ambientes/{id}/...`).
 2. Um filtro resolve o `{id}`, **verifica o acesso do usuário autenticado** e só então põe o
-   ambiente no contexto. Nenhum controller recebe `ambienteId` de corpo ou de query.
+   ambiente no contexto. Nenhum controller recebe `ambienteId` de corpo ou de query. Ele roda
+   **depois** do filtro de sessão, e a ordem é a regra: sem saber quem está falando não há
+   acesso nenhum a validar.
 3. A transação faz o `SET LOCAL` para a política de RLS.
 
 **Ambiente que existe e não é seu responde igual a ambiente que não existe.** Diferenciar
