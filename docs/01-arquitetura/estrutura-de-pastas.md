@@ -29,7 +29,8 @@ CyberBank/
     │   ├── java/br/com/cyberbank/
     │   │   ├── CyberbankApplication.java
     │   │   ├── comum/          o que é de todos: tipos base, tratador de erro, contexto
-    │   │   ├── ambiente/       usuário, acesso, papel, convite, sessão
+    │   │   ├── usuario/        quem entra: cadastro, login, senha, sessão, perfil
+    │   │   ├── ambiente/       acesso, papel, convite
     │   │   ├── conta/
     │   │   ├── categoria/
     │   │   ├── meio/

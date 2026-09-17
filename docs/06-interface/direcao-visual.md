@@ -78,6 +78,22 @@ migration.
 **A paleta não cresce por pedido.** Oito tons distinguíveis já é o limite do que alguém separa
 de relance; o nono torna dois indistinguíveis e a cor deixa de identificar.
 
+## Os dez avatares
+
+Não há upload de foto: o usuário escolhe um de dez desenhos, e o domínio guarda **o nome**
+(`docs/02-dominio/usuario.md`). Como eles são desenhados é decisão desta página.
+
+| Regra | Por quê |
+|---|---|
+| **SVG inline**, traço, sem preenchimento chapado | Mesma linguagem dos painéis: linha fina, peso pela cor. E um SVG escala do grid de escolha ao quadrado de 28px do header sem virar borrão |
+| **Monocromáticos.** O que distingue é a **forma**, nunca a cor | A paleta de identidade tem **oito** tons e esta página proíbe o nono; os avatares são **dez**. Cor aqui ou obrigaria a repetir dois tons, ou quebraria a regra de cima |
+| **Nenhuma cor de sinal** — nada de `--acid`, `--pink` ou `--lime` | Um avatar rosa afirmaria alerta sem alertar nada. Avatar é identidade, e identidade não sinaliza |
+| O escolhido é marcado com **borda de seleção em `--cyan`** | Ciano é estrutura e contexto. O amarelo é da ação — e a ação desta tela é o botão de salvar, que é um só |
+| Traço legível em 28px | O grid mostra o desenho no tamanho em que ele vai ser visto. Detalhe que some no header não existe |
+
+A referência é o **gênero**: nada de logo, personagem, arte ou marca de obra existente — a
+mesma linha da tabela de *Limites*.
+
 ## Tipografia
 
 - **Display** (`Chakra Petch`): títulos, valores, botões. Caixa alta, entrelinha curta.

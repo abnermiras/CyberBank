@@ -2,7 +2,7 @@
 id: 02-dominio/ambiente-financeiro
 titulo: Ambiente financeiro
 dono: o ambiente como agregado dono do dado: papeis, acesso, convite, ciclo de vida e a regra de isolamento
-ler-junto: [00-produto/glossario, 02-dominio/lancamento, 01-arquitetura/seguranca]
+ler-junto: [00-produto/glossario, 02-dominio/usuario, 02-dominio/lancamento, 01-arquitetura/seguranca]
 status: rascunho
 ---
 
@@ -50,7 +50,7 @@ sem dono nem com dois.
 |---|---|
 | Quem convida | Só o dono |
 | Como | O dono digita o **e-mail** do convidado — que é o identificador de login — e o papel |
-| Por onde chega | **Dentro do sistema**, na área de perfil da pessoa: aceitar ou recusar |
+| Por onde chega | **Dentro do sistema**, na área de perfil da pessoa: aceitar ou recusar (`docs/06-interface/perfil.md`) |
 | O sistema manda e-mail? | **Não — e não é por falta de e-mail.** O sistema tem e-mail, e ele serve a **uma** coisa: recuperar senha (`ADR-0007`). Convite, compartilhamento, vínculo e qualquer aviso a quem já está dentro chegam **pelo sistema**. A razão é de produto, não de infraestrutura: **informação que é do sistema chega pelo sistema** — e isso continua valendo onde quer que o Cyberbank rode |
 | Convidado sem cadastro | O convite fica pendente; ao se cadastrar com aquele e-mail, ele aparece |
 | Antes do aceite | O convidado **não vê nada** do ambiente. Convite pendente não é acesso |
@@ -83,8 +83,7 @@ ele"*.
 
 | Momento | O que acontece |
 |---|---|
-| Quem pode se cadastrar | **Qualquer pessoa que alcance o sistema** — hoje, quem está na rede local. Sem convite prévio e sem aprovação |
-| Cadastro de usuário | Um ato só, com três efeitos: cria o usuário; cria o ambiente **"Ambiente Pessoal"** (nome padrão, renomeável) do qual ele é dono; e cria nele o jogo completo de categorias de sistema (`docs/02-dominio/categoria.md`) |
+| Cadastro de usuário | É ato do **usuário**, e a regra mora em `docs/02-dominio/usuario.md`. O que interessa aqui: ele cria o **"Ambiente Pessoal"** (nome padrão, renomeável) de quem se cadastrou — o único ambiente que nasce sem ninguém pedir |
 | Criar mais ambientes | Livre. "Pessoal", "Casa", "Empresa" |
 | Renomear | Dono e editor |
 | Exclusão | Ver tabela de convite e saída. Apaga todo o dado do ambiente |

@@ -21,6 +21,7 @@ comando entregue ao Abner, e o de 17/09 ainda não saiu.
 
 | Sessão | O que saiu |
 |---|---|
+| **17/09 (o perfil, no papel)** | **Sessão só de documento, sem uma linha de código.** O usuário vira **assunto** (`ADR-0014`): `usuario.md` nasce, e com ele o pacote `usuario/` para onde `Usuario`, `Sessao`, `Senhas` e o login saem de `ambiente/` — o `ADR-0008` derivava o endereço de um doc que não possuía nem avatar nem Telegram · nasce a **tela de Perfil** (`06-interface/perfil.md`), com a porta no avatar do canto superior direito, e os blocos de **convite** e de **sessões** como espaço reservado que diz o que espera · **dez avatares monocromáticos**, e a razão saiu da regra que já existia: a paleta de identidade tem oito tons e o nono está proibido, então quem distingue é a **forma** · o **chat id do Telegram é declarado pela pessoa, sem pareamento** — e o doc nomeia o preço, que é poder mandar dado para o chat errado · `endpoints-usuario.md` leva cadastro, login e logout embora de `endpoints-ambientes.md` |
 | **17/09 (lançar em qualquer tela)** | **O código alcançou o `navegacao.md`**, que desde sempre dizia *"um botão presente em qualquer tela (e a tecla `N`)"* e *"o formulário completo é a saída do quick-add, não um caminho paralelo"* — e a fatia 3 tinha construído o oposto: dois painéis sempre abertos dentro do Extrato, e nenhum jeito de lançar de fora dele. Nasce `Lancar`, global: FAB, tecla `N`, painel curto e modal completo com **GASTO · RECEITA · TRANSFERÊNCIA** e **CRÉDITO desabilitado dizendo o que falta**. **Não há aba de boleto**, e a ausência é a regra no lugar certo: boleto é um *meio*, e é o meio que decide se existem duas datas · o seletor de categoria do quick-add agrupa por `optgroup` em vez de achatar em "Raiz › Filha" |
 | **17/09 (a tela do Diário)** | O Diário **saiu da Fase 2** e foi antecipado: evento gravado e nunca olhado é evento que ninguém sabe se está certo, e a tela é como se valida a gravação. Nasce `GET /eventos?dia=`, a **única lista do sistema sem cursor** — a pergunta é sobre um dia, e um dia fecha quando acaba. Dia no futuro é **422**, não lista vazia: vazio diria "nada aconteceu", e amanhã é um dia que não aconteceu. A frase de cada linha é montada na tela, por tipo |
 | **17/09 (evento e a rotina)** | **`V006`**: a tabela `evento`, imutável por ausência de política de `UPDATE` e `DELETE` · nasce o pacote `evento/` e a **rotina diária**, que vira `PREVISTO` em `REALIZADO` pela data — a regra existia no domínio desde a fatia 3 e **ninguém a chamava** · **`ADR-0013`**: a rotina atravessa o RLS por função `SECURITY DEFINER` mais uma política escrita para o papel dono, porque `FORCE ROW LEVEL SECURITY` sujeita o dono às políticas · a lista fechada de tipos ganha os **sete** que o app já fazia e o doc não previa (renomear/reativar/excluir conta e meio, recolorir categoria) · treze casos de uso passam a gravar evento · e apareceu de brinde o **`CATEGORIA_COM_LANCAMENTO`**, que estava no catálogo de erros e em nenhum lugar do código |
@@ -268,7 +269,7 @@ classifica — registra.
 | Formulário completo | **Explica o que o modelo vai fazer** antes de fazer |
 | Ação destrutiva ou retroativa | Mostra o **impacto numérico** antes de confirmar |
 | Densidade | HUD denso. O número que importa é o maior elemento da tela |
-| Telas | Home · Extrato · Fatura · Séries · Reserva · **Diário** · Cadastro · (falta **Perfil**). **De pé em 16/09: Home, Extrato e Cadastro** — este último com abas (categorias · contas e meios) |
+| Telas | Home · Extrato · Fatura · Séries · Reserva · **Diário** · Cadastro · **Perfil**. **De pé: Home, Extrato, Cadastro e Diário.** O **Perfil está desenhado e não construído** — `06-interface/perfil.md` |
 | **Dashboard da Home** | O do protótipo, agrupado por categoria, com a linha **"guardado"** separada do gasto |
 | **Dado que envelhece na tela** | Aplicação mostra a data do último valor; o limite avisa quando a dívida passa dele |
 | **Hierarquia mora no lugar, não num campo** | Um card por raiz, "+ subcategoria" **dentro** do card |
@@ -380,7 +381,10 @@ ordem está fixada no `lacunas-para-codigo.md`:
    estão fechados desde 07/09.
 11. **Rodada de protótipo** — ver abaixo; o backlog do `dominio.js` está aberto desde 01/09,
    e agora o `prototipo/` está **atrás do app de verdade**, não só do modelo.
-12. **Tela de Perfil** com a caixa de convites; **renomear categoria** na tela.
+12. **Tela de Perfil** — **os docs estão escritos** (17/09) e o código não existe. A ordem
+    combinada: (a) commit mecânico movendo `ambiente/` → `usuario/`, sem comportamento novo;
+    (b) `V007`, avatar sorteado, `GET`/`PATCH /usuarios/atual` e a troca de senha; (c) a tela,
+    com os dez SVGs e os dois blocos reservados. **Renomear categoria** na tela continua aberto.
 13. ~~**A tela do Diário**~~ ✅ **Fechada em 17/09**, antecipada da Fase 2. Falta nela o
     **link para o objeto exato** — hoje a linha leva à tela do alvo, e apontar para o
     lançamento exige o Extrato aceitar um id no endereço.
@@ -441,7 +445,7 @@ a razão de ela ter sumido vale mais que a pergunta.)*
 
 ## Estado da documentação
 
-**77 documentos**, 18 stubs. Stub = conteúdo inexistente: **perguntar, nunca deduzir.**
+**81 documentos**, 18 stubs. Stub = conteúdo inexistente: **perguntar, nunca deduzir.**
 
 Escritos: `CLAUDE.md`, `CONVENTIONS.md`, os 6 fluxos, todo o `00-produto/` menos `jornadas`,
 `02-dominio/` inteiro menos `orcamento`, `regras-categorizacao` e `importacao-conciliacao`,
@@ -449,7 +453,8 @@ Escritos: `CLAUDE.md`, `CONVENTIONS.md`, os 6 fluxos, todo o `00-produto/` menos
 **`04-api/` inteiro menos `endpoints-relatorios`**, **`03-dados/` inteiro** (o
 `catalogo-tabelas` virou **dois**, quebrado por família em 16/09),
 **`01-arquitetura/` menos observabilidade**, **`07-operacao/build-e-run` e `testes`**, e as
-ADRs **0001 a 0013**.
+ADRs **0001 a 0014**. Em 17/09 entraram **`02-dominio/usuario`**, **`04-api/endpoints-usuario`**
+e **`06-interface/perfil`**.
 
 `fatura-cartao.md` está em **300 linhas, no teto do `CONVENTIONS`** — a próxima coisa que entrar
 ali obriga a quebrar por subdomínio, como o `fatura-pagamento.md` já nasceu. O
@@ -541,6 +546,10 @@ Extrato funcionando abre o app, não ele.
   de operação e nascem quando houver o que operar
 - **O código tem seis assuntos**: `ambiente`, `categoria`, `conta`, `meio`, `lancamento` e
   `evento`. Não há fatura nem patrimônio
+- **`usuario` é o sétimo assunto, e só existe no papel.** O `ADR-0014` está aceito e nenhum
+  arquivo se moveu: `Usuario`, `Sessao`, `Senhas` e o login seguem dentro de `ambiente/`, e o
+  `estrutura-de-pastas.md` já mostra a árvore de depois. É a única divergência conhecida entre
+  doc e código
 - **Ninguém verifica papel em lugar nenhum.** Dono, editor e leitor estão no modelo e no banco;
   nenhum caso de uso os consulta. Não é buraco de segurança hoje — sem convite, todo ambiente
   tem exatamente um acesso, o do dono — mas **entra junto com o convite**, e não depois

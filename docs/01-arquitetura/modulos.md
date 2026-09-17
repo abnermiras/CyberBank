@@ -12,8 +12,8 @@ status: ativo
 
 **Os assuntos são os docs donos de `docs/02-dominio/`** — é o `ADR-0008`: o nome do doc é o
 nome do pacote. `conta`, `categoria`, `meio-de-pagamento`, `lancamento`, `fatura`,
-`aplicacao-patrimonio`, `recorrencia`, `ambiente-financeiro`, `compartilhamento`, `evento`,
-`orcamento`.
+`aplicacao-patrimonio`, `recorrencia`, `ambiente-financeiro`, `usuario`, `compartilhamento`,
+`evento`, `orcamento`.
 
 Repetir a lista aqui criaria a segunda cópia que a regra 1 do `CONVENTIONS` proíbe — e ela
 divergiria no dia em que um assunto novo nascesse. **Assunto novo é doc novo em `02-dominio/`;
@@ -23,8 +23,10 @@ Dois casos que valem dizer, porque o mapeamento não é um-para-um por arquivo:
 
 - **`fatura`** tem dois docs (`fatura-cartao` e `fatura-pagamento`) e **um** pacote. Os docs se
   separaram por tamanho; o assunto é um só.
-- **`ambiente-financeiro`** vira o pacote `ambiente`, que é dono de usuário, acesso, papel e
-  convite — é ele que responde *quem pode o quê*.
+- **`ambiente-financeiro`** vira o pacote `ambiente`, dono de acesso, papel e convite — é ele
+  que responde *quem pode o quê*. **`usuario` é um assunto à parte** (`ADR-0014`): quem entra,
+  a senha, a sessão e o perfil. O ambiente é dono do dado; o usuário só tem acesso a ambientes,
+  e a fronteira no código é a mesma da frase.
 
 ## O grafo entre assuntos é vazio
 
