@@ -122,6 +122,9 @@ const API = {
   excluirMeio: (ambienteId, id) =>
     API.remover(API.doAmbiente(ambienteId, `/meios-de-pagamento/${id}`)),
 
+  resumoDoMes: (ambienteId, mes) =>
+    API.get(API.doAmbiente(ambienteId, '/relatorios/resumo' + (mes ? `?mes=${mes}` : ''))),
+
   extrato: (ambienteId, parametros) =>
     API.get(API.doAmbiente(ambienteId, `/lancamentos?${new URLSearchParams(parametros)}`)),
 
@@ -129,6 +132,9 @@ const API = {
 
   transferir: (ambienteId, corpo) =>
     API.post(API.doAmbiente(ambienteId, '/lancamentos/transferencias'), corpo),
+
+  editarLancamento: (ambienteId, id, corpo) =>
+    API.patch(API.doAmbiente(ambienteId, `/lancamentos/${id}`), corpo),
 
   excluirLancamento: (ambienteId, id) =>
     API.remover(API.doAmbiente(ambienteId, `/lancamentos/${id}`)),

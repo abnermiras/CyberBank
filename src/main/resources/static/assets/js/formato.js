@@ -25,6 +25,10 @@ const Formato = {
     return Math.round(Number(limpo) * 100);
   },
 
+  tom(cor) {
+    return `var(--cat-${String(cor || 'ardosia').toLowerCase()})`;
+  },
+
   texto(bruto) {
     return String(bruto ?? '').replace(/[&<>"']/g, (c) =>
       ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);

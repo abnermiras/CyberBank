@@ -1,6 +1,7 @@
 package br.com.cyberbank.lancamento.persistencia;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -105,6 +106,70 @@ interface LancamentoJpa extends JpaRepository<LancamentoEntity, Long> {
     List<LancamentoEntity> previstosVencidos(@Param("ambienteId") Long ambienteId,
             @Param("ate") LocalDate ate,
             @Param("previsto") Situacao previsto);
+
+    @Query("""
+            select l.categoriaId, l.sentido, sum(l.valorCentavos), count(l)
+              from LancamentoEntity l
+             where l.ambienteId = :ambienteId
+               and l.situacao <> :previsto
+               and l.dataEvento between :de and :ate
+               and l.contaId in :contas
+             group by l.categoriaId, l.sentido
+            """)
+    List<Object[]> somarPorCategoria(@Param("ambienteId") Long ambienteId,
+            @Param("de") LocalDate de,
+            @Param("ate") LocalDate ate,
+            @Param("contas") Collection<Long> contas,
+            @Param("previsto") Situacao previsto);
+
+    @Query("""
+            select coalesce(sum(l.valorCentavos), 0)
+              from LancamentoEntity l
+             where l.ambienteId = :ambienteId
+               and l.situacao <> :previsto
+               and l.sentido = :entrada
+               and l.transferenciaId is not null
+               and l.dataEvento between :de and :ate
+               and l.contaId in :contas
+            """)
+    long somarAportes(@Param("ambienteId") Long ambienteId,
+            @Param("de") LocalDate de,
+            @Param("ate") LocalDate ate,
+            @Param("contas") Collection<Long> contas,
+            @Param("entrada") Sentido entrada,
+            @Param("previsto") Situacao previsto);
+
+    @Query("""
+            select l.sentido, coalesce(sum(l.valorCentavos), 0)
+              from LancamentoEntity l
+             where l.ambienteId = :ambienteId
+               and l.situacao = :previsto
+               and l.dataEfeito between :de and :ate
+               and l.contaId in :contas
+             group by l.sentido
+            """)
+    List<Object[]> somarPrevistos(@Param("ambienteId") Long ambienteId,
+            @Param("de") LocalDate de,
+            @Param("ate") LocalDate ate,
+            @Param("contas") Collection<Long> contas,
+            @Param("previsto") Situacao previsto);
+
+    @Query("""
+            select l from LancamentoEntity l
+             where l.ambienteId = :ambienteId
+               and l.situacao = :previsto
+               and l.dataEfeito between :de and :ate
+               and l.contaId in :contas
+             order by l.dataEfeito asc, l.id asc
+            """)
+    List<LancamentoEntity> previstosDoHorizonte(@Param("ambienteId") Long ambienteId,
+            @Param("de") LocalDate de,
+            @Param("ate") LocalDate ate,
+            @Param("contas") Collection<Long> contas,
+            @Param("previsto") Situacao previsto,
+            Pageable pagina);
+
+    long countByAmbienteIdAndCategoriaIdIsNull(Long ambienteId);
 
     @Query(value = "select nextval('transferencia_id_seq')", nativeQuery = true)
     long proximoIdDeTransferencia();
