@@ -21,6 +21,7 @@ comando entregue ao Abner, e o de 17/09 ainda não saiu.
 
 | Sessão | O que saiu |
 |---|---|
+| **17/09 (lançar em qualquer tela)** | **O código alcançou o `navegacao.md`**, que desde sempre dizia *"um botão presente em qualquer tela (e a tecla `N`)"* e *"o formulário completo é a saída do quick-add, não um caminho paralelo"* — e a fatia 3 tinha construído o oposto: dois painéis sempre abertos dentro do Extrato, e nenhum jeito de lançar de fora dele. Nasce `Lancar`, global: FAB, tecla `N`, painel curto e modal completo com **GASTO · RECEITA · TRANSFERÊNCIA** e **CRÉDITO desabilitado dizendo o que falta**. **Não há aba de boleto**, e a ausência é a regra no lugar certo: boleto é um *meio*, e é o meio que decide se existem duas datas · o seletor de categoria do quick-add agrupa por `optgroup` em vez de achatar em "Raiz › Filha" |
 | **17/09 (a tela do Diário)** | O Diário **saiu da Fase 2** e foi antecipado: evento gravado e nunca olhado é evento que ninguém sabe se está certo, e a tela é como se valida a gravação. Nasce `GET /eventos?dia=`, a **única lista do sistema sem cursor** — a pergunta é sobre um dia, e um dia fecha quando acaba. Dia no futuro é **422**, não lista vazia: vazio diria "nada aconteceu", e amanhã é um dia que não aconteceu. A frase de cada linha é montada na tela, por tipo |
 | **17/09 (evento e a rotina)** | **`V006`**: a tabela `evento`, imutável por ausência de política de `UPDATE` e `DELETE` · nasce o pacote `evento/` e a **rotina diária**, que vira `PREVISTO` em `REALIZADO` pela data — a regra existia no domínio desde a fatia 3 e **ninguém a chamava** · **`ADR-0013`**: a rotina atravessa o RLS por função `SECURITY DEFINER` mais uma política escrita para o papel dono, porque `FORCE ROW LEVEL SECURITY` sujeita o dono às políticas · a lista fechada de tipos ganha os **sete** que o app já fazia e o doc não previa (renomear/reativar/excluir conta e meio, recolorir categoria) · treze casos de uso passam a gravar evento · e apareceu de brinde o **`CATEGORIA_COM_LANCAMENTO`**, que estava no catálogo de erros e em nenhum lugar do código |
 | **17/09 (o calendário)** | O botão ▦ do campo de data abria o **seletor nativo do navegador**, cinza do Windows dentro de um app cyberpunk. Não era ajuste de CSS: aquele painel é pintado pelo sistema operacional e não aceita tema. Nasce o **`Calendario`**, desenhado no CSS do projeto — e ele mora no `body` em `position:fixed`, porque `.panel` usa `clip-path` e recortaria um popup absoluto pela metade. Os três `input[type=date]` escondidos morreram com o `showPicker` |
@@ -383,6 +384,11 @@ ordem está fixada no `lacunas-para-codigo.md`:
 13. ~~**A tela do Diário**~~ ✅ **Fechada em 17/09**, antecipada da Fase 2. Falta nela o
     **link para o objeto exato** — hoje a linha leva à tela do alvo, e apontar para o
     lançamento exige o Extrato aceitar um id no endereço.
+14. ~~**Lançar fora do Extrato**~~ ✅ **Fechado em 17/09.** O quick-add, a tecla `N` e o
+    formulário completo em modal. A **aba CRÉDITO existe desabilitada** e entra com o cartão.
+15. **O quick-add lança sempre com a data de hoje**, sem campo de data — é o que o faz sumir
+    em dois segundos. Se lançar coisa de ontem for frequente, ele precisa de um atalho.
+    **Espera uso real para decidir.**
 
 ## Decisões em aberto
 
@@ -548,6 +554,27 @@ Extrato funcionando abre o app, não ele.
   aberto. A migration diz isso no arquivo, e o `OR` entra com o compartilhamento
 - `03-dados/modelo-de-dados.md` não conhece nada de hoje
 - O protótipo não exercita os dois eixos do relatório de gasto nem renomear categoria
+
+## Conferir no navegador
+
+**A partir de 17/09 há como dirigir o app de verdade**, e não só ler o código. O Chromium do
+Playwright está em `~/.cache/ms-playwright`, e as bibliotecas de sistema que faltavam foram
+baixadas com `apt-get download` e extraídas com `dpkg -x` em
+`~/.cache/cyberbank-driver/libs` — **nada disso precisou de root**, e o `LD_LIBRARY_PATH`
+aponta para lá.
+
+Os roteiros vivem em `~/.cache/cyberbank-driver/` e **não estão versionados**: Playwright é
+dependência nova, e a regra 3 do `CLAUDE.md` pede ADR até para ferramenta de desenvolvimento.
+Enquanto a ADR não existir, a ferramenta é da máquina, não do projeto.
+
+**Validação é por texto, não por imagem.** O roteiro imprime o que a tela renderizou, o que
+saiu da viewport, erro de console, requisição falhada e resposta 4xx — e isso custa ~500
+tokens. Uma captura de tela custa ~1.700, então ela só entra quando a pergunta for de olho
+("ficou feio?", "o contraste está legível?").
+
+**O que isso já pegou, e que nenhum teste pegaria:** o FAB e a tecla `N` não funcionavam na
+primeira versão — os ouvintes estavam dentro da função que só era chamada ao abrir o painel,
+que só abria pelo ouvinte que não existia. O código compilava e lia como certo.
 
 ## Como o trabalho acontece
 
