@@ -7,19 +7,21 @@
 > **Ele está fora do roteador de propósito** (`ADR-0008`): é doc de passagem entre sessões, não
 > de tarefa, e não deve entrar no custo de rota nenhuma.
 
-Última sessão: **2026-09-16**, na máquina Linux, com o Claude Code no terminal.
+Última sessão: **2026-09-17**, na máquina Linux, com o Claude Code no terminal.
 **A fatia 3 está de pé: dá para abrir conta com saldo, cadastrar meio de pagamento, lançar,
 transferir e ver o Extrato — e "em caixa", "guardado" e "patrimônio" saem do banco, somados
 dos lançamentos.** O vale-refeição fica fora do caixa e a transferência não mexe no
 patrimônio, os dois conferidos contra Postgres real.
 
 **O esqueleto está commitado e no GitHub:** `4be103d` na branch `esqueleto-do-projeto`,
-mergeado em `main` por `9e015a2` — e `origin/main` está no mesmo ponto. O bloqueio do push
-acabou.
-Árvore limpa, `./mvnw verify` verde, check de docs em 0 erros e 0 avisos.
+mergeado em `main` por `9e015a2`. O bloqueio do push acabou.
+Árvore limpa, check de docs em 0 erros e 0 avisos. **`main` está à frente de `origin/main`**,
+do `51edd8e` para cá: o push é comando entregue ao Abner, e o de 17/09 ainda não saiu.
 
 | Sessão | O que saiu |
 |---|---|
+| **17/09 (o calendário)** | O botão ▦ do campo de data abria o **seletor nativo do navegador**, cinza do Windows dentro de um app cyberpunk. Não era ajuste de CSS: aquele painel é pintado pelo sistema operacional e não aceita tema. Nasce o **`Calendario`**, desenhado no CSS do projeto — e ele mora no `body` em `position:fixed`, porque `.panel` usa `clip-path` e recortaria um popup absoluto pela metade. Os três `input[type=date]` escondidos morreram com o `showPicker` |
+| **15/09 (fatia 2 e a cor)** | O front encosta na API: **cadastro de categorias** na tela. E a **decisão 0 fechou** — cor de categoria é **identidade, não semântica**, e por isso são **duas paletas** separadas, escritas em `direcao-visual.md`. A exceção que o seed já praticava (`LAZER` rosa sem alertar nada) virou regra em vez de continuar sendo desvio |
 | **16/09 (o seletor de categoria)** | Bug do Abner: o combo de categoria do Extrato achatava a árvore e mostrava só as subcategorias, sem a raiz. Virou **dois combos** — categoria e subcategoria —, com o segundo aparecendo só quando a raiz deixa de ser escolhível. E ao conferir a regra apareceu a **segunda metade**: *"na hora de lançar, só aparecem as categorias compatíveis com o sentido"* **não estava implementada em lugar nenhum** — nem na tela, nem no servidor. Nasce `CATEGORIA_DE_OUTRO_SENTIDO` |
 | **16/09 (UX de conta e meio)** | **O meio perdeu o nome**: só o `CREDITO` tem, e nele o nome é a identidade do cartão. Nos outros o par **`(conta, tipo)` identifica**, e a tela lê "Nubank · Pix" · **os meios são escolhidos no cadastro da conta**, num formulário só — o cadastro de meio à parte morreu · **`TED` e `DESCONTO_EM_FOLHA`** entram, e `meio-de-pagamento.md` passa a nomear as **três famílias de tipo** · **`V005`** · `GET /contas` passa a servir o **catálogo de tipos**, e a tabela duplicada no JavaScript morreu |
 | **16/09 (fatia 3)** | **`V004`**: `conta`, `meio`, `lancamento` e **`vinculo` nascendo vazia**, numa migration só — as quatro se referenciam em ciclo, e a política de `conta` lê `vinculo`. **O `OR` do `ADR-0004` está valendo**, e o `WITH CHECK` **não** o leva · os três pacotes de domínio, com `AbrirContaUseCase` juntando conta + lançamento na `aplicacao` · Extrato **paginado por cursor** · `endpoints-contas`, `-meios-pagamento` e `-lancamentos` **saíram de stub** · `catalogo-tabelas` **quebrado em dois** por família · a tela de **Extrato** nasceu e o **Cadastro ganhou abas** (categorias · contas e meios) · **98 testes de unidade e 42 de integração**, verdes |
@@ -378,15 +380,9 @@ ordem está fixada no `lacunas-para-codigo.md`:
 
 ## Decisões em aberto
 
-**Da Fase 1: uma, e é de interface.**
+**Da Fase 1: uma, e é de conteúdo, não de regra.**
 
-0. **Cor de categoria × "cada cor tem um significado".** `direcao-visual.md` diz que rosa é
-   sempre alerta, verde é entrada, amarelo é ação — e que *"cor decorativa que não significa
-   nada é o começo do fim da legibilidade"*. Categoria colorida quebra isso por construção, e
-   **o seed já quebrava** (`LAZER` é rosa e não é alerta). As saídas: (a) o doc ganha um
-   parágrafo — *cor de categoria é identidade, não semântica, e por isso nunca aparece em tag
-   de estado*; (b) a categoria perde a cor. A divergência está anotada no `app.js`. Sobra
-   também a **poda** da lista de 11 raízes, que espera o corte do Abner.
+0. **A poda da lista de 11 raízes de categoria**, que espera o corte do Abner.
 
 **Pós-Fase 1 (compartilhamento — `B15` a `B20`):**
 
@@ -416,6 +412,11 @@ ordem está fixada no `lacunas-para-codigo.md`:
 16. **Integração contínua?** Não bloqueia nada — `./mvnw verify` já reprova localmente, e o
     push sai da máquina do Abner. A pergunta é se vale um GitHub Actions rodando a suíte a cada
     push, ou se isso é cerimônia para um desenvolvedor
+
+*Saiu desta lista em 15/09:* **cor de categoria × "cada cor tem um significado"** — a
+resposta foi (a), e está em `direcao-visual.md`: cor de categoria é **identidade**, a cor de
+estado é **semântica**, e são **duas paletas** que nunca se misturam. A exceção do seed (`LAZER`
+rosa sem alertar nada) deixou de ser exceção.
 
 *Saíram desta lista em 07/09:* **antecipar parcelas** e **parcelamento da própria fatura**
 (nunca foram dúvidas — são Fase 2, e agora estão sob *Fora desta fase* no `fatura-cartao.md`);
