@@ -80,7 +80,7 @@ esperando, senão ensina que o app está quebrado.
 | Tela | Responde |
 |---|---|
 | **Home** | Quanto tenho, quanto sobra, o que está pendente, como está a fatura |
-| **Extrato** | Todo movimento do ambiente, filtrável por conta e por pendência |
+| **Extrato** | Todo movimento do ambiente, filtrável por conta e por pendência. A linha abre o **detalhe** do lançamento (`docs/06-interface/extrato.md`) |
 | **Fatura** | O ciclo do cartão e as ações de fechar, pagar e abrir (só na última fechada) |
 | **Reserva** | Contas, aplicações e a diferença entre fluxo de caixa e patrimônio |
 | **Séries** | Os parcelamentos e as recorrências vivos, e o que muda ao alterar cada um |
@@ -118,9 +118,10 @@ app mostra **como as coisas estão**; o Diário é a única que mostra **o que a
 - **O evento de correção nomeia o lançamento pelo nome ANTIGO**, e depois mostra o de/para. É o
   nome que a pessoa reconhece: ela está procurando o que mexeu, não o que resultou.
 
-**O link de cada linha hoje leva à tela do alvo, não ao objeto** — um lançamento abre o
-Extrato, uma conta abre o Cadastro. Apontar para a linha exata exige o Extrato aceitar um
-lançamento no endereço, e isso ainda não existe. O evento de exclusão não leva link nenhum: o
+**O link de um lançamento leva ao lançamento**, e não mais à tela dele: `#/extrato/88` abre o
+Extrato com o detalhe aberto (`docs/06-interface/extrato.md`). **Conta, meio e categoria
+continuam levando à tela do alvo** — nenhum dos três tem detalhe próprio, e inventar um para
+fechar a simetria seria tela que ninguém pediu. O evento de exclusão não leva link nenhum: o
 alvo não existe mais, e é por isso que ele carrega a linha inteira nos `dados`.
 
 ## O seletor de categoria tem duas formas, e a diferença é o espaço

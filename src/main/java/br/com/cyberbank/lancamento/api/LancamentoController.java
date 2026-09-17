@@ -1,6 +1,7 @@
 package br.com.cyberbank.lancamento.api;
 
 import java.net.URI;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -10,7 +11,9 @@ import br.com.cyberbank.lancamento.aplicacao.EstornarLancamentoUseCase;
 import br.com.cyberbank.lancamento.aplicacao.ExcluirLancamentoUseCase;
 import br.com.cyberbank.lancamento.aplicacao.LancarUseCase;
 import br.com.cyberbank.lancamento.aplicacao.ListarExtratoUseCase;
+import br.com.cyberbank.lancamento.aplicacao.DetalheDoLancamento;
 import br.com.cyberbank.lancamento.aplicacao.TransferirUseCase;
+import br.com.cyberbank.lancamento.aplicacao.VerLancamentoUseCase;
 import br.com.cyberbank.lancamento.dominio.Lancamento;
 import br.com.cyberbank.lancamento.dominio.Pagina;
 import br.com.cyberbank.lancamento.dominio.Sentido;
@@ -51,6 +54,32 @@ public class LancamentoController {
             @JsonInclude(JsonInclude.Include.NON_NULL) String estabelecimento) {
     }
 
+    public record DetalheResponse(
+            Long id,
+            Sentido sentido,
+            long valor,
+            String descricao,
+            LocalDate dataEvento,
+            LocalDate dataEfeito,
+            Situacao situacao,
+            boolean doCiclo,
+            Instant criadoEm,
+            @JsonInclude(JsonInclude.Include.NON_NULL) String estabelecimento,
+            @JsonInclude(JsonInclude.Include.NON_NULL) DetalheDoLancamento.ContaDoLancamento conta,
+            @JsonInclude(JsonInclude.Include.NON_NULL) DetalheDoLancamento.MeioDoLancamento meio,
+            @JsonInclude(JsonInclude.Include.NON_NULL) DetalheDoLancamento.CategoriaDoLancamento categoria,
+            @JsonInclude(JsonInclude.Include.NON_NULL) AutorResponse autor,
+            @JsonInclude(JsonInclude.Include.NON_NULL) TransferenciaResponse transferencia,
+            @JsonInclude(JsonInclude.Include.NON_NULL) Long estornoDeId,
+            @JsonInclude(JsonInclude.Include.NON_NULL) Long estornadoPorId) {
+    }
+
+    public record AutorResponse(Long id, String nome) {
+    }
+
+    public record TransferenciaResponse(Long id, Long outroLadoId) {
+    }
+
     public record ExtratoResponse(List<LancamentoResponse> itens,
             @JsonInclude(JsonInclude.Include.NON_NULL) String proximo) {
     }
@@ -76,17 +105,20 @@ public class LancamentoController {
     private final EditarLancamentoUseCase editarLancamento;
     private final EstornarLancamentoUseCase estornarLancamento;
     private final ExcluirLancamentoUseCase excluirLancamento;
+    private final VerLancamentoUseCase verLancamento;
 
     public LancamentoController(ListarExtratoUseCase listarExtrato, LancarUseCase lancar,
             TransferirUseCase transferir, EditarLancamentoUseCase editarLancamento,
             EstornarLancamentoUseCase estornarLancamento,
-            ExcluirLancamentoUseCase excluirLancamento) {
+            ExcluirLancamentoUseCase excluirLancamento,
+            VerLancamentoUseCase verLancamento) {
         this.listarExtrato = listarExtrato;
         this.lancar = lancar;
         this.transferir = transferir;
         this.editarLancamento = editarLancamento;
         this.estornarLancamento = estornarLancamento;
         this.excluirLancamento = excluirLancamento;
+        this.verLancamento = verLancamento;
     }
 
     @GetMapping
@@ -101,6 +133,24 @@ public class LancamentoController {
         return new ExtratoResponse(
                 pagina.itens().stream().map(LancamentoController::paraResposta).toList(),
                 pagina.proximo() == null ? null : pagina.proximo().codificado());
+    }
+
+    @GetMapping("/{lancamentoId}")
+    public DetalheResponse detalhe(@PathVariable Long ambienteId,
+            @PathVariable Long lancamentoId) {
+
+        DetalheDoLancamento detalhe = verLancamento.executar(ambienteId, lancamentoId);
+        Lancamento l = detalhe.lancamento();
+
+        return new DetalheResponse(l.id(), l.sentido(), l.valorCentavos(), l.descricao(),
+                l.dataEvento(), l.dataEfeito(), l.situacao(), l.doCiclo(), l.criadoEm(),
+                l.estabelecimento(), detalhe.conta(), detalhe.meio(), detalhe.categoria(),
+                detalhe.autor() == null ? null
+                        : new AutorResponse(l.autorId(), detalhe.autor()),
+                l.transferenciaId() == null ? null
+                        : new TransferenciaResponse(l.transferenciaId(),
+                                detalhe.outroLadoDaTransferenciaId()),
+                l.estornoDeId(), detalhe.estornadoPorId());
     }
 
     @PostMapping

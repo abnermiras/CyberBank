@@ -7,15 +7,20 @@ const Extrato = {
   proximo: null,
   filtroConta: '',
   somentePendentes: false,
-  confirmando: null,
   ligado: false,
 
-  async montar() {
+  async montar(lancamentoId) {
     if (!Extrato.ligado) {
       Extrato.ligarOuvintes();
       Extrato.ligado = true;
     }
     await Extrato.recarregarTudo();
+
+    if (lancamentoId) {
+      await Detalhe.abrir(Number(lancamentoId));
+    } else {
+      Detalhe.esconder();
+    }
   },
 
   async recarregarTudo() {
@@ -74,17 +79,9 @@ const Extrato = {
       if (Extrato.proximo) await Extrato.recarregarLista(Extrato.proximo);
     });
 
-    document.getElementById('linhas').addEventListener('click', async (evento) => {
-      const botao = evento.target.closest('[data-acao]');
-      if (!botao) return;
-      const id = Number(botao.dataset.id);
-      const acoes = {
-        confirmar: () => { Extrato.confirmando = id; Extrato.desenhar(); },
-        cancelar: () => { Extrato.confirmando = null; Extrato.desenhar(); },
-        excluir: () => Extrato.excluir(id),
-        estornar: () => Extrato.estornar(id),
-      };
-      await acoes[botao.dataset.acao]();
+    document.getElementById('linhas').addEventListener('click', (evento) => {
+      const linha = evento.target.closest('[data-lancamento]');
+      if (linha) window.location.hash = `#/extrato/${linha.dataset.lancamento}`;
     });
   },
 
@@ -108,11 +105,11 @@ const Extrato = {
   linha(l) {
     const conta = Extrato.contas.find((c) => c.id === l.contaId);
     const categoria = Extrato.nomeDaCategoria(l.categoriaId);
-    const confirmando = Extrato.confirmando === l.id;
     const marca = { PREVISTO: 'prev', PROVISIONADO: 'prov', REALIZADO: 'real' }[l.situacao];
 
     return `
-      <article class="linha${l.doCiclo ? ' do-ciclo' : ''}">
+      <article class="linha abre${l.doCiclo ? ' do-ciclo' : ''}" data-lancamento="${l.id}"
+               role="button" tabindex="0" aria-label="Abrir ${Formato.texto(l.descricao)}">
         <div class="linha-dia">
           <span class="d">${Formato.dia(l.dataEvento)}</span>
           ${l.dataEfeito !== l.dataEvento
@@ -137,15 +134,6 @@ const Extrato = {
           ${l.sentido === 'SAIDA' ? '−' : '+'}${Formato.dinheiro(l.valor).replace('−', '')}
         </div>
 
-        <div class="linha-acoes">
-          ${l.doCiclo ? '<span class="tele">DO CICLO</span>' : confirmando ? `
-            <span class="tele" style="color:var(--pink)">${Extrato.impacto(l)}</span>
-            <button class="btn sm danger" type="button" data-acao="excluir" data-id="${l.id}">Confirmar</button>
-            <button class="btn sm ghost" type="button" data-acao="cancelar" data-id="${l.id}">Cancelar</button>`
-          : `
-            ${l.estornoDeId ? '' : `<button class="btn sm ghost" type="button" data-acao="estornar" data-id="${l.id}">Estornar</button>`}
-            <button class="btn sm danger" type="button" data-acao="confirmar" data-id="${l.id}">Excluir</button>`}
-        </div>
       </article>`;
   },
 
@@ -160,6 +148,7 @@ const Extrato = {
 
   impacto(l) {
     const conta = Extrato.contas.find((c) => c.id === l.contaId);
+
     const depois = conta
       ? conta.saldoRealizadoCentavos - (l.situacao === 'PREVISTO' ? 0 : (l.sentido === 'SAIDA' ? -l.valor : l.valor))
       : null;
@@ -167,28 +156,6 @@ const Extrato = {
     return depois == null
       ? `EXCLUIR APAGA ESTE LANÇAMENTO${par}.`
       : `SALDO DE ${Formato.texto(conta.nome)} VAI PARA ${Formato.dinheiro(depois)}${par}.`;
-  },
-
-  async excluir(id) {
-    await Extrato.tentar(() => API.excluirLancamento(Contexto.ambiente.id, id),
-      () => { Extrato.confirmando = null; });
-  },
-
-  async estornar(id) {
-    await Extrato.tentar(() => API.estornarLancamento(Contexto.ambiente.id, id,
-      { dataEvento: Formato.hoje() }));
-  },
-
-  async tentar(acao, aoDarCerto) {
-    try {
-      await acao();
-      Extrato.avisar(null);
-      if (aoDarCerto) aoDarCerto();
-    } catch (erro) {
-      if (tratarFalha(erro)) return;
-      Extrato.avisar(erro.paraGente());
-    }
-    await Extrato.recarregarTudo();
   },
 
   avisar(mensagem) {

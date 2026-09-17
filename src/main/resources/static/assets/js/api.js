@@ -136,6 +136,9 @@ const API = {
   editarLancamento: (ambienteId, id, corpo) =>
     API.patch(API.doAmbiente(ambienteId, `/lancamentos/${id}`), corpo),
 
+  verLancamento: (ambienteId, id) =>
+    API.get(API.doAmbiente(ambienteId, `/lancamentos/${id}`)),
+
   excluirLancamento: (ambienteId, id) =>
     API.remover(API.doAmbiente(ambienteId, `/lancamentos/${id}`)),
 
@@ -143,4 +146,7 @@ const API = {
     API.post(API.doAmbiente(ambienteId, `/lancamentos/${id}/estorno`), corpo),
 
   diario: (ambienteId, dia) => API.get(API.doAmbiente(ambienteId, `/eventos?dia=${dia}`)),
+
+  historicoDoAlvo: (ambienteId, tipo, alvoId) =>
+    API.get(API.doAmbiente(ambienteId, `/eventos?alvo=${tipo}&alvoId=${alvoId}`)),
 };

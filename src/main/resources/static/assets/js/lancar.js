@@ -37,7 +37,8 @@ const Lancar = {
 
   aberto() {
     return !document.getElementById('qa').hidden
-      || !document.getElementById('modalCompleto').hidden;
+      || !document.getElementById('modalCompleto').hidden
+      || !document.getElementById('modalDetalhe').hidden;
   },
 
   async carregar() {

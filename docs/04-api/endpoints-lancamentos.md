@@ -60,6 +60,55 @@ chave de ordenação, e isso é detalhe do servidor.
 | `doCiclo` | `true` no que o sistema criou sozinho. É o que a tela usa para não oferecer o botão de excluir |
 | `dataEvento`, `dataEfeito` | Data de domínio: `"AAAA-MM-DD"`, dia local, **sem fuso** |
 
+## `GET /api/v1/ambientes/{ambienteId}/lancamentos/{lancamentoId}`
+
+O detalhe de um lançamento só — **com os nomes resolvidos**, ao contrário do extrato, que
+devolve id cru. A razão é que esta rota é a que a tela de detalhe abre **por endereço**, vinda
+do Diário, sem ter carregado conta nem categoria nenhuma
+(`docs/06-interface/extrato.md`).
+
+O `POST` já devolvia `Location` apontando para cá desde a fatia 3. Agora a URL responde.
+
+```
+GET /api/v1/ambientes/1/lancamentos/88
+
+200 OK
+{
+  "id": 88, "sentido": "SAIDA", "valor": 15450, "descricao": "Gasolina",
+  "dataEvento": "2026-09-16", "dataEfeito": "2026-09-16",
+  "situacao": "REALIZADO", "doCiclo": false,
+  "criadoEm": "2026-09-16T17:32:08Z",
+  "estabelecimento": "POSTO IPIRANGA",
+  "conta":     { "id": 3, "nome": "Nubank", "tipo": "CORRENTE" },
+  "meio":      { "id": 7, "tipo": "PIX", "nome": null },
+  "categoria": { "id": 22, "nome": "Gasolina",
+                 "raiz": { "id": 19, "nome": "Transporte", "cor": "ARDOSIA" } },
+  "autor":     { "id": 1, "nome": "Abner" },
+  "estornadoPorId": 92
+}
+```
+
+| Campo | Nota |
+|---|---|
+| `criadoEm` | **Instante**, em UTC — a hora em que o lançamento foi cadastrado. É o único campo com hora, e o extrato não o devolve |
+| `conta`, `meio`, `categoria`, `autor` | Resolvidos aqui, e **só aqui**. O extrato continua com id cru: ele pagina cinquenta linhas, e cinquenta junções para mostrar o que a tela já tem em memória seria caro à toa |
+| `meio.nome` | `null` fora do crédito — **só o cartão tem nome** (`docs/02-dominio/meio-de-pagamento.md`). O rótulo `Nubank · Pix` é montado pela tela, com a conta que já veio ao lado |
+| `categoria.raiz` | Sempre presente quando há categoria. Numa raiz, `raiz` é ela mesma — assim a tela não precisa de dois caminhos |
+| `transferencia` | `{ "id": ..., "outroLadoId": ... }`. **Só em transferência**, e nela `meio` não vem: ninguém pagou nada |
+| `estornoDeId` | Este lançamento **é** o estorno de outro |
+| `estornadoPorId` | Este lançamento **foi** estornado. Não existe coluna para isso: é a consulta inversa, e é o que evita o usuário achar que o estorno sumiu |
+
+Campo que não se aplica **não vem** (`04-api/convencoes.md`).
+
+| Erro | Quando |
+|---|---|
+| `NAO_AUTENTICADO` (401) | Sem sessão |
+| `NAO_ENCONTRADO` (404) | Lançamento inexistente **ou de outro ambiente** — a mesma resposta |
+
+**O histórico não vem aqui.** *O que já aconteceu com este lançamento* é pergunta de evento, e
+o dono dela é `docs/04-api/endpoints-eventos.md` — repetir o contrato de evento dentro do
+lançamento seria a segunda cópia que o `CONVENTIONS` proíbe.
+
 ## `POST /api/v1/ambientes/{ambienteId}/lancamentos`
 
 Gasto ou receita real. **A conta não vem no corpo**: ela sai do meio.

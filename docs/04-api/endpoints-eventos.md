@@ -36,12 +36,12 @@ GET /api/v1/ambientes/1/eventos?dia=2026-09-17
 {
   "dia": "2026-09-17",
   "itens": [
-    { "id": 31, "instante": "2026-09-17T12:41:08Z", "origem": "USUARIO",
+    { "id": 31, "dia": "2026-09-17", "instante": "2026-09-17T12:41:08Z", "origem": "USUARIO",
       "autorId": 1, "autor": "Abner", "tipo": "LANCAMENTO_CRIADO",
       "alvo": { "tipo": "LANCAMENTO", "id": 88 },
       "dados": { "descricao": "Feira", "valor": 30000, "sentido": "SAIDA",
                  "contaId": 3, "situacao": "REALIZADO" } },
-    { "id": 30, "instante": "2026-09-17T03:05:11Z", "origem": "SISTEMA",
+    { "id": 30, "dia": "2026-09-17", "instante": "2026-09-17T03:05:11Z", "origem": "SISTEMA",
       "autorId": 1, "autor": "Abner", "tipo": "LANCAMENTO_REALIZADO",
       "alvo": { "tipo": "LANCAMENTO", "id": 87 },
       "dados": { "descricao": "Conta de luz", "valor": 19900, "sentido": "SAIDA",
@@ -53,6 +53,7 @@ GET /api/v1/ambientes/1/eventos?dia=2026-09-17
 | Campo | Nota |
 |---|---|
 | `dia` | Ecoado na resposta. A tela pediu um dia e precisa saber **qual** veio, porque o padrão é hoje e "hoje" muda |
+| `dia` (no item) | **Data de domínio.** No Diário ele repete o do envelope; no histórico de um alvo cada item é de um dia diferente, e é ele que a tela mostra. **Nunca se deriva do `instante`** — um é dia local, o outro é UTC (regra 5 do `CLAUDE.md`) |
 | `instante` | UTC, o único lugar com hora. É por ele que a lista ordena |
 | `origem` | `SISTEMA` ou `USUARIO`. A tela separa as duas em seções, e a do sistema vem primeiro |
 | `autorId` · `autor` | Quem fez. **Sempre presentes**, inclusive no evento de sistema — nele o autor é o dono do ambiente. `autor` é o nome, que é o que a tela mostra |
@@ -77,11 +78,44 @@ nesse dia"*, e amanhã não é um dia em que nada aconteceu — é um dia que n�
 está por vir é o **previsto**, e ele se pergunta ao Extrato. Responder vazio confundiria as
 duas perguntas em silêncio, que é o erro que o `evento.md` nomeia.
 
+## `GET .../eventos?alvo=LANCAMENTO&alvoId=88` — o histórico de um alvo
+
+A mesma rota, outro filtro: **o que já aconteceu com aquele objeto**, do começo ao fim. É o
+*"sempre com histórico"* que o `docs/02-dominio/lancamento.md` promete, e quem o entrega é o
+evento — não uma segunda estrutura.
+
+```
+GET /api/v1/ambientes/1/eventos?alvo=LANCAMENTO&alvoId=88
+
+200 OK
+{
+  "alvo": { "tipo": "LANCAMENTO", "id": 88 },
+  "itens": [
+    { "id": 12, "dia": "2026-09-16", "instante": "2026-09-16T17:32:08Z", "origem": "USUARIO", "autorId": 1,
+      "autor": "Abner", "tipo": "LANCAMENTO_CRIADO", "alvo": { "tipo": "LANCAMENTO", "id": 88 },
+      "dados": { "descricao": "Gasolina", "valor": 12000, "sentido": "SAIDA" } },
+    { "id": 19, "dia": "2026-09-16", "instante": "2026-09-16T18:04:55Z", "origem": "USUARIO", "autorId": 1,
+      "autor": "Abner", "tipo": "LANCAMENTO_EDITADO", "alvo": { "tipo": "LANCAMENTO", "id": 88 },
+      "dados": { "valorDe": 12000, "valorPara": 15450 } }
+  ]
+}
+```
+
+| Regra | Por quê |
+|---|---|
+| **Mais antigo primeiro** — o contrário do Diário | Histórico se lê do começo: o que a linha era, e o que fizeram com ela. O Diário é notícia, e notícia se lê de cima |
+| `alvo` e `alvoId` **andam juntos** | Um sem o outro é `VALIDACAO`. Meio filtro devolveria o ambiente inteiro sem ninguém pedir |
+| `alvo` **não se mistura com `dia`** | São duas perguntas; responder as duas esconderia qual venceu |
+| **Não é paginado**, como o Diário | A pergunta fecha: um lançamento tem um punhado de eventos, não milhares |
+| **O alvo não precisa existir** | `LANCAMENTO_EXCLUIDO` aponta para um id que já não existe, e é justamente aí que o histórico vale mais: o `404` do lançamento e o histórico dele convivem |
+
+| Erro | Quando |
+|---|---|
+| `VALIDACAO` (422) | `alvo` sem `alvoId`, `alvoId` sem `alvo`, `alvo` junto de `dia`, ou tipo de alvo que não existe |
+
 ## O que ainda não existe
 
 - **Filtro por tipo ou por origem.** A tela mostra o dia inteiro e separa na leitura; filtrar
   antes de existir alguém que precise disso é inventar contrato.
-- **Os eventos de um alvo** (*"o histórico deste lançamento"*), que o índice `ix_evento_alvo` já
-  sustenta e nenhuma tela ainda pede.
 - **Um intervalo de dias.** A pergunta do Diário é sobre um dia; período é relatório, e o dono
   é outro (`docs/04-api/endpoints-relatorios.md`).

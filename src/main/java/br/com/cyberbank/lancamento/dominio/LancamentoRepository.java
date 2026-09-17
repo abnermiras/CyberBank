@@ -15,6 +15,8 @@ public interface LancamentoRepository {
 
     List<Lancamento> listarDaTransferencia(Long transferenciaId, Long ambienteId);
 
+    Optional<Lancamento> buscarEstornoDe(Long lancamentoId, Long ambienteId);
+
     List<Lancamento> listarPrevistosVencidos(Long ambienteId, LocalDate ate);
 
     Pagina listarDoAmbiente(Long ambienteId, FiltroDeExtrato filtro, Cursor apos, int limite);

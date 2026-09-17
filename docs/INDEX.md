@@ -119,6 +119,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | [`bot-conversas.md`](06-interface/bot-conversas.md) | roteiro das conversas: texto exato, opcoes e caminhos alternativos | stub |
 | [`dashboard.md`](06-interface/dashboard.md) | o que a Home mostra, em que ordem e por que — o cockpit de decidir | ativo |
 | [`direcao-visual.md`](06-interface/direcao-visual.md) | a linguagem visual do Cyberbank: paleta, tipografia, forma e o limite do efeito | rascunho |
+| [`extrato.md`](06-interface/extrato.md) | a lista de movimento, a linha resumida e o modal que abre um lancamento inteiro | ativo |
 | [`navegacao.md`](06-interface/navegacao.md) | estrutura de navegacao, onde o ambiente vive na tela e como se lanca | rascunho |
 | [`perfil.md`](06-interface/perfil.md) | a tela do proprio usuario: onde se entra, as secoes, o seletor de avatar e os espacos reservados | ativo |
 
@@ -146,5 +147,5 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 
 ---
 
-**81 documentos · 16 ainda em stub.**
+**82 documentos · 16 ainda em stub.**
 Stub = conteudo inexistente: pergunte, nao deduza.

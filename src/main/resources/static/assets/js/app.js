@@ -63,7 +63,7 @@ const ABA_DO_CADASTRO = { categorias: () => Cadastro.montar(), contas: () => Con
 
 const AO_ENTRAR = {
   home: () => Home.montar(),
-  extrato: () => Extrato.montar(),
+  extrato: (lancamentoId) => Extrato.montar(lancamentoId),
   diario: () => Diario.montar(),
   cadastro: () => abrirAba(document.querySelector('#abasCadastro .aba.on').dataset.aba),
   perfil: () => Perfil.montar(),
@@ -79,7 +79,7 @@ function abrirAba(nome) {
   return ABA_DO_CADASTRO[nome]();
 }
 
-function irPara(id) {
+function irPara(id, argumento) {
   const destino = TELAS.some((t) => t.id === id) ? id : 'home';
 
   TELAS.forEach((t) => {
@@ -90,10 +90,12 @@ function irPara(id) {
 
   document.getElementById('avatar').classList.toggle('on', destino === 'perfil');
 
+  if (destino !== 'extrato') Detalhe.esconder();
+
   document.getElementById('main').scrollTop = 0;
   document.title = `CYBERBANK // ${destino.toUpperCase()}`;
 
-  if (AO_ENTRAR[destino]) AO_ENTRAR[destino]();
+  if (AO_ENTRAR[destino]) AO_ENTRAR[destino](argumento);
 }
 
 async function recarregarTelaAtual() {
@@ -102,7 +104,8 @@ async function recarregarTelaAtual() {
 }
 
 function trocarPeloHash() {
-  irPara((window.location.hash || '').replace(/^#\/?/, ''));
+  const [tela, argumento] = (window.location.hash || '').replace(/^#\/?/, '').split('/');
+  irPara(tela, argumento);
 }
 
 function atualizarIdentidade(usuario) {

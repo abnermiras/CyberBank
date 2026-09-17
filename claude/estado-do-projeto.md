@@ -15,12 +15,13 @@ patrimônio, os dois conferidos contra Postgres real.
 
 **O esqueleto está commitado e no GitHub:** `4be103d` na branch `esqueleto-do-projeto`,
 mergeado em `main` por `9e015a2`. O bloqueio do push acabou.
-`./mvnw verify` verde — **137 testes de unidade e 69 de integração** —, check de docs em 0
+`./mvnw verify` verde — **137 testes de unidade e 76 de integração** —, check de docs em 0
 erros e 0 avisos. **`main` está à frente de `origin/main`**, do `51edd8e` para cá: o push é
 comando entregue ao Abner, e o de 17/09 ainda não saiu.
 
 | Sessão | O que saiu |
 |---|---|
+| **17/09 (o detalhe do lançamento)** | A linha do Extrato **abre**: modal com o lançamento inteiro, e as ações saem da linha para ele · nasce `GET /lancamentos/{id}`, o **único lugar com os nomes resolvidos** — a URL que o `POST` já devolvia no `Location` desde a fatia 3 e não respondia · **`?alvo=` nos eventos**: o `listarDoAlvo` estava implementado no repositório, com índice, e **sem um único chamador** desde 17/09 — é o *"sempre com histórico"* do `lancamento.md` aparecendo pela primeira vez na tela · **`#/extrato/88`**: o roteiro do front passa a entender argumento, e o *abrir* do Diário leva ao **objeto**, não à tela dele · o item do evento passa a carregar o `dia`, porque no histórico cada um é de um dia diferente e **dia não se deriva de instante** · dois achados do navegador: o modal **não fechava ao trocar de tela**, e o de/para sumia quando a correção **preenchia** um campo vazio (`categoriaIdPara` sem `De`) |
 | **17/09 (a Home vira cockpit)** | **Os dois últimos stubs de tela e de API saíram**: `06-interface/dashboard.md` e `04-api/endpoints-relatorios.md` · nasce `GET /relatorios/resumo`, **um endpoint só** — duas metades da tela discordando é pior que a tela demorar · a regra do gasto sai do protótipo e vira domínio testável (`RelatorioDoMes`): **quem manda é o sentido da categoria**, categoria de sistema fora, só conta de fluxo, agrupa pela raiz — e **categoria que zerou no mês some da lista** · a Home ganha **gasto por categoria com barra**, **pendências que se resolvem ali mesmo**, o bloco **reservado da fatura**, **o que vem por aí** com `T−n` e os totais a pagar/a receber, e **o mês em números** · a **sobra até o fim do mês deixou de ser um traço** e mostra a conta que a produziu · achado: o protótipo somava receita por `entraEmCaixa` e gasto por `entraNoFluxoDeCaixa` — aqui os dois usam **fluxo de caixa**, senão o benefício entraria num lado só |
 | **17/09 (o perfil, de pé)** | Três commits, na ordem combinada. **O `ADR-0014` saiu do papel**: `usuario/` é pacote, e `CriarAmbientePessoalUseCase` passa a ser o encontro dos dois assuntos na aplicação · **`V007`**, `Avatar` com os dez nomes fechados, o sorteio recebendo a aleatoriedade de fora, e o backfill dando avatar a quem já existia · `GET`/`PATCH /usuarios/atual`, `PUT`/`DELETE /usuarios/atual/telegram` e `PUT /usuarios/atual/senha` · **o Telegram virou sub-recurso no meio do caminho**: o doc dizia campo do `PATCH` com `null` apagando, e o `PerfilIT` provou que ausente e `null` chegam iguais em JSON — o preço seria o vínculo sumir ao trocar só o nome · a **tela** nasce com os dez SVGs, os três blocos reservados e a porta no avatar do canto superior direito · **129 testes de unidade e 65 de integração**, e o navegador dirigido em 13 passos |
 | **17/09 (o perfil, no papel)** | **Sessão só de documento, sem uma linha de código.** O usuário vira **assunto** (`ADR-0014`): `usuario.md` nasce, e com ele o pacote `usuario/` para onde `Usuario`, `Sessao`, `Senhas` e o login saem de `ambiente/` — o `ADR-0008` derivava o endereço de um doc que não possuía nem avatar nem Telegram · nasce a **tela de Perfil** (`06-interface/perfil.md`), com a porta no avatar do canto superior direito, e os blocos de **convite** e de **sessões** como espaço reservado que diz o que espera · **dez avatares monocromáticos**, e a razão saiu da regra que já existia: a paleta de identidade tem oito tons e o nono está proibido, então quem distingue é a **forma** · o **chat id do Telegram é declarado pela pessoa, sem pareamento** — e o doc nomeia o preço, que é poder mandar dado para o chat errado · `endpoints-usuario.md` leva cadastro, login e logout embora de `endpoints-ambientes.md` |
@@ -387,9 +388,9 @@ ordem está fixada no `lacunas-para-codigo.md`:
     reservados na tela, dizendo o que esperam: **convites recebidos**, **convidar alguém** e
     **sessões ativas** — os três entram com o convite. **Renomear categoria** na tela continua
     aberto.
-13. ~~**A tela do Diário**~~ ✅ **Fechada em 17/09**, antecipada da Fase 2. Falta nela o
-    **link para o objeto exato** — hoje a linha leva à tela do alvo, e apontar para o
-    lançamento exige o Extrato aceitar um id no endereço.
+13. ~~**A tela do Diário**~~ ✅ **Fechada em 17/09**, antecipada da Fase 2 — e o **link para o
+    objeto exato** fechou junto no fim do dia: `#/extrato/{id}` abre o detalhe. Conta, meio e
+    categoria continuam levando à tela do alvo, porque nenhum dos três tem detalhe próprio.
 14. ~~**Lançar fora do Extrato**~~ ✅ **Fechado em 17/09.** O quick-add, a tecla `N` e o
     formulário completo em modal. A **aba CRÉDITO existe desabilitada** e entra com o cartão.
 15. **O quick-add lança sempre com a data de hoje**, sem campo de data — é o que o faz sumir
@@ -447,10 +448,10 @@ a razão de ela ter sumido vale mais que a pergunta.)*
 
 ## Estado da documentação
 
-**81 documentos**, 16 stubs. Stub = conteúdo inexistente: **perguntar, nunca deduzir.**
+**82 documentos**, 16 stubs. Stub = conteúdo inexistente: **perguntar, nunca deduzir.**
 
 Escritos: `CLAUDE.md`, `CONVENTIONS.md`, os 6 fluxos, todo o `00-produto/` menos `jornadas`,
-**`06-interface/dashboard`** (a Home),
+**`06-interface/dashboard`** (a Home) e **`06-interface/extrato`** (a lista e o detalhe),
 `02-dominio/` inteiro menos `orcamento`, `regras-categorizacao` e `importacao-conciliacao`,
 `06-interface/` (navegacao, direcao-visual), **`01-arquitetura/seguranca`**,
 **`04-api/` inteiro**, **`03-dados/` inteiro** (o
@@ -543,6 +544,9 @@ Extrato funcionando abre o app, não ele.
 ## Lacunas conhecidas
 
 - **Sem doc dono** para `Meta` (Fase 3)
+- **O detalhe do lançamento não edita campo nenhum** — só resolve a pendência. O `PATCH`
+  existe e é testado; o que falta é o **aviso de impacto** que o `lancamento.md` exige para
+  ação retroativa, e ele é fatia própria
 - **O Diário estoura a largura em 380px**: o botão `Hoje` do seletor de dia sai da tela. Achado ao conferir a Home no navegador, e não corrigido junto de propósito — bug tem fluxo próprio
 - **`docs.py` ainda não tem o teto por rota** que o `ADR-0008` decidiu, nem conta o código
 - **`deploy.md`, `runbook.md`, `backup-restore.md` e `observabilidade.md` seguem stub** — são

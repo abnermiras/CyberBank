@@ -275,6 +275,10 @@ saldo — `valor`, `sentido`, `conta`, `dataEfeito` e `situacao`.
 O motivo do histórico é o ambiente compartilhado: sem ele, "esse valor mudou" vira
 discussão entre duas pessoas sem resposta.
 
+**Quem guarda é o evento** (`docs/02-dominio/evento.md`), e quem mostra é o **detalhe do
+lançamento** (`docs/06-interface/extrato.md`): o histórico não é uma segunda estrutura, é a
+mesma lida por alvo.
+
 **Nenhum estado de fatura trava a edição.** Lançamento de fatura fechada se edita como
 qualquer outro, e o campo `fatura` aponta para qualquer fatura do cartão, aberta ou não.
 Fatura fechada não congela nada — o sistema não tem a palavra final sobre o dinheiro do
