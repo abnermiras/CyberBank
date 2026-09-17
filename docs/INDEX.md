@@ -64,7 +64,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | [`categoria.md`](02-dominio/categoria.md) | a arvore de categorias, o sentido, e o que acontece ao renomear, inativar ou excluir | rascunho |
 | [`compartilhamento.md`](02-dominio/compartilhamento.md) | o vinculo que da uso de uma conta ou cartao a outro ambiente, o mascaramento de categoria e as partes da fatura | ativo |
 | [`conta.md`](02-dominio/conta.md) | tipos de conta, saldo, a separacao entre fluxo de caixa e patrimonio, e o ciclo de vida | rascunho |
-| [`evento.md`](02-dominio/evento.md) | o registro do que aconteceu num dia — o que o sistema fez sozinho e o que a pessoa fez | rascunho |
+| [`evento.md`](02-dominio/evento.md) | o registro do que aconteceu num dia — o que o sistema fez sozinho e o que a pessoa fez | ativo |
 | [`fatura-cartao.md`](02-dominio/fatura-cartao.md) | ciclo e datas da fatura, estados, a que fatura um lancamento pertence, fechamento e abertura | ativo |
 | [`fatura-pagamento.md`](02-dominio/fatura-pagamento.md) | como a fatura e paga, a rolagem do que venceu sem ser pago e a correcao de fatura ja paga | ativo |
 | [`importacao-conciliacao.md`](02-dominio/importacao-conciliacao.md) | como fontes externas viram lancamentos sem duplicar | stub |
@@ -91,6 +91,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | [`endpoints-ambientes.md`](04-api/endpoints-ambientes.md) | cadastro, login, logout e a lista de ambientes do usuario — rota, payload e erros | ativo |
 | [`endpoints-categorias.md`](04-api/endpoints-categorias.md) | contrato dos endpoints de categoria e regras de categorizacao | ativo |
 | [`endpoints-contas.md`](04-api/endpoints-contas.md) | contrato dos endpoints de conta e saldo | ativo |
+| [`endpoints-eventos.md`](04-api/endpoints-eventos.md) | contrato do Diario — os eventos de um dia de um ambiente | ativo |
 | [`endpoints-lancamentos.md`](04-api/endpoints-lancamentos.md) | contrato dos endpoints de lancamento, extrato, transferencia e estorno | ativo |
 | [`endpoints-meios-pagamento.md`](04-api/endpoints-meios-pagamento.md) | contrato dos endpoints de meio de pagamento | ativo |
 | [`endpoints-relatorios.md`](04-api/endpoints-relatorios.md) | contrato dos endpoints de agregacao e relatorio | stub |
@@ -141,5 +142,5 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 
 ---
 
-**76 documentos · 18 ainda em stub.**
+**77 documentos · 18 ainda em stub.**
 Stub = conteudo inexistente: pergunte, nao deduza.

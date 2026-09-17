@@ -218,6 +218,28 @@ details.painel-sistema:not([open]) summary .abrir::after{content:' ▼'}
   color:var(--cyan);font-size:15px;line-height:1;cursor:pointer;clip-path:var(--chamfer-sm)}
 .grid-data:hover{background:rgba(0,240,255,.12);border-color:var(--cyan)}
 
+.seletor-dia{display:flex;align-items:stretch;gap:6px}
+.seletor-dia .campo-data{width:150px}
+.seletor-dia .btn{padding:6px 10px;line-height:1}
+.seletor-dia .btn:disabled{opacity:.3;cursor:default}
+.seletor-dia .btn:disabled:hover{background:transparent;border-color:var(--line)}
+
+.diario-secao{margin-top:16px}
+.diario-secao h4{font:10px var(--mono);letter-spacing:.16em;color:var(--dim);
+  padding-bottom:7px;border-bottom:1px solid var(--line);margin-bottom:4px}
+
+.evento{display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:start;
+  padding:11px 2px;border-bottom:1px solid var(--line)}
+.evento:last-child{border-bottom:0}
+.evento-hora{font:11px var(--mono);color:var(--dim);padding-top:2px}
+.evento-frase{line-height:1.4;margin-bottom:5px}
+.evento-frase b{font-weight:600;color:var(--ink)}
+.evento-frase s{color:var(--dim);text-decoration-color:var(--dim)}
+.evento-valor{font:13px var(--mono);white-space:nowrap;padding-top:1px}
+.evento.do-sistema{border-left:2px solid var(--line-hot);padding-left:11px}
+.evento.do-sistema .evento-frase{color:var(--ink)}
+.evento a.chip-mais{text-decoration:none;line-height:1.5}
+
 .calendario{position:fixed;z-index:120;width:252px;padding:12px;
   background:var(--panel-2);border:1px solid var(--cyan);clip-path:var(--chamfer-sm);
   box-shadow:0 0 0 1px rgba(0,240,255,.08),0 0 30px rgba(0,240,255,.14),0 22px 60px rgba(0,0,0,.72)}
