@@ -51,8 +51,8 @@ public class AutenticarUsuarioUseCase {
     @Transactional
     public SessaoAberta executar(String email, String senha, String origem) {
         Instant agora = relogio.instant();
-        String chaveDaConta = "conta:" + Usuario.normalizarEmail(email);
-        String chaveDaOrigem = "origem:" + origem;
+        String chaveDaConta = PoliticaDeLogin.chaveDaConta(Usuario.normalizarEmail(email));
+        String chaveDaOrigem = PoliticaDeLogin.chaveDaOrigem(origem);
 
         recusarSeBloqueado(chaveDaConta, agora);
         recusarSeBloqueado(chaveDaOrigem, agora);

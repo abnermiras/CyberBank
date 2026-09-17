@@ -14,6 +14,7 @@ import java.util.Optional;
 
 import br.com.cyberbank.comum.erro.CodigoDeErro;
 import br.com.cyberbank.comum.erro.RegraDeDominioException;
+import br.com.cyberbank.usuario.dominio.Avatar;
 import br.com.cyberbank.usuario.dominio.IdentificadoresDeSessao;
 import br.com.cyberbank.usuario.dominio.PoliticaDeLogin;
 import br.com.cyberbank.usuario.dominio.RegistroDeTentativas;
@@ -58,7 +59,7 @@ class AutenticarUsuarioUseCaseTest {
 
     @Test
     void senha_errada_de_usuario_existente_da_o_mesmo_codigo() {
-        var autenticar = useCase(new Usuario(1L, "ana@exemplo.com", "Ana", "hash-certo", AGORA));
+        var autenticar = useCase(new Usuario(1L, "ana@exemplo.com", "Ana", "hash-certo", Avatar.GATO, null, AGORA));
 
         assertThatThrownBy(() -> autenticar.executar("ana@exemplo.com", "errada", ORIGEM))
                 .isInstanceOf(RegraDeDominioException.class)
@@ -82,7 +83,7 @@ class AutenticarUsuarioUseCaseTest {
 
     @Test
     void conta_bloqueada_nao_chega_a_conferir_senha_nenhuma() {
-        var autenticar = useCase(new Usuario(1L, "ana@exemplo.com", "Ana", "hash-certo", AGORA));
+        var autenticar = useCase(new Usuario(1L, "ana@exemplo.com", "Ana", "hash-certo", Avatar.GATO, null, AGORA));
         tentativas.put("conta:ana@exemplo.com",
                 new Tentativas(PoliticaDeLogin.FALHAS_ATE_BLOQUEIO, AGORA));
 
@@ -96,7 +97,7 @@ class AutenticarUsuarioUseCaseTest {
 
     @Test
     void login_certo_abre_sessao_e_limpa_as_duas_contagens() {
-        var autenticar = useCase(new Usuario(1L, "ana@exemplo.com", "Ana", "hash-certo", AGORA));
+        var autenticar = useCase(new Usuario(1L, "ana@exemplo.com", "Ana", "hash-certo", Avatar.GATO, null, AGORA));
         tentativas.put("conta:ana@exemplo.com", new Tentativas(1, AGORA));
         tentativas.put("origem:" + ORIGEM, new Tentativas(1, AGORA));
 
@@ -122,6 +123,11 @@ class AutenticarUsuarioUseCaseTest {
             @Override
             public Optional<Usuario> buscarPorId(Long id) {
                 return Optional.ofNullable(ana);
+            }
+
+            @Override
+            public Optional<Usuario> buscarPorTelegramChatId(Long telegramChatId) {
+                return Optional.empty();
             }
         };
     }

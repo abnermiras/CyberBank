@@ -17,7 +17,9 @@ forma é de lá; a regra é de `docs/02-dominio/usuario.md` e `docs/01-arquitetu
 | `POST /api/v1/sessoes` | Login | não exige |
 | `DELETE /api/v1/sessoes/atual` | Logout | idempotente |
 | `GET /api/v1/usuarios/atual` | O próprio perfil | exige |
-| `PATCH /api/v1/usuarios/atual` | Nome, avatar e chat do Telegram | exige |
+| `PATCH /api/v1/usuarios/atual` | Nome e avatar | exige |
+| `PUT /api/v1/usuarios/atual/telegram` | Vincula o chat do Telegram | exige |
+| `DELETE /api/v1/usuarios/atual/telegram` | Desfaz o vínculo | exige |
 | `PUT /api/v1/usuarios/atual/senha` | Troca de senha | exige |
 
 Nenhuma tem verbo no caminho: entrar é **criar uma sessão**, sair é **apagá-la**, e trocar a
@@ -106,26 +108,44 @@ do catálogo de tipos em `GET /contas`. A tela é dona do **desenho** de cada no
 |---|---|
 | `NAO_AUTENTICADO` (401) | Sem cookie, cookie inválido, ou sessão expirada |
 
-## `PATCH /api/v1/usuarios/atual` — nome, avatar e Telegram
+## `PATCH /api/v1/usuarios/atual` — nome e avatar
 
 ```
 PATCH /api/v1/usuarios/atual
-{ "nome": "Ana Miras", "avatar": "DRONE", "telegramChatId": 184712993 }
+{ "nome": "Ana Miras", "avatar": "DRONE" }
 
 200 OK
-{ "id": 1, "nome": "Ana Miras", "email": "ana@exemplo.com", "avatar": "DRONE", "telegramChatId": 184712993, ... }
+{ "id": 1, "nome": "Ana Miras", "email": "ana@exemplo.com", "avatar": "DRONE", "telegramChatId": null, ... }
 ```
 
-**Campo ausente não muda nada. `telegramChatId: null` apaga o vínculo** — é o único campo que
-aceita `null`, e é o que o botão "desvincular" manda. Em `nome` e `avatar`, `null` é
-`VALIDACAO`.
+**Campo ausente não muda nada**, e `null` em `nome` ou `avatar` é `VALIDACAO`.
 
 **O e-mail não está aqui, e mandá-lo é `VALIDACAO`** em vez de ser ignorado em silêncio: campo
 ignorado faz o cliente acreditar que trocou o e-mail (`docs/02-dominio/usuario.md`).
 
 | Erro | Quando |
 |---|---|
-| `VALIDACAO` (422) | Nome vazio ou longo demais, `avatar` fora da lista, `telegramChatId` zero ou não inteiro, ou `email` no corpo |
+| `VALIDACAO` (422) | Nome vazio ou longo demais, `avatar` fora da lista, ou `email` no corpo |
+
+## O Telegram é sub-recurso, e não campo do `PATCH`
+
+```
+PUT    /api/v1/usuarios/atual/telegram     { "chatId": 184712993 }   → 200 OK, o perfil
+DELETE /api/v1/usuarios/atual/telegram                               → 204 No Content
+```
+
+**Por que não é um campo do `PATCH`:** o vínculo tem três estados — *não mexa*, *passa a ser
+este* e *tira* —, e um `PATCH` só distingue os três se o cliente e o servidor concordarem que
+`null` explícito é diferente de campo ausente. **Em JSON eles não concordam sozinhos**: a
+ausência e o `null` chegam iguais do outro lado, e o que se paga por essa ambiguidade é o
+vínculo do Telegram sumindo quando alguém troca só o nome. O sub-recurso não tem o problema:
+`PUT` põe, `DELETE` tira, e quem não fala de Telegram não mexe nele.
+
+`DELETE` é **idempotente**: desvincular o que não está vinculado responde `204` igual.
+
+| Erro | Quando |
+|---|---|
+| `VALIDACAO` (422) | `chatId` ausente, zero, ou não inteiro |
 | `TELEGRAM_JA_VINCULADO` (409) | Outro usuário já declarou aquele `chat id` |
 
 ## `PUT /api/v1/usuarios/atual/senha` — troca de senha

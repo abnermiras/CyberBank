@@ -13,6 +13,14 @@ public final class PoliticaDeLogin {
     private PoliticaDeLogin() {
     }
 
+    public static String chaveDaConta(String email) {
+        return "conta:" + email;
+    }
+
+    public static String chaveDaOrigem(String origem) {
+        return "origem:" + origem;
+    }
+
     public static Duration atrasoApos(int falhas) {
         if (falhas <= 0) {
             return Duration.ZERO;

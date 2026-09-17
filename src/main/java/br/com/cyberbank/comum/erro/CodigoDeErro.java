@@ -10,6 +10,8 @@ public enum CodigoDeErro {
     NAO_ENCONTRADO(404, "Não encontrado"),
     EMAIL_JA_CADASTRADO(409, "Este e-mail já está cadastrado"),
     VALIDACAO(422, "Requisição inválida"),
+    SENHA_ATUAL_INVALIDA(422, "A senha atual não confere"),
+    TELEGRAM_JA_VINCULADO(409, "Este chat do Telegram já está vinculado a outro usuário"),
     CATEGORIA_DE_SISTEMA_PROTEGIDA(409, "Esta categoria é do sistema"),
     CATEGORIA_PAI_INVALIDO(409, "A árvore de categorias tem só dois níveis"),
     CATEGORIA_COM_SUBCATEGORIA(409, "Esta categoria ainda tem subcategorias"),

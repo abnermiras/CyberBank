@@ -2,12 +2,14 @@ package br.com.cyberbank.usuario.aplicacao;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.random.RandomGenerator;
 
 import br.com.cyberbank.ambiente.aplicacao.CriarAmbientePessoalUseCase;
 import br.com.cyberbank.categoria.aplicacao.CriarCategoriasDeSistemaUseCase;
 import br.com.cyberbank.comum.contexto.ContextoDoBanco;
 import br.com.cyberbank.comum.erro.CodigoDeErro;
 import br.com.cyberbank.comum.erro.RegraDeDominioException;
+import br.com.cyberbank.usuario.dominio.Avatar;
 import br.com.cyberbank.usuario.dominio.Senhas;
 import br.com.cyberbank.usuario.dominio.Usuario;
 import br.com.cyberbank.usuario.dominio.UsuarioRepository;
@@ -23,6 +25,7 @@ public class CadastrarUsuarioUseCase {
     private final CriarCategoriasDeSistemaUseCase criarCategoriasDeSistema;
     private final ContextoDoBanco contextoDoBanco;
     private final Senhas senhas;
+    private final RandomGenerator sorteio;
     private final Clock relogio;
 
     public CadastrarUsuarioUseCase(
@@ -31,12 +34,14 @@ public class CadastrarUsuarioUseCase {
             CriarCategoriasDeSistemaUseCase criarCategoriasDeSistema,
             ContextoDoBanco contextoDoBanco,
             Senhas senhas,
+            RandomGenerator sorteio,
             Clock relogio) {
         this.usuarios = usuarios;
         this.criarAmbientePessoal = criarAmbientePessoal;
         this.criarCategoriasDeSistema = criarCategoriasDeSistema;
         this.contextoDoBanco = contextoDoBanco;
         this.senhas = senhas;
+        this.sorteio = sorteio;
         this.relogio = relogio;
     }
 
@@ -50,7 +55,8 @@ public class CadastrarUsuarioUseCase {
         }
 
         Instant agora = relogio.instant();
-        Usuario usuario = usuarios.salvar(Usuario.cadastrar(nome, email, senhas.hash(senha), agora));
+        Usuario usuario = usuarios.salvar(Usuario.cadastrar(
+                nome, email, senhas.hash(senha), Avatar.sortear(sorteio), agora));
 
         contextoDoBanco.definirUsuario(usuario.id());
 

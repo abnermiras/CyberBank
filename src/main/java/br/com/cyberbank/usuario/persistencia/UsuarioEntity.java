@@ -26,17 +26,26 @@ public class UsuarioEntity {
     @Column(name = "senha_hash", nullable = false)
     private String senhaHash;
 
+    @Column(nullable = false)
+    private String avatar;
+
+    @Column(name = "telegram_chat_id")
+    private Long telegramChatId;
+
     @Column(name = "criado_em", nullable = false)
     private Instant criadoEm;
 
     protected UsuarioEntity() {
     }
 
-    public UsuarioEntity(Long id, String email, String nome, String senhaHash, Instant criadoEm) {
+    public UsuarioEntity(Long id, String email, String nome, String senhaHash, String avatar,
+            Long telegramChatId, Instant criadoEm) {
         this.id = id;
         this.email = email;
         this.nome = nome;
         this.senhaHash = senhaHash;
+        this.avatar = avatar;
+        this.telegramChatId = telegramChatId;
         this.criadoEm = criadoEm;
     }
 
@@ -54,6 +63,14 @@ public class UsuarioEntity {
 
     public String getSenhaHash() {
         return senhaHash;
+    }
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public Long getTelegramChatId() {
+        return telegramChatId;
     }
 
     public Instant getCriadoEm() {

@@ -2,6 +2,7 @@ package br.com.cyberbank.usuario.persistencia;
 
 import java.util.Optional;
 
+import br.com.cyberbank.usuario.dominio.Avatar;
 import br.com.cyberbank.usuario.dominio.Usuario;
 import br.com.cyberbank.usuario.dominio.UsuarioRepository;
 
@@ -19,7 +20,8 @@ public class UsuarioRepositoryJpa implements UsuarioRepository {
     @Override
     public Usuario salvar(Usuario usuario) {
         UsuarioEntity entidade = jpa.save(new UsuarioEntity(usuario.id(), usuario.email(),
-                usuario.nome(), usuario.senhaHash(), usuario.criadoEm()));
+                usuario.nome(), usuario.senhaHash(), usuario.avatar().name(),
+                usuario.telegramChatId(), usuario.criadoEm()));
         return paraDominio(entidade);
     }
 
@@ -33,7 +35,13 @@ public class UsuarioRepositoryJpa implements UsuarioRepository {
         return jpa.findById(id).map(UsuarioRepositoryJpa::paraDominio);
     }
 
+    @Override
+    public Optional<Usuario> buscarPorTelegramChatId(Long telegramChatId) {
+        return jpa.findByTelegramChatId(telegramChatId).map(UsuarioRepositoryJpa::paraDominio);
+    }
+
     private static Usuario paraDominio(UsuarioEntity e) {
-        return new Usuario(e.getId(), e.getEmail(), e.getNome(), e.getSenhaHash(), e.getCriadoEm());
+        return new Usuario(e.getId(), e.getEmail(), e.getNome(), e.getSenhaHash(),
+                Avatar.valueOf(e.getAvatar()), e.getTelegramChatId(), e.getCriadoEm());
     }
 }

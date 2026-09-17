@@ -107,7 +107,7 @@ digitou. **Informar o id errado é responsabilidade de quem informou.**
 |---|---|
 | É o **`chat id`**, não o `@` | O `@` é trocável pelo dono a qualquer momento e não identifica ninguém. Quem identifica um destino no Telegram é o `chat id` |
 | **Único no sistema** | Dois usuários com o mesmo id tornam ambígua qualquer mensagem que chegue daquele chat. A unicidade não impede o erro de digitação — impede a **ambiguidade** |
-| Opcional, e apagável | Apagar o campo desfaz o vínculo. Ninguém é obrigado a ter Telegram |
+| Opcional, e apagável | Desfazer o vínculo é uma ação própria, não um campo em branco (`docs/04-api/endpoints-usuario.md`). Ninguém é obrigado a ter Telegram |
 | Inteiro diferente de zero | É tudo que se valida. O resto é do bot |
 | **Nada é enviado hoje** | O bot é Fase 2 (`docs/05-integracoes/telegram-bot.md`, hoje stub) |
 
