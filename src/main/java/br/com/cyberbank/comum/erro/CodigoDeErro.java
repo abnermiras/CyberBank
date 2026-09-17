@@ -1,9 +1,5 @@
 package br.com.cyberbank.comum.erro;
 
-/**
- * O catalogo de docs/04-api/erros.md, e nada alem dele. Codigo que nao esta la nao existe
- * (docs/01-arquitetura/padroes-de-codigo.md) — e o cliente le o CODIGO, nunca a mensagem.
- */
 public enum CodigoDeErro {
 
     CORPO_INVALIDO(400, "Requisição malformada"),
@@ -18,7 +14,21 @@ public enum CodigoDeErro {
     CATEGORIA_PAI_INVALIDO(409, "A árvore de categorias tem só dois níveis"),
     CATEGORIA_COM_SUBCATEGORIA(409, "Esta categoria ainda tem subcategorias"),
     CATEGORIA_COM_LANCAMENTO(409, "Esta categoria já tem lançamento"),
-    CATEGORIA_SEM_COR_PROPRIA(409, "Subcategoria herda a cor da raiz");
+    CATEGORIA_SEM_COR_PROPRIA(409, "Subcategoria herda a cor da raiz"),
+    CATEGORIA_NAO_ESCOLHIVEL(409, "Esta categoria não pode ser escolhida"),
+    CATEGORIA_DE_OUTRO_SENTIDO(409, "Esta categoria é do outro sentido"),
+    CONTA_INATIVA(409, "Esta conta está inativa"),
+    CONTA_COM_LANCAMENTO(409, "Esta conta já tem lançamento"),
+    CARTAO_SEM_SALDO_INICIAL(422, "Cartão de crédito não tem saldo inicial"),
+    MEIO_INCOMPATIVEL_COM_CONTA(409, "Este meio não serve para esta conta"),
+    MEIO_COM_LANCAMENTO(409, "Este meio já tem lançamento"),
+    MEIO_DUPLICADO_NA_CONTA(409, "Esta conta já tem um meio desse tipo"),
+    MEIO_INATIVO(409, "Este meio está inativo"),
+    LANCAMENTO_DO_CICLO(409, "Este lançamento foi criado pelo sistema"),
+    LANCAMENTO_COM_ESTORNO(409, "Este lançamento tem um estorno apontando para ele"),
+    TRANSFERENCIA_MESMA_CONTA(409, "Origem e destino são a mesma conta"),
+    BENEFICIO_NAO_TRANSFERE(409, "Conta de benefício não entra em transferência"),
+    AMBIENTE_INVALIDO(409, "Este dado é de outro ambiente");
 
     private final int status;
     private final String titulo;

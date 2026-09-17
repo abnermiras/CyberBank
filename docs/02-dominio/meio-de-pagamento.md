@@ -17,13 +17,35 @@ uma transferência.
 
 ## Estrutura
 
-Um meio tem um **tipo** (que define o comportamento) e uma **instância** (o cartão
-específico, a conta específica). Adicionar instância é dado; adicionar tipo é código —
-ver `docs/08-fluxos/novo-meio-de-pagamento.md`.
+Um meio tem um **tipo** e uma **conta**, e **o par `(conta, tipo)` identifica o meio** —
+menos no crédito. Adicionar meio é dado; adicionar tipo é código, ver
+`docs/08-fluxos/novo-meio-de-pagamento.md`.
 
 **Todo meio aponta para uma conta.** Dinheiro aponta para uma `CARTEIRA`, vale-refeição
 aponta para uma `BENEFICIO`, cartão de crédito aponta para a `CARTAO` do seu contrato. Não
 existe meio órfão.
+
+### O nome é do cartão, e só dele
+
+**Só o meio `CREDITO` tem nome, e ali o nome é a identidade.** Um contrato tem vários cartões
+— físico `****1234`, virtual `FREELANCE ****0987`, o adicional de outra pessoa —, todos
+apontando para a mesma conta `CARTAO`, e o compartilhamento empresta **um cartão**, não a
+conta (`docs/02-dominio/compartilhamento.md`). Sem nome não dá para distinguir qual.
+
+**Em todo o resto o nome não existe**, porque não há o que distinguir: uma conta tem no
+máximo um Pix, um débito, um boleto. O par `(conta, tipo)` já responde *"como o dinheiro
+saiu"*, e a tela lê **"Nubank · PIX"** a partir dele. Nome ali produzia `PIX da Nubank` ao
+lado de `PIX` — dois rótulos para a mesma coisa, e o segundo digitado à mão.
+
+É a invariante `uq_meio_conta_tipo`: único por `(conta, tipo)`, **exceto `CREDITO`**.
+
+### Meio se escolhe ao abrir a conta
+
+Não há cadastro de meio à parte: **os meios são escolhidos no cadastro da conta**, e depois
+acrescentados ou tirados no cartão dela (`docs/04-api/endpoints-contas.md`). Quem decide o que
+está na lista é o tipo da conta, pela tabela abaixo — e é isso que faz o dinheiro ser
+exclusivo sem precisar de regra própria: **`CARTEIRA` só aceita `DINHEIRO`, e nenhum outro
+tipo de conta o aceita.**
 
 ## Tipos
 
@@ -32,12 +54,44 @@ existe meio órfão.
 | `DEBITO` | `CORRENTE` | = `dataEvento` | não | não | notificação push |
 | `CREDITO` | **`CARTAO`** | = `dataEvento` | **sim** | **sim** | notificação push |
 | `PIX` | `CORRENTE` | = `dataEvento` | não | não | notificação push |
+| `TED` | `CORRENTE` | = `dataEvento` | não | não | notificação push |
+| `DESCONTO_EM_FOLHA` | `CORRENTE` | = `dataEvento` | não | não | só manual |
 | `DINHEIRO` | `CARTEIRA` | = `dataEvento` | não | não | só manual |
 | `BENEFICIO` | `BENEFICIO` | = `dataEvento` | não | não | push, se o app do benefício notificar |
 | `BOLETO` | `CORRENTE` | data do pagamento | não | não | OFX ou manual |
 
 Conta `APLICACAO` não aparece nesta tabela: não se paga com ela, resgata-se antes
 (`docs/02-dominio/aplicacao-patrimonio.md`).
+
+### Três famílias de tipo, e só duas justificam regra
+
+O critério do projeto — *tipo novo só existe se alguma **regra do sistema** mudar por causa
+dele* — **não governa esta tabela**, e fingir que governa seria falso. Ela tem três famílias:
+
+| Família | Quem | O que o tipo faz |
+|---|---|---|
+| **Muda regra** | `BOLETO`, `CREDITO` | Boleto separa as duas datas; crédito tem fatura e parcela |
+| **Escolhe a conta** | `DINHEIRO`, `BENEFICIO` | São o que torna `CARTEIRA` e `BENEFICIO` exclusivas |
+| **Vocabulário do extrato** | `DEBITO`, `PIX`, `TED`, `DESCONTO_EM_FOLHA` | Nenhuma regra muda. Existem para o extrato responder *como o dinheiro saiu* |
+
+A terceira família **já existia**: `DEBITO` e `PIX` são idênticos nas cinco colunas desde o
+primeiro dia, e ninguém tinha nomeado isso. `TED` e `DESCONTO_EM_FOLHA` entram nela.
+
+O que a família muda no custo: tipo de vocabulário **não** ganha regra, teste de regra nem
+ramo em código — se aparecer um `if` por causa de um deles fora deste módulo, é bug de
+modelagem. Ele é uma linha no `CHECK` e uma opção no seletor.
+
+### Desconto em folha: o salário entra bruto
+
+O desconto **nunca passa pela conta**, e é aí que ele confunde. A regra é:
+
+> **O salário entra bruto, e cada desconto é uma `SAIDA` da mesma conta.** A soma dos
+> descontos com o que sobra é o líquido que o banco depositou.
+
+O preço está nomeado e é aceito: **o extrato do app mostra o bruto onde o banco mostra o
+líquido.** O **saldo** é idêntico nos dois — é só a linha da receita que difere, e é ela que
+torna o desconto visível como gasto. Lançar o líquido e ainda descontar tiraria o dinheiro
+duas vezes, e essa é a única leitura errada possível aqui.
 
 ## A regra da `dataEfeito`
 
@@ -138,7 +192,7 @@ que a série se paga sozinha, sem o usuário agir — e isso é fato da **recorr
 
 | Momento | Regra |
 |---|---|
-| Criação | Tipo, conta vinculada e nome. Tipo não muda depois |
+| Criação | Tipo e conta, escolhidos **no cadastro da conta**. Nome **só no `CREDITO`**. Tipo não muda depois |
 | Criação de um `CREDITO` | Aponta para uma conta `CARTAO`. Limite, ciclo e conta pagadora são **da conta**, não do cartão — vários cartões dividem tudo isso |
 | Inativação | Cartão cancelado, conta encerrada: some da escolha, o histórico fica |
 | Cartão de crédito inativado | A **fatura em aberto continua viva** até fechar e ser paga. Cancelar cartão não perdoa dívida |
@@ -155,6 +209,10 @@ nesses o dinheiro não foi "pago" de jeito nenhum, só mudou de lugar.
 ## Invariantes
 
 - Todo meio pertence a um ambiente e aponta para uma conta.
+- **Uma conta tem no máximo um meio de cada tipo — exceto `CREDITO`**, que tem quantos cartões
+  o contrato tiver. É o que faz `(conta, tipo)` identificar o meio.
+- **Só o `CREDITO` tem nome**, e nele o nome é obrigatório: é a identidade do cartão. Nos
+  outros o nome não existe, e a tela lê `"<conta> · <TIPO>"`.
 - Todo meio `CREDITO` aponta para uma conta `CARTAO`, e só `CREDITO` aponta para ela.
 - Todo meio `BENEFICIO` aponta para uma conta `BENEFICIO`, e só ele aponta para ela.
 - O limite nunca impede a criação de um lançamento.
@@ -172,6 +230,18 @@ nesses o dinheiro não foi "pago" de jeito nenhum, só mudou de lugar.
 O `Lancamento` **não conhece os tipos** de meio de pagamento. Toda variação de comportamento
 por tipo mora aqui. Se aparecer `if (tipo == CREDITO)` fora deste módulo, é bug de
 modelagem, não detalhe de implementação.
+
+## O que ainda não existe
+
+| O que falta | Por quê |
+|---|---|
+| **Meio `CREDITO`**, e com ele físico, virtual e adicional | Depende da conta `CARTAO` e da fatura. O `CHECK` da coluna `tipo` já aceita `CREDITO` |
+| **Limite, e a marca de limite envelhecido** | É da conta `CARTAO`, que ainda não se cadastra |
+| **Trocar o `tipo` de um meio** | O endpoint não expõe o campo; `TIPO_DE_MEIO_IMUTAVEL` está no catálogo esperando |
+| **Compartilhar um cartão** | A tabela `vinculo` existe e nasce vazia (`ADR-0004`); a funcionalidade é liberada com a Fase 1 concluída |
+
+O casamento **tipo de meio ↔ tipo de conta** da tabela acima é imposto pelo código, não pelo
+banco: um `CHECK` teria que ler a outra tabela. A recusa é `MEIO_INCOMPATIVEL_COM_CONTA`.
 
 ## Ainda em aberto
 

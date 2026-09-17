@@ -3,20 +3,177 @@ id: 04-api/endpoints-contas
 titulo: Endpoints de contas
 dono: contrato dos endpoints de conta e saldo
 ler-junto: [02-dominio/conta, 04-api/convencoes]
-status: stub
+status: ativo
 ---
 
 # Endpoints de contas
 
-> **STUB** — conteudo ainda nao escrito. Ao preencher, siga `docs/CONVENTIONS.md`,
-> apague este bloco e troque `status: stub` por `status: ativo`.
+Família do ambiente: tudo aqui vive sob `/api/v1/ambientes/{ambienteId}/`, porque conta tem
+`ambiente_id` (`docs/04-api/convencoes.md`). A regra é de `docs/02-dominio/conta.md`.
 
-## Perguntas que este documento precisa responder
+**Nenhum saldo é campo guardado.** Todo número desta página é soma de lançamento, calculada na
+leitura (`docs/02-dominio/conta.md`). É por isso que não existe `PUT` de saldo: corrigir o
+saldo de abertura é editar o **lançamento** de abertura.
 
-- [ ] Um bloco por endpoint: metodo, rota, request, response, erros
-- [ ] Endpoint de saldo e de extrato
-- [ ] Exemplos de payload reais
+## `GET /api/v1/ambientes/{ambienteId}/contas`
 
-## Conteudo
+As contas do ambiente, ordenadas por `nome`, com o **saldo realizado de hoje** de cada uma e
+os dois agregados que a Home mostra.
 
-_(vazio)_
+| Parâmetro | Valor | Para quê |
+|---|---|---|
+| `inativas` | `true`, `false` (padrão: `false`) | Dado inativo fica escondido por padrão, e a tela diz que escondeu (`docs/06-interface/navegacao.md`) |
+
+```
+GET /api/v1/ambientes/1/contas
+
+200 OK
+{
+  "itens": [
+    { "id": 1, "nome": "Nubank", "tipo": "CORRENTE",
+      "entraNoFluxoDeCaixa": true, "entraEmCaixa": true,
+      "inativa": false, "saldoRealizadoCentavos": 1093600,
+      "tiposDeMeioDisponiveis": ["DEBITO","PIX","TED","DESCONTO_EM_FOLHA","BOLETO"] },
+    { "id": 3, "nome": "Poupança", "tipo": "APLICACAO",
+      "entraNoFluxoDeCaixa": false, "entraEmCaixa": false,
+      "inativa": false, "saldoRealizadoCentavos": 1342400,
+      "tiposDeMeioDisponiveis": [] }
+  ],
+  "emCaixaCentavos": 1093600,
+  "patrimonioCentavos": 2524000,
+  "tiposDisponiveis": [
+    { "tipo": "CORRENTE", "entraNoFluxoDeCaixa": true, "entraEmCaixa": true,
+      "aceitaSaldoInicial": true,
+      "meios": ["DEBITO","PIX","TED","DESCONTO_EM_FOLHA","BOLETO"] },
+    { "tipo": "CARTEIRA", "entraNoFluxoDeCaixa": true, "entraEmCaixa": true,
+      "aceitaSaldoInicial": true, "meios": ["DINHEIRO"] },
+    { "tipo": "APLICACAO", "entraNoFluxoDeCaixa": false, "entraEmCaixa": false,
+      "aceitaSaldoInicial": true, "meios": [] },
+    { "tipo": "BENEFICIO", "entraNoFluxoDeCaixa": true, "entraEmCaixa": false,
+      "aceitaSaldoInicial": true, "meios": ["BENEFICIO"] }
+  ]
+}
+```
+
+**`tiposDisponiveis` é o catálogo, e vem aqui de propósito:** é o que a tela de cadastro usa
+para montar o seletor de tipo e as caixas de meio, **sem manter uma segunda cópia da tabela de
+`docs/02-dominio/meio-de-pagamento.md` dentro do JavaScript**. Um fato, um dono, e a borda
+serve o dono.
+
+`CARTAO` **não aparece** em `tiposDisponiveis` enquanto a fatura não existir — é assim que a
+tela some com a opção sem precisar saber por quê.
+
+| Campo | Nota |
+|---|---|
+| `saldoRealizadoCentavos` | Soma dos lançamentos com `situacao != PREVISTO` e `dataEfeito <= hoje`. **O teste é `!= PREVISTO`, nunca `== REALIZADO`** (`docs/02-dominio/lancamento.md`) |
+| `entraNoFluxoDeCaixa` | O movimento é gasto da vida? É **este campo**, e não o tipo, que o relatório de gasto consulta |
+| `entraEmCaixa` | O saldo paga **qualquer coisa**? Os dois são campo e não derivação do tipo, de propósito: tipo novo no futuro só precisa responder a estas duas perguntas |
+| `tiposDeMeioDisponiveis` | Quais meios cabem nesta conta. `CARTEIRA` devolve só `DINHEIRO` — **é isso que torna o dinheiro exclusivo**, sem precisar de regra própria; `APLICACAO` devolve vazio |
+| `emCaixaCentavos` | Soma das contas com `entraEmCaixa = true`. O vale-refeição fica **fora**: aquele saldo só compra uma coisa |
+| `patrimonioCentavos` | Soma do saldo realizado de **todas** as contas, sem exceção nenhuma |
+
+Contas inativas entram nos dois agregados: histórico e saldo continuam existindo.
+
+| Erro | Quando |
+|---|---|
+| `NAO_AUTENTICADO` (401) | Sem sessão |
+| `NAO_ENCONTRADO` (404) | Ambiente inexistente **ou sem acesso** — a mesma resposta para os dois |
+
+## `POST /api/v1/ambientes/{ambienteId}/contas`
+
+Abre a conta. Se vier `saldoInicial`, **nasce junto um lançamento de abertura** — saldo inicial
+é um lançamento, não um campo, e é o que mantém *"saldo é a soma dos lançamentos"* verdadeiro
+literalmente (`docs/02-dominio/conta.md`).
+
+```
+POST /api/v1/ambientes/1/contas
+{ "nome": "Nubank", "tipo": "CORRENTE", "saldoInicial": 1123600,
+  "meios": ["DEBITO", "PIX", "BOLETO"] }
+
+201 Created
+Location: /api/v1/ambientes/1/contas/1
+{ "id": 1, "nome": "Nubank", "tipo": "CORRENTE",
+  "entraNoFluxoDeCaixa": true, "entraEmCaixa": true, "inativa": false }
+```
+
+| Campo | Obrigatório | Nota |
+|---|:--:|---|
+| `nome` | sim | Até 80 caracteres |
+| `tipo` | sim | `CORRENTE`, `CARTEIRA`, `APLICACAO`, `BENEFICIO`. **`CARTAO` ainda não** — ver *O que ainda não existe* |
+| `saldoInicial` | não | Inteiro em centavos, **com sinal**: negativo abre a conta no vermelho, e o lançamento nasce `SAIDA` com valor positivo. Ausente, `null` ou `0` não criam lançamento nenhum — zero não é lançamento |
+| `meios` | não | Os tipos de meio que a conta passa a ter, **no mesmo ato**. Não existe cadastro de meio à parte (`docs/02-dominio/meio-de-pagamento.md`). Repetido na lista conta uma vez só; ausente ou vazio abre a conta sem meio nenhum, e ela ainda não lança nada |
+
+**Os dois eixos não vêm na requisição**: eles saem do `tipo` no nascimento. Deixar o cliente
+escolher seria deixá-lo contradizer o modelo — uma `APLICACAO` "que entra em caixa" mentiria
+na Home.
+
+O lançamento de abertura nasce `REALIZADO`, sem meio de pagamento, com a categoria de sistema
+**`Saldo de abertura`** do sentido correspondente, e marcado como **do ciclo**: o usuário
+corrige o valor dele, mas não o exclui (`docs/02-dominio/lancamento.md`).
+
+| Erro | Quando |
+|---|---|
+| `VALIDACAO` (422) | `nome` vazio ou longo demais; `tipo` ausente; `tipo: "CARTAO"` enquanto a fatura não existir |
+| `CARTAO_SEM_SALDO_INICIAL` (422) | `saldoInicial` numa conta `CARTAO` — a única exceção da regra do saldo inicial |
+| `CORPO_INVALIDO` (400) | `tipo` fora da lista |
+
+## `PATCH /api/v1/ambientes/{ambienteId}/contas/{contaId}`
+
+Renomeia e inativa. **Os dois podem vir juntos**, e o que não veio não muda.
+
+```
+PATCH /api/v1/ambientes/1/contas/1
+{ "inativa": true }
+
+200 OK
+{ "id": 1, "nome": "Nubank", "tipo": "CORRENTE",
+  "entraNoFluxoDeCaixa": true, "entraEmCaixa": true, "inativa": true }
+```
+
+| Campo | Nota |
+|---|---|
+| `nome` | Livre, a qualquer momento |
+| `inativa` | **Inativar descarta os lançamentos `PREVISTO` da conta**: eles não vão acontecer, a conta saiu da sua vida. O histórico e o saldo ficam |
+
+**`tipo` não está aqui**, e não é esquecimento: tipo não muda depois de existir lançamento —
+mudaria o significado do histórico. Enquanto não houver tela para trocá-lo, a API não o expõe;
+o código `TIPO_DE_CONTA_IMUTAVEL` já está no catálogo esperando esse endpoint.
+
+Inativar **não** é `DELETE`: é estado, e vai por `PATCH` (`docs/04-api/convencoes.md`).
+
+| Erro | Quando |
+|---|---|
+| `VALIDACAO` (422) | Nenhum campo veio, ou `nome` inválido |
+| `NAO_ENCONTRADO` (404) | Conta inexistente **ou de outro ambiente** |
+
+## `DELETE /api/v1/ambientes/{ambienteId}/contas/{contaId}`
+
+Exclui, no sentido restrito do domínio: **só a conta que nunca teve lançamento**. Com
+histórico, o caminho é inativar.
+
+Excluir a conta **leva junto os meios de pagamento dela** — meio órfão não existe, e um meio
+sem conta não teria para onde apontar. Se algum meio tiver lançamento, a conta também tem, e a
+exclusão já foi recusada antes disso.
+
+```
+DELETE /api/v1/ambientes/1/contas/4
+
+204 No Content
+```
+
+| Erro | Quando |
+|---|---|
+| `CONTA_COM_LANCAMENTO` (409) | A conta já teve lançamento — inclusive o de abertura |
+| `NAO_ENCONTRADO` (404) | Conta inexistente ou de outro ambiente |
+
+## O que ainda não existe
+
+- **Conta `CARTAO`**, que nasce com a fatura `ABERTA` do ciclo corrente e guarda limite, dia de
+  vencimento, dias de fechamento e conta pagadora padrão. O `CHECK` da coluna `tipo` já aceita
+  `CARTAO`: quem recusa hoje é o caso de uso, e a fatia da fatura não vai precisar de migration
+  em cima de dado real.
+- **Saldo projetado** — o realizado mais o `PREVISTO` até uma data, menos o `a pagar` das
+  faturas que vencem até lá. Depende da fatura.
+- **Papel**: nenhum endpoint desta página verifica se o usuário é dono, editor ou leitor. A
+  gestão de papel e o convite não existem, e todo ambiente hoje tem exatamente um acesso, que é
+  o do dono. A verificação entra com o convite (`docs/02-dominio/ambiente-financeiro.md`).

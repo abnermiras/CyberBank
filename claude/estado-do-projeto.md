@@ -7,10 +7,11 @@
 > **Ele está fora do roteador de propósito** (`ADR-0008`): é doc de passagem entre sessões, não
 > de tarefa, e não deve entrar no custo de rota nenhuma.
 
-Última sessão: **2026-09-07**, já na máquina Linux, com o Claude Code no terminal.
-**A fatia 1 do primeiro vertical está de pé: dá para cadastrar, entrar e ver o Ambiente
-Pessoal nascido com as quatorze categorias de sistema — e um segundo usuário não enxerga nada
-do primeiro.**
+Última sessão: **2026-09-16**, na máquina Linux, com o Claude Code no terminal.
+**A fatia 3 está de pé: dá para abrir conta com saldo, cadastrar meio de pagamento, lançar,
+transferir e ver o Extrato — e "em caixa", "guardado" e "patrimônio" saem do banco, somados
+dos lançamentos.** O vale-refeição fica fora do caixa e a transferência não mexe no
+patrimônio, os dois conferidos contra Postgres real.
 
 **O esqueleto está commitado e no GitHub:** `4be103d` na branch `esqueleto-do-projeto`,
 mergeado em `main` por `9e015a2` — e `origin/main` está no mesmo ponto. O bloqueio do push
@@ -19,6 +20,9 @@ acabou.
 
 | Sessão | O que saiu |
 |---|---|
+| **16/09 (o seletor de categoria)** | Bug do Abner: o combo de categoria do Extrato achatava a árvore e mostrava só as subcategorias, sem a raiz. Virou **dois combos** — categoria e subcategoria —, com o segundo aparecendo só quando a raiz deixa de ser escolhível. E ao conferir a regra apareceu a **segunda metade**: *"na hora de lançar, só aparecem as categorias compatíveis com o sentido"* **não estava implementada em lugar nenhum** — nem na tela, nem no servidor. Nasce `CATEGORIA_DE_OUTRO_SENTIDO` |
+| **16/09 (UX de conta e meio)** | **O meio perdeu o nome**: só o `CREDITO` tem, e nele o nome é a identidade do cartão. Nos outros o par **`(conta, tipo)` identifica**, e a tela lê "Nubank · Pix" · **os meios são escolhidos no cadastro da conta**, num formulário só — o cadastro de meio à parte morreu · **`TED` e `DESCONTO_EM_FOLHA`** entram, e `meio-de-pagamento.md` passa a nomear as **três famílias de tipo** · **`V005`** · `GET /contas` passa a servir o **catálogo de tipos**, e a tabela duplicada no JavaScript morreu |
+| **16/09 (fatia 3)** | **`V004`**: `conta`, `meio`, `lancamento` e **`vinculo` nascendo vazia**, numa migration só — as quatro se referenciam em ciclo, e a política de `conta` lê `vinculo`. **O `OR` do `ADR-0004` está valendo**, e o `WITH CHECK` **não** o leva · os três pacotes de domínio, com `AbrirContaUseCase` juntando conta + lançamento na `aplicacao` · Extrato **paginado por cursor** · `endpoints-contas`, `-meios-pagamento` e `-lancamentos` **saíram de stub** · `catalogo-tabelas` **quebrado em dois** por família · a tela de **Extrato** nasceu e o **Cadastro ganhou abas** (categorias · contas e meios) · **98 testes de unidade e 42 de integração**, verdes |
 | **07/09 (fatia 1)** | **`V001`** (usuario, sessao, ambiente, acesso) e **`V002`** (categoria, e com ela o padrão de RLS que as outras oito copiam) · o **`catalogo-tabelas.md` nasceu** · **cadastro, login, logout e sessão** ponta a ponta, com as quatro regras de login · o **filtro do `{ambienteId}`** que valida acesso e faz o `SET LOCAL` · **`endpoints-ambientes.md`** nasceu e **`endpoints-categorias.md`** saiu de stub · `EMAIL_JA_CADASTRADO` entrou no catálogo de erros · 29 testes de domínio/arquitetura e 10 de integração, verdes |
 | **07/09 (noite)** | **`/esqueleto` executado, uma vez só**: `pom.xml` (módulo único, Java 21, **Spring Boot 4.0.8**, Flyway, Argon2 do Spring Security, ArchUnit e Testcontainers), `mvnw`, `compose.yml` com **`postgres:18.4` na 5433** e o script dos **dois papéis**, `.env.exemplo`, `application.yml` com `ddl-auto: validate`, `CyberbankApplication` e o **teste de arquitetura com as três regras do `ADR-0010`** — passando vazio, que é o esperado. `./mvnw verify` verde e a aplicação sobe, com o Flyway conectando **como dono**. **Nada de domínio.** Depois, o **`PapeisDoBancoIT`**: a suíte de integração sobe o contêiner com o **mesmo script do compose** e exige que o papel da aplicação não seja superusuário, não tenha `BYPASSRLS` e não seja dono do `public` — a montagem de que o `ADR-0002` depende, e a única parte dele que quebrava em silêncio. E o **BouncyCastle** ficou registrado no `seguranca.md`, que é de onde ele vem (regra 3). |
 | **07/09** | A fatura fechou: **encerrada não abre** · **`CARTAO` não tem saldo de abertura** · **a janela é uma só** (`FECHADA` com `a pagar` > 0 é o que se abre **e** o que se paga) · limpeza dos resíduos do `d42e378` · **`ADR-0008`**, o roteador valendo para o código · este doc veio para o repositório · **`D1` fechado**: `seguranca.md` escrito e **`ADR-0009`** · **`D2` fechado**: `04-api/convencoes.md` e `erros.md` · **`D3` fechado**: `modelo-de-dados.md` e `migrations.md` · **`01-arquitetura/` escrito** e **`ADR-0010`** · nasce o fluxo **`novo-caso-de-uso`** · **`07-operacao/build-e-run` e `testes`**, **`ambientes-de-execucao`**, **`ADR-0011`** e finalmente o **`.gitignore`** · o `CLAUDE.md` passa a apontar para este doc no início de sessão, e nascem os comandos `/esqueleto` e `/caso-de-uso` |
@@ -96,6 +100,13 @@ produzido uma regra correta para um lançamento que não devia existir.
 | **Sessão — `ADR-0009`** | **No servidor.** Cookie com identificador **opaco** (`HttpOnly`, `Secure`, `SameSite=Lax`), estado em tabela, expiração absoluta **e** por inatividade. Quem decidiu foi a **revogação**: tirar acesso tem efeito no clique seguinte. Trocar a senha derruba todas as sessões |
 | **O login é a superfície mais atacada** | Resposta e tempo **idênticos** para e-mail inexistente e senha errada · atraso progressivo **por conta e por origem** · bloqueio temporário. Vale igual para a recuperação de senha |
 | **Exposição** | **HTTPS sempre**, não "quando sair da rede local" — sem ele o cookie viaja em claro. Só a aplicação escuta; o Postgres nunca é publicado. **O Pi não é fronteira de segurança** |
+| **O meio não tem nome, menos o cartão** | Uma conta tem no máximo um Pix, um débito, um boleto: o par `(conta, tipo)` já responde *"como o dinheiro saiu"*. Nome ali produzia `PIX da Nubank` ao lado de `PIX`. **Só o `CREDITO` repete por conta e só ele tem nome** — físico, virtual e adicional dividem o contrato, e o compartilhamento empresta **um** cartão |
+| **Meio se escolhe ao abrir a conta** | Não há cadastro de meio à parte. E é isso que torna o **dinheiro exclusivo sem regra própria**: `CARTEIRA` só aceita `DINHEIRO`, e nenhum outro tipo de conta o aceita |
+| **A tabela de tipos de meio tem três famílias** | **Muda regra** (`BOLETO`, `CREDITO`) · **escolhe a conta** (`DINHEIRO`, `BENEFICIO`) · **vocabulário do extrato** (`DEBITO`, `PIX`, `TED`, `DESCONTO_EM_FOLHA`). O critério *"tipo novo só existe se uma regra mudar"* **não governa esta tabela**, e agora o doc diz isso em voz alta |
+| **Desconto em folha: o salário entra bruto** | Cada desconto é uma `SAIDA` da mesma conta, e a soma com o que sobra é o líquido. Preço nomeado: **o extrato do app mostra o bruto onde o banco mostra o líquido** — o saldo é idêntico nos dois. Lançar o líquido e ainda descontar tiraria o dinheiro duas vezes |
+| **A borda serve o dono do fato** | `GET /contas` devolve o catálogo de tipos com os meios de cada um, para a tela **não manter uma segunda cópia** da tabela de `meio-de-pagamento.md`. `CARTAO` não aparece nele enquanto a fatura não existir, e a tela some com a opção sem saber por quê |
+| **O `OR` do vínculo vai no `USING`, nunca no `WITH CHECK`** | É a metade que torna *"o que atravessa é o uso, nunca a posse"* verdadeira no banco: o destino de um compartilhamento **lê** a conta emprestada e **não consegue alterá-la**, e nenhum lançamento nasce fora do ambiente de quem lançou. Provado com dois usuários e um vínculo |
+| **`vinculo` nasceu com a primeira tabela ligada a conta** | Vazia, e sem política de escrita. `ambiente_origem_id` é **coluna** e não subconsulta: a política de `vinculo` não pode ler `conta`, porque a de `conta` lê `vinculo` — recursionaria |
 | **Ambiente sem acesso responde como inexistente** | `403` distinto de `404` conta ao curioso que aquele ambiente existe |
 | **Log não tem RLS** | Por isso valor, descrição e categoria de lançamento **não vão para log** — o isolamento do `ADR-0002` para na borda do arquivo. Identificador pode ir |
 | **Cadastro aberto** | Mantido em 07/09, com o gatilho já olhado. O que o sustenta é o modelo: **o cadastro não dá acesso a nada** — cria usuário, *Ambiente Pessoal* vazio e as categorias de sistema. Para chegar ao dinheiro de alguém é preciso ser **convidado** |
@@ -251,7 +262,7 @@ classifica — registra.
 | Formulário completo | **Explica o que o modelo vai fazer** antes de fazer |
 | Ação destrutiva ou retroativa | Mostra o **impacto numérico** antes de confirmar |
 | Densidade | HUD denso. O número que importa é o maior elemento da tela |
-| Telas | Home · Extrato · Fatura · Séries · Reserva · **Diário** · Cadastro · (falta **Perfil**) |
+| Telas | Home · Extrato · Fatura · Séries · Reserva · **Diário** · Cadastro · (falta **Perfil**). **De pé em 16/09: Home, Extrato e Cadastro** — este último com abas (categorias · contas e meios) |
 | **Dashboard da Home** | O do protótipo, agrupado por categoria, com a linha **"guardado"** separada do gasto |
 | **Dado que envelhece na tela** | Aplicação mostra a data do último valor; o limite avisa quando a dívida passa dele |
 | **Hierarquia mora no lugar, não num campo** | Um card por raiz, "+ subcategoria" **dentro** do card |
@@ -290,7 +301,37 @@ classifica — registra.
 25. **A rolagem podia rolar para si mesma, para sempre** (07/09). Abrir uma fatura já rolada a torna a `ABERTA`, e o destino da rolagem é *"a fatura `ABERTA`"*. Somando: o crédito sai do total e entra no `rolado`, o débito entra no total, e o `a pagar` **não muda** — um par e um evento por dia, indefinidamente. Padrão: *regra escrita como "para X" quando X podia ser o próprio sujeito.* Achado 14 outra vez, e de novo somando os números.
 26. **A pergunta estava errada, não a resposta** (07/09). Correção do Abner: eu perguntei *"em que fatura entra o lançamento de abertura de uma `CARTAO`?"* quando a pergunta era ***"cartão de crédito tem saldo de abertura?"***. Responder a primeira teria produzido uma regra correta para um lançamento que não devia existir. Padrão: *herdar a existência de uma coisa da pergunta que alguém fez sobre ela.*
 
-Os achados 8 a 26 são o argumento do método inteiro: todas essas regras estavam escritas,
+27. **A primeira página funcionava e a segunda não** (16/09). O cursor do Extrato ia numa
+    consulta só, com `(:dataEvento is null or ...)` para a primeira página — e o Postgres
+    respondeu *"could not determine data type of parameter $5"* **só quando o parâmetro deixou
+    de ser nulo**. Nenhum teste de domínio podia pegar: não há SQL neles. Quem pegou foi o
+    teste de integração contra Postgres real, que é o argumento do `ADR-0011` acontecendo pela
+    segunda vez. A saída foi **duas consultas explícitas** — a primeira página não tem cursor
+    para tipar. Padrão: *o caminho que só roda na segunda vez é o que nenhum teste de caminho
+    feliz visita.*
+
+28. **O critério nunca tinha sido aplicado à tabela que ele deveria governar** (16/09). O Abner
+    propôs `TED`, e a resposta pronta era o critério do projeto — *"tipo novo só existe se
+    alguma regra do sistema mudar por causa dele"*, o que matou `POUPANCA` e o débito
+    automático. Só que ao conferir a tabela antes de responder: **`DEBITO` e `PIX` são
+    idênticos nas cinco colunas** desde o primeiro dia. O critério já estava sendo violado por
+    dois tipos que ninguém questionava, e aplicá-lo ao `TED` teria sido usá-lo como argumento
+    de autoridade contra um caso novo enquanto os antigos passavam. A saída não foi abrir
+    exceção: foi **nomear as três famílias** no doc. Padrão: *critério citado de memória, sem
+    conferir se o que já está lá passa nele.* É o achado 20 outra vez — ausência lida como
+    decisão —, agora do lado do critério.
+
+29. **A regra estava escrita, e ninguém a tinha escrito em código** (16/09). O Abner reportou
+    o combo de categoria achatado — um bug de tela. Ao abrir o `categoria.md` para conferir a
+    regra da árvore, a frase seguinte era *"na hora de lançar, só aparecem as categorias
+    compatíveis com o sentido do lançamento"*, com o motivo ao lado: *"sem isso, nada impede
+    categorizar o salário como mercado"*. **Nada a implementava** — nem a tela, nem o caso de
+    uso. Dava para fazer exatamente o que o doc dizia que não podia, pela API. Padrão: *o bug
+    de tela levou ao doc, e o doc tinha uma regra que ninguém tinha lido até o fim.* É o
+    achado 23 outra vez — regra escrita que nada exercita —, e a diferença é que ali existia
+    um escape no código e aqui não existia nada.
+
+Os achados 8 a 29 são o argumento do método inteiro: todas essas regras estavam escritas,
 commitadas e plausíveis. Só quebraram quando alguém **somou os números** — leu duas linhas lado
 a lado, tentou usar a tela, foi conferir no doc, perguntou para que a regra servia, olhou para a
 tela que ninguém estava mexendo, fez o relógio andar, ou perguntou se a coisa existia.
@@ -323,10 +364,17 @@ ordem está fixada no `lacunas-para-codigo.md`:
 7. ~~**A primeira migration** (`V001`), e com ela o `catalogo-tabelas.md`~~ ✅ **Fechado em
    07/09**, junto com a `V002` e a fatia 1 inteira. O `catalogo-tabelas.md` está ativo, com as
    cinco tabelas que existem.
-8. **Rodada de protótipo** — ver abaixo; o backlog do `dominio.js` está aberto desde 01/09.
-9. **Decidir a cor de categoria** (decisão em aberto 0) e propagar para `direcao-visual.md`.
-10. **Tela de Perfil** com a caixa de convites; **renomear categoria** na tela; cadastro de
-   **conta** e de **meio**.
+8. ~~**Cadastro de conta e de meio, lançamento e Extrato**~~ ✅ **Fechado em 16/09**, pela
+   fatia 3. Ver a linha da sessão lá em cima e a lista do que ficou de fora, logo abaixo.
+9. **`evento` e a rotina diária** — é o próximo passo natural, e é **Fase 1**: sem ele a
+   transição `PREVISTO → REALIZADO` pela data não acontece (um boleto previsto fica previsto
+   para sempre) e nenhuma exclusão é registrada. *"Gravar na Fase 1, tela do Diário na Fase 2."*
+10. **Cartão e fatura** — conta `CARTAO`, meio `CREDITO`, as cinco colunas adiadas de
+   `lancamento`, fechamento, pagamento e rolagem. É a fatia grande, e os dois docs dela já
+   estão fechados desde 07/09.
+11. **Rodada de protótipo** — ver abaixo; o backlog do `dominio.js` está aberto desde 01/09,
+   e agora o `prototipo/` está **atrás do app de verdade**, não só do modelo.
+12. **Tela de Perfil** com a caixa de convites; **renomear categoria** na tela.
 
 ## Decisões em aberto
 
@@ -380,25 +428,30 @@ a razão de ela ter sumido vale mais que a pergunta.)*
 
 ## Estado da documentação
 
-**72 documentos**, 23 stubs. Stub = conteúdo inexistente: **perguntar, nunca deduzir.**
+**75 documentos**, 19 stubs. Stub = conteúdo inexistente: **perguntar, nunca deduzir.**
 
 Escritos: `CLAUDE.md`, `CONVENTIONS.md`, os 6 fluxos, todo o `00-produto/` menos `jornadas`,
 `02-dominio/` inteiro menos `orcamento`, `regras-categorizacao` e `importacao-conciliacao`,
 `06-interface/` (navegacao, direcao-visual), **`01-arquitetura/seguranca`**,
-**`04-api/convencoes` e `04-api/erros`**, **`03-dados/modelo-de-dados` e `03-dados/migrations`**,
+**`04-api/` inteiro menos `endpoints-relatorios`**, **`03-dados/` inteiro** (o
+`catalogo-tabelas` virou **dois**, quebrado por família em 16/09),
 **`01-arquitetura/` menos observabilidade**, **`07-operacao/build-e-run` e `testes`**, e as
 ADRs **0001 a 0011**.
 
 `fatura-cartao.md` está em **300 linhas, no teto do `CONVENTIONS`** — a próxima coisa que entrar
-ali obriga a quebrar por subdomínio, como o `fatura-pagamento.md` já nasceu.
+ali obriga a quebrar por subdomínio, como o `fatura-pagamento.md` já nasceu. O
+`catalogo-tabelas.md` **já passou por isso** em 16/09: virou ele mais o
+`catalogo-tabelas-do-ambiente.md`, e o corte foi a família, que é o eixo do próprio doc.
 
-**Custo de contexto** (`docs.py custo`, fim de 07/09): base ~1.420 tokens; rotas entre ~2,2k e
-~11,9k; ler tudo custaria ~86k.
+**Custo de contexto** (`docs.py custo`, fim de 16/09): base **~1.813** tokens; rotas entre
+~2,6k e **~16,3k**; ler tudo custaria ~119k.
 
-**A inflação prevista já começou.** `novo-endpoint` foi de ~2,3k para ~6,4k e `nova-migration`
-de ~2,4k para ~6,6k, ao os stubs virarem docs reais; o base subiu para ~1.508. O conteúdo é
-necessário; o que falta é o **teto por rota** no `check`, que o `ADR-0008` decidiu e o
-`docs.py` ainda não implementa. **Enquanto ele não existir, a inflação não avisa.**
+**A inflação prevista continua, e agora dói.** `novo-meio-de-pagamento` está em **~16,3k**,
+`nova-integracao-externa` em ~10,8k e `nova-migration` em ~9,7k — as três passaram do que o
+`novo-caso-de-uso` (~5,4k) gasta para entregar uma funcionalidade inteira. Os números de 07/09
+eram ~1.508 de base e ~6,6k na pior rota. O conteúdo é necessário; o que falta é o **teto por
+rota** no `check`, que o `ADR-0008` decidiu e o `docs.py` ainda não implementa. **Enquanto ele
+não existir, a inflação não avisa** — e a conta acima passou a ser a única forma de vê-la.
 
 **A rota que importa é a mais barata das de código.** O fluxo **`novo-caso-de-uso`** custa
 **~4,2k tokens** — é por onde uma funcionalidade nova entra, e ele carrega dois docs: a regra do
@@ -458,24 +511,34 @@ errada); e dirigir a tela no Playwright.
 Pagar a fatura **não pode mudar o patrimônio** — se mudar, é bug.
 
 Não simula: compartilhamento, categoria mascarada, partes da fatura, cartão virtual e adicional,
-criação de recorrência pela tela, cadastro de conta e de meio, renomear categoria, e os dois
-eixos do relatório de gasto.
+criação de recorrência pela tela, renomear categoria, e os dois eixos do relatório de gasto.
+
+**Atenção, a partir de 16/09:** o `prototipo/` deixou de ser o lugar onde conta, meio e
+lançamento acontecem primeiro — eles existem no app de verdade, em `src/main/resources/static`.
+O protótipo continua valendo como banco de provas do **modelo** (o `conferir()` e o
+`verificar.js` não têm equivalente no app ainda), mas quem quiser ver cadastro de conta ou o
+Extrato funcionando abre o app, não ele.
 
 ## Lacunas conhecidas
 
 - **Sem doc dono** para `Meta` (Fase 3)
-- **Faltam os endpoints de conta, meio, lançamento e relatório** — `endpoints-ambientes` e
-  `endpoints-categorias` já existem; os outros quatro seguem stub
+- **Falta o endpoint de relatório** — `endpoints-relatorios` é o último stub de `04-api/`
 - **`docs.py` ainda não tem o teto por rota** que o `ADR-0008` decidiu, nem conta o código
 - **`deploy.md`, `runbook.md`, `backup-restore.md` e `observabilidade.md` seguem stub** — são
   de operação e nascem quando houver o que operar
-- **O código tem dois assuntos**, `ambiente` e `categoria`. Não há conta, meio, lançamento,
-  fatura, patrimônio nem evento — e o `Evento` é Fase 1, então ele entra antes de a fase fechar
+- **O código tem cinco assuntos**: `ambiente`, `categoria`, `conta`, `meio` e `lancamento`.
+  Não há fatura, patrimônio nem evento — e o `Evento` é Fase 1, então ele entra antes de a
+  fase fechar
+- **Ninguém verifica papel em lugar nenhum.** Dono, editor e leitor estão no modelo e no banco;
+  nenhum caso de uso os consulta. Não é buraco de segurança hoje — sem convite, todo ambiente
+  tem exatamente um acesso, o do dono — mas **entra junto com o convite**, e não depois
+- **`lancamento.md` está em 347 linhas**, acima do teto do `CONVENTIONS`. O `check` não acusa
+  porque ele é `rascunho`, e o aviso só vale para `ativo`: quando ele virar `ativo`, quebra
 - **Falta a gestão de papel e o convite**: a política de `acesso` não tem `UPDATE`, e criar
   acesso para *outro* usuário precisa de uma função `SECURITY DEFINER` (a condição "sou dono
   daqui" lê a própria tabela `acesso` e recursiona). Está escrito no `catalogo-tabelas.md`
-- O `ADR-0004` encareceu o isolamento: a política de RLS ganha um `OR` com subconsulta, e isso
-  não foi escrito em `03-dados/` — a tabela `evento` também precisa de RLS
+- A tabela `evento` também vai precisar de RLS quando nascer. O `OR` do `ADR-0004` **foi**
+  escrito em `03-dados/` em 16/09, em `catalogo-tabelas-do-ambiente.md`
 - `03-dados/modelo-de-dados.md` não conhece nada de hoje
 - O protótipo não exercita os dois eixos do relatório de gasto nem renomear categoria
 

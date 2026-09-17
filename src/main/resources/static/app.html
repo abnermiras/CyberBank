@@ -71,11 +71,13 @@
             <span class="tele">ESTADO REAL</span>
           </div>
           <div class="emespera">
-            <h4>Nada foi inventado aqui</h4>
-            <p>Os quatro cartões acima mostram um traço, e não <b>R$ 0,00</b>, porque zero
-              afirmaria que você não tem dinheiro — e o sistema não afirma o que não observou.
-              Eles preenchem sozinhos quando existir conta e lançamento.</p>
-            <div class="falta">FALTA PARA A HOME RESPONDER: <b>conta</b> · <b>lançamento</b> · <b>fatura</b></div>
+            <h4>Três respondem, um ainda não</h4>
+            <p><b>Em caixa</b>, <b>guardado</b> e <b>patrimônio</b> são soma de lançamento, e
+              já saem do banco. <b>Sobra até o fim do mês</b> continua com um traço, e não com
+              <b>R$ 0,00</b>: ela é saldo projetado — o realizado mais o previsto, menos o que
+              vence de fatura até lá — e a fatura ainda não existe. Zero ali afirmaria uma
+              conta que ninguém fez.</p>
+            <div class="falta">FALTA PARA A SOBRA: <b>fatura</b> · <b>saldo projetado</b></div>
           </div>
         </div>
 
@@ -88,7 +90,128 @@
       </div>
     </section>
 
-    <section class="tela hidden" data-tela="extrato"></section>
+    <section class="tela hidden" data-tela="extrato">
+      <div class="telahead">
+        <div>
+          <div class="eyebrow">MOVIMENTO // TODO O AMBIENTE</div>
+          <h2 class="th"><span class="glitch" data-t="Extrato">Extrato</span></h2>
+        </div>
+        <div class="tele">SALDO É SEMPRE A SOMA DISTO</div>
+      </div>
+
+      <div id="avisoExtrato"></div>
+
+      <div class="grid-2-1">
+        <section class="panel hot">
+          <span class="corner tr"></span>
+          <div class="panel-head">
+            <h3>Lançar</h3>
+            <span class="tele">GASTO E RECEITA REAIS · O MEIO DIZ A CONTA</span>
+          </div>
+          <form id="fLancar" autocomplete="off">
+            <div class="formlanc">
+              <div class="field" style="margin:0">
+                <label for="lancDescricao">Descrição</label>
+                <input id="lancDescricao" type="text" maxlength="200" placeholder="MERCADO" required>
+              </div>
+              <div class="field" style="margin:0">
+                <label for="lancValor">Valor</label>
+                <input id="lancValor" type="text" inputmode="decimal" placeholder="300,00" required>
+              </div>
+              <div class="field" style="margin:0">
+                <label for="lancSentido">Sentido</label>
+                <select id="lancSentido">
+                  <option value="SAIDA">SAÍDA</option>
+                  <option value="ENTRADA">ENTRADA</option>
+                </select>
+              </div>
+              <div class="field" style="margin:0">
+                <label for="lancMeio">Meio de pagamento</label>
+                <select id="lancMeio"></select>
+              </div>
+              <div class="field" style="margin:0">
+                <label for="lancCategoria">Categoria</label>
+                <select id="lancCategoria"></select>
+              </div>
+              <div class="field hidden" style="margin:0" id="campoSubcategoria">
+                <label for="lancSubcategoria">Subcategoria</label>
+                <select id="lancSubcategoria"></select>
+              </div>
+              <div class="field" style="margin:0">
+                <label for="lancData">Data do evento</label>
+                <div class="campo-data">
+                  <input id="lancData" type="text" inputmode="numeric"
+                         placeholder="dd/mm/aaaa" maxlength="10" required>
+                  <button class="grid-data" type="button" id="lancDataGrid"
+                          aria-label="Escolher no calendário" title="Escolher no calendário">▦</button>
+                  <input id="lancDataOculto" type="date" tabindex="-1" aria-hidden="true">
+                </div>
+              </div>
+              <div class="field hidden" style="margin:0" id="campoDataEfeito">
+                <label for="lancDataEfeito">Vencimento</label>
+                <div class="campo-data">
+                  <input id="lancDataEfeito" type="text" inputmode="numeric"
+                         placeholder="dd/mm/aaaa" maxlength="10">
+                  <button class="grid-data" type="button" id="lancDataEfeitoGrid"
+                          aria-label="Escolher no calendário" title="Escolher no calendário">▦</button>
+                  <input id="lancDataEfeitoOculto" type="date" tabindex="-1" aria-hidden="true">
+                </div>
+              </div>
+              <button class="btn primary" type="submit" id="btnLancar">Lançar</button>
+            </div>
+            <p class="dica mt10" id="lancExplica"></p>
+            <p class="dica" id="categoriaExplica"></p>
+          </form>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h3>Transferir</h3>
+            <span class="tele">UM PAR, NÃO UM LANÇAMENTO</span>
+          </div>
+          <form id="fTransferir" autocomplete="off">
+            <div class="field"><label for="transfOrigem">De</label><select id="transfOrigem"></select></div>
+            <div class="field"><label for="transfDestino">Para</label><select id="transfDestino"></select></div>
+            <div class="row">
+              <div class="field"><label for="transfValor">Valor</label>
+                <input id="transfValor" type="text" inputmode="decimal" placeholder="200,00" required></div>
+              <div class="field"><label for="transfData">Data</label>
+                <div class="campo-data">
+                  <input id="transfData" type="text" inputmode="numeric"
+                         placeholder="dd/mm/aaaa" maxlength="10" required>
+                  <button class="grid-data" type="button" id="transfDataGrid"
+                          aria-label="Escolher no calendário" title="Escolher no calendário">▦</button>
+                  <input id="transfDataOculto" type="date" tabindex="-1" aria-hidden="true">
+                </div></div>
+            </div>
+            <div class="field"><label for="transfDescricao">Descrição</label>
+              <input id="transfDescricao" type="text" maxlength="200" placeholder="APORTE" required></div>
+            <button class="btn" type="submit" id="btnTransferir">Transferir</button>
+            <p class="dica mt10">Aporte, resgate e saque são transferência. O dinheiro não saiu
+              da sua vida: mudou de bolso, e <b>o patrimônio não muda</b>.</p>
+          </form>
+        </section>
+      </div>
+
+      <section class="panel mt18">
+        <div class="panel-head">
+          <h3>Movimento</h3>
+          <div class="hstack gap14 wrap">
+            <span class="contagem" id="contagemExtrato">—</span>
+            <select id="filtroConta" class="filtro"></select>
+            <button class="interruptor" id="btnPendentes" type="button" aria-pressed="false">
+              <span class="luz"></span> Só pendências
+            </button>
+          </div>
+        </div>
+        <div id="linhas"></div>
+        <button class="btn ghost sm mt10 hidden" id="btnMais" type="button">Carregar mais</button>
+        <p class="rodape-regra">A lista pagina por <b>cursor</b>, não por página numerada: o
+          extrato cresce por cima, e com página numerada um lançamento novo faria um item
+          repetir ou sumir enquanto você lê. O que o ciclo criou não se exclui — o saldo de
+          abertura se corrige editando o valor.</p>
+      </section>
+    </section>
     <section class="tela hidden" data-tela="fatura"></section>
     <section class="tela hidden" data-tela="series"></section>
     <section class="tela hidden" data-tela="reserva"></section>
@@ -103,9 +226,14 @@
         <div class="tele">O SISTEMA SÓ CRIA AS CATEGORIAS DE SISTEMA</div>
       </div>
 
+      <div class="abas" id="abasCadastro">
+        <button class="aba on" type="button" data-aba="categorias">Categorias</button>
+        <button class="aba" type="button" data-aba="contas">Contas e meios</button>
+      </div>
+
       <div id="aviso"></div>
 
-      <div class="paineis stack gap20">
+      <div class="paineis stack gap20" data-painel="categorias">
         <section class="panel hot">
           <span class="corner tr"></span><span class="corner bl"></span>
           <div class="panel-head">
@@ -165,13 +293,73 @@
           <div class="sistema-lista" id="listaSistema"></div>
         </details>
       </div>
+
+      <div class="paineis stack gap20 hidden" data-painel="contas">
+        <div id="avisoContas"></div>
+
+        <section class="panel hot">
+          <span class="corner tr"></span><span class="corner bl"></span>
+          <div class="panel-head">
+            <h3>Nova conta</h3>
+            <span class="tele">SE TEM SALDO PRÓPRIO QUE O SISTEMA ACOMPANHA, É CONTA</span>
+          </div>
+          <form id="fConta" autocomplete="off">
+            <div class="formraiz">
+              <div class="field" style="margin:0">
+                <label for="contaNome">Nome</label>
+                <input id="contaNome" type="text" placeholder="NUBANK" maxlength="80" required>
+              </div>
+              <div class="field" style="margin:0">
+                <label for="contaTipo">Tipo</label>
+                <select id="contaTipo"></select>
+              </div>
+              <div class="field" style="margin:0">
+                <label for="contaSaldo">Saldo hoje</label>
+                <input id="contaSaldo" type="text" inputmode="decimal" placeholder="11236,00">
+              </div>
+              <button class="btn primary" type="submit" id="btnConta">Abrir conta</button>
+            </div>
+
+            <div class="field mt10" style="margin-bottom:0">
+              <label>Como se paga com ela</label>
+              <div class="opcoes" id="meiosDaConta"></div>
+            </div>
+
+            <p class="dica mt10" id="contaExplica"></p>
+          </form>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h3>Suas contas</h3>
+            <div class="hstack gap14 wrap">
+              <span class="contagem" id="contagemContas">—</span>
+              <button class="interruptor" id="btnContasInativas" type="button" aria-pressed="false">
+                <span class="luz"></span> Mostrar inativas
+              </button>
+            </div>
+          </div>
+          <div id="listaContas"></div>
+          <p class="rodape-regra">O meio não tem nome: uma conta tem no máximo um Pix, um
+            débito, um boleto, e o par <b>conta + tipo</b> já diz como o dinheiro saiu. Só o
+            cartão de crédito tem nome, porque ali o nome é a identidade — físico, virtual e
+            adicional dividem o mesmo contrato. Inativar uma conta <b>descarta os lançamentos
+            previstos</b> dela; o histórico e o saldo ficam. Excluir só funciona em conta que
+            nunca teve lançamento. <b>Cartão de crédito ainda não entra aqui</b>: ele nasce com
+            a fatura aberta do ciclo, e a fatura é a fatia seguinte.</p>
+        </section>
+      </div>
     </section>
   </main>
 </div>
 
 <script src="assets/js/api.js"></script>
+<script src="assets/js/formato.js"></script>
+<script src="assets/js/data.js"></script>
 <script src="assets/js/telas/home.js"></script>
 <script src="assets/js/telas/cadastro.js"></script>
+<script src="assets/js/telas/contas.js"></script>
+<script src="assets/js/telas/extrato.js"></script>
 <script src="assets/js/app.js"></script>
 </body>
 </html>

@@ -326,6 +326,15 @@ Nada precisa ser recalculado: como saldo é sempre a soma dos lançamentos
   próprio.
 - A **conta** é do mesmo ambiente, ou de um que a compartilhou com ele.
 
+## O que ainda não existe
+
+| O que falta | Consequência hoje |
+|---|---|
+| **A transição automática pela data** | A `situacao` é decidida no nascimento (`dataEfeito` futura nasce `PREVISTO`) e **só a correção do usuário a move**. Um boleto previsto continua previsto depois do vencimento, e o saldo realizado não desconta o que já saiu |
+| **`evento`** | Nada é gravado: nem `LANCAMENTO_EXCLUIDO`, nem o de/para de uma correção. O *histórico de alteração* que este doc entrega pelo evento não existe, e o preço da automação acima fica invisível quando ela chegar |
+| **`fatura`, `parcelamento`, `recorrencia`** | Os campos não existem nem na tabela. Sem eles não há crédito, `PROVISIONADO` nunca é usado, e o eixo *por compra* do relatório não tem o que separar |
+| **Estorno de lançamento do ciclo** | Não é recusado explicitamente; não há caso que o produza enquanto a rolagem não existir |
+
 ## Fronteiras com outros docs
 
 | Pergunta | Doc dono |

@@ -84,7 +84,9 @@ Erro previsível tem código, e **o código entra aqui antes de existir no códi
 | `EMAIL_JA_CADASTRADO` | 409 | Cadastro com e-mail que já existe. **É o único ponto do sistema que revela a existência de uma conta**, e não tem como não revelar: dois cadastros com o mesmo e-mail seriam o mesmo login. Login e recuperação continuam respondendo igual — a contenção do cadastro aberto é o que fecha esta porta, e está adiada de propósito (`docs/01-arquitetura/seguranca.md`) |
 | `VALIDACAO` | 422 | Um ou mais campos inválidos. Traz `erros` |
 | `CONTA_INATIVA` | 409 | Lançamento **do usuário** numa conta inativa. O que o ciclo cria não passa por aqui |
+| `CONTA_COM_LANCAMENTO` | 409 | Excluir uma conta que já teve lançamento. O histórico é o saldo, e o caminho é inativar (`docs/02-dominio/conta.md`) |
 | `CATEGORIA_NAO_ESCOLHIVEL` | 409 | Categoria inativa, raiz com filho ativo, ou categoria de sistema |
+| `CATEGORIA_DE_OUTRO_SENTIDO` | 409 | Categoria de `ENTRADA` num lançamento de `SAIDA`, ou o contrário. **A regra é de escolha, não de dado**: o estorno herda a categoria do original com o sentido invertido e não passa por aqui (`docs/02-dominio/categoria.md`) |
 | `CATEGORIA_COM_LANCAMENTO` | 409 | Excluir categoria cuja árvore tem lançamento. O caminho é inativar |
 | `CATEGORIA_DE_SISTEMA_PROTEGIDA` | 409 | Renomear, inativar, excluir uma categoria de sistema — ou pendurar subcategoria nela. O sistema depende dela **por identidade**, e sem ela o ciclo não consegue lançar |
 | `CATEGORIA_PAI_INVALIDO` | 409 | O `paiId` aponta para uma **subcategoria**. A árvore tem exatamente dois níveis: subcategoria não tem filhos |
@@ -93,8 +95,16 @@ Erro previsível tem código, e **o código entra aqui antes de existir no códi
 | `FATURA_NAO_RECEBE_PAGAMENTO` | 409 | A fatura não é `FECHADA` com `a pagar` maior que zero |
 | `FATURA_NAO_ABRE` | 409 | Não é a última fechada, ou já encerrou |
 | `LANCAMENTO_DO_CICLO` | 409 | Excluir o que o ciclo criou: parcela isolada, par de rolagem, lançamento de abertura |
+| `LANCAMENTO_COM_ESTORNO` | 409 | Excluir um lançamento que tem estorno apontando para ele. O estorno ficaria órfão; exclui-se o estorno primeiro |
+| `TRANSFERENCIA_MESMA_CONTA` | 409 | Origem e destino iguais. Transferência é um par entre contas **diferentes** (`docs/02-dominio/lancamento.md`) |
+| `BENEFICIO_NAO_TRANSFERE` | 409 | Conta `BENEFICIO` como origem ou destino de transferência. O saldo dela não é fungível — entra por receita e sai por gasto no meio dele |
 | `CARTAO_SEM_SALDO_INICIAL` | 422 | Saldo inicial numa conta `CARTAO` |
 | `TIPO_DE_CONTA_IMUTAVEL` | 409 | Trocar o tipo de uma conta que já tem lançamento |
+| `MEIO_INCOMPATIVEL_COM_CONTA` | 409 | O tipo do meio não casa com o tipo da conta: `DEBITO`/`PIX`/`BOLETO` fora de uma `CORRENTE`, `DINHEIRO` fora de uma `CARTEIRA`, `BENEFICIO` fora de uma `BENEFICIO`, `CREDITO` fora de uma `CARTAO` — ou qualquer meio apontando para uma `APLICACAO`, com que não se paga (`docs/02-dominio/meio-de-pagamento.md`) |
+| `TIPO_DE_MEIO_IMUTAVEL` | 409 | Trocar o tipo de um meio que já tem lançamento |
+| `MEIO_COM_LANCAMENTO` | 409 | Excluir um meio que já teve lançamento. O caminho é inativar |
+| `MEIO_DUPLICADO_NA_CONTA` | 409 | A conta já tem um meio desse tipo. O par `(conta, tipo)` identifica o meio, e só `CREDITO` se repete — um contrato tem vários cartões (`docs/02-dominio/meio-de-pagamento.md`) |
+| `MEIO_INATIVO` | 409 | Lançamento **do usuário** num meio inativo, nem por captura |
 | `AMBIENTE_INVALIDO` | 409 | Categoria de outro ambiente, ou conta sem vínculo (`ADR-0004`) |
 
 **Cada linha aponta para uma invariante já escrita no domínio.** Código novo sem invariante

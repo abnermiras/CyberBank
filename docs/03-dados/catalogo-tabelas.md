@@ -1,8 +1,8 @@
 ---
 id: 03-dados/catalogo-tabelas
 titulo: Catalogo de tabelas
-dono: definicao coluna a coluna de cada tabela, com constraints, indices e politicas
-ler-junto: [03-dados/modelo-de-dados, 03-dados/migrations]
+dono: indice das tabelas e definicao coluna a coluna das familias do usuario e de ligacao
+ler-junto: [03-dados/catalogo-tabelas-do-ambiente, 03-dados/modelo-de-dados, 03-dados/migrations]
 status: ativo
 ---
 
@@ -17,6 +17,10 @@ com `CHECK`.
 
 **A família decide a proteção** (`modelo-de-dados.md`), e ela está dita em cada seção.
 
+As tabelas **do ambiente** — as que têm `ambiente_id` — estão em
+`docs/03-dados/catalogo-tabelas-do-ambiente.md`. Aqui ficam as do **usuário** e as de
+**ligação**, mais as funções de contexto que todas as políticas leem.
+
 | Tabela | Família | Migration |
 |---|---|---|
 | `usuario` | do usuário | `V001` |
@@ -24,6 +28,10 @@ com `CHECK`.
 | `ambiente` | de ligação | `V001` |
 | `acesso` | de ligação | `V001` |
 | `categoria` | **do ambiente** | `V002` |
+| `conta` | **do ambiente** | `V004` |
+| `meio` | **do ambiente** | `V004` |
+| `lancamento` | **do ambiente** | `V004` |
+| `vinculo` | de ligação | `V004` |
 
 ## Funções de contexto
 
@@ -135,47 +143,27 @@ trocar papel exigem a condição *"sou dono deste ambiente"*, que lê a própria
 e política que lê a tabela que ela protege recursiona. A saída é uma função
 `SECURITY DEFINER`, e ela entra **com o convite**. Até lá, o banco nega os dois.
 
-## `categoria` — família do ambiente (`V002`)
+## `vinculo` — família de ligação (`V004`)
 
-A primeira tabela de dado do ambiente. **As outras oito copiam a forma daqui.**
+**Nasce vazia.** Ela existe agora porque a política de `conta` e a de `meio` precisam do `OR`
+do `ADR-0004` desde a primeira migration. Criar e revogar vínculo é a **funcionalidade** do
+compartilhamento, liberada com a Fase 1 concluída.
 
 | Coluna | Tipo | Nulo | Default | Nota |
 |---|---|---|---|---|
 | `id` | `bigint` identity | não | — | PK |
-| `ambiente_id` | `bigint` | não | — | FK → `ambiente`, `ON DELETE CASCADE`. É a coluna da família |
-| `pai_id` | `bigint` | sim | — | `NULL` é raiz |
-| `nome` | `varchar(80)` | não | — | Renomear é livre; o lançamento referencia por identidade |
-| `sentido` | `varchar(10)` | não | — | `ENTRADA` ou `SAIDA` |
-| `sistema` | `boolean` | não | `false` | Categoria de sistema |
-| `operacao` | `varchar(30)` | sim | — | Qual das sete operações. **É por aqui que o ciclo acha a dele** — nome não é identidade |
-| `inativa` | `boolean` | não | `false` | Sempre ato do usuário |
-| `criada_em` | `timestamptz` | não | `now()` | |
-| `nivel` | `smallint` gerado | não | — | `1` se raiz, `2` se filha. Derivado de `pai_id` |
-| `pai_nivel` | `smallint` gerado | não | — | Constante `1`. Existe só para a chave estrangeira abaixo |
+| `objeto` | `varchar(10)` | não | — | `CONTA` ou `MEIO` |
+| `conta_id` | `bigint` | sim | — | Preenchido quando `objeto = 'CONTA'` |
+| `meio_id` | `bigint` | sim | — | Preenchido quando `objeto = 'MEIO'` |
+| `ambiente_origem_id` | `bigint` | não | — | O dono do objeto. **Não é denormalização solta**: as chaves compostas o amarram |
+| `ambiente_destino_id` | `bigint` | não | — | Quem ganha o **uso** |
+| `criado_por` | `bigint` | não | — | FK → `usuario` |
+| `criado_em` | `timestamptz` | não | `now()` | |
 
 | Constraint | Protege |
 |---|---|
-| `fk_categoria_pai` | `(pai_id, ambiente_id, pai_nivel) → (id, ambiente_id, nivel)`. **Uma constraint, duas invariantes:** o pai é raiz (a árvore tem dois níveis, e subcategoria não tem filho) **e** o pai é do mesmo ambiente. `MATCH SIMPLE`: com `pai_id` nulo não é cobrada, que é o caso da raiz |
-| `ck_categoria_sentido` | `ENTRADA` / `SAIDA` |
-| `ck_categoria_operacao` | As sete operações, e só elas |
-| `ck_categoria_sistema_tem_operacao` | `sistema = (operacao IS NOT NULL)` — uma é a outra |
-| `ck_categoria_sistema_e_raiz` | Categoria de sistema nunca tem pai |
-| `ck_categoria_sistema_nunca_inativa` | O único pedaço de *"não se renomeia, não se move, não se inativa"* que cabe no banco; o resto é do domínio |
-| `uq_categoria_sistema_por_ambiente` | Único parcial `WHERE sistema`, em `(ambiente_id, operacao, sentido)`: as **quatorze**, uma de cada |
-| `ix_categoria_ambiente_pai` | A lista de categorias do ambiente, que é a consulta de toda tela de lançamento |
-
-**Não há unicidade de nome.** Dois nomes iguais em raízes diferentes são duas categorias de
-propósito (`docs/02-dominio/categoria.md`), e inativar-e-recriar depende disso.
-
-`ENABLE` + `FORCE ROW LEVEL SECURITY`, com uma política só:
-
-| Política | Comando | Regra |
-|---|---|---|
-| `categoria_do_ambiente` | `ALL` | `ambiente_id = app_ambiente_id()`, no `USING` e no `WITH CHECK` |
-
-**Sem o `OR` do vínculo, e isso não é esquecimento.** O `ADR-0004` paga o `OR` "em toda tabela
-ligada a conta", e o que o vínculo empresta é o uso de **conta** e de **meio**. Categoria não
-atravessa ambiente em hipótese nenhuma — `ambiente-financeiro.md` escreve *"conta e meio podem
-ser de outro ambiente… categoria, nunca"*, e o próprio `ADR-0004` manda **mascarar** a categoria
-de fora. Mascarar é o oposto de enxergar: um `OR` aqui daria acesso exatamente ao que a decisão
-proíbe. Ele entra nas tabelas ligadas a conta, quando elas nascerem.
+| `fk_vinculo_conta`, `fk_vinculo_meio` | `(objeto_id, ambiente_origem_id) → (id, ambiente_id)`. A origem é mesmo o ambiente do objeto |
+| `ck_vinculo_objeto` | Exatamente uma das duas colunas preenchida, e casando com `objeto` |
+| `ck_vinculo_ambientes_diferentes` | Emprestar para si mesmo não é compartilhar |
+| `uq_vinculo_conta_destino`, `uq_vinculo_meio_destino` | Únicos parciais: *"um objeto tem no máximo um vínculo por ambiente de destino"* |
+| `ix_vinculo_destino` | A subconsulta do `OR`, que roda em toda leitura de conta, meio e lançamento |
