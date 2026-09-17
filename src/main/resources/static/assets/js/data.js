@@ -9,23 +9,13 @@ const CampoDeData = {
 
   ligar(id) {
     const texto = document.getElementById(id);
-    const oculto = document.getElementById(`${id}Oculto`);
     const botao = document.getElementById(`${id}Grid`);
 
     botao.addEventListener('click', () => {
-      oculto.value = CampoDeData.valor(id) || Formato.hoje();
-      try {
-        oculto.showPicker();
-      } catch (erro) {
-        void erro;
-        oculto.focus();
-        oculto.click();
-      }
-    });
-
-    oculto.addEventListener('change', () => {
-      if (oculto.value) texto.value = Formato.dia(oculto.value);
-      texto.dispatchEvent(new Event('change', { bubbles: true }));
+      Calendario.abrir(botao, CampoDeData.valor(id) || Formato.hoje(), (iso) => {
+        CampoDeData.definir(id, iso);
+        texto.dispatchEvent(new Event('change', { bubbles: true }));
+      });
     });
 
     texto.addEventListener('focus', () => texto.select());
