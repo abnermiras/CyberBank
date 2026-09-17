@@ -118,6 +118,27 @@ Extrato, uma conta abre o Cadastro. Apontar para a linha exata exige o Extrato a
 lançamento no endereço, e isso ainda não existe. O evento de exclusão não leva link nenhum: o
 alvo não existe mais, e é por isso que ele carrega a linha inteira nos `dados`.
 
+## O seletor de categoria tem duas formas, e a diferença é o espaço
+
+A árvore tem dois níveis, e o seletor precisa mostrar os dois sem mentir sobre qual é o
+destino. As duas telas resolvem isso de formas diferentes **de propósito**:
+
+- **No formulário completo, são dois campos**: categoria e subcategoria, e o segundo só
+  aparece quando a raiz escolhida deixou de ser destino. O campo separado é o que deixa claro
+  que a escolha ainda não terminou.
+- **No quick-add, é um campo só**, com `optgroup`: a raiz que **é** o destino aparece como
+  opção solta, e a raiz que tem filhas vira **cabeçalho do grupo**, com as filhas dentro. O
+  painel curto não tem espaço para um segundo campo que aparece e some, e o cabeçalho diz a
+  que família a subcategoria pertence sem repetir o nome dela em cada linha.
+
+**Achatar a árvore em `Raiz › Filha` foi tentado e é pior**: o nome da raiz se repete em cada
+filha, e numa raiz com cinco filhas a lista vira cinco linhas que começam iguais — o olho
+perde exatamente a parte que distingue uma da outra.
+
+**Quando não há nenhuma categoria do sentido escolhido, a tela diz isso** em vez de mostrar um
+seletor com uma opção só. Sem a frase, "— sem categoria —" parece defeito; com ela, o usuário
+sabe que pode lançar assim mesmo e resolver na fila de pendências.
+
 ## Dado inativo fica escondido, e a tela diz que escondeu
 
 Inativar é como o usuário tira do caminho o que não usa mais — categoria, e um dia conta e
