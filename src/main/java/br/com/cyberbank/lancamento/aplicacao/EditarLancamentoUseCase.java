@@ -96,7 +96,9 @@ public class EditarLancamentoUseCase {
         }
 
         eventos.registrar(Evento.doUsuario(ambienteId, autorId, TipoDeEvento.LANCAMENTO_EDITADO,
-                Alvo.lancamento(depois.id()), mudancas, diaLocal.hoje(), relogio.instant()));
+                Alvo.lancamento(depois.id()),
+                Evento.reunir(List.of(Evento.dados("descricao", antes.descricao()), mudancas)),
+                diaLocal.hoje(), relogio.instant()));
     }
 
     private List<Lancamento> editarOParInteiro(Long ambienteId, Lancamento umDosLados,

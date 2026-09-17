@@ -29,12 +29,6 @@ const EM_ESPERA = {
     responde: 'Contas, aplicações e a diferença entre fluxo de caixa e patrimônio. É onde o valor informado de uma aplicação mostra a idade dele — o sistema nunca extrapola rendimento.',
     falta: ['valor informado da aplicação', 'a tela de patrimônio'],
   },
-  diario: {
-    olho: 'DIÁRIO // FASE 2',
-    titulo: 'Diário',
-    responde: 'O que aconteceu num dia: o que o sistema fez sozinho e o que a pessoa fez. Toda outra tela mostra como as coisas estão; esta é a única que mostra o que aconteceu.',
-    falta: ['evento', 'fatura'],
-  },
 };
 
 const seletor = (id) => document.querySelector(`[data-tela="${id}"]`);
@@ -68,6 +62,7 @@ const ABA_DO_CADASTRO = { categorias: () => Cadastro.montar(), contas: () => Con
 const AO_ENTRAR = {
   home: () => Home.montar(),
   extrato: () => Extrato.montar(),
+  diario: () => Diario.montar(),
   cadastro: () => abrirAba(document.querySelector('#abasCadastro .aba.on').dataset.aba),
 };
 

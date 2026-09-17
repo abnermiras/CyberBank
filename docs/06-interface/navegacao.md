@@ -71,7 +71,7 @@ em algo aprendível.
 | **Reserva** | Contas, aplicações e a diferença entre fluxo de caixa e patrimônio |
 | **Séries** | Os parcelamentos e as recorrências vivos, e o que muda ao alterar cada um |
 | **Cadastro** | As árvores de categoria do usuário: criar, inativar, reativar e excluir |
-| **Diário** (Fase 2) | O que aconteceu num dia: o que o sistema fez sozinho e o que a pessoa fez |
+| **Diário** | O que aconteceu num dia: o que o sistema fez sozinho e o que a pessoa fez |
 
 Ainda não existem: cadastro de contas e de meios; convite de pessoas para um ambiente;
 perfil e sessões.
@@ -93,6 +93,16 @@ app mostra **como as coisas estão**; o Diário é a única que mostra **o que a
   Diário é uma porta, não um relatório morto.
 - **A frase é montada na tela, nunca guardada** (`docs/02-dominio/evento.md`) — senão o texto
   congela na redação do dia em que foi escrito.
+- **Transferência não leva sinal no valor.** O par soma zero, e um `+` ali afirmaria que entrou
+  dinheiro na vida do usuário — que é exatamente o erro que o `lancamento.md` passa o tempo
+  todo evitando. Gasto e receita levam sinal e cor; transferência leva só o número.
+- **O evento de correção nomeia o lançamento pelo nome ANTIGO**, e depois mostra o de/para. É o
+  nome que a pessoa reconhece: ela está procurando o que mexeu, não o que resultou.
+
+**O link de cada linha hoje leva à tela do alvo, não ao objeto** — um lançamento abre o
+Extrato, uma conta abre o Cadastro. Apontar para a linha exata exige o Extrato aceitar um
+lançamento no endereço, e isso ainda não existe. O evento de exclusão não leva link nenhum: o
+alvo não existe mais, e é por isso que ele carrega a linha inteira nos `dados`.
 
 ## Dado inativo fica escondido, e a tela diz que escondeu
 

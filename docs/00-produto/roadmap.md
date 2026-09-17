@@ -72,13 +72,14 @@ schema deixado para o fim é migration em cima de dado real, e tela não é.
 O usuário deixa de digitar lançamento; só confirma categoria.
 
 Captura de notificação de compra · pendência de categorização · regras de categorização
-automática · importação de OFX · conciliação sem duplicar · **a tela do Diário**, com seletor
-de dia (`docs/02-dominio/evento.md`).
+automática · importação de OFX · conciliação sem duplicar.
 
-**Diário na Fase 2 é exatamente o mesmo movimento de `Aplicação` e do compartilhamento:** o
-que contamina schema entra na Fase 1, a tela espera. Aqui o argumento é ainda mais direto,
-porque o dado não é reconstituível — schema deixado para o fim é migration em cima de dado
-real, e evento deixado para o fim é dado que **nunca existiu**.
+**A tela do Diário saiu desta fase em 17/09**, e foi antecipada para a Fase 1. O argumento que
+a colocava aqui continua verdadeiro pela metade — *o que contamina schema entra na Fase 1, a
+tela espera* —, mas ele valia contra o **custo** de construir a tela, e a tela custou uma
+tarde: o dado já estava gravado, e o que faltava era um `GET` e uma lista. O que decidiu foi o
+outro lado: **evento gravado e nunca olhado é evento que ninguém sabe se está certo.** A tela é
+como se valida a gravação, e validar depois de um ano de eventos é validar tarde demais.
 
 **Pronto quando:** a maioria dos lançamentos do mês entra sem digitação e nenhum
 lançamento duplicado sobrevive à conciliação.

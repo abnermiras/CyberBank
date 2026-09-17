@@ -125,4 +125,6 @@ const API = {
 
   estornarLancamento: (ambienteId, id, corpo) =>
     API.post(API.doAmbiente(ambienteId, `/lancamentos/${id}/estorno`), corpo),
+
+  diario: (ambienteId, dia) => API.get(API.doAmbiente(ambienteId, `/eventos?dia=${dia}`)),
 };

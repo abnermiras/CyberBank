@@ -223,6 +223,80 @@ class DiarioERotinaIT {
         assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
+    @Test
+    @SuppressWarnings("unchecked")
+    void o_diario_ecoa_o_dia_e_traz_os_mais_novos_primeiro() {
+        var sessao = novaSessao("contrato");
+        Integer nubank = criarConta(sessao, "Nubank", "CORRENTE", 100000L, List.of("PIX"));
+        Integer pix = meioDa(sessao, nubank);
+
+        lancar(sessao, Map.of("meioId", pix, "sentido", "SAIDA", "valor", 30000,
+                "dataEvento", "2026-09-10", "descricao", "Feira"));
+
+        var resposta = get(sessao, "/eventos");
+        String hoje = diaLocal.hoje().toString();
+
+        assertThat(resposta.getBody()).containsEntry("dia", hoje);
+        assertThat(itens(resposta)).isNotEmpty();
+
+        var instantes = itens(resposta).stream().map(e -> (String) e.get("instante")).toList();
+        assertThat(instantes)
+                .as("mais novos primeiro pelo instante")
+                .isSortedAccordingTo(java.util.Comparator.reverseOrder());
+
+        assertThat(itens(resposta))
+                .filteredOn(e -> "LANCAMENTO_CRIADO".equals(e.get("tipo")))
+                .singleElement()
+                .satisfies(evento -> {
+                    assertThat(evento).containsEntry("origem", "USUARIO");
+                    assertThat(evento)
+                            .as("o autor vem com nome: é ele que a tela mostra")
+                            .containsEntry("autor", "contrato");
+                    assertThat((Map<String, Object>) evento.get("alvo"))
+                            .as("o alvo é o que faz a linha do Diário virar link")
+                            .containsEntry("tipo", "LANCAMENTO")
+                            .containsKey("id");
+                    assertThat((Map<String, Object>) evento.get("dados"))
+                            .containsEntry("descricao", "Feira")
+                            .containsEntry("valor", 30000);
+                    assertThat(evento)
+                            .as("a frase não vem pronta: tipo, dados e alvo bastam")
+                            .doesNotContainKeys("frase", "texto", "descricaoDoEvento");
+                });
+    }
+
+    @Test
+    void dia_sem_evento_e_uma_resposta_valida_e_nao_um_404() {
+        var sessao = novaSessao("diavazio");
+
+        var resposta = get(sessao, "/eventos?dia=2020-01-01");
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(resposta.getBody()).containsEntry("dia", "2020-01-01");
+        assertThat(itens(resposta))
+                .as("dia sem movimento é resposta, não erro")
+                .isEmpty();
+    }
+
+    @Test
+    void o_diario_do_futuro_e_recusado_em_vez_de_devolver_vazio() {
+        var sessao = novaSessao("futuro");
+
+        var resposta = get(sessao, "/eventos?dia=2099-12-10");
+
+        assertThat(resposta.getStatusCode().value())
+                .as("vazio diria 'nada aconteceu'; amanhã é um dia que não aconteceu")
+                .isEqualTo(422);
+        assertThat(resposta.getBody()).containsEntry("codigo", "VALIDACAO");
+    }
+
+    @Test
+    void dia_fora_do_formato_e_422_e_nao_uma_falha_nossa() {
+        var sessao = novaSessao("formato");
+
+        assertThat(get(sessao, "/eventos?dia=17-09-2026").getStatusCode().value()).isEqualTo(422);
+    }
+
     private record Sessao(Integer ambienteId, String cookie) {
     }
 

@@ -15,12 +15,13 @@ patrimônio, os dois conferidos contra Postgres real.
 
 **O esqueleto está commitado e no GitHub:** `4be103d` na branch `esqueleto-do-projeto`,
 mergeado em `main` por `9e015a2`. O bloqueio do push acabou.
-`./mvnw verify` verde — **114 testes de unidade e 54 de integração** —, check de docs em 0
+`./mvnw verify` verde — **118 testes de unidade e 58 de integração** —, check de docs em 0
 erros e 0 avisos. **`main` está à frente de `origin/main`**, do `51edd8e` para cá: o push é
 comando entregue ao Abner, e o de 17/09 ainda não saiu.
 
 | Sessão | O que saiu |
 |---|---|
+| **17/09 (a tela do Diário)** | O Diário **saiu da Fase 2** e foi antecipado: evento gravado e nunca olhado é evento que ninguém sabe se está certo, e a tela é como se valida a gravação. Nasce `GET /eventos?dia=`, a **única lista do sistema sem cursor** — a pergunta é sobre um dia, e um dia fecha quando acaba. Dia no futuro é **422**, não lista vazia: vazio diria "nada aconteceu", e amanhã é um dia que não aconteceu. A frase de cada linha é montada na tela, por tipo |
 | **17/09 (evento e a rotina)** | **`V006`**: a tabela `evento`, imutável por ausência de política de `UPDATE` e `DELETE` · nasce o pacote `evento/` e a **rotina diária**, que vira `PREVISTO` em `REALIZADO` pela data — a regra existia no domínio desde a fatia 3 e **ninguém a chamava** · **`ADR-0013`**: a rotina atravessa o RLS por função `SECURITY DEFINER` mais uma política escrita para o papel dono, porque `FORCE ROW LEVEL SECURITY` sujeita o dono às políticas · a lista fechada de tipos ganha os **sete** que o app já fazia e o doc não previa (renomear/reativar/excluir conta e meio, recolorir categoria) · treze casos de uso passam a gravar evento · e apareceu de brinde o **`CATEGORIA_COM_LANCAMENTO`**, que estava no catálogo de erros e em nenhum lugar do código |
 | **17/09 (o calendário)** | O botão ▦ do campo de data abria o **seletor nativo do navegador**, cinza do Windows dentro de um app cyberpunk. Não era ajuste de CSS: aquele painel é pintado pelo sistema operacional e não aceita tema. Nasce o **`Calendario`**, desenhado no CSS do projeto — e ele mora no `body` em `position:fixed`, porque `.panel` usa `clip-path` e recortaria um popup absoluto pela metade. Os três `input[type=date]` escondidos morreram com o `showPicker` |
 | **15/09 (fatia 2 e a cor)** | O front encosta na API: **cadastro de categorias** na tela. E a **decisão 0 fechou** — cor de categoria é **identidade, não semântica**, e por isso são **duas paletas** separadas, escritas em `direcao-visual.md`. A exceção que o seed já praticava (`LAZER` rosa sem alertar nada) virou regra em vez de continuar sendo desvio |
@@ -379,6 +380,9 @@ ordem está fixada no `lacunas-para-codigo.md`:
 11. **Rodada de protótipo** — ver abaixo; o backlog do `dominio.js` está aberto desde 01/09,
    e agora o `prototipo/` está **atrás do app de verdade**, não só do modelo.
 12. **Tela de Perfil** com a caixa de convites; **renomear categoria** na tela.
+13. ~~**A tela do Diário**~~ ✅ **Fechada em 17/09**, antecipada da Fase 2. Falta nela o
+    **link para o objeto exato** — hoje a linha leva à tela do alvo, e apontar para o
+    lançamento exige o Extrato aceitar um id no endereço.
 
 ## Decisões em aberto
 
@@ -431,7 +435,7 @@ a razão de ela ter sumido vale mais que a pergunta.)*
 
 ## Estado da documentação
 
-**76 documentos**, 18 stubs. Stub = conteúdo inexistente: **perguntar, nunca deduzir.**
+**77 documentos**, 18 stubs. Stub = conteúdo inexistente: **perguntar, nunca deduzir.**
 
 Escritos: `CLAUDE.md`, `CONVENTIONS.md`, os 6 fluxos, todo o `00-produto/` menos `jornadas`,
 `02-dominio/` inteiro menos `orcamento`, `regras-categorizacao` e `importacao-conciliacao`,

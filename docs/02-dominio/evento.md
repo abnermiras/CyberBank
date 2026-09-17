@@ -3,15 +3,15 @@ id: 02-dominio/evento
 titulo: Evento
 dono: o registro do que aconteceu num dia — o que o sistema fez sozinho e o que a pessoa fez
 ler-junto: [02-dominio/lancamento, 02-dominio/fatura-cartao, 02-dominio/ambiente-financeiro]
-status: rascunho
+status: ativo
 ---
 
 # Evento
 
-> **Quando.** **Gravar é Fase 1. A tela do Diário é Fase 2**
-> (`docs/00-produto/roadmap.md`). Evento não se reconstitui depois: o dia em que a fatura
-> fechou sozinha ou passou, ou não foi registrado. Por isso a gravação não pode esperar a
-> tela.
+> **Quando.** **Gravar e a tela são Fase 1**, as duas. A gravação nunca pôde esperar — evento
+> não se reconstitui depois: o dia em que a fatura fechou sozinha ou passou, ou não foi
+> registrado. A tela **era** Fase 2 e foi antecipada em 17/09 (`docs/00-produto/roadmap.md`),
+> pela razão inversa: evento gravado e nunca olhado é evento que ninguém sabe se está certo.
 
 Um **evento** é uma linha que diz *o que aconteceu, quando, e por quem* dentro de um
 ambiente financeiro. O conjunto dos eventos de um dia é o **Diário** daquele dia.
@@ -186,8 +186,8 @@ Esta seção existe para o Diário não virar um log de aplicação.
 
 ## O Diário
 
-A tela é Fase 2 e o dono dela é `docs/06-interface/navegacao.md`. Do lado do domínio, só o
-seguinte é regra:
+O dono da tela é `docs/06-interface/navegacao.md`, e o do contrato é
+`docs/04-api/endpoints-eventos.md`. Do lado do domínio, só o seguinte é regra:
 
 - O Diário de um dia são os eventos daquele `dia`, **do ambiente ativo**, mais novos primeiro
   pelo `instante`.
