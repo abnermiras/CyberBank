@@ -21,12 +21,11 @@ const Cadastro = {
     await Cadastro.recarregar();
   },
 
-  tom: (cor) => `var(--cat-${String(cor || 'ardosia').toLowerCase()})`,
 
   montarSwatches() {
     document.getElementById('swatches').innerHTML = Cadastro.PALETA.map((cor) =>
       `<button type="button" class="swatch${cor === Cadastro.corEscolhida ? ' on' : ''}"
-         data-cor="${cor}" style="--sw:${Cadastro.tom(cor)}" title="${cor}"></button>`).join('');
+         data-cor="${cor}" style="--sw:${Formato.tom(cor)}" title="${cor}"></button>`).join('');
   },
 
   ligarOuvintes() {
@@ -175,7 +174,7 @@ const Cadastro = {
   },
 
   desenharCard(raiz) {
-    const tom = Cadastro.tom(raiz.cor);
+    const tom = Formato.tom(raiz.cor);
     const ativas = raiz.filhas.filter((f) => !f.inativa).length;
 
     const cabeca = Cadastro.editandoRaiz === raiz.id
@@ -203,7 +202,7 @@ const Cadastro = {
   edicaoDeRaiz(raiz) {
     const swatches = Cadastro.PALETA.map((cor) =>
       `<button type="button" class="swatch${cor === Cadastro.corEmEdicao ? ' on' : ''}"
-         data-cor-edicao="${cor}" style="--sw:${Cadastro.tom(cor)}" title="${cor}"></button>`).join('');
+         data-cor-edicao="${cor}" style="--sw:${Formato.tom(cor)}" title="${cor}"></button>`).join('');
 
     return `<div class="arv-edicao">
               <input id="nomeRaiz${raiz.id}" maxlength="80" value="${Cadastro.esc(raiz.nome)}">

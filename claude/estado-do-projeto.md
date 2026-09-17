@@ -15,12 +15,13 @@ patrimônio, os dois conferidos contra Postgres real.
 
 **O esqueleto está commitado e no GitHub:** `4be103d` na branch `esqueleto-do-projeto`,
 mergeado em `main` por `9e015a2`. O bloqueio do push acabou.
-`./mvnw verify` verde — **129 testes de unidade e 65 de integração** —, check de docs em 0
+`./mvnw verify` verde — **137 testes de unidade e 69 de integração** —, check de docs em 0
 erros e 0 avisos. **`main` está à frente de `origin/main`**, do `51edd8e` para cá: o push é
 comando entregue ao Abner, e o de 17/09 ainda não saiu.
 
 | Sessão | O que saiu |
 |---|---|
+| **17/09 (a Home vira cockpit)** | **Os dois últimos stubs de tela e de API saíram**: `06-interface/dashboard.md` e `04-api/endpoints-relatorios.md` · nasce `GET /relatorios/resumo`, **um endpoint só** — duas metades da tela discordando é pior que a tela demorar · a regra do gasto sai do protótipo e vira domínio testável (`RelatorioDoMes`): **quem manda é o sentido da categoria**, categoria de sistema fora, só conta de fluxo, agrupa pela raiz — e **categoria que zerou no mês some da lista** · a Home ganha **gasto por categoria com barra**, **pendências que se resolvem ali mesmo**, o bloco **reservado da fatura**, **o que vem por aí** com `T−n` e os totais a pagar/a receber, e **o mês em números** · a **sobra até o fim do mês deixou de ser um traço** e mostra a conta que a produziu · achado: o protótipo somava receita por `entraEmCaixa` e gasto por `entraNoFluxoDeCaixa` — aqui os dois usam **fluxo de caixa**, senão o benefício entraria num lado só |
 | **17/09 (o perfil, de pé)** | Três commits, na ordem combinada. **O `ADR-0014` saiu do papel**: `usuario/` é pacote, e `CriarAmbientePessoalUseCase` passa a ser o encontro dos dois assuntos na aplicação · **`V007`**, `Avatar` com os dez nomes fechados, o sorteio recebendo a aleatoriedade de fora, e o backfill dando avatar a quem já existia · `GET`/`PATCH /usuarios/atual`, `PUT`/`DELETE /usuarios/atual/telegram` e `PUT /usuarios/atual/senha` · **o Telegram virou sub-recurso no meio do caminho**: o doc dizia campo do `PATCH` com `null` apagando, e o `PerfilIT` provou que ausente e `null` chegam iguais em JSON — o preço seria o vínculo sumir ao trocar só o nome · a **tela** nasce com os dez SVGs, os três blocos reservados e a porta no avatar do canto superior direito · **129 testes de unidade e 65 de integração**, e o navegador dirigido em 13 passos |
 | **17/09 (o perfil, no papel)** | **Sessão só de documento, sem uma linha de código.** O usuário vira **assunto** (`ADR-0014`): `usuario.md` nasce, e com ele o pacote `usuario/` para onde `Usuario`, `Sessao`, `Senhas` e o login saem de `ambiente/` — o `ADR-0008` derivava o endereço de um doc que não possuía nem avatar nem Telegram · nasce a **tela de Perfil** (`06-interface/perfil.md`), com a porta no avatar do canto superior direito, e os blocos de **convite** e de **sessões** como espaço reservado que diz o que espera · **dez avatares monocromáticos**, e a razão saiu da regra que já existia: a paleta de identidade tem oito tons e o nono está proibido, então quem distingue é a **forma** · o **chat id do Telegram é declarado pela pessoa, sem pareamento** — e o doc nomeia o preço, que é poder mandar dado para o chat errado · `endpoints-usuario.md` leva cadastro, login e logout embora de `endpoints-ambientes.md` |
 | **17/09 (lançar em qualquer tela)** | **O código alcançou o `navegacao.md`**, que desde sempre dizia *"um botão presente em qualquer tela (e a tecla `N`)"* e *"o formulário completo é a saída do quick-add, não um caminho paralelo"* — e a fatia 3 tinha construído o oposto: dois painéis sempre abertos dentro do Extrato, e nenhum jeito de lançar de fora dele. Nasce `Lancar`, global: FAB, tecla `N`, painel curto e modal completo com **GASTO · RECEITA · TRANSFERÊNCIA** e **CRÉDITO desabilitado dizendo o que falta**. **Não há aba de boleto**, e a ausência é a regra no lugar certo: boleto é um *meio*, e é o meio que decide se existem duas datas · o seletor de categoria do quick-add agrupa por `optgroup` em vez de achatar em "Raiz › Filha" |
@@ -270,7 +271,7 @@ classifica — registra.
 | Formulário completo | **Explica o que o modelo vai fazer** antes de fazer |
 | Ação destrutiva ou retroativa | Mostra o **impacto numérico** antes de confirmar |
 | Densidade | HUD denso. O número que importa é o maior elemento da tela |
-| Telas | Home · Extrato · Fatura · Séries · Reserva · **Diário** · Cadastro · **Perfil**. **De pé: Home, Extrato, Cadastro, Diário e Perfil** — este último fora do rail, com a porta no avatar do canto superior direito |
+| Telas | Home · Extrato · Fatura · Séries · Reserva · **Diário** · Cadastro · **Perfil**. **De pé: Home, Extrato, Cadastro, Diário e Perfil.** A **Home é o cockpit** (`06-interface/dashboard.md`); o Perfil fica fora do rail, com a porta no avatar do canto superior direito |
 | **Dashboard da Home** | O do protótipo, agrupado por categoria, com a linha **"guardado"** separada do gasto |
 | **Dado que envelhece na tela** | Aplicação mostra a data do último valor; o limite avisa quando a dívida passa dele |
 | **Hierarquia mora no lugar, não num campo** | Um card por raiz, "+ subcategoria" **dentro** do card |
@@ -446,12 +447,13 @@ a razão de ela ter sumido vale mais que a pergunta.)*
 
 ## Estado da documentação
 
-**81 documentos**, 18 stubs. Stub = conteúdo inexistente: **perguntar, nunca deduzir.**
+**81 documentos**, 16 stubs. Stub = conteúdo inexistente: **perguntar, nunca deduzir.**
 
 Escritos: `CLAUDE.md`, `CONVENTIONS.md`, os 6 fluxos, todo o `00-produto/` menos `jornadas`,
+**`06-interface/dashboard`** (a Home),
 `02-dominio/` inteiro menos `orcamento`, `regras-categorizacao` e `importacao-conciliacao`,
 `06-interface/` (navegacao, direcao-visual), **`01-arquitetura/seguranca`**,
-**`04-api/` inteiro menos `endpoints-relatorios`**, **`03-dados/` inteiro** (o
+**`04-api/` inteiro**, **`03-dados/` inteiro** (o
 `catalogo-tabelas` virou **dois**, quebrado por família em 16/09),
 **`01-arquitetura/` menos observabilidade**, **`07-operacao/build-e-run` e `testes`**, e as
 ADRs **0001 a 0014**. Em 17/09 entraram **`02-dominio/usuario`**, **`04-api/endpoints-usuario`**
@@ -541,7 +543,7 @@ Extrato funcionando abre o app, não ele.
 ## Lacunas conhecidas
 
 - **Sem doc dono** para `Meta` (Fase 3)
-- **Falta o endpoint de relatório** — `endpoints-relatorios` é o último stub de `04-api/`
+- **O Diário estoura a largura em 380px**: o botão `Hoje` do seletor de dia sai da tela. Achado ao conferir a Home no navegador, e não corrigido junto de propósito — bug tem fluxo próprio
 - **`docs.py` ainda não tem o teto por rota** que o `ADR-0008` decidiu, nem conta o código
 - **`deploy.md`, `runbook.md`, `backup-restore.md` e `observabilidade.md` seguem stub** — são
   de operação e nascem quando houver o que operar

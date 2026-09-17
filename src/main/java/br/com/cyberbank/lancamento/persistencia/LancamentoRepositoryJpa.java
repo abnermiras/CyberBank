@@ -1,6 +1,7 @@
 package br.com.cyberbank.lancamento.persistencia;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -9,9 +10,11 @@ import br.com.cyberbank.lancamento.dominio.FiltroDeExtrato;
 import br.com.cyberbank.lancamento.dominio.Lancamento;
 import br.com.cyberbank.lancamento.dominio.LancamentoRepository;
 import br.com.cyberbank.lancamento.dominio.Pagina;
+import br.com.cyberbank.lancamento.dominio.RelatorioDoMes;
 import br.com.cyberbank.lancamento.dominio.SaldoDeConta;
 import br.com.cyberbank.lancamento.dominio.Sentido;
 import br.com.cyberbank.lancamento.dominio.Situacao;
+import br.com.cyberbank.lancamento.dominio.TotalPorSentido;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
@@ -69,6 +72,56 @@ public class LancamentoRepositoryJpa implements LancamentoRepository {
                         apos.dataEvento(), apos.id(), pedido);
 
         return Pagina.de(lidos.stream().map(LancamentoRepositoryJpa::paraDominio).toList(), limite);
+    }
+
+    @Override
+    public List<RelatorioDoMes.Bucket> somarPorCategoria(
+            Long ambienteId, LocalDate de, LocalDate ate, Collection<Long> contas) {
+        if (contas.isEmpty()) {
+            return List.of();
+        }
+        return jpa.somarPorCategoria(ambienteId, de, ate, contas, Situacao.PREVISTO).stream()
+                .map(linha -> new RelatorioDoMes.Bucket(
+                        (Long) linha[0], (Sentido) linha[1],
+                        ((Number) linha[2]).longValue(), ((Number) linha[3]).longValue()))
+                .toList();
+    }
+
+    @Override
+    public long somarAportes(Long ambienteId, LocalDate de, LocalDate ate, Collection<Long> contas) {
+        if (contas.isEmpty()) {
+            return 0;
+        }
+        return jpa.somarAportes(ambienteId, de, ate, contas, Sentido.ENTRADA, Situacao.PREVISTO);
+    }
+
+    @Override
+    public List<TotalPorSentido> somarPrevistos(
+            Long ambienteId, LocalDate de, LocalDate ate, Collection<Long> contas) {
+        if (contas.isEmpty()) {
+            return List.of();
+        }
+        return jpa.somarPrevistos(ambienteId, de, ate, contas, Situacao.PREVISTO).stream()
+                .map(linha -> new TotalPorSentido(
+                        (Sentido) linha[0], ((Number) linha[1]).longValue()))
+                .toList();
+    }
+
+    @Override
+    public List<Lancamento> listarPrevistosAte(
+            Long ambienteId, LocalDate de, LocalDate ate, Collection<Long> contas, int limite) {
+        if (contas.isEmpty()) {
+            return List.of();
+        }
+        return jpa.previstosDoHorizonte(ambienteId, de, ate, contas, Situacao.PREVISTO,
+                        PageRequest.of(0, limite)).stream()
+                .map(LancamentoRepositoryJpa::paraDominio)
+                .toList();
+    }
+
+    @Override
+    public long contarPendencias(Long ambienteId) {
+        return jpa.countByAmbienteIdAndCategoriaIdIsNull(ambienteId);
     }
 
     @Override

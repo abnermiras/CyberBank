@@ -96,7 +96,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | [`endpoints-eventos.md`](04-api/endpoints-eventos.md) | contrato do Diario — os eventos de um dia de um ambiente | ativo |
 | [`endpoints-lancamentos.md`](04-api/endpoints-lancamentos.md) | contrato dos endpoints de lancamento, extrato, transferencia e estorno | ativo |
 | [`endpoints-meios-pagamento.md`](04-api/endpoints-meios-pagamento.md) | contrato dos endpoints de meio de pagamento | ativo |
-| [`endpoints-relatorios.md`](04-api/endpoints-relatorios.md) | contrato dos endpoints de agregacao e relatorio | stub |
+| [`endpoints-relatorios.md`](04-api/endpoints-relatorios.md) | contrato dos endpoints de agregacao e relatorio | ativo |
 | [`endpoints-usuario.md`](04-api/endpoints-usuario.md) | cadastro, login, logout e o proprio perfil — rota, payload e erros | ativo |
 | [`erros.md`](04-api/erros.md) | o corpo de resposta de erro, o catalogo de codigos e a regra do que o erro nao conta | ativo |
 
@@ -117,7 +117,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | Documento | Dono do fato | Status |
 |---|---|---|
 | [`bot-conversas.md`](06-interface/bot-conversas.md) | roteiro das conversas: texto exato, opcoes e caminhos alternativos | stub |
-| [`dashboard.md`](06-interface/dashboard.md) | telas, indicadores e navegacao do painel | stub |
+| [`dashboard.md`](06-interface/dashboard.md) | o que a Home mostra, em que ordem e por que — o cockpit de decidir | ativo |
 | [`direcao-visual.md`](06-interface/direcao-visual.md) | a linguagem visual do Cyberbank: paleta, tipografia, forma e o limite do efeito | rascunho |
 | [`navegacao.md`](06-interface/navegacao.md) | estrutura de navegacao, onde o ambiente vive na tela e como se lanca | rascunho |
 | [`perfil.md`](06-interface/perfil.md) | a tela do proprio usuario: onde se entra, as secoes, o seletor de avatar e os espacos reservados | ativo |
@@ -146,5 +146,5 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 
 ---
 
-**81 documentos · 18 ainda em stub.**
+**81 documentos · 16 ainda em stub.**
 Stub = conteudo inexistente: pergunte, nao deduza.

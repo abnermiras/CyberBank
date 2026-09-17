@@ -1,6 +1,7 @@
 package br.com.cyberbank.lancamento.dominio;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,6 +18,19 @@ public interface LancamentoRepository {
     List<Lancamento> listarPrevistosVencidos(Long ambienteId, LocalDate ate);
 
     Pagina listarDoAmbiente(Long ambienteId, FiltroDeExtrato filtro, Cursor apos, int limite);
+
+    List<RelatorioDoMes.Bucket> somarPorCategoria(
+            Long ambienteId, LocalDate de, LocalDate ate, Collection<Long> contas);
+
+    long somarAportes(Long ambienteId, LocalDate de, LocalDate ate, Collection<Long> contas);
+
+    List<TotalPorSentido> somarPrevistos(
+            Long ambienteId, LocalDate de, LocalDate ate, Collection<Long> contas);
+
+    List<Lancamento> listarPrevistosAte(
+            Long ambienteId, LocalDate de, LocalDate ate, Collection<Long> contas, int limite);
+
+    long contarPendencias(Long ambienteId);
 
     long saldoRealizadoDaConta(Long contaId, LocalDate ate);
 

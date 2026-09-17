@@ -68,6 +68,79 @@ body{display:flex;flex-direction:column;min-height:100vh}
 .formraiz{display:grid;grid-template-columns:minmax(160px,1fr) 190px auto auto;gap:12px;align-items:end}
 @media(max-width:820px){.formraiz{grid-template-columns:1fr 1fr}}
 
+.catrow{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:11px 0;
+  border-bottom:1px solid var(--line)}
+.catrow:last-child{border-bottom:0}
+.catrow .nome{font:600 13px var(--disp);letter-spacing:.09em;text-transform:uppercase;color:var(--k)}
+.catrow .vlr{font:700 16px var(--disp);letter-spacing:-.01em;font-variant-numeric:tabular-nums;
+  white-space:nowrap}
+.catrow .bar{grid-column:1/-1;height:5px;background:#0b1622;overflow:hidden}
+.catrow .bar i{display:block;height:100%;background:var(--k);box-shadow:0 0 12px var(--k)}
+.catrow .meta{grid-column:1/-1;display:flex;justify-content:space-between;gap:10px;
+  font:9px var(--mono);letter-spacing:.12em;color:var(--dim)}
+.catrow.sem .nome{color:var(--muted);font-style:italic}
+.catrow.sem .bar i{box-shadow:none;background:repeating-linear-gradient(
+  135deg,var(--muted) 0 3px,transparent 3px 6px)}
+
+.guardadoline{display:flex;align-items:center;justify-content:space-between;gap:14px;
+  margin-top:14px;padding-top:13px;border-top:1px dashed var(--line-hot)}
+.guardadoline .t{display:block;font:600 13px var(--disp);letter-spacing:.08em;
+  text-transform:uppercase;color:var(--lime)}
+.guardadoline small{font:9px var(--mono);letter-spacing:.11em;color:var(--dim)}
+.guardadoline .v{font:700 17px var(--disp);color:var(--lime);font-variant-numeric:tabular-nums}
+.guardadoline.vazia{opacity:.45}
+.guardadoline.vazia .t,.guardadoline.vazia .v{color:var(--muted)}
+
+.pendrow{display:grid;grid-template-columns:1fr;gap:8px;padding:11px 0;
+  border-bottom:1px solid var(--line)}
+.pendrow:last-of-type{border-bottom:0}
+.pendrow .desc{font:600 13px var(--disp);letter-spacing:.04em}
+.pendrow .sub2{font:10px var(--mono);letter-spacing:.08em;color:var(--muted);margin-top:2px}
+.pendrow .sub2 b{font-weight:400}
+.pendrow select{width:100%}
+
+.horizonte-totais{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.htotal{padding:11px 13px;border:1px solid var(--line);background:rgba(0,0,0,.25);
+  clip-path:var(--chamfer-sm)}
+.htotal .lbl{display:block;font:9px var(--mono);letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted)}
+.htotal .v{font:700 21px var(--disp);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.htotal.pagar{border-color:rgba(255,31,145,.35)}
+.htotal.pagar .v{color:var(--pink)}
+.htotal.receber{border-color:rgba(92,255,157,.3)}
+.htotal.receber .v{color:var(--lime)}
+
+.prevrow{display:grid;grid-template-columns:52px 46px 1fr auto;gap:10px;align-items:center;
+  padding:10px 4px;border-bottom:1px solid var(--line);text-decoration:none;color:var(--ink)}
+.prevrow:last-child{border-bottom:0}
+.prevrow:hover{background:rgba(0,240,255,.05)}
+.prevrow .dia{font:12px var(--mono);letter-spacing:.06em;color:var(--muted)}
+.prevrow .quando{font:9px var(--mono);letter-spacing:.1em;color:var(--dim);
+  border:1px solid var(--line);padding:2px 5px;text-align:center}
+.prevrow .quando.hoje{color:var(--acid);border-color:rgba(247,241,60,.45)}
+.prevrow .desc{font:600 13px var(--disp);letter-spacing:.04em;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.prevrow .v{font:700 15px var(--disp);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+.mesrow{display:grid;grid-template-columns:1fr auto;gap:4px 10px;padding:9px 0}
+.mesrow .lbl{font:10px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.mesrow .v{font:700 17px var(--disp);font-variant-numeric:tabular-nums;text-align:right}
+.mesrow .v.guardou{color:var(--lime)}
+.mesrow .bar{grid-column:1/-1;height:5px;background:#0b1622;overflow:hidden}
+.mesrow .bar i{display:block;height:100%;background:var(--muted)}
+.mesrow .bar.pos i{background:var(--lime)}
+.mesrow .bar.neg i{background:var(--pink)}
+.mesrow .bar.guardou i{background:var(--lime);opacity:.55}
+.mes-saldo{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+  margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.mes-saldo .v{font:700 22px var(--disp);font-variant-numeric:tabular-nums}
+
+@media(max-width:700px){
+  .horizonte-totais{grid-template-columns:1fr}
+  .prevrow{grid-template-columns:46px 42px 1fr;row-gap:4px}
+  .prevrow .v{grid-column:1/-1;text-align:right}
+}
+
 .av-grade{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
 .av-op{display:flex;flex-direction:column;align-items:center;gap:6px;padding:11px 4px 7px;
   background:var(--panel-2);border:1px solid var(--line);color:var(--ink);opacity:.62;
