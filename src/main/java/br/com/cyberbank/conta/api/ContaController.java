@@ -121,10 +121,11 @@ public class ContaController {
 
         Conta conta = null;
         if (requisicao.nome() != null) {
-            conta = renomearConta.executar(ambienteId, contaId, requisicao.nome());
+            conta = renomearConta.executar(ambienteId, ContextoDaRequisicao.usuarioId(), contaId, requisicao.nome());
         }
         if (requisicao.inativa() != null) {
-            conta = alterarAtivacao.executar(ambienteId, contaId, requisicao.inativa());
+            conta = alterarAtivacao.executar(ambienteId, ContextoDaRequisicao.usuarioId(), contaId,
+                    requisicao.inativa());
         }
         return paraRespostaGravada(conta);
     }
@@ -132,7 +133,7 @@ public class ContaController {
     @DeleteMapping("/{contaId}")
     public ResponseEntity<Void> excluir(@PathVariable Long ambienteId,
             @PathVariable Long contaId) {
-        excluirConta.executar(ambienteId, contaId);
+        excluirConta.executar(ambienteId, ContextoDaRequisicao.usuarioId(), contaId);
         return ResponseEntity.noContent().build();
     }
 

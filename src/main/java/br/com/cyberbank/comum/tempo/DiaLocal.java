@@ -9,7 +9,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class DiaLocal {
 
-    public static final ZoneId BRASILIA = ZoneId.of("America/Sao_Paulo");
+    public static final String FUSO_DE_BRASILIA = "America/Sao_Paulo";
+
+    public static final ZoneId BRASILIA = ZoneId.of(FUSO_DE_BRASILIA);
 
     private final Clock relogio;
 

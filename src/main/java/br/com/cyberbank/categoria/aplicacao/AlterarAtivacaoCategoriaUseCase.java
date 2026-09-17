@@ -1,34 +1,51 @@
 package br.com.cyberbank.categoria.aplicacao;
 
+import java.time.Clock;
+
 import br.com.cyberbank.categoria.dominio.Categoria;
 import br.com.cyberbank.categoria.dominio.CategoriaRepository;
 import br.com.cyberbank.comum.erro.CodigoDeErro;
 import br.com.cyberbank.comum.erro.RegraDeDominioException;
+import br.com.cyberbank.comum.tempo.DiaLocal;
+import br.com.cyberbank.evento.dominio.Alvo;
+import br.com.cyberbank.evento.dominio.Evento;
+import br.com.cyberbank.evento.dominio.EventoRepository;
+import br.com.cyberbank.evento.dominio.TipoDeEvento;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Inativar e reativar sao a mesma escrita em direcoes opostas, e por isso um caso de uso so.
- *
- * <p>Ele grava em UMA linha, sempre. Inativar uma raiz esconde as filhas na leitura
- * ({@code ArvoreDeCategorias}) e nao toca no campo {@code inativa} delas — cascata na escrita
- * destruiria quais filhas o usuario ja tinha inativado a mao, e reativar a raiz nao teria como
- * reconstruir o jogo que estava ativo antes.
- */
 @Service
 public class AlterarAtivacaoCategoriaUseCase {
 
     private final CategoriaRepository categorias;
+    private final EventoRepository eventos;
+    private final DiaLocal diaLocal;
+    private final Clock relogio;
 
-    public AlterarAtivacaoCategoriaUseCase(CategoriaRepository categorias) {
+    public AlterarAtivacaoCategoriaUseCase(CategoriaRepository categorias,
+            EventoRepository eventos, DiaLocal diaLocal, Clock relogio) {
         this.categorias = categorias;
+        this.eventos = eventos;
+        this.diaLocal = diaLocal;
+        this.relogio = relogio;
     }
 
     @Transactional
-    public Categoria executar(Long ambienteId, Long categoriaId, boolean inativa) {
+    public Categoria executar(Long ambienteId, Long autorId, Long categoriaId, boolean inativa) {
         Categoria categoria = categorias.buscarDoAmbiente(categoriaId, ambienteId)
                 .orElseThrow(() -> new RegraDeDominioException(CodigoDeErro.NAO_ENCONTRADO));
-        return categorias.salvar(categoria.comAtivacao(inativa));
+
+        if (inativa == categoria.inativa()) {
+            return categoria;
+        }
+        Categoria alterada = categorias.salvar(categoria.comAtivacao(inativa));
+
+        eventos.registrar(Evento.doUsuario(ambienteId, autorId,
+                inativa ? TipoDeEvento.CATEGORIA_INATIVADA : TipoDeEvento.CATEGORIA_REATIVADA,
+                Alvo.categoria(categoriaId), Evento.dados("nome", alterada.nome()),
+                diaLocal.hoje(), relogio.instant()));
+
+        return alterada;
     }
 }

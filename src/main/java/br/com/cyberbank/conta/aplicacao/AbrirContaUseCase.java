@@ -12,6 +12,10 @@ import br.com.cyberbank.comum.tempo.DiaLocal;
 import br.com.cyberbank.conta.dominio.Conta;
 import br.com.cyberbank.conta.dominio.ContaRepository;
 import br.com.cyberbank.conta.dominio.TipoDeConta;
+import br.com.cyberbank.evento.dominio.Alvo;
+import br.com.cyberbank.evento.dominio.Evento;
+import br.com.cyberbank.evento.dominio.EventoRepository;
+import br.com.cyberbank.evento.dominio.TipoDeEvento;
 import br.com.cyberbank.lancamento.dominio.Lancamento;
 import br.com.cyberbank.lancamento.dominio.LancamentoRepository;
 import br.com.cyberbank.meio.aplicacao.CadastrarMeioUseCase;
@@ -27,16 +31,18 @@ public class AbrirContaUseCase {
     private final LancamentoRepository lancamentos;
     private final CategoriaRepository categorias;
     private final CadastrarMeioUseCase cadastrarMeio;
+    private final EventoRepository eventos;
     private final DiaLocal diaLocal;
     private final Clock relogio;
 
     public AbrirContaUseCase(ContaRepository contas, LancamentoRepository lancamentos,
             CategoriaRepository categorias, CadastrarMeioUseCase cadastrarMeio,
-            DiaLocal diaLocal, Clock relogio) {
+            EventoRepository eventos, DiaLocal diaLocal, Clock relogio) {
         this.contas = contas;
         this.lancamentos = lancamentos;
         this.categorias = categorias;
         this.cadastrarMeio = cadastrarMeio;
+        this.eventos = eventos;
         this.diaLocal = diaLocal;
         this.relogio = relogio;
     }
@@ -50,8 +56,16 @@ public class AbrirContaUseCase {
 
         Conta gravada = contas.salvar(conta);
 
+        eventos.registrar(Evento.doUsuario(ambienteId, autorId, TipoDeEvento.CONTA_CRIADA,
+                Alvo.conta(gravada.id()),
+                Evento.dados(
+                        "nome", gravada.nome(),
+                        "tipo", gravada.tipo().name(),
+                        "saldoInicial", saldoInicialCentavos),
+                diaLocal.hoje(), relogio.instant()));
+
         meios.stream().distinct().forEach(tipoDeMeio ->
-                cadastrarMeio.executar(ambienteId, null, tipoDeMeio, gravada.id()));
+                cadastrarMeio.executar(ambienteId, autorId, null, tipoDeMeio, gravada.id()));
 
         if (saldoInicialCentavos == null || saldoInicialCentavos == 0) {
             return new ContaComSaldo(gravada, 0);

@@ -168,3 +168,69 @@ Ela lê **só `acesso`**. Ler `conta` aqui recursionaria, porque a política de 
 `vinculo` — e é por isso que `ambiente_origem_id` é coluna. **Sem política de escrita**, de
 propósito: ela entra com o caso de uso do compartilhamento, junto com a regra de quem pode
 compartilhar.
+
+## `evento` — família do ambiente (`V006`)
+
+O registro do que aconteceu. **Só nasce e é lido**: não há `UPDATE` nem `DELETE` em lugar
+nenhum, e a ausência das duas políticas é onde essa invariante para de depender de memória.
+
+| Coluna | Tipo | Nulo | Default | Nota |
+|---|---|---|---|---|
+| `id` | `bigint` identity | não | — | PK |
+| `ambiente_id` | `bigint` | não | — | FK → `ambiente`, `ON DELETE CASCADE`. Apagar o ambiente é o único caminho pelo qual um evento some |
+| `dia` | `date` | não | — | Dia local de Brasília. É por ele que o Diário agrupa |
+| `instante` | `timestamptz` | não | `now()` | UTC. Carimbo de auditoria e ordem **dentro** do dia |
+| `origem` | `varchar(10)` | não | — | `SISTEMA` ou `USUARIO` |
+| `autor_id` | `bigint` | não | — | FK → `usuario`. No evento de sistema é o **dono do ambiente** |
+| `tipo` | `varchar(40)` | não | — | Lista fechada, no `CHECK` |
+| `alvo_tipo` | `varchar(20)` | sim | — | `LANCAMENTO`, `CONTA`, `MEIO` ou `CATEGORIA` |
+| `alvo_id` | `bigint` | sim | — | **Sem FK**, e é de propósito: ver abaixo |
+| `dados` | `jsonb` | sim | — | O punhado de valores da frase, não um espelho do objeto |
+
+| Constraint | Protege |
+|---|---|
+| `ck_evento_origem` | `SISTEMA` ou `USUARIO` |
+| `ck_evento_alvo` | Os dois campos do alvo, ou nenhum |
+| `ck_evento_alvo_tipo`, `ck_evento_tipo` | As listas do domínio |
+| `ix_evento_diario` | `(ambiente_id, dia DESC, instante DESC)` — a consulta do Diário |
+| `ix_evento_alvo` | Parcial `WHERE alvo_tipo IS NOT NULL` — o histórico de um lançamento |
+
+**`alvo_id` não tem chave estrangeira**, e é a decisão que faz a tabela funcionar:
+`LANCAMENTO_EXCLUIDO` aponta para um id que **não existe mais**, e uma referência impediria de
+gravar justamente o evento que mais importa. É por isso que ele é o único cujos `dados`
+carregam a linha inteira — sem o alvo, a frase precisa se sustentar sozinha.
+
+O `CHECK` de `tipo` lista **só os tipos que algum código grava hoje**. `FATURA_*`, `SERIE_*`,
+`OCORRENCIA_DE_RECORRENCIA`, `ACESSO_*`, `VINCULO_*`, `VALOR_DE_APLICACAO_INFORMADO` e
+`LIMITE_INFORMADO` entram por migration junto com a fatia que os produz: um `CHECK` que aceita
+o que ninguém escreve não protege nada.
+
+| Política | Comando | Regra |
+|---|---|---|
+| `evento_do_ambiente` | `SELECT` | `ambiente_id = app_ambiente_id()` |
+| `evento_gravado_no_ambiente` | `INSERT` | `ambiente_id = app_ambiente_id()` |
+
+**Esta é a única tabela do ambiente sem o `OR` do `ADR-0004`**, e a exceção tem data para
+acabar: *"o que o destino de um compartilhamento vê no Diário do ambiente dele"* é decisão em
+aberto, pós-Fase 1. Escrever agora um `OR` que a decisão contradiga depois seria migration em
+cima de dado real **e** regra errada rodando no meio.
+
+## A visão da rotina (`V006`) — `ADR-0013`
+
+A rotina diária não tem requisição, não tem sessão e não tem ambiente: ela precisa passar por
+todos. Com `app.usuario_id` e `app.ambiente_id` vazios, nenhuma política devolve linha — nem a
+lista de ambientes por onde começar.
+
+| Objeto | O que é |
+|---|---|
+| `ambientes_para_rotina()` | Função `SECURITY DEFINER`, `STABLE`, com `search_path` fixo. Devolve `(ambiente_id, dono_id)` e **nada mais** |
+| `acesso_visivel_para_a_rotina` | Política de `SELECT` em `acesso` escrita **para o papel dono** (`TO`), limitada a `papel = 'DONO'` |
+
+São **duas** coisas porque `SECURITY DEFINER` sozinho não bastaria: `acesso` tem
+`FORCE ROW LEVEL SECURITY`, que sujeita o próprio dono às políticas, e o dono é `NOBYPASSRLS`.
+O `TO` sai de `current_user` num bloco `DO`, porque o nome do papel vem do ambiente
+(`docker/postgres-init`) e migration não lê variável de ambiente.
+
+**O privilégio não é uma variável que qualquer código seta — é um papel que só a função
+assume, numa consulta que devolve dois números.** Da função para fora, a rotina abre uma
+transação por ambiente com o contexto do dono, e o RLS vale como numa requisição.

@@ -118,10 +118,16 @@ critério do resto do projeto.
 | `FATURA_ABERTA_PELO_USUARIO` | A última fechada foi reaberta à mão |
 | `VALOR_DE_APLICACAO_INFORMADO` | O usuário atualizou o valor atual — e a **diferença lançada** vem em `dados` |
 | `LIMITE_INFORMADO` | O usuário informou o limite do cartão |
-| `CATEGORIA_CRIADA` · `CATEGORIA_RENOMEADA` · `CATEGORIA_INATIVADA` · `CATEGORIA_REATIVADA` · `CATEGORIA_EXCLUIDA` | Ciclo de vida da categoria (`docs/02-dominio/categoria.md`) |
-| `CONTA_CRIADA` · `CONTA_INATIVADA` · `MEIO_CRIADO` · `MEIO_INATIVADO` | Idem para conta e meio |
+| `CATEGORIA_CRIADA` · `CATEGORIA_RENOMEADA` · `CATEGORIA_RECOLORIDA` · `CATEGORIA_INATIVADA` · `CATEGORIA_REATIVADA` · `CATEGORIA_EXCLUIDA` | Ciclo de vida da categoria (`docs/02-dominio/categoria.md`) |
+| `CONTA_CRIADA` · `CONTA_RENOMEADA` · `CONTA_INATIVADA` · `CONTA_REATIVADA` · `CONTA_EXCLUIDA` | Idem para conta |
+| `MEIO_CRIADO` · `MEIO_RENOMEADO` · `MEIO_INATIVADO` · `MEIO_REATIVADO` · `MEIO_EXCLUIDO` | Idem para meio de pagamento |
 | `SERIE_CRIADA` · `SERIE_ALTERADA` · `SERIE_CANCELADA` | Parcelamento ou recorrência |
 | `ACESSO_CONCEDIDO` · `ACESSO_REVOGADO` · `VINCULO_CRIADO` · `VINCULO_REVOGADO` | Quem entrou e quem saiu do ambiente, e o compartilhamento (`ADR-0004`) |
+
+**Renomear e recolorir também entram**, e a simetria é o argumento: `CATEGORIA_RENOMEADA`
+sempre esteve na lista e não mexe em saldo nenhum. O Diário responde *"por que meu saldo
+mudou"* **e** *"quem mexeu"* — num ambiente com mais de uma pessoa, a conta que trocou de nome
+é exatamente o tipo de mudança que ninguém consegue explicar depois.
 
 ### O evento de exclusão carrega a linha inteira
 
@@ -134,6 +140,34 @@ onde ler nada. Os `dados` precisam bastar sozinhos — descrição, valor, senti
 some do extrato e **o fato de ela ter sido excluída fica**, com autor e dia. É o mesmo
 argumento que criou esta entidade, virado da automação para a pessoa
 (`docs/02-dominio/lancamento.md`).
+
+## Um ato do usuário, um evento
+
+A conta de pagar dois lados não é dois eventos.
+
+- **Transferência grava um `LANCAMENTO_CRIADO` só**, com o alvo no lançamento de saída e o
+  `transferenciaId` nos `dados`. São dois lançamentos porque o dinheiro saiu de um bolso e
+  entrou em outro, mas a pessoa fez **uma** coisa — e o Diário conta o que a pessoa fez.
+- **Abrir conta com meios escolhidos no mesmo formulário grava `CONTA_CRIADA` mais um
+  `MEIO_CRIADO` por meio.** Aqui são fatos separados de propósito: cada meio tem alvo próprio,
+  vira link próprio, e some sozinho quando alguém o exclui.
+- **As categorias de sistema que nascem com o ambiente não geram evento.** Sete operações ×
+  dois sentidos encheriam o Diário do primeiro dia com quatorze linhas que ninguém pediu, e
+  nenhuma delas responde a uma pergunta que alguém vá fazer.
+
+## A rotina que produz o evento de sistema
+
+A rotina roda **no dia local de Brasília**, e o que ela escreve é datado no **dia em que ela
+rodou** — não na `dataEfeito` que venceu. É a mesma regra da rolagem: se o Pi ficou desligado
+três dias, o previsto de sexta vira realizado no dia em que a máquina voltou, e o Diário diz
+**esse** dia, porque foi quando o saldo do usuário mudou de valor.
+
+Ela é idempotente e recupera atraso sem saber que atrasou: a consulta é *"previsto com
+`dataEfeito` até hoje"*, e rodar duas vezes no mesmo dia não encontra nada na segunda — que é
+por onde a invariante *"passo de ciclo que não fez nada não grava evento"* se cumpre sozinha.
+
+**Como ela atravessa o RLS sem sessão:** `ADR-0013`. Uma função `SECURITY DEFINER` devolve
+`(ambiente_id, dono_id)`, e a rotina abre uma transação por ambiente com o contexto do dono.
 
 ## O que NÃO é evento
 

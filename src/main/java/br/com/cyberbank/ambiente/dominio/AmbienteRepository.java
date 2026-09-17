@@ -6,6 +6,7 @@ public interface AmbienteRepository {
 
     Ambiente salvar(Ambiente ambiente);
 
-    /** Os ambientes a que o usuario tem acesso, com o papel dele em cada um. Ordem: por id. */
     List<AcessoAoAmbiente> listarDoUsuario(Long usuarioId);
+
+    List<AmbienteDaRotina> listarParaRotina();
 }

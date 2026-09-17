@@ -13,6 +13,10 @@ import br.com.cyberbank.comum.tempo.DiaLocal;
 import br.com.cyberbank.conta.dominio.Conta;
 import br.com.cyberbank.conta.dominio.ContaRepository;
 import br.com.cyberbank.conta.dominio.TipoDeConta;
+import br.com.cyberbank.evento.dominio.Alvo;
+import br.com.cyberbank.evento.dominio.Evento;
+import br.com.cyberbank.evento.dominio.EventoRepository;
+import br.com.cyberbank.evento.dominio.TipoDeEvento;
 import br.com.cyberbank.lancamento.dominio.Lancamento;
 import br.com.cyberbank.lancamento.dominio.LancamentoRepository;
 import br.com.cyberbank.lancamento.dominio.Situacao;
@@ -26,14 +30,17 @@ public class TransferirUseCase {
     private final LancamentoRepository lancamentos;
     private final ContaRepository contas;
     private final CategoriaRepository categorias;
+    private final EventoRepository eventos;
     private final DiaLocal diaLocal;
     private final Clock relogio;
 
     public TransferirUseCase(LancamentoRepository lancamentos, ContaRepository contas,
-            CategoriaRepository categorias, DiaLocal diaLocal, Clock relogio) {
+            CategoriaRepository categorias, EventoRepository eventos, DiaLocal diaLocal,
+            Clock relogio) {
         this.lancamentos = lancamentos;
         this.contas = contas;
         this.categorias = categorias;
+        this.eventos = eventos;
         this.diaLocal = diaLocal;
         this.relogio = relogio;
     }
@@ -57,12 +64,25 @@ public class TransferirUseCase {
 
         long transferenciaId = lancamentos.proximoIdDeTransferencia();
 
-        return lancamentos.salvarTodos(Lancamento.parDeTransferencia(ambienteId,
+        List<Lancamento> par = lancamentos.salvarTodos(Lancamento.parDeTransferencia(ambienteId,
                 contaDeOrigemId, contaDeDestinoId,
                 categoriaDeSistema(ambienteId, operacao, Sentido.SAIDA),
                 categoriaDeSistema(ambienteId, operacao, Sentido.ENTRADA),
                 autorId, valorCentavos, dataEvento, dataEvento, descricao, situacao,
                 transferenciaId, relogio.instant()));
+
+        eventos.registrar(Evento.doUsuario(ambienteId, autorId, TipoDeEvento.LANCAMENTO_CRIADO,
+                Alvo.lancamento(par.getFirst().id()),
+                Evento.dados(
+                        "descricao", descricao,
+                        "valor", valorCentavos,
+                        "operacao", operacao.name(),
+                        "contaDeOrigemId", contaDeOrigemId,
+                        "contaDeDestinoId", contaDeDestinoId,
+                        "transferenciaId", transferenciaId),
+                diaLocal.hoje(), relogio.instant()));
+
+        return par;
     }
 
     private static OperacaoDeSistema operacaoDe(Conta origem, Conta destino) {
