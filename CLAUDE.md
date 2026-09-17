@@ -36,6 +36,7 @@ localize a tarefa na tabela abaixo, leia **apenas** os docs listados e vá.
 | Novo endpoint / mudança de contrato de API | `docs/08-fluxos/novo-endpoint.md` |
 | Mudança de schema / nova migration | `docs/08-fluxos/nova-migration.md` |
 | Papel, convite ou permissão de ambiente | `docs/02-dominio/ambiente-financeiro.md` |
+| Perfil, avatar, senha, Telegram do usuário | `docs/02-dominio/usuario.md` |
 | Compartilhar conta ou cartão entre ambientes | `docs/02-dominio/compartilhamento.md` |
 | **Funcionalidade nova / caso de uso** | `docs/08-fluxos/novo-caso-de-uso.md` |
 | Nova regra de negócio ou mudança de invariante | `docs/08-fluxos/nova-regra-de-dominio.md` |

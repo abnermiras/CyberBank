@@ -83,6 +83,8 @@ Erro previsível tem código, e **o código entra aqui antes de existir no códi
 | `NAO_ENCONTRADO` | 404 | Recurso inexistente, ou de um ambiente a que o usuário não tem acesso. **Cobre também rota e arquivo estático que não existem** — um `404` de asset não é falha nossa, e mandá-lo para o `500` enche o log de stack trace por erro de digitação |
 | `EMAIL_JA_CADASTRADO` | 409 | Cadastro com e-mail que já existe. **É o único ponto do sistema que revela a existência de uma conta**, e não tem como não revelar: dois cadastros com o mesmo e-mail seriam o mesmo login. Login e recuperação continuam respondendo igual — a contenção do cadastro aberto é o que fecha esta porta, e está adiada de propósito (`docs/01-arquitetura/seguranca.md`) |
 | `VALIDACAO` | 422 | Um ou mais campos inválidos. Traz `erros` |
+| `SENHA_ATUAL_INVALIDA` | 422 | Troca de senha com a senha atual errada. **É `422` e não `401`**: o que não confere é um valor do corpo, e um `401` mandaria a pessoa para o login no meio de uma troca que nem começou. Conta para o mesmo bloqueio do login (`docs/02-dominio/usuario.md`) |
+| `TELEGRAM_JA_VINCULADO` | 409 | Outro usuário já declarou aquele `chat id`. Revela que **alguém** o usa, e é informação que o dono do chat precisa ter: o vínculo não é verificado, e um id ocupado por engano fica calado para sempre |
 | `CONTA_INATIVA` | 409 | Lançamento **do usuário** numa conta inativa. O que o ciclo cria não passa por aqui |
 | `CONTA_COM_LANCAMENTO` | 409 | Excluir uma conta que já teve lançamento. O histórico é o saldo, e o caminho é inativar (`docs/02-dominio/conta.md`) |
 | `CATEGORIA_NAO_ESCOLHIVEL` | 409 | Categoria inativa, raiz com filho ativo, ou categoria de sistema |

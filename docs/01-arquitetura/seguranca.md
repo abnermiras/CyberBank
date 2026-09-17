@@ -80,6 +80,11 @@ Os dois prazos foram escolhidos ao implementar; o que não é escolha é haver *
 Os números, escolhidos ao implementar: o atraso dobra a cada falha, de 250 ms até um teto de
 4 s, e **5 falhas** bloqueiam a chave por **15 minutos**.
 
+**A troca de senha usa a mesma contagem, por conta.** Errar a senha atual conta como falha de
+login (`docs/02-dominio/usuario.md`). Sem isso, quem alcança uma sessão aberta tenta a senha
+quantas vezes quiser — e uma sessão roubada, que expira sozinha, viraria posse definitiva da
+conta.
+
 **O que faz o tempo ser igual é o Argon2id rodar dos dois lados.** Sem usuário para conferir, o
 sistema confere contra um hash de mentira e responde falso — se voltasse na hora, a diferença
 de milissegundos entregaria a lista de usuários antes de qualquer senha ser tentada. E a
@@ -189,5 +194,6 @@ o que ela diz.
 | Por que sessão no servidor e não JWT | `ADR-0009` |
 | Por que o sistema manda e-mail, e só para isso | `ADR-0007` |
 | Papéis, convite e quem pode o quê num ambiente | `02-dominio/ambiente-financeiro` |
+| O que o usuário tem, e o que ele muda em si mesmo | `02-dominio/usuario` |
 | Onde os segredos ficam e como o sistema os lê | `05-integracoes/vault-segredos` |
 | Parâmetros do Argon2id no host, e HTTPS na prática | `07-operacao/deploy` |

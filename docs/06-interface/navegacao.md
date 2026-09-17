@@ -86,9 +86,14 @@ esperando, senão ensina que o app está quebrado.
 | **Séries** | Os parcelamentos e as recorrências vivos, e o que muda ao alterar cada um |
 | **Cadastro** | As árvores de categoria do usuário: criar, inativar, reativar e excluir |
 | **Diário** | O que aconteceu num dia: o que o sistema fez sozinho e o que a pessoa fez |
+| **Perfil** | Quem eu sou no sistema: avatar, nome, senha, Telegram e os convites |
 
-Ainda não existem: cadastro de contas e de meios; convite de pessoas para um ambiente;
-perfil e sessões.
+**O Perfil não entra no rail, e a porta dele é o avatar no canto superior direito** — ele é a
+única tela que não é sobre dinheiro. Como ele se organiza por dentro é de
+`docs/06-interface/perfil.md`.
+
+Ainda não existem: o convite de pessoas para um ambiente e a lista de sessões. Os dois têm
+**espaço reservado no Perfil**, dizendo o que esperam.
 
 ## O Diário responde "por que meu saldo mudou?"
 

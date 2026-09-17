@@ -53,4 +53,6 @@ nome de variável, ou coisa que cabe no doc do módulo.
 
 | 0013 | [A rotina diária enxerga os ambientes por função `SECURITY DEFINER`](ADR-0013-rotina-enxerga-ambientes-por-funcao.md) | aceita | 2026-09-17 |
 
+| 0014 | [O usuário é um assunto próprio, e sai de dentro de `ambiente`](ADR-0014-usuario-e-um-assunto.md) | aceita | 2026-09-17 |
+
 _(adicione uma linha por ADR)_

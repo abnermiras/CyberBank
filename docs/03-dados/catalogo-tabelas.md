@@ -23,7 +23,7 @@ As tabelas **do ambiente** — as que têm `ambiente_id` — estão em
 
 | Tabela | Família | Migration |
 |---|---|---|
-| `usuario` | do usuário | `V001` |
+| `usuario` | do usuário | `V001` · `V007` |
 | `sessao` | do usuário | `V001` |
 | `ambiente` | de ligação | `V001` |
 | `acesso` | de ligação | `V001` |
@@ -53,6 +53,8 @@ visível**. É o lado certo para errar.
 | `email` | `varchar(255)` | não | — | Identificador de login, único no sistema inteiro |
 | `nome` | `varchar(120)` | não | — | Exibição; é o `autor` que o lançamento mostra |
 | `senha_hash` | `varchar(255)` | não | — | Argon2id (`docs/01-arquitetura/seguranca.md`) |
+| `avatar` | `varchar(20)` | não | — | O **nome** de um dos dez, sorteado no cadastro (`docs/02-dominio/usuario.md`) |
+| `telegram_chat_id` | `bigint` | sim | — | Declarado pela pessoa e **não verificado**. `NULL` é ausência de vínculo |
 | `criado_em` | `timestamptz` | não | `now()` | |
 
 | Constraint | Protege |
@@ -60,6 +62,14 @@ visível**. É o lado certo para errar.
 | `uq_usuario_email` | Um e-mail, um usuário |
 | `ck_usuario_email_minusculo` | `email = lower(email)` — sem isso a unicidade seria por caixa, e `Ana@x` e `ana@x` seriam duas contas |
 | `ck_usuario_nome_nao_vazio` | Nome em branco |
+| `ck_usuario_avatar` | A lista fechada dos dez nomes. Enum é `varchar` com `CHECK`, nunca o tipo nativo |
+| `uq_usuario_telegram_chat_id` | Um `chat id`, um usuário. Vários `NULL` **não colidem** no Postgres — é o que permite a coluna ser opcional e única ao mesmo tempo |
+| `ck_usuario_telegram_chat_id_nao_zero` | Zero não é chat de ninguém |
+
+**A `V007` acrescentou as duas colunas, e o avatar entrou em três passos:** coluna nula,
+`UPDATE` sorteando um dos dez para quem já existia, e só então `SET NOT NULL`. **Nenhum
+`DEFAULT` ficou na coluna** — quem sorteia é o domínio (`docs/02-dominio/usuario.md`), e um
+`DEFAULT` no banco seria um segundo lugar decidindo a mesma coisa, calado.
 
 **Sem RLS, de propósito:** o login procura o usuário **pelo e-mail antes de existir sessão**.
 A proteção é a sessão — a consulta é sempre pelo usuário autenticado.

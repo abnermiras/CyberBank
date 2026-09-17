@@ -47,6 +47,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | [`decisoes/ADR-0011-teste-contra-postgres-real.md`](01-arquitetura/decisoes/ADR-0011-teste-contra-postgres-real.md) | por que nao ha banco em memoria nos testes, e o que isso custa | ativo |
 | [`decisoes/ADR-0012-front-estatico-servido-pelo-spring.md`](01-arquitetura/decisoes/ADR-0012-front-estatico-servido-pelo-spring.md) | como o front é construído, onde ele mora e quem o entrega | ativo |
 | [`decisoes/ADR-0013-rotina-enxerga-ambientes-por-funcao.md`](01-arquitetura/decisoes/ADR-0013-rotina-enxerga-ambientes-por-funcao.md) | como uma rotina sem sessao atravessa o RLS sem virar bypass | ativo |
+| [`decisoes/ADR-0014-usuario-e-um-assunto.md`](01-arquitetura/decisoes/ADR-0014-usuario-e-um-assunto.md) | por que usuario, sessao e senha deixam de morar no pacote do ambiente | ativo |
 | [`decisoes/README.md`](01-arquitetura/decisoes/README.md) | índice das ADRs e regra de quando escrever uma | ativo |
 | [`estrutura-de-pastas.md`](01-arquitetura/estrutura-de-pastas.md) | a arvore do projeto, a convencao de pacotes, onde criar cada arquivo novo e o que nao se versiona | ativo |
 | [`modulos.md`](01-arquitetura/modulos.md) | quais assuntos existem, quem pode depender de quem, e como dois assuntos conversam | ativo |
@@ -73,6 +74,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | [`orcamento.md`](02-dominio/orcamento.md) | limites por categoria/periodo e calculo de consumo | stub |
 | [`recorrencia.md`](02-dominio/recorrencia.md) | as duas series de lancamentos: como nascem, como sao editadas e como sao canceladas | rascunho |
 | [`regras-categorizacao.md`](02-dominio/regras-categorizacao.md) | como um lancamento recebe categoria automaticamente | stub |
+| [`usuario.md`](02-dominio/usuario.md) | o usuario como assunto: identidade de login, nome, avatar, o chat do Telegram e a troca de senha | ativo |
 
 ## Dados — schema e persistencia
 
@@ -88,13 +90,14 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | Documento | Dono do fato | Status |
 |---|---|---|
 | [`convencoes.md`](04-api/convencoes.md) | forma da URL, versionamento, nomes, formatos no JSON, paginacao e compatibilidade | ativo |
-| [`endpoints-ambientes.md`](04-api/endpoints-ambientes.md) | cadastro, login, logout e a lista de ambientes do usuario — rota, payload e erros | ativo |
+| [`endpoints-ambientes.md`](04-api/endpoints-ambientes.md) | a lista de ambientes do usuario e a regra do {ambienteId} nas outras rotas | ativo |
 | [`endpoints-categorias.md`](04-api/endpoints-categorias.md) | contrato dos endpoints de categoria e regras de categorizacao | ativo |
 | [`endpoints-contas.md`](04-api/endpoints-contas.md) | contrato dos endpoints de conta e saldo | ativo |
 | [`endpoints-eventos.md`](04-api/endpoints-eventos.md) | contrato do Diario — os eventos de um dia de um ambiente | ativo |
 | [`endpoints-lancamentos.md`](04-api/endpoints-lancamentos.md) | contrato dos endpoints de lancamento, extrato, transferencia e estorno | ativo |
 | [`endpoints-meios-pagamento.md`](04-api/endpoints-meios-pagamento.md) | contrato dos endpoints de meio de pagamento | ativo |
 | [`endpoints-relatorios.md`](04-api/endpoints-relatorios.md) | contrato dos endpoints de agregacao e relatorio | stub |
+| [`endpoints-usuario.md`](04-api/endpoints-usuario.md) | cadastro, login, logout e o proprio perfil — rota, payload e erros | ativo |
 | [`erros.md`](04-api/erros.md) | o corpo de resposta de erro, o catalogo de codigos e a regra do que o erro nao conta | ativo |
 
 ## Integracoes — bordas com o mundo externo
@@ -117,6 +120,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | [`dashboard.md`](06-interface/dashboard.md) | telas, indicadores e navegacao do painel | stub |
 | [`direcao-visual.md`](06-interface/direcao-visual.md) | a linguagem visual do Cyberbank: paleta, tipografia, forma e o limite do efeito | rascunho |
 | [`navegacao.md`](06-interface/navegacao.md) | estrutura de navegacao, onde o ambiente vive na tela e como se lanca | rascunho |
+| [`perfil.md`](06-interface/perfil.md) | a tela do proprio usuario: onde se entra, as secoes, o seletor de avatar e os espacos reservados | ativo |
 
 ## Operacao — build, deploy e incidentes
 
@@ -142,5 +146,5 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 
 ---
 
-**77 documentos · 18 ainda em stub.**
+**81 documentos · 18 ainda em stub.**
 Stub = conteudo inexistente: pergunte, nao deduza.
