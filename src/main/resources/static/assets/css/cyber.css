@@ -109,11 +109,12 @@ h1,h2,h3{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter
 
 .field{margin-bottom:14px}
 .field label{display:block;font:10px var(--mono);letter-spacing:.16em;color:var(--cyan);margin-bottom:6px;text-transform:uppercase}
-.field input,.field select,.field textarea{
+.field input,.field select,.field textarea,.campo-data input[type="text"]{
   width:100%;padding:12px 13px;background:#03060b;border:1px solid var(--line);
   color:var(--ink);font:14px var(--mono);outline:none;clip-path:var(--chamfer-sm);
 }
-.field input:focus,.field select:focus{border-color:var(--pink);box-shadow:0 0 16px rgba(255,31,145,.18)}
+.field input:focus,.field select:focus,.campo-data input[type="text"]:focus{
+  border-color:var(--pink);box-shadow:0 0 16px rgba(255,31,145,.18)}
 .field select{cursor:pointer}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 
