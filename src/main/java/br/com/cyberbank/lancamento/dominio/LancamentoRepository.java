@@ -40,6 +40,8 @@ public interface LancamentoRepository {
 
     List<SaldoDeConta> previstoPorConta(Long ambienteId, JanelaDoPrevisto janela);
 
+    List<DiaDeConta> ultimoValorInformadoPorConta(Long ambienteId, Collection<Long> categorias);
+
     boolean contaTemLancamento(Long contaId);
 
     boolean meioTemLancamento(Long meioId);

@@ -11,6 +11,7 @@ import br.com.cyberbank.lancamento.dominio.Lancamento;
 import br.com.cyberbank.lancamento.dominio.LancamentoRepository;
 import br.com.cyberbank.lancamento.dominio.Pagina;
 import br.com.cyberbank.lancamento.dominio.RelatorioDoMes;
+import br.com.cyberbank.lancamento.dominio.DiaDeConta;
 import br.com.cyberbank.lancamento.dominio.JanelaDoPrevisto;
 import br.com.cyberbank.lancamento.dominio.SaldoDeConta;
 import br.com.cyberbank.lancamento.dominio.Sentido;
@@ -153,6 +154,17 @@ public class LancamentoRepositoryJpa implements LancamentoRepository {
                         Sentido.ENTRADA, Situacao.PREVISTO)
                 .stream()
                 .map(linha -> new SaldoDeConta((Long) linha[0], ((Number) linha[1]).longValue()))
+                .toList();
+    }
+
+    @Override
+    public List<DiaDeConta> ultimoValorInformadoPorConta(Long ambienteId,
+            Collection<Long> categorias) {
+        if (categorias.isEmpty()) {
+            return List.of();
+        }
+        return jpa.ultimoDiaPorConta(ambienteId, categorias).stream()
+                .map(linha -> new DiaDeConta((Long) linha[0], (LocalDate) linha[1]))
                 .toList();
     }
 

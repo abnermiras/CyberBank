@@ -22,6 +22,7 @@ public enum CodigoDeErro {
     CONTA_INATIVA(409, "Esta conta está inativa"),
     CONTA_COM_LANCAMENTO(409, "Esta conta já tem lançamento"),
     CARTAO_SEM_SALDO_INICIAL(422, "Cartão de crédito não tem saldo inicial"),
+    CONTA_NAO_E_APLICACAO(409, "Só uma aplicação tem valor atual informado"),
     MEIO_INCOMPATIVEL_COM_CONTA(409, "Este meio não serve para esta conta"),
     MEIO_COM_LANCAMENTO(409, "Este meio já tem lançamento"),
     MEIO_DUPLICADO_NA_CONTA(409, "Esta conta já tem um meio desse tipo"),

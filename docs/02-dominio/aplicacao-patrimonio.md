@@ -2,7 +2,7 @@
 id: 02-dominio/aplicacao-patrimonio
 titulo: Aplicação e patrimônio
 dono: aplicacao como conta, aporte e resgate, atualizacao do valor atual e o calculo do patrimonio
-ler-junto: [02-dominio/conta, 02-dominio/lancamento, 00-produto/roadmap]
+ler-junto: [02-dominio/conta, 02-dominio/lancamento, 06-interface/reserva, 00-produto/roadmap]
 status: rascunho
 ---
 
@@ -88,6 +88,15 @@ O que muda é o que a tela mostra:
 
 Número velho apresentado como atual é pior que número nenhum; número velho **com a idade ao
 lado** é honesto e continua servindo.
+
+**Aplicação que nunca teve valor informado não é desatualizada.** Ela não tem idade: marcar de
+velho o que nunca existiu é ruído, e ruído é como a marca perde o sentido. A tela diz *sem valor
+informado* e para por aí (`docs/06-interface/reserva.md`).
+
+**Informar o valor que a aplicação já vale não grava nada, e não é erro.** Zero não é
+lançamento, e não houve fato — o sistema responde com o mesmo estado em vez de recusar. Quem
+recusa é o domínio, contra si mesmo: a fábrica do rendimento não aceita diferença zero, e é o
+caso de uso que não chega a chamá-la.
 
 ## Patrimônio
 
