@@ -555,7 +555,19 @@ Extrato funcionando abre o app, não ele.
 - **Categoria preenchida não volta a vazia**: o `PATCH` lê campo ausente e campo nulo como a
   mesma coisa, e a tela só oferece *sem categoria* enquanto o lançamento está pendente. É o
   mesmo tropeço que o Telegram deu em 17/09, e a saída aqui foi não prometer
-- **`docs.py` ainda não tem o teto por rota** que o `ADR-0008` decidiu, nem conta o código
+- **`docs.py` ainda não tem o teto por rota** que o `ADR-0008` decidiu, nem conta o código —
+  e **os números já contradizem o que o ADR assumiu**. Ele foi escrito com a pior rota em
+  **11.740** tokens; medido em 17/09, o `novo-meio-de-pagamento` está em **18.935** (5 docs),
+  60% acima. E *"ler tudo"* saiu de **73.084** para **147.707**: dobrou. O instrumento que
+  deveria avisar disso é justamente o que não foi construído. Falta **contar o pacote de
+  código** de cada rota (hoje o `custo` mede só os docs, que é a metade que menos cresce) e
+  **fazer o teto reprovar o `check`**. O número do teto **não existe em lugar nenhum** — o ADR
+  não o nomeia, e defini-lo é decisão do Abner, porque é ela que passa a quebrar o build.
+  **Cuidado ao fazer:** ligar o teto sem fôlego para arrumar o que ele acusar deixa o build
+  vermelho e a correção — quebrar `meio-de-pagamento.md` por subdomínio — para outra sessão. O
+  caminho barato é medir primeiro **sem reprovar**. E a regra do ADR para quando estourar não é
+  negociar: *"o que está errado é a fronteira do domínio, não o teto — a resposta é quebrar o
+  domínio, nunca subir o número"*
 - **`deploy.md`, `runbook.md`, `backup-restore.md` e `observabilidade.md` seguem stub** — são
   de operação e nascem quando houver o que operar
 - **Não há fatura** no código: os assuntos são `usuario`, `ambiente`, `categoria`, `conta`,
