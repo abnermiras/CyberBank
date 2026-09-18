@@ -118,6 +118,13 @@ As duas famílias vêm de CDN com pilha de fallback. Sem rede, a interface cai p
 > Elemento que abre camada flutuante não leva `clip-path` — o chanfro dele vira borda ou
 > pseudo-elemento.
 
+> ⚠ **Armadilha real, achada no navegador:** a pintura de um campo estava presa ao
+> **container** — `.field input` —, e não ao campo. O seletor de dia do Diário reusa o mesmo
+> `campo-data` fora de um `.field`, e apareceu **cinza do sistema operacional** no meio de um
+> app cyberpunk. É o mesmo sintoma que matou o `input[type=date]`, por outra causa.
+> **O visual de um controle pertence ao controle, não a quem o embrulha** — senão o segundo
+> lugar que o reusar volta ao padrão do navegador, e ninguém percebe até ver.
+
 ## Movimento
 
 Animação é rara e curta. O glitch nos títulos dispara a cada poucos segundos, em passos,

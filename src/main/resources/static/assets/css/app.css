@@ -456,8 +456,8 @@ details.painel-sistema:not([open]) summary .abrir::after{content:' ▼'}
   .seg.wide{grid-template-columns:1fr 1fr}
 }
 
-.seletor-dia{display:flex;align-items:stretch;gap:6px}
-.seletor-dia .campo-data{width:150px}
+.seletor-dia{display:flex;align-items:stretch;gap:6px;flex-wrap:wrap}
+.seletor-dia .campo-data{width:170px}
 .seletor-dia .btn{padding:6px 10px;line-height:1}
 .seletor-dia .btn:disabled{opacity:.3;cursor:default}
 .seletor-dia .btn:disabled:hover{background:transparent;border-color:var(--line)}
