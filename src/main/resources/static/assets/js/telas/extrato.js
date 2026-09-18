@@ -2,6 +2,7 @@ const Extrato = {
   LIMITE: 50,
 
   contas: [],
+  meios: [],
   arvore: [],
   itens: [],
   proximo: null,
@@ -25,11 +26,13 @@ const Extrato = {
 
   async recarregarTudo() {
     try {
-      const [contas, arvore] = await Promise.all([
+      const [contas, meios, arvore] = await Promise.all([
         API.listarContas(Contexto.ambiente.id),
+        API.listarMeios(Contexto.ambiente.id),
         API.arvoreDeCategorias(Contexto.ambiente.id),
       ]);
       Extrato.contas = contas.itens;
+      Extrato.meios = meios.itens;
       Extrato.arvore = arvore.itens.filter((raiz) => !raiz.sistema);
     } catch (erro) {
       if (tratarFalha(erro)) return;

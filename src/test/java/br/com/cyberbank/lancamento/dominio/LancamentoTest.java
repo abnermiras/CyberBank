@@ -195,6 +195,45 @@ class LancamentoTest {
         assertThat(mercado().pendente()).isFalse();
     }
 
+    @Test
+    void na_transferencia_a_data_de_efeito_acompanha_a_de_evento() {
+        Lancamento saida = comId(40L, Lancamento.parDeTransferencia(AMBIENTE, CONTA, OUTRA_CONTA,
+                CATEGORIA, CATEGORIA, AUTOR, 50000L, HOJE, HOJE, "Para a poupança",
+                Situacao.REALIZADO, 9L, AGORA).getFirst());
+
+        Lancamento adiada = saida.corrigidoNaTransferencia(null, HOJE.plusDays(5), null, null);
+
+        assertThat(adiada.dataEvento()).isEqualTo(HOJE.plusDays(5));
+        assertThat(adiada.dataEfeito())
+                .as("mover dinheiro entre contas não tem vencimento: as duas datas são a mesma")
+                .isEqualTo(HOJE.plusDays(5));
+    }
+
+    @Test
+    void a_abertura_corrige_o_valor_e_recusa_todo_o_resto() {
+        Lancamento abertura = comId(50L, Lancamento.deAbertura(AMBIENTE, CONTA, CATEGORIA, AUTOR,
+                1123600L, HOJE, AGORA));
+
+        assertThat(abertura.corrigido(null, null, null, null, 980000L, null, null, null, null)
+                .valorCentavos())
+                .as("o saldo de abertura se corrige editando o valor")
+                .isEqualTo(980000L);
+
+        assertThatThrownBy(() -> abertura.corrigido(null, null, null, null, 980000L, null, null,
+                "Outra coisa", null))
+                .as("o resto do lançamento do ciclo não é do usuário para mexer")
+                .isInstanceOf(RegraDeDominioException.class)
+                .hasMessage(CodigoDeErro.LANCAMENTO_DO_CICLO.name());
+
+        assertThatThrownBy(() -> abertura.corrigido(OUTRA_CONTA, null, null, null, null, null,
+                null, null, null))
+                .isInstanceOf(RegraDeDominioException.class);
+
+        assertThatThrownBy(() -> abertura.exigirExcluivelPeloUsuario(false))
+                .as("corrigir o valor é permitido; excluir a abertura continua não sendo")
+                .isInstanceOf(RegraDeDominioException.class);
+    }
+
     private static Lancamento comId(Long id, Lancamento l) {
         return new Lancamento(id, l.ambienteId(), l.contaId(), l.meioId(), l.categoriaId(),
                 l.autorId(), l.sentido(), l.valorCentavos(), l.dataEvento(), l.dataEfeito(),

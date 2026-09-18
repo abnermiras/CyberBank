@@ -4,6 +4,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 import br.com.cyberbank.comum.erro.CodigoDeErro;
 import br.com.cyberbank.comum.erro.ErroDeValidacao;
@@ -113,7 +115,10 @@ public record Lancamento(
             Sentido novoSentido, Long novoValorCentavos, LocalDate novaDataEvento,
             LocalDate novaDataEfeito, String novaDescricao, Situacao novaSituacao) {
 
-        exigirDoUsuario();
+        if (doCiclo) {
+            exigirCorrecaoSoDeValor(novaContaId, novoMeioId, novaCategoriaId, novoSentido,
+                    novaDataEvento, novaDataEfeito, novaDescricao, novaSituacao);
+        }
 
         Long valor = novoValorCentavos == null ? valorCentavos : novoValorCentavos;
         LocalDate evento = novaDataEvento == null ? dataEvento : novaDataEvento;
@@ -135,6 +140,13 @@ public record Lancamento(
                 valor, evento, efeito, texto.trim(),
                 novaSituacao == null ? situacao : novaSituacao,
                 transferenciaId, estornoDeId, doCiclo, estabelecimento, criadoEm);
+    }
+
+    public Lancamento corrigidoNaTransferencia(Long novoValorCentavos,
+            LocalDate novaDataEvento, String novaDescricao, Situacao novaSituacao) {
+
+        return corrigido(null, null, null, null, novoValorCentavos, novaDataEvento,
+                novaDataEvento, novaDescricao, novaSituacao);
     }
 
     public Lancamento realizadoPelaData(LocalDate hoje) {
@@ -171,6 +183,12 @@ public record Lancamento(
 
     private void exigirDoUsuario() {
         if (doCiclo) {
+            throw new RegraDeDominioException(CodigoDeErro.LANCAMENTO_DO_CICLO);
+        }
+    }
+
+    private static void exigirCorrecaoSoDeValor(Object... camposQueOCicloNaoEntrega) {
+        if (Stream.of(camposQueOCicloNaoEntrega).anyMatch(Objects::nonNull)) {
             throw new RegraDeDominioException(CodigoDeErro.LANCAMENTO_DO_CICLO);
         }
     }

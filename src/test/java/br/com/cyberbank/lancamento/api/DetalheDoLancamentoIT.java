@@ -233,6 +233,142 @@ class DetalheDoLancamentoIT {
                 .uri(caminho(sessao, "/eventos?alvo=" + tipo + "&alvoId=" + id)), sessao);
     }
 
+    @Test
+    @SuppressWarnings("unchecked")
+    void trocar_o_meio_leva_o_lancamento_para_a_conta_do_meio() {
+        var sessao = novaSessao("trocameio");
+        LocalDate hoje = LocalDate.now(BRASILIA);
+
+        Integer nubank = criarConta(sessao, "Nubank", "CORRENTE", 500000L, List.of("PIX"));
+        Integer itau = criarConta(sessao, "Itau", "CORRENTE", 200000L, List.of("PIX"));
+        Integer pixDoNubank = meioDa(sessao, nubank, "PIX");
+        Integer pixDoItau = meioDa(sessao, itau, "PIX");
+
+        Integer id = lancar(sessao, pixDoNubank, null, "SAIDA", 15450, hoje, "Gasolina", null);
+
+        corrigir(sessao, id, Map.of("meioId", pixDoItau));
+
+        var corpo = detalhe(sessao, id).getBody();
+        assertThat((Map<String, Object>) corpo.get("meio")).containsEntry("id", pixDoItau);
+        assertThat((Map<String, Object>) corpo.get("conta"))
+                .as("quem manda é o meio: a conta vem dele, como no lançamento")
+                .containsEntry("id", itau);
+    }
+
+    @Test
+    void a_conta_que_nao_e_a_do_meio_e_recusada_em_vez_de_separar_os_dois() {
+        var sessao = novaSessao("contasolta");
+        LocalDate hoje = LocalDate.now(BRASILIA);
+
+        Integer nubank = criarConta(sessao, "Nubank", "CORRENTE", 500000L, List.of("PIX"));
+        Integer itau = criarConta(sessao, "Itau", "CORRENTE", 200000L, List.of("PIX"));
+        Integer id = lancar(sessao, meioDa(sessao, nubank, "PIX"), null, "SAIDA", 15450, hoje,
+                "Gasolina", null);
+
+        var resposta = troca(http().patch().uri(caminho(sessao, "/lancamentos/" + id))
+                .body(Map.of("contaId", itau)), sessao);
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(resposta.getBody()).containsEntry("codigo", "MEIO_INCOMPATIVEL_COM_CONTA");
+    }
+
+    @Test
+    void no_meio_a_vista_a_data_de_efeito_acompanha_a_data_do_evento_corrigida() {
+        var sessao = novaSessao("datasavista");
+        LocalDate hoje = LocalDate.now(BRASILIA);
+
+        Integer nubank = criarConta(sessao, "Nubank", "CORRENTE", 500000L, List.of("PIX"));
+        Integer id = lancar(sessao, meioDa(sessao, nubank, "PIX"), null, "SAIDA", 15450, hoje,
+                "Gasolina", null);
+
+        corrigir(sessao, id, Map.of("dataEvento", hoje.plusDays(3).toString()));
+
+        var corpo = detalhe(sessao, id).getBody();
+        assertThat(corpo).containsEntry("dataEvento", hoje.plusDays(3).toString());
+        assertThat(corpo)
+                .as("neste meio o dinheiro sai no dia do evento: mover uma data move as duas")
+                .containsEntry("dataEfeito", hoje.plusDays(3).toString());
+    }
+
+    @Test
+    void sair_do_boleto_para_um_meio_a_vista_junta_as_duas_datas() {
+        var sessao = novaSessao("saidoboleto");
+        LocalDate hoje = LocalDate.now(BRASILIA);
+
+        Integer nubank = criarConta(sessao, "Nubank", "CORRENTE", 500000L,
+                List.of("PIX", "BOLETO"));
+        Integer boleto = meioDa(sessao, nubank, "BOLETO");
+        Integer pix = meioDa(sessao, nubank, "PIX");
+
+        Map<String, Object> corpoDoBoleto = new HashMap<>(Map.of("meioId", boleto,
+                "sentido", "SAIDA", "valor", 19900, "dataEvento", hoje.toString(),
+                "dataEfeito", hoje.plusDays(10).toString(), "descricao", "Luz"));
+        var criado = troca(http().post().uri(caminho(sessao, "/lancamentos")).body(corpoDoBoleto),
+                sessao);
+        assertThat(criado.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        Integer id = (Integer) criado.getBody().get("id");
+
+        corrigir(sessao, id, Map.of("meioId", pix));
+
+        var corpo = detalhe(sessao, id).getBody();
+        assertThat(corpo)
+                .as("o meio novo não separa as duas datas, e a de efeito não sobrevive sozinha")
+                .containsEntry("dataEfeito", hoje.toString());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void o_saldo_de_abertura_se_corrige_editando_o_valor() {
+        var sessao = novaSessao("abertura");
+
+        Integer nubank = criarConta(sessao, "Nubank", "CORRENTE", 500000L, List.of("PIX"));
+        Integer abertura = aberturaDa(sessao, nubank);
+
+        corrigir(sessao, abertura, Map.of("valor", 480000));
+
+        assertThat(detalhe(sessao, abertura).getBody()).containsEntry("valor", 480000);
+        assertThat(saldoDe(sessao, nubank))
+                .as("nada é recalculado: o saldo já é a soma dos lançamentos")
+                .isEqualTo(480000);
+    }
+
+    @Test
+    void na_abertura_tudo_que_nao_e_o_valor_continua_sendo_do_ciclo() {
+        var sessao = novaSessao("sociclo");
+
+        Integer nubank = criarConta(sessao, "Nubank", "CORRENTE", 500000L, List.of("PIX"));
+        Integer abertura = aberturaDa(sessao, nubank);
+
+        var resposta = troca(http().patch().uri(caminho(sessao, "/lancamentos/" + abertura))
+                .body(Map.of("descricao", "Dinheiro que apareceu")), sessao);
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(resposta.getBody()).containsEntry("codigo", "LANCAMENTO_DO_CICLO");
+
+        assertThat(troca(http().delete().uri(caminho(sessao, "/lancamentos/" + abertura)), sessao)
+                .getStatusCode())
+                .isEqualTo(HttpStatus.CONFLICT);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Integer aberturaDa(Sessao sessao, Integer contaId) {
+        var itens = (List<Map<String, Object>>) troca(http().get()
+                .uri(caminho(sessao, "/lancamentos?contaId=" + contaId)), sessao)
+                .getBody().get("itens");
+        return (Integer) itens.stream()
+                .filter(lancamento -> Boolean.TRUE.equals(lancamento.get("doCiclo")))
+                .findFirst().orElseThrow().get("id");
+    }
+
+    @SuppressWarnings("unchecked")
+    private Integer saldoDe(Sessao sessao, Integer contaId) {
+        var itens = (List<Map<String, Object>>) troca(http().get()
+                .uri(caminho(sessao, "/contas")), sessao).getBody().get("itens");
+        return (Integer) itens.stream()
+                .filter(conta -> contaId.equals(conta.get("id")))
+                .findFirst().orElseThrow().get("saldoRealizadoCentavos");
+    }
+
     private Integer criarConta(Sessao sessao, String nome, String tipo, Long saldoInicial,
             List<String> meios) {
         Map<String, Object> corpo = new HashMap<>(Map.of("nome", nome, "tipo", tipo, "meios", meios));

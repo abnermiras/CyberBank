@@ -42,7 +42,7 @@ isso?"*: primeiro o que se reconhece, por último o que é raro.
 | 5 | **Ligações** | O outro lado da transferência, o estorno, o original |
 | 6 | **Série e fatura** | *Reservado* |
 | 7 | **O que já aconteceu com ele** | O histórico |
-| 8 | **Ações** | Estornar e excluir |
+| 8 | **Ações** | Editar, estornar e excluir |
 
 ### As duas datas só se explicam quando divergem
 
@@ -78,6 +78,31 @@ evento quem entrega. **Este bloco é o primeiro lugar do app onde isso aparece.*
 - As frases são as mesmas do Diário, montadas na tela — nunca guardadas
   (`docs/04-api/endpoints-eventos.md`).
 
+## Editar é o detalhe virando formulário
+
+`EDITAR` não abre outra tela nem outro modal: os três primeiros blocos — **o dinheiro**, **as
+duas datas** e **a classificação** — viram campos no lugar em que estavam. A pessoa corrige
+olhando o mesmo lançamento que estava lendo, e o cabeçalho, o histórico e as ligações continuam
+à vista.
+
+**Meio e conta são um campo só**, porque é o meio que carrega a conta
+(`docs/02-dominio/lancamento.md`). O rótulo diz `Nubank · Pix`, e é assim que se troca de
+banco. O **vencimento** só aparece quando o meio escolhido separa as duas datas — trocar boleto
+por Pix faz o campo sumir, e é a regra aparecendo em vez de ser explicada.
+
+**O impacto é contínuo, não um aviso no fim.** Enquanto os campos mudam, a linha embaixo do
+formulário diz em quanto o saldo de cada conta envolvida fica — duas linhas quando o meio leva
+o lançamento para outra conta, e o aviso de que o outro lado acompanha quando é transferência.
+É a exigência do `lancamento.md` — *ação retroativa mostra o impacto antes de confirmar* — em
+vez de uma confirmação que a pessoa aprende a clicar sem ler.
+
+`APLICAR` grava e volta para a leitura, com o de/para já no histórico logo abaixo.
+`DESISTIR` não pergunta nada: nada foi enviado.
+
+**Numa transferência o formulário é menor**, e o que falta nele é a regra: valor, data,
+descrição e situação valem para os dois lados; conta, meio e categoria não se corrigem de um
+lado só. O formulário diz isso em vez de esconder os campos calado.
+
 ## As ações moram no detalhe
 
 `ESTORNAR` e `EXCLUIR` **saíram da linha**. A linha ficou com uma função só — abrir —, e as
@@ -88,7 +113,10 @@ conta fica, e nomeia o outro lado quando é transferência. É a regra de `naveg
 destrutiva mostra o impacto numérico antes de confirmar* — no lugar em que ela finalmente tem
 espaço para caber.
 
-**Lançamento do ciclo não tem ação**, e o detalhe diz por quê em vez de só esconder o botão.
+**Lançamento do ciclo tem uma ação só**, e é `CORRIGIR O VALOR`: o formulário abre com esse
+campo e nenhum outro, e o texto diz por quê antes de a pessoa procurar o que falta. Excluir não
+aparece, porque a abertura não é do usuário para apagar — as duas coisas juntas são a regra do
+`lancamento.md` inteira na tela, não metade dela.
 
 ## O endereço abre o lançamento
 
@@ -102,8 +130,12 @@ botão "voltar" do navegador funciona como a pessoa espera.
 
 ## O que o detalhe ainda não faz
 
-**Editar os campos.** O contrato existe (`PATCH`), e a única edição que a tela faz hoje é
-resolver a pendência escolhendo a categoria. Corrigir valor, data ou conta entra aqui — e entra
-junto com o aviso que o `lancamento.md` exige: **ação retroativa nomeia o impacto antes de
-aplicar**, e no lançamento de fatura já paga isso significa nomear o pagamento e a diferença.
-Meia edição, sem o aviso, é pior que nenhuma.
+**Tirar a categoria de um lançamento já categorizado.** O seletor só oferece *sem categoria*
+enquanto o lançamento está pendente, porque o `PATCH` lê campo ausente e campo nulo como a mesma
+coisa (`docs/02-dominio/lancamento.md`). Oferecer a opção e não fazer nada seria pior que não
+oferecer.
+
+**Nomear o pagamento e a diferença** quando o lançamento corrigido é de fatura já paga. O aviso
+de impacto de hoje fala de **saldo de conta**, que é tudo que existe; a fatura ainda não existe
+no código, e a regra dela mora em `docs/02-dominio/fatura-pagamento.md`. Quando a fatura
+chegar, é este mesmo bloco que ganha a segunda frase.
