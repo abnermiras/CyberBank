@@ -55,6 +55,11 @@ public class VerReservaUseCase {
 
         return new Reserva(
                 aplicacoes,
+                contas.stream()
+                        .filter(comSaldo -> comSaldo.conta().entraEmCaixa())
+                        .filter(comSaldo -> !comSaldo.conta().inativa())
+                        .map(ContaComSaldo::conta)
+                        .toList(),
                 somar(contas, comSaldo -> !comSaldo.conta().entraNoFluxoDeCaixa()),
                 somar(contas, comSaldo -> comSaldo.conta().entraEmCaixa()),
                 somar(contas, comSaldo -> true),

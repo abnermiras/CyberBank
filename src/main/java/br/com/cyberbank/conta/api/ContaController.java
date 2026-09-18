@@ -76,8 +76,12 @@ public class ContaController {
     public record ValorAtualRequest(Long valorCentavos) {
     }
 
-    public record ReservaResponse(List<AplicacaoResponse> aplicacoes, long guardadoCentavos,
+    public record ReservaResponse(List<AplicacaoResponse> aplicacoes,
+            List<ContaDeCaixaResponse> contasDeCaixa, long guardadoCentavos,
             long emCaixaCentavos, long patrimonioCentavos, boolean algumaDesatualizada) {
+    }
+
+    public record ContaDeCaixaResponse(Long id, String nome, TipoDeConta tipo) {
     }
 
     public record AplicacaoResponse(Long id, String nome, boolean inativa,
@@ -113,6 +117,10 @@ public class ContaController {
 
         return new ReservaResponse(
                 reserva.aplicacoes().stream().map(ContaController::paraResposta).toList(),
+                reserva.contasDeCaixa().stream()
+                        .map(conta -> new ContaDeCaixaResponse(conta.id(), conta.nome(),
+                                conta.tipo()))
+                        .toList(),
                 reserva.guardadoCentavos(), reserva.emCaixaCentavos(),
                 reserva.patrimonioCentavos(), reserva.algumaDesatualizada());
     }

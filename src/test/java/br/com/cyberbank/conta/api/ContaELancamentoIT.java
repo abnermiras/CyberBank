@@ -536,6 +536,37 @@ class ContaELancamentoIT {
         assertThat(resposta.getBody()).containsEntry("codigo", "CONTA_NAO_E_APLICACAO");
     }
 
+    @Test
+    @SuppressWarnings("unchecked")
+    void o_aporte_move_o_dinheiro_de_bolso_e_nao_muda_o_patrimonio() {
+        var sessao = novaSessao("aporte");
+
+        Integer nubank = criarConta(sessao, "Nubank", "CORRENTE", 500000L, List.of("PIX"));
+        Integer poupanca = criarConta(sessao, "Poupança", "APLICACAO", 100000L);
+
+        var antes = get(sessao, "/contas/reserva").getBody();
+        assertThat(itens(get(sessao, "/contas/reserva"), "contasDeCaixa"))
+                .as("a outra ponta de um aporte é uma conta de caixa, e a aplicação não é uma")
+                .extracting(conta -> conta.get("nome"))
+                .containsExactly("Nubank");
+
+        transferir(sessao, nubank, poupanca, 200000, "Aporte em Poupança");
+
+        var depois = get(sessao, "/contas/reserva").getBody();
+
+        assertThat(depois.get("patrimonioCentavos"))
+                .as("se um aporte alterar o patrimônio, é bug — está escrito assim no doc")
+                .isEqualTo(antes.get("patrimonioCentavos"));
+        assertThat(depois).containsEntry("emCaixaCentavos", 300000);
+        assertThat(depois).containsEntry("guardadoCentavos", 300000);
+
+        var poupancaDepois = (Map<String, Object>) itens(get(sessao, "/contas/reserva"),
+                "aplicacoes").get(0);
+        assertThat(poupancaDepois)
+                .as("o aporte entra na aplicação, mas não é rendimento: a idade não muda")
+                .containsEntry("saldoRealizadoCentavos", 300000);
+    }
+
     private Integer criarConta(Sessao sessao, String nome, String tipo, Long saldoInicial) {
         return criarConta(sessao, nome, tipo, saldoInicial, List.of());
     }

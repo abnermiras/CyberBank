@@ -53,6 +53,26 @@ existe, por que o número tem data e por que o sistema não pode "corrigir" a ap
 
 Informar o valor que a aplicação **já vale** não grava nada e não é erro — não houve fato.
 
+## Aportar e resgatar na própria linha
+
+As duas operações são **transferências**, e sempre foram (`docs/02-dominio/lancamento.md`) — o
+atalho não cria capacidade, encurta caminho. `APORTAR` e `RESGATAR` abrem na linha um formulário
+de três campos: a **conta de caixa** da outra ponta, quanto, e a descrição — já sugerida como
+*Aporte em `<nome>`* ou *Resgate de `<nome>`*, que é o que se lê nos **dois** lados no Extrato.
+
+**A outra ponta é sempre uma conta de caixa**, e quem decide isso é o servidor
+(`docs/04-api/endpoints-contas.md`): a aplicação não financia outra aplicação, e o vale-benefício
+não entra porque o saldo dele não é fungível (`docs/02-dominio/conta.md`). Sem nenhuma conta de
+caixa, os dois botões ficam desabilitados e a linha **diz por quê** em vez de só apagar.
+
+**O formulário afirma a consequência antes do clique:** *o patrimônio não muda — o dinheiro só
+troca de bolso*. É a invariante do `aplicacao-patrimonio.md` escrita onde ela é contrariada pela
+intuição: guardar dinheiro **parece** que deveria mudar quanto se tem, e não muda.
+
+A data é **hoje**, e não há campo para ela. Aporte com outra data é lançamento comum, e o
+caminho é a aba `TRANSFERÊNCIA` do formulário completo — dois campos a menos aqui valem mais que
+uma data que quase ninguém troca.
+
 ## O rodapé que a tela precisa ter
 
 Duas regras ficam escritas na própria tela, porque as duas contrariam a intuição:
@@ -65,9 +85,8 @@ Duas regras ficam escritas na própria tela, porque as duas contrariam a intuiç
 
 ## O que a Reserva ainda não faz
 
-**Aportar e resgatar por aqui.** As duas operações já existem e funcionam — são transferências,
-pela aba `TRANSFERÊNCIA` do formulário de lançar (`docs/06-interface/navegacao.md`). Falta o
-atalho na linha da aplicação, que é conveniência e não capacidade nova.
+**Aportar com outra data**, e **desfazer** um aporte por aqui: o par se exclui pelo Extrato,
+abrindo qualquer um dos dois lados (`docs/06-interface/extrato.md`).
 
 **Rentabilidade, cotação e meta.** Estão fora da Fase 1 por decisão de produto, não por falta de
 tempo (`docs/02-dominio/aplicacao-patrimonio.md`).

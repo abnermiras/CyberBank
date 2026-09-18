@@ -1,6 +1,7 @@
 const Reserva = {
   dados: null,
   informando: null,
+  movendo: null,
   ligado: false,
 
   async montar() {
@@ -27,9 +28,12 @@ const Reserva = {
       const botao = evento.target.closest('[data-reserva]');
       if (!botao) return;
       const acoes = {
-        informar: () => { Reserva.informando = Number(botao.dataset.id); Reserva.desenhar(); },
-        desistir: () => { Reserva.informando = null; Reserva.desenhar(); },
+        informar: () => Reserva.abrir('informando', Number(botao.dataset.id)),
+        aportar: () => Reserva.abrir('movendo', Number(botao.dataset.id), 'APORTE'),
+        resgatar: () => Reserva.abrir('movendo', Number(botao.dataset.id), 'RESGATE'),
+        desistir: () => Reserva.abrir(null, null),
         gravar: () => Reserva.gravar(Number(botao.dataset.id)),
+        mover: () => Reserva.mover(Number(botao.dataset.id)),
       };
       await acoes[botao.dataset.reserva]();
     });
@@ -38,6 +42,12 @@ const Reserva = {
       evento.preventDefault();
       Reserva.gravar(Reserva.informando);
     });
+  },
+
+  abrir(campo, id, operacao) {
+    Reserva.informando = campo === 'informando' ? id : null;
+    Reserva.movendo = campo === 'movendo' ? { id, operacao } : null;
+    Reserva.desenhar();
   },
 
   desenhar() {
@@ -95,6 +105,9 @@ const Reserva = {
 
   linha(a) {
     const informando = Reserva.informando === a.id;
+    const movendo = Reserva.movendo && Reserva.movendo.id === a.id
+      ? Reserva.movendo.operacao : null;
+    const semCaixa = !Reserva.dados.contasDeCaixa.length;
 
     return `
       <article class="linha reserva${a.inativa ? ' do-ciclo' : ''}">
@@ -109,15 +122,21 @@ const Reserva = {
             ${a.inativa ? '<span class="tag inativa">INATIVA</span>' : ''}
           </div>
           ${informando ? Reserva.formulario(a) : ''}
+          ${movendo ? Reserva.formularioDeMovimento(a, movendo) : ''}
         </div>
 
         <div class="linha-valor pos">${Formato.dinheiro(a.saldoRealizadoCentavos)}</div>
 
         <div class="linha-acoes">
-          ${informando
-            ? ''
-            : `<button class="btn sm ghost" type="button" data-reserva="informar"
-                 data-id="${a.id}">Informar valor</button>`}
+          ${informando || movendo ? '' : `
+            <button class="btn sm ghost" type="button" data-reserva="informar"
+                    data-id="${a.id}">Informar valor</button>
+            <button class="btn sm ghost" type="button" data-reserva="aportar"
+                    data-id="${a.id}"${semCaixa || a.inativa ? ' disabled' : ''}>Aportar</button>
+            <button class="btn sm ghost" type="button" data-reserva="resgatar"
+                    data-id="${a.id}"${semCaixa || a.inativa ? ' disabled' : ''}>Resgatar</button>
+            ${semCaixa
+              ? '<span class="tele">SEM CONTA DE CAIXA PARA MOVER DINHEIRO</span>' : ''}`}
         </div>
       </article>`;
   },
@@ -142,6 +161,64 @@ const Reserva = {
         <p class="dica">A diferença vira um lançamento de <b>rendimento</b> nesta conta, com a
           data de hoje. Nada é sobrescrito, e ele aparece no Extrato.</p>
       </form>`;
+  },
+
+  formularioDeMovimento(a, operacao) {
+    const aporte = operacao === 'APORTE';
+    const rotulo = aporte ? 'De qual conta sai' : 'Para qual conta vai';
+
+    return `
+      <form class="hstack gap6 wrap mt10" id="fMovimento">
+        <div class="field" style="min-width:180px">
+          <label for="movimentoConta">${rotulo}</label>
+          <select id="movimentoConta">
+            ${Reserva.dados.contasDeCaixa.map((c) =>
+              `<option value="${c.id}">${Formato.texto(c.nome)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field" style="min-width:140px">
+          <label for="movimentoValor">Quanto</label>
+          <input id="movimentoValor" type="text" inputmode="decimal" placeholder="0,00" required>
+        </div>
+        <div class="field" style="min-width:200px">
+          <label for="movimentoDescricao">Descrição</label>
+          <input id="movimentoDescricao" type="text" maxlength="200"
+                 value="${aporte ? 'Aporte em ' : 'Resgate de '}${Formato.texto(a.nome)}"
+                 required>
+        </div>
+        <button class="btn sm primary" type="button" data-reserva="mover"
+                data-id="${a.id}">${aporte ? 'Aportar' : 'Resgatar'}</button>
+        <button class="btn sm ghost" type="button" data-reserva="desistir">Desistir</button>
+        <p class="dica">${aporte
+          ? 'Guardar dinheiro <b>não é gasto</b>: nascem dois lançamentos com categoria de sistema, e o <b>patrimônio não muda</b> — o dinheiro só troca de bolso.'
+          : 'O resgate devolve o dinheiro ao caixa. São dois lançamentos, e o <b>patrimônio continua o mesmo</b>.'}</p>
+      </form>`;
+  },
+
+  async mover(contaId) {
+    const valor = Formato.centavos(document.getElementById('movimentoValor').value);
+    if (valor === null || valor <= 0) {
+      Reserva.avisar('O valor não dá para ler, ou é zero. Use 1234,56.');
+      return;
+    }
+    const outra = Number(document.getElementById('movimentoConta').value);
+    const aporte = Reserva.movendo.operacao === 'APORTE';
+
+    try {
+      await API.transferir(Contexto.ambiente.id, {
+        contaDeOrigemId: aporte ? outra : contaId,
+        contaDeDestinoId: aporte ? contaId : outra,
+        valor,
+        dataEvento: Formato.hoje(),
+        descricao: document.getElementById('movimentoDescricao').value,
+      });
+    } catch (erro) {
+      if (tratarFalha(erro)) return;
+      Reserva.avisar(erro.paraGente());
+      return;
+    }
+    Reserva.movendo = null;
+    await Reserva.recarregar();
   },
 
   async gravar(contaId) {
