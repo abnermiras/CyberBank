@@ -462,9 +462,36 @@
               <button class="btn primary" type="submit" id="btnConta">Abrir conta</button>
             </div>
 
-            <div class="field mt10" style="margin-bottom:0">
+            <div class="formraiz mt10 hidden" id="cicloDoCartao">
+              <div class="field" style="margin:0">
+                <label for="contaDiaVencimento">Vence dia</label>
+                <input id="contaDiaVencimento" type="number" min="1" max="31" placeholder="5">
+              </div>
+              <div class="field" style="margin:0">
+                <label for="contaDiasAntes">Fecha quantos dias antes</label>
+                <input id="contaDiasAntes" type="number" min="1" max="28" placeholder="8">
+              </div>
+              <div class="field" style="margin:0">
+                <label for="contaLimite">Limite</label>
+                <input id="contaLimite" type="text" inputmode="decimal" placeholder="15000,00">
+              </div>
+              <div class="field" style="margin:0">
+                <label for="contaPagadora">Paga normalmente pela</label>
+                <select id="contaPagadora"></select>
+              </div>
+            </div>
+
+            <div class="field mt10" style="margin-bottom:0" id="campoDosMeios">
               <label>Como se paga com ela</label>
               <div class="opcoes" id="meiosDaConta"></div>
+            </div>
+
+            <div class="field mt10 hidden" style="margin-bottom:0" id="campoDosCartoes">
+              <label for="contaCartoes">Cartões deste contrato</label>
+              <input id="contaCartoes" type="text" maxlength="200"
+                     placeholder="FÍSICO ****1234, FREELANCE ****0987">
+              <span class="tele">UM NOME POR CARTÃO, SEPARADOS POR VÍRGULA — FÍSICO, VIRTUAL E
+                ADICIONAL DIVIDEM O MESMO CONTRATO</span>
             </div>
 
             <p class="dica mt10" id="contaExplica"></p>
@@ -555,10 +582,10 @@
       <button type="button" data-aba="RECEITA">RECEITA</button>
       <button type="button" data-aba="TRANSFERENCIA">TRANSFERÊNCIA</button>
       <button type="button" data-aba="CREDITO" disabled
-              title="Entra com o cartão de crédito">CRÉDITO</button>
+              title="Cadastre uma conta CARTÃO e um cartão dela">CRÉDITO</button>
     </div>
-    <p class="dica" id="compAbaCredito">A aba <b>CRÉDITO</b> — compra parcelada no cartão —
-      espera a conta <b>CARTAO</b> e a <b>fatura</b>, que ainda não existem.</p>
+    <p class="dica hidden" id="compAbaCredito">A aba <b>CRÉDITO</b> espera uma conta
+      <b>CARTÃO</b> com pelo menos um cartão. Cadastre no <b>Cadastro → contas e meios</b>.</p>
 
     <form id="fCompleto" autocomplete="off">
       <div class="row">

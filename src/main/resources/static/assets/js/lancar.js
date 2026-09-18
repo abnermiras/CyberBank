@@ -5,7 +5,7 @@ const Lancar = {
   aba: 'GASTO',
   sentidoRapido: 'SAIDA',
 
-  SENTIDO_DA_ABA: { GASTO: 'SAIDA', RECEITA: 'ENTRADA' },
+  SENTIDO_DA_ABA: { GASTO: 'SAIDA', RECEITA: 'ENTRADA', CREDITO: 'SAIDA' },
 
   async abrirRapido() {
     if (!(await Lancar.carregar())) return;
@@ -24,6 +24,7 @@ const Lancar = {
     if (!(await Lancar.carregar())) return;
 
     Lancar.fecharRapido();
+    Lancar.liberarAbaDeCredito();
     Lancar.trocarAba(aba || 'GASTO');
     if (!CampoDeData.valor('compData')) CampoDeData.definir('compData', Formato.hoje());
     document.getElementById('modalCompleto').hidden = false;
@@ -162,6 +163,16 @@ const Lancar = {
       + '</optgroup>';
   },
 
+  cartoes() {
+    return Lancar.meios.filter((m) => m.tipo === 'CREDITO');
+  },
+
+  meiosDaAba(aba) {
+    return aba === 'CREDITO'
+      ? Lancar.cartoes()
+      : Lancar.meios.filter((m) => m.tipo !== 'CREDITO');
+  },
+
   trocarAba(aba) {
     Lancar.aba = aba;
     document.querySelectorAll('#compAbas [data-aba]').forEach((botao) => {
@@ -182,12 +193,13 @@ const Lancar = {
       if (ativas.length > 1) document.getElementById('compPara').selectedIndex = 1;
       document.getElementById('btnCompleto').disabled = ativas.length < 2;
     } else {
+      const daAba = Lancar.meiosDaAba(aba);
       const meio = document.getElementById('compMeio');
-      meio.innerHTML = Lancar.meios.length
-        ? Lancar.meios.map((m) =>
+      meio.innerHTML = daAba.length
+        ? daAba.map((m) =>
           `<option value="${m.id}">${Formato.texto(Lancar.rotuloDoMeio(m))}</option>`).join('')
-        : '<option value="">— sem meio de pagamento —</option>';
-      document.getElementById('btnCompleto').disabled = !Lancar.meios.length;
+        : `<option value="">— ${aba === 'CREDITO' ? 'nenhum cartão de crédito' : 'sem meio de pagamento'} —</option>`;
+      document.getElementById('btnCompleto').disabled = !daAba.length;
       Lancar.montarCategorias();
     }
     Lancar.explicarCompleto();
@@ -228,6 +240,15 @@ const Lancar = {
     return Lancar.meios.find((m) => String(m.id) === document.getElementById('compMeio').value);
   },
 
+  liberarAbaDeCredito() {
+    const cartoes = Lancar.cartoes();
+    const botao = document.querySelector('#compAbas [data-aba="CREDITO"]');
+
+    botao.disabled = !cartoes.length;
+    botao.title = cartoes.length ? '' : 'Cadastre uma conta CARTÃO e um cartão dela';
+    document.getElementById('compAbaCredito').classList.toggle('hidden', cartoes.length > 0);
+  },
+
   explicarCompleto() {
     const alvo = document.getElementById('compExplica');
 
@@ -253,6 +274,17 @@ const Lancar = {
       return;
     }
     const conta = Lancar.contas.find((c) => c.id === meio.contaId);
+
+    if (Lancar.aba === 'CREDITO') {
+      document.getElementById('campoCompVencimento').classList.add('hidden');
+      alvo.innerHTML = `Cai na <b>fatura ABERTA</b> de
+         ${Formato.texto(conta ? conta.nome : '—')} — a fatura vem do <b>status</b>, nunca da
+         data —, e nasce <b>PROVISIONADO</b>: comprou, deve. A dívida do cartão sobe na hora, e
+         a conta corrente só se move no dia em que você pagar a fatura. <b>O limite não trava
+         nada</b>: recusar uma compra que o emissor já aprovou seria o app discordando do banco.`;
+      return;
+    }
+
     alvo.innerHTML = meio.separaAsDuasDatas
       ? `Sai de <b>${Formato.texto(conta ? conta.nome : '—')}</b> no <b>vencimento</b>, não
          hoje: até lá o lançamento é <b>PREVISTO</b> e não entra no saldo realizado.`

@@ -94,6 +94,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | [`endpoints-categorias.md`](04-api/endpoints-categorias.md) | contrato dos endpoints de categoria e regras de categorizacao | ativo |
 | [`endpoints-contas.md`](04-api/endpoints-contas.md) | contrato dos endpoints de conta e saldo | ativo |
 | [`endpoints-eventos.md`](04-api/endpoints-eventos.md) | contrato do Diario — os eventos de um dia de um ambiente | ativo |
+| [`endpoints-faturas.md`](04-api/endpoints-faturas.md) | contrato dos endpoints de fatura de cartao | ativo |
 | [`endpoints-lancamentos.md`](04-api/endpoints-lancamentos.md) | contrato dos endpoints de lancamento, extrato, transferencia e estorno | ativo |
 | [`endpoints-meios-pagamento.md`](04-api/endpoints-meios-pagamento.md) | contrato dos endpoints de meio de pagamento | ativo |
 | [`endpoints-relatorios.md`](04-api/endpoints-relatorios.md) | contrato dos endpoints de agregacao e relatorio | ativo |
@@ -148,5 +149,5 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 
 ---
 
-**83 documentos · 16 ainda em stub.**
+**84 documentos · 16 ainda em stub.**
 Stub = conteudo inexistente: pergunte, nao deduza.

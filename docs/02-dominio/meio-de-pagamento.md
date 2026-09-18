@@ -235,8 +235,7 @@ modelagem, não detalhe de implementação.
 
 | O que falta | Por quê |
 |---|---|
-| **Meio `CREDITO`**, e com ele físico, virtual e adicional | Depende da conta `CARTAO` e da fatura. O `CHECK` da coluna `tipo` já aceita `CREDITO` |
-| **Limite, e a marca de limite envelhecido** | É da conta `CARTAO`, que ainda não se cadastra |
+| **Informar o limite depois** | O limite entra no cadastro da conta `CARTAO` e ainda não tem endpoint próprio para ser atualizado. A **marca de limite envelhecido** já existe: quando a dívida passa do limite informado, o disponível fica negativo e a borda diz que ele pode estar desatualizado |
 | **Trocar o `tipo` de um meio** | O endpoint não expõe o campo; `TIPO_DE_MEIO_IMUTAVEL` está no catálogo esperando |
 | **Compartilhar um cartão** | A tabela `vinculo` existe e nasce vazia (`ADR-0004`); a funcionalidade é liberada com a Fase 1 concluída |
 

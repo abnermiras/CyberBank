@@ -32,6 +32,8 @@ public interface LancamentoRepository {
     List<Lancamento> listarPrevistosAte(
             Long ambienteId, LocalDate de, LocalDate ate, Collection<Long> contas, int limite);
 
+    List<TotaisDeFatura> totaisDasFaturas(Collection<Long> faturaIds);
+
     long contarPendencias(Long ambienteId);
 
     long saldoRealizadoDaConta(Long contaId, LocalDate ate);

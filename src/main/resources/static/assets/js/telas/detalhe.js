@@ -572,17 +572,44 @@ const Detalhe = {
     return linhas.length ? Detalhe.bloco('Ligações', linhas.join('')) : '';
   },
 
+  ROTULO_DE_STATUS: { FUTURA: 'FUTURA', ABERTA: 'ABERTA', FECHADA: 'FECHADA' },
+
   serieEFatura() {
+    const fatura = Detalhe.dados && Detalhe.dados.fatura;
+
+    if (!fatura) {
+      return `
+        <section class="det-bloco">
+          <h4>Série e fatura <span class="tele">NÃO SE APLICA</span></h4>
+          <div class="emespera">
+            <p>Só compra no <b>crédito</b> entra em fatura. E <b>parcelamento</b> ainda não
+              existe: quando entrar, é aqui que vai dizer <b>qual parcela de quantas</b>, com o
+              valor da compra inteira.</p>
+            <div class="falta">FALTA PARA ISSO EXISTIR: <b>parcelamento</b></div>
+          </div>
+        </section>`;
+    }
+
     return `
       <section class="det-bloco">
-        <h4>Série e fatura <span class="tele">AINDA NÃO EXISTE</span></h4>
-        <div class="emespera">
-          <p>Quando o cartão entrar, é aqui que vai dizer <b>de qual fatura</b> este lançamento
-            é e em que <b>mês</b> ele conta. E, se for parcela, <b>qual de quantas</b> — com o
-            valor da compra inteira.</p>
-          <div class="falta">FALTA PARA ISSO EXISTIR: <b>fatura</b> · <b>parcelamento</b></div>
-        </div>
+        <h4>Série e fatura</h4>
+        <dl>
+          ${Detalhe.par('Fatura', `<b>${Formato.texto(Detalhe.mesDaFatura(fatura.competencia))}</b>
+            <span class="tag">${Detalhe.ROTULO_DE_STATUS[fatura.status] || fatura.status}</span>`)}
+          ${Detalhe.par('Fecha em', Formato.dia(fatura.dataFechamento))}
+          ${Detalhe.par('Vence em', Formato.dia(fatura.dataVencimento))}
+        </dl>
+        <p class="dica">O gasto conta no mês do <b>vencimento</b> desta fatura — é o eixo padrão
+          do relatório, e é o que bate com o dinheiro que sai. A fatura é editável: este
+          lançamento pode ser movido para qualquer fatura deste cartão, aberta ou não.</p>
       </section>`;
+  },
+
+  mesDaFatura(competencia) {
+    const [ano, mes] = String(competencia).split('-');
+    const nomes = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto',
+      'setembro', 'outubro', 'novembro', 'dezembro'];
+    return `${nomes[Number(mes) - 1]} de ${ano}`;
   },
 
   oQueJaAconteceu() {

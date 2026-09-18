@@ -174,9 +174,8 @@ que o código ainda não faz (`docs/04-api/endpoints-contas.md` tem o contrato d
 
 | O que falta | Por quê |
 |---|---|
-| **Criar conta `CARTAO`** | Ela nasce com a fatura `ABERTA` do ciclo corrente, e guarda limite, dia de vencimento, dias de fechamento e conta pagadora padrão. Nada disso existe enquanto a fatura não existir. O `CHECK` da coluna `tipo` **já aceita** `CARTAO`: quem recusa é o caso de uso, e a fatia da fatura não vai precisar de migration sobre dado real |
 | **Trocar o `tipo`** | O endpoint não expõe o campo. A regra — *não muda depois de existir lançamento* — está escrita e o código `TIPO_DE_CONTA_IMUTAVEL` está no catálogo de erros, esperando a tela que precisar dele |
-| **O `a pagar` da fatura dentro do projetado** | O projetado existe e soma o `PREVISTO` até o fim do mês. Falta a segunda metade — descontar o `a pagar` das faturas que vencem até lá —, e ela depende da fatura existir. Enquanto não existe **não há fatura nenhuma para descontar**, então o número está completo hoje e fica otimista no dia em que o cartão entrar: quem implementar a fatura corrige aqui |
+| **O `a pagar` da fatura dentro do projetado** | O projetado existe e soma o `PREVISTO` até o fim do mês. Falta a segunda metade — descontar o `a pagar` das faturas que vencem até lá. **O desconto é do agregado, nunca do `saldoProjetado` de uma conta:** o sistema não sabe de qual conta você vai pagar, e afirmá-lo seria o mesmo palpite que derrubou o pagamento previsto automático. Se você já agendou, o pagamento é um `PREVISTO` daquela conta e o `a pagar` da fatura já caiu no mesmo valor — nada é contado duas vezes. Entra com o pagamento de fatura |
 | **Dono e editor × leitor** | Nenhum caso de uso verifica papel. Hoje todo ambiente tem exatamente um acesso, o do dono, porque convite e compartilhamento não existem — não há leitor no sistema para barrar. A verificação entra com o convite (`docs/02-dominio/ambiente-financeiro.md`) |
 
 ## Fronteiras com outros docs

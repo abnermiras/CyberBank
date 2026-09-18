@@ -196,6 +196,31 @@ interface LancamentoJpa extends JpaRepository<LancamentoEntity, Long> {
             @Param("previsto") Situacao previsto,
             Pageable pagina);
 
+    @Query("""
+            select l.faturaId,
+                   coalesce(sum(case when l.rolagemDeFatura is not null and l.sentido = :entrada
+                                     then 0
+                                     when l.sentido = :entrada then -l.valorCentavos
+                                     else l.valorCentavos end), 0),
+                   coalesce(sum(case when l.rolagemDeFatura is not null and l.sentido = :entrada
+                                     then l.valorCentavos else 0 end), 0)
+              from LancamentoEntity l
+             where l.faturaId in :faturas
+             group by l.faturaId
+            """)
+    List<Object[]> somarPorFatura(@Param("faturas") Collection<Long> faturas,
+            @Param("entrada") Sentido entrada);
+
+    @Query("""
+            select l.pagamentoDeFaturaId, coalesce(sum(l.valorCentavos), 0)
+              from LancamentoEntity l
+             where l.pagamentoDeFaturaId in :faturas
+               and l.situacao = :realizado
+             group by l.pagamentoDeFaturaId
+            """)
+    List<Object[]> somarPagamentosPorFatura(@Param("faturas") Collection<Long> faturas,
+            @Param("realizado") Situacao realizado);
+
     long countByAmbienteIdAndCategoriaIdIsNull(Long ambienteId);
 
     @Query(value = "select nextval('transferencia_id_seq')", nativeQuery = true)

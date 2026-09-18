@@ -2,7 +2,9 @@ package br.com.cyberbank.lancamento.persistencia;
 
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import br.com.cyberbank.lancamento.dominio.Cursor;
@@ -16,6 +18,7 @@ import br.com.cyberbank.lancamento.dominio.JanelaDoPrevisto;
 import br.com.cyberbank.lancamento.dominio.SaldoDeConta;
 import br.com.cyberbank.lancamento.dominio.Sentido;
 import br.com.cyberbank.lancamento.dominio.Situacao;
+import br.com.cyberbank.lancamento.dominio.TotaisDeFatura;
 import br.com.cyberbank.lancamento.dominio.TotalPorSentido;
 
 import org.springframework.data.domain.PageRequest;
@@ -128,6 +131,30 @@ public class LancamentoRepositoryJpa implements LancamentoRepository {
     }
 
     @Override
+    public List<TotaisDeFatura> totaisDasFaturas(Collection<Long> faturaIds) {
+        if (faturaIds.isEmpty()) {
+            return List.of();
+        }
+
+        Map<Long, Long> pagoPorFatura = new HashMap<>();
+        for (Object[] linha : jpa.somarPagamentosPorFatura(faturaIds, Situacao.REALIZADO)) {
+            pagoPorFatura.put((Long) linha[0], (Long) linha[1]);
+        }
+
+        Map<Long, TotaisDeFatura> porFatura = new HashMap<>();
+        for (Object[] linha : jpa.somarPorFatura(faturaIds, Sentido.ENTRADA)) {
+            Long faturaId = (Long) linha[0];
+            porFatura.put(faturaId, new TotaisDeFatura(faturaId, (Long) linha[1],
+                    pagoPorFatura.getOrDefault(faturaId, 0L), (Long) linha[2]));
+        }
+
+        return faturaIds.stream()
+                .map(faturaId -> porFatura.getOrDefault(faturaId, new TotaisDeFatura(faturaId, 0,
+                        pagoPorFatura.getOrDefault(faturaId, 0L), 0)))
+                .toList();
+    }
+
+    @Override
     public long contarPendencias(Long ambienteId) {
         return jpa.countByAmbienteIdAndCategoriaIdIsNull(ambienteId);
     }
@@ -207,6 +234,7 @@ public class LancamentoRepositoryJpa implements LancamentoRepository {
         return new LancamentoEntity(l.id(), l.ambienteId(), l.contaId(), l.meioId(),
                 l.categoriaId(), l.autorId(), l.sentido(), l.valorCentavos(), l.dataEvento(),
                 l.dataEfeito(), l.descricao(), l.situacao(), l.transferenciaId(), l.estornoDeId(),
+                l.faturaId(), l.pagamentoDeFaturaId(), l.rolagemDeFatura(),
                 l.doCiclo(), l.estabelecimento(), l.criadoEm());
     }
 
@@ -214,7 +242,8 @@ public class LancamentoRepositoryJpa implements LancamentoRepository {
         return new Lancamento(e.getId(), e.getAmbienteId(), e.getContaId(), e.getMeioId(),
                 e.getCategoriaId(), e.getAutorId(), e.getSentido(), e.getValorCentavos(),
                 e.getDataEvento(), e.getDataEfeito(), e.getDescricao(), e.getSituacao(),
-                e.getTransferenciaId(), e.getEstornoDeId(), e.isDoCiclo(), e.getEstabelecimento(),
-                e.getCriadoEm());
+                e.getTransferenciaId(), e.getEstornoDeId(), e.getFaturaId(),
+                e.getPagamentoDeFaturaId(), e.getRolagemDeFatura(), e.isDoCiclo(),
+                e.getEstabelecimento(), e.getCriadoEm());
     }
 }

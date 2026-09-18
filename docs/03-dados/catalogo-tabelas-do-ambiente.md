@@ -59,7 +59,7 @@ ser de outro ambiente… categoria, nunca"*, e o próprio `ADR-0004` manda **mas
 de fora. Mascarar é o oposto de enxergar: um `OR` aqui daria acesso exatamente ao que a decisão
 proíbe. Ele entra nas tabelas ligadas a conta, quando elas nascerem.
 
-## `conta` — família do ambiente (`V004`)
+## `conta` — família do ambiente (`V004`, `V009`)
 
 | Coluna | Tipo | Nulo | Default | Nota |
 |---|---|---|---|---|
@@ -71,14 +71,25 @@ proíbe. Ele entra nas tabelas ligadas a conta, quando elas nascerem.
 | `entra_em_caixa` | `boolean` | não | — | Eixo 3 |
 | `inativa` | `boolean` | não | `false` | Sempre ato do usuário |
 | `criada_em` | `timestamptz` | não | `now()` | |
+| `limite_centavos` | `bigint` | sim | — | **Só na `CARTAO`.** Informado pelo usuário, e nunca corrigido pelo sistema |
+| `limite_informado_em` | `date` | sim | — | A regra 7 do `CLAUDE.md` no schema: valor informado carrega a data |
+| `dia_vencimento` | `smallint` | sim | — | **Só na `CARTAO`**, e lá obrigatório. 1 a 31; 31 em fevereiro cai no último dia, e quem resolve é o domínio |
+| `dias_antes_fechamento` | `smallint` | sim | — | Idem. 1 a 28 |
+| `conta_pagadora_padrao_id` | `bigint` | sim | — | **Só o que vem preenchido** no formulário de pagamento: nada nasce dela sozinho |
 
-**Nenhuma coluna de saldo, dívida ou limite disponível**: nada derivado é coluna.
+**Nenhuma coluna de saldo, dívida ou limite disponível**: nada derivado é coluna. O limite é a
+exceção que confirma a regra — ele **não é derivado**, é declaração do usuário.
 
 | Constraint | Protege |
 |---|---|
-| `ck_conta_tipo` | Os cinco tipos. `CARTAO` já está no `CHECK` embora o caso de uso ainda o recuse — assim a fatia da fatura não precisa de migration em cima de dado real |
+| `ck_conta_tipo` | Os cinco tipos |
 | `ck_conta_caixa_implica_fluxo` | `entra_em_caixa → entra_no_fluxo_de_caixa`. O contrário não vale |
-| `uq_conta_id_ambiente` | `(id, ambiente_id)`. Existe para `meio` e `vinculo` exigirem o mesmo ambiente por chave composta |
+| `ck_conta_ciclo_pertence_ao_cartao` | `(tipo = 'CARTAO') = (dia_vencimento IS NOT NULL AND dias_antes_fechamento IS NOT NULL)`. **Uma constraint, duas invariantes:** cartão sem ciclo não nasce (a fatura dele não teria datas) e conta que não é cartão não tem ciclo nenhum |
+| `ck_conta_dia_vencimento`, `ck_conta_dias_antes_fechamento` | As faixas. O mínimo de um dia é o que mantém `data_fechamento < data_vencimento` verdadeiro em toda fatura |
+| `ck_conta_limite_so_no_cartao`, `ck_conta_pagadora_so_no_cartao` | Limite e conta pagadora são do **contrato**, nunca de outra conta |
+| `ck_conta_limite_carrega_a_data` | `(limite_centavos IS NULL) = (limite_informado_em IS NULL)`. Limite sem data seria um número sem idade, e a tela não teria o que envelhecer |
+| `fk_conta_pagadora_padrao` | `(conta_pagadora_padrao_id, ambiente_id) → (id, ambiente_id)` |
+| `uq_conta_id_ambiente` | `(id, ambiente_id)`. Existe para `meio`, `vinculo` e `fatura` exigirem o mesmo ambiente por chave composta |
 | `ix_conta_ambiente` | A lista de contas do ambiente |
 
 ## `meio` — família do ambiente (`V004`)
@@ -88,7 +99,7 @@ proíbe. Ele entra nas tabelas ligadas a conta, quando elas nascerem.
 | `id` | `bigint` identity | não | — | PK |
 | `ambiente_id` | `bigint` | não | — | FK → `ambiente`, `ON DELETE CASCADE` |
 | `nome` | `varchar(80)` | não | — | |
-| `tipo` | `varchar(20)` | não | — | `DEBITO`, `CREDITO`, `PIX`, `DINHEIRO`, `BENEFICIO`, `BOLETO` |
+| `tipo` | `varchar(20)` | não | — | `DEBITO`, `CREDITO`, `PIX`, `TED`, `DESCONTO_EM_FOLHA`, `DINHEIRO`, `BENEFICIO`, `BOLETO` (`V005`) |
 | `conta_id` | `bigint` | não | — | Não existe meio órfão |
 | `inativo` | `boolean` | não | `false` | |
 | `criado_em` | `timestamptz` | não | `now()` | |
@@ -96,13 +107,14 @@ proíbe. Ele entra nas tabelas ligadas a conta, quando elas nascerem.
 | Constraint | Protege |
 |---|---|
 | `fk_meio_conta` | `(conta_id, ambiente_id) → (id, ambiente_id)`. A conta é do **mesmo ambiente**: o que atravessa é o uso, pelo vínculo, nunca a posse |
-| `ck_meio_tipo` | Os seis tipos |
+| `ck_meio_tipo` | Os oito tipos, nas três famílias de `docs/02-dominio/meio-de-pagamento.md` |
+| `uq_meio_conta_tipo` | Único parcial `WHERE tipo <> 'CREDITO'`, em `(conta_id, tipo)` (`V005`). É o que faz o par `(conta, tipo)` identificar o meio — e é por ele que só o `CREDITO` se repete, porque um contrato tem quantos cartões o emissor emitir |
 | `ix_meio_ambiente`, `ix_meio_conta` | A lista do ambiente e os meios de uma conta |
 
 **O casamento tipo de meio ↔ tipo de conta não está no banco**, e é decisão: ele mora em
 `docs/02-dominio/meio-de-pagamento.md`, e um `CHECK` teria que ler a outra tabela.
 
-## `lancamento` — família do ambiente (`V004`)
+## `lancamento` — família do ambiente (`V004`, `V009`)
 
 **Uma tabela só**, sem herança e sem coluna `tipo`.
 
@@ -122,6 +134,9 @@ proíbe. Ele entra nas tabelas ligadas a conta, quando elas nascerem.
 | `situacao` | `varchar(20)` | não | — | `PREVISTO`, `PROVISIONADO`, `REALIZADO` |
 | `transferencia_id` | `bigint` | sim | — | Amarra o par. Vem de `transferencia_id_seq` |
 | `estorno_de_id` | `bigint` | sim | — | FK → `lancamento` |
+| `fatura_id` | `bigint` | sim | — | Em qual fatura o lançamento **entra**. FK simples → `fatura` |
+| `pagamento_de_fatura_id` | `bigint` | sim | — | Qual fatura este pagamento **quita**. Só o lado `ENTRADA` do par, na conta `CARTAO` |
+| `rolagem_de_fatura` | `bigint` | sim | — | Amarra o **par** da rolagem. Vem de `rolagem_de_fatura_seq`, e não é chave estrangeira: os dois lados apontam para faturas diferentes pelo `fatura_id` |
 | `do_ciclo` | `boolean` | não | `false` | A fronteira do excluir |
 | `estabelecimento` | `varchar(200)` | sim | — | Texto bruto da captura |
 | `criado_em` | `timestamptz` | não | `now()` | |
@@ -136,13 +151,18 @@ proíbe. Ele entra nas tabelas ligadas a conta, quando elas nascerem.
 | `ix_lancamento_pendencia` | Parcial `WHERE categoria_id IS NULL` |
 | `ix_lancamento_conta_efeito` | Saldo de uma conta até uma data |
 | `ix_lancamento_transferencia`, `ix_lancamento_estorno_de` | Parciais. O par inteiro, e "tem estorno?" |
+| `fk_lancamento_fatura`, `fk_lancamento_pagamento_de_fatura` | FK **simples** → `fatura`, sem `ambiente_id`, pela mesma razão de `conta_id`: num cartão compartilhado o lançamento é do ambiente de quem comprou e a fatura é do dono do contrato |
+| `ck_lancamento_entra_ou_quita` | `fatura_id IS NULL OR pagamento_de_fatura_id IS NULL`. Os dois campos são distintos de propósito: o pagamento **quita** a fatura, não **entra** nela, e por isso não conta no total |
+| `ix_lancamento_fatura`, `ix_lancamento_pagamento_de_fatura`, `ix_lancamento_rolagem` | Parciais. Os três números da fatura são estas consultas |
 
 `transferencia_id_seq` é uma sequência à parte: o par precisa de um identificador de grupo, e
 ele é `bigint` como toda chave aqui.
 
-**Colunas que ainda não existem**, e vêm com a fatura: `fatura_id`, `parcelamento_id`,
-`recorrencia_id`, `pagamento_de_fatura` e `rolagem_de_fatura`. Coluna com `REFERENCES` para
-tabela inexistente não é schema.
+`rolagem_de_fatura_seq` é a segunda sequência de grupo, ao lado de `transferencia_id_seq`, e
+pela mesma razão.
+
+**Colunas que ainda não existem:** `parcelamento_id`, que vem com o parcelamento, e
+`recorrencia_id`, que é Fase 2. Coluna com `REFERENCES` para tabela inexistente não é schema.
 
 ## RLS das tabelas da `V004`
 
@@ -169,6 +189,49 @@ Ela lê **só `acesso`**. Ler `conta` aqui recursionaria, porque a política de 
 propósito: ela entra com o caso de uso do compartilhamento, junto com a regra de quem pode
 compartilhar.
 
+## `fatura` — família do ambiente (`V009`)
+
+O recorte de um período da conta `CARTAO`. Guarda **só o que não se deriva**: em que ponto do
+ciclo ela está e as datas desse ciclo (`docs/02-dominio/fatura-cartao.md`).
+
+| Coluna | Tipo | Nulo | Default | Nota |
+|---|---|---|---|---|
+| `id` | `bigint` identity | não | — | PK |
+| `ambiente_id` | `bigint` | não | — | FK → `ambiente`, `ON DELETE CASCADE` |
+| `conta_id` | `bigint` | não | — | A conta `CARTAO`. **Com** chave composta, ao contrário de `lancamento`: a fatura é sempre do mesmo ambiente do contrato |
+| `competencia` | `date` | não | — | O **primeiro dia** do mês da fatura. É o eixo de ordem do ciclo, e o que torna *"a parcela k na k-ésima fatura"* uma conta em vez de uma busca |
+| `data_fechamento` | `date` | não | — | Calculada no nascimento e **nunca recalculada** |
+| `data_vencimento` | `date` | não | — | Idem. Mudar o ciclo vale da próxima fatura a nascer |
+| `status` | `varchar(10)` | não | — | `FUTURA`, `ABERTA`, `FECHADA`. **Não existe `REABERTA`** |
+| `criada_em` | `timestamptz` | não | `now()` | |
+
+**Nenhuma coluna de total, pago, rolado ou a pagar.** Os três números são soma de lançamento,
+calculada na leitura — a mesma regra do saldo de conta. Também **não há coluna de "encerrada"**,
+e a ausência é regra: *"não existe encerrada como estado que impeça isso; existe o número"*
+(`docs/02-dominio/fatura-pagamento.md`).
+
+| Constraint | Protege |
+|---|---|
+| `uq_fatura_aberta_por_conta` | Único parcial `WHERE status = 'ABERTA'`, em `(conta_id)`. **É a invariante mais cara deste arquivo:** *"exatamente uma `ABERTA` por conta `CARTAO`"* é o que faz *"a fatura vem do status, nunca da data"* devolver **uma** resposta. Escrita como índice porque confiança na aplicação não é invariante |
+| `uq_fatura_conta_competencia` | `(conta_id, competencia)`. Duas faturas do mesmo mês dariam dois destinos à mesma parcela |
+| `fk_fatura_conta` | `(conta_id, ambiente_id) → (id, ambiente_id)`, `ON DELETE CASCADE`. Excluir a conta leva as faturas dela — e a conta com lançamento já foi recusada antes disso |
+| `ck_fatura_status` | Os três estados |
+| `ck_fatura_competencia_e_o_primeiro_dia` | `extract(day from competencia) = 1` |
+| `ck_fatura_fecha_antes_de_vencer` | `data_fechamento < data_vencimento` |
+| `ix_fatura_ciclo` | `(ambiente_id, status, data_vencimento)` — a varredura da rotina: fechar o que chegou na data, encerrar o que venceu |
+
+`ENABLE` + `FORCE ROW LEVEL SECURITY`, com uma política só:
+
+| Política | Comando | Regra |
+|---|---|---|
+| `fatura_do_ambiente` | `ALL` | `ambiente_id = app_ambiente_id()`, no `USING` e no `WITH CHECK` |
+
+**Sem o `OR` do `ADR-0004`, e isso é decisão, não esquecimento** — é a mesma escolha que o
+`evento` fez na `V006`. *"Quem fecha e abre a fatura de um cartão compartilhado"* está em aberto,
+e *"partes da fatura"* é Fase 2. O preço está nomeado: o destino de um cartão compartilhado vê o
+**lançamento** dele e não vê a fatura em que ele caiu. O `OR` entra junto com o
+compartilhamento, que é quando a regra dele existir.
+
 ## `evento` — família do ambiente (`V006`)
 
 O registro do que aconteceu. **Só nasce e é lido**: não há `UPDATE` nem `DELETE` em lugar
@@ -183,7 +246,7 @@ nenhum, e a ausência das duas políticas é onde essa invariante para de depend
 | `origem` | `varchar(10)` | não | — | `SISTEMA` ou `USUARIO` |
 | `autor_id` | `bigint` | não | — | FK → `usuario`. No evento de sistema é o **dono do ambiente** |
 | `tipo` | `varchar(40)` | não | — | Lista fechada, no `CHECK` |
-| `alvo_tipo` | `varchar(20)` | sim | — | `LANCAMENTO`, `CONTA`, `MEIO` ou `CATEGORIA` |
+| `alvo_tipo` | `varchar(20)` | sim | — | `LANCAMENTO`, `CONTA`, `MEIO`, `CATEGORIA` ou `FATURA` (`V009`) |
 | `alvo_id` | `bigint` | sim | — | **Sem FK**, e é de propósito: ver abaixo |
 | `dados` | `jsonb` | sim | — | O punhado de valores da frase, não um espelho do objeto |
 
@@ -191,7 +254,7 @@ nenhum, e a ausência das duas políticas é onde essa invariante para de depend
 |---|---|
 | `ck_evento_origem` | `SISTEMA` ou `USUARIO` |
 | `ck_evento_alvo` | Os dois campos do alvo, ou nenhum |
-| `ck_evento_alvo_tipo`, `ck_evento_tipo` | As listas do domínio |
+| `ck_evento_alvo_tipo`, `ck_evento_tipo` | As listas do domínio. **Lista fechada, e por isso tipo novo no enum sem migration derruba a gravação só na hora em que alguém usa** — a `V008` e a `V009` existem por isso |
 | `ix_evento_diario` | `(ambiente_id, dia DESC, instante DESC)` — a consulta do Diário |
 | `ix_evento_alvo` | Parcial `WHERE alvo_tipo IS NOT NULL` — o histórico de um lançamento |
 

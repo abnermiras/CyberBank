@@ -16,24 +16,30 @@ public record Conta(
         TipoDeConta tipo,
         boolean entraNoFluxoDeCaixa,
         boolean entraEmCaixa,
+        ContratoDeCartao contrato,
         boolean inativa,
         Instant criadaEm) {
 
     public static final int TAMANHO_MAXIMO_DO_NOME = 80;
 
-    public static Conta nova(Long ambienteId, String nome, TipoDeConta tipo, Instant agora) {
+    public static Conta nova(Long ambienteId, String nome, TipoDeConta tipo,
+            ContratoDeCartao contrato, Instant agora) {
+
         List<ErroDeValidacao> erros = new ArrayList<>();
         validarNome(nome, erros);
         if (tipo == null) {
             erros.add(new ErroDeValidacao("tipo", "OBRIGATORIO", "Escolha o tipo da conta."));
-        } else if (tipo.dependeDeFatura()) {
-            erros.add(new ErroDeValidacao("tipo", "INDISPONIVEL",
-                    "Cartão de crédito ainda não pode ser cadastrado."));
+        } else if (tipo.ehContratoDeCartao() && contrato == null) {
+            erros.add(new ErroDeValidacao("diaVencimento", "OBRIGATORIO",
+                    "O cartão precisa do dia do vencimento e de quantos dias antes ele fecha."));
+        } else if (!tipo.ehContratoDeCartao() && contrato != null) {
+            erros.add(new ErroDeValidacao("diaVencimento", "NAO_SE_APLICA",
+                    "Só o contrato de cartão de crédito tem ciclo de fatura."));
         }
         recusarSeHouver(erros);
 
         return new Conta(null, ambienteId, nome.trim(), tipo,
-                tipo.entraNoFluxoDeCaixa(), tipo.entraEmCaixa(), false, agora);
+                tipo.entraNoFluxoDeCaixa(), tipo.entraEmCaixa(), contrato, false, agora);
     }
 
     public void exigirSaldoInicialCompativel(Long saldoInicialCentavos) {
@@ -60,17 +66,32 @@ public record Conta(
         }
     }
 
+    public ContratoDeCartao exigirContratoDeCartao() {
+        if (!ehContratoDeCartao()) {
+            throw new RegraDeDominioException(CodigoDeErro.CONTA_NAO_E_CARTAO);
+        }
+        return contrato;
+    }
+
+    public boolean ehContratoDeCartao() {
+        return tipo != null && tipo.ehContratoDeCartao();
+    }
+
+    public long limiteDisponivelCentavos(long dividaCentavos) {
+        return contrato.limiteCentavos() - dividaCentavos;
+    }
+
     public Conta renomeada(String novoNome) {
         List<ErroDeValidacao> erros = new ArrayList<>();
         validarNome(novoNome, erros);
         recusarSeHouver(erros);
         return new Conta(id, ambienteId, novoNome.trim(), tipo,
-                entraNoFluxoDeCaixa, entraEmCaixa, inativa, criadaEm);
+                entraNoFluxoDeCaixa, entraEmCaixa, contrato, inativa, criadaEm);
     }
 
     public Conta comAtivacao(boolean novaInativa) {
         return new Conta(id, ambienteId, nome, tipo,
-                entraNoFluxoDeCaixa, entraEmCaixa, novaInativa, criadaEm);
+                entraNoFluxoDeCaixa, entraEmCaixa, contrato, novaInativa, criadaEm);
     }
 
     private static void validarNome(String nome, List<ErroDeValidacao> erros) {
