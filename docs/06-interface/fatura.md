@@ -100,6 +100,35 @@ nada nasce dela sozinho (`docs/02-dominio/fatura-cartao.md`).
 **Sem conta de caixa ativa o formulário não aparece**, e a linha diz por quê: pagar é uma
 transferência, e ela precisa de uma origem. É o mesmo tratamento da Reserva.
 
+## Os lançamentos, e é aqui que a tela deixa de ser informativa
+
+**Um contrato tem vários cartões e a fatura é uma só** — e o que o usuário precisa ver é
+**quanto cada cartão gastou**. Físico, virtual e adicional dividem o limite e o ciclo
+(`docs/02-dominio/meio-de-pagamento.md`), mas não dividem a pergunta: *"o que foi meu e o que
+foi do adicional?"* só tem resposta separando.
+
+Então o painel é **um bloco por cartão, com subtotal no cabeçalho** — e os subtotais somam o
+total da fatura. **Com um cartão só o cabeçalho não aparece:** não há o que distinguir, e é a
+mesma razão que tirou o nome dos outros meios.
+
+A ordem vem da **fatura de papel**, não da tela:
+
+| Onde | O quê | Por quê |
+|---|---|---|
+| **Topo, fora dos grupos** | O **saldo da fatura anterior** | É a primeira linha da fatura de papel (`ADR-0005`), e não é de cartão nenhum: é dívida que **mudou de período**, não dívida nova |
+| **Meio** | Um bloco por cartão | O pedido: uma fatura, um extrato por cartão |
+| **Fim, como carimbo** | O **rolado para a seguinte** | Não é gasto desta fatura — é a saída dela —, e por isso já está fora do total |
+
+**A parcela diz qual de quantas na própria linha** (`PARCELA 1/3`), como o emissor faz. Sem
+isso, três linhas de R$ 1.666,68 em três faturas não se reconhecem como uma compra só.
+
+**Cada linha abre o lançamento** (`#/extrato/{id}`), e é lá que se corrige — inclusive para
+**mover de fatura**, que é o conserto de quando a `dataFechamento` do app erra o dia do emissor.
+Nenhum estado de fatura trava a edição.
+
+**Fatura vazia é resposta:** *nenhum lançamento nesta fatura*, e a lembrança de que **fatura
+vazia fecha do mesmo jeito**, com total zero.
+
 ## O bloco da Home
 
 A Home mostra **a janela que importa** de cada cartão: a `FECHADA` que ainda deve, ou, na falta
@@ -112,8 +141,9 @@ lugares mostrando o mesmo fato não podem calculá-lo duas vezes**
 
 ## O que ainda não existe
 
-- **Os lançamentos da fatura, listados dentro dela.** Hoje o caminho é o Extrato, filtrando pela
-  conta do cartão. Entra quando o Extrato souber filtrar por fatura.
-- **Parcelamento**: a fatura ainda não distingue *parcela 3 de 10* de uma compra à vista
-  (`docs/02-dominio/recorrencia.md`).
-- **A parte de cada um** num cartão compartilhado (`docs/02-dominio/compartilhamento.md`).
+- **A parte de cada um** num cartão compartilhado (`docs/02-dominio/compartilhamento.md`). Os
+  grupos de hoje separam por **cartão do contrato**, que é outra pergunta: adicional é um cartão
+  deste contrato; compartilhado é o mesmo cartão em dois ambientes.
+- **Filtrar o Extrato por fatura.** A lista daqui é a da fatura em foco; quem quer cruzar
+  períodos ainda vai ao Extrato e filtra pela conta.
+- **Trocar o ciclo** de um contrato depois de criado — a regra existe, o `PATCH` não expõe.

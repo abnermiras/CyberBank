@@ -34,6 +34,12 @@ const Lancar = {
   fecharCompleto() {
     document.getElementById('modalCompleto').hidden = true;
     Lancar.avisar('compAviso', null);
+
+    document.getElementById('compValor').value = '';
+    document.getElementById('compDescricao').value = '';
+    document.getElementById('compParcelas').value = '1';
+    CampoDeData.definir('compVencimento', Formato.hoje());
+    document.getElementById('compVencimento').value = '';
   },
 
   aberto() {

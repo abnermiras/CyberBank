@@ -4,6 +4,7 @@ const Fatura = {
   cartaoId: null,
   emFocoId: null,
   dados: null,
+  lancamentos: null,
   pagando: false,
   informandoLimite: false,
   ligado: false,
@@ -57,7 +58,19 @@ const Fatura = {
     if (!Fatura.dados.itens.some((f) => f.id === Fatura.emFocoId)) {
       Fatura.emFocoId = Fatura.aQueImporta().id;
     }
+    await Fatura.carregarLancamentos();
     Fatura.desenhar();
+  },
+
+  async carregarLancamentos() {
+    try {
+      Fatura.lancamentos =
+        await API.lancamentosDaFatura(Contexto.ambiente.id, Fatura.emFocoId);
+    } catch (erro) {
+      if (tratarFalha(erro)) return;
+      Fatura.lancamentos = null;
+      Fatura.avisar(erro.paraGente());
+    }
   },
 
   aQueImporta() {
@@ -91,7 +104,90 @@ const Fatura = {
     document.getElementById('faturaTele').textContent =
       `${Fatura.dados.itens.length} FATURA${Fatura.dados.itens.length > 1 ? 'S' : ''} NO CICLO`;
     document.getElementById('cabecalhoDoCartao').innerHTML = Fatura.cabecalho();
-    document.getElementById('faturaEmFoco').innerHTML = Fatura.painelDaFatura();
+    document.getElementById('faturaEmFoco').innerHTML =
+      Fatura.painelDaFatura() + Fatura.painelDosLancamentos();
+  },
+
+  painelDosLancamentos() {
+    const l = Fatura.lancamentos;
+    if (!l) return '';
+
+    const vazia = !l.saldoAnterior && !l.roladoParaASeguinte && !l.cartoes.length;
+    const umCartaoSo = l.cartoes.length === 1;
+
+    return `
+      <section class="panel mt18">
+        <div class="panel-head">
+          <h3>Lançamentos da fatura</h3>
+          <span class="tele">${vazia ? 'NENHUM' : `SOMAM ${Formato.dinheiro(l.totalCentavos)}`}</span>
+        </div>
+
+        ${vazia
+          ? `<div class="vazio">Nenhum lançamento nesta fatura. <b>Fatura vazia fecha do mesmo
+             jeito</b>, com total zero.</div>`
+          : `
+            ${l.saldoAnterior ? `
+              <div class="grupo-cartao">
+                <div class="grupo-head">
+                  <span>Saldo da fatura anterior</span>
+                  <b>${Formato.dinheiro(l.saldoAnterior.valorCentavos)}</b>
+                </div>
+                ${Fatura.linha(l.saldoAnterior)}
+                <p class="dica">É a primeira linha da fatura de papel: dívida que venceu sem ser
+                  paga e <b>mudou de período</b>. Não é de cartão nenhum, e não é dívida nova —
+                  o par que a criou soma zero.</p>
+              </div>` : ''}
+
+            ${l.cartoes.map((cartao) => `
+              <div class="grupo-cartao">
+                ${umCartaoSo ? '' : `
+                  <div class="grupo-head">
+                    <span>${Formato.texto(cartao.nome)}</span>
+                    <b>${Formato.dinheiro(cartao.totalCentavos)}</b>
+                  </div>`}
+                ${cartao.itens.map(Fatura.linha).join('')}
+              </div>`).join('')}
+
+            ${l.roladoParaASeguinte ? `
+              <div class="grupo-cartao">
+                <div class="grupo-head">
+                  <span>Rolado para a fatura seguinte</span>
+                  <b>${Formato.dinheiro(l.roladoParaASeguinte.valorCentavos)}</b>
+                </div>
+                ${Fatura.linha(l.roladoParaASeguinte)}
+                <p class="dica">Este crédito <b>não é gasto desta fatura</b>: é a saída da dívida
+                  dela para a seguinte, e por isso fica fora do total. O total histórico não
+                  cai.</p>
+              </div>` : ''}`}
+
+        <p class="rodape-regra">Cada linha abre o lançamento, e é lá que se corrige — inclusive
+          para <b>mover de fatura</b>. Nenhum estado de fatura trava a edição.</p>
+      </section>`;
+  },
+
+  linha(l) {
+    const marca = { PREVISTO: 'prev', PROVISIONADO: 'prov', REALIZADO: 'real' }[l.situacao];
+
+    return `
+      <article class="linha abre${l.doCiclo ? ' do-ciclo' : ''}" data-fatura="abrir-lancamento"
+               data-id="${l.id}" role="button" tabindex="0"
+               aria-label="Abrir ${Formato.texto(l.descricao)}">
+        <div class="linha-dia"><span class="d">${Formato.dia(l.dataEvento)}</span></div>
+        <div class="linha-corpo">
+          <strong>${Formato.texto(l.descricao)}</strong>
+          <div class="hstack gap6 wrap">
+            ${l.parcela ? `<span class="tag">PARCELA ${l.parcela}/${l.parcelas}</span>` : ''}
+            <span class="tag ${marca}">${l.situacao}</span>
+            ${l.categoria
+              ? `<span class="tele">${Formato.texto(l.categoria)}</span>`
+              : '<span class="tag pend">SEM CATEGORIA</span>'}
+            ${l.doCiclo ? '<span class="tag">DO SISTEMA</span>' : ''}
+          </div>
+        </div>
+        <div class="linha-valor ${l.sentido === 'SAIDA' ? 'neg' : 'pos'}">
+          ${l.sentido === 'SAIDA' ? '−' : '+'}${Formato.dinheiro(l.valorCentavos).replace('−', '')}
+        </div>
+      </article>`;
   },
 
   desenharContratos() {
@@ -172,7 +268,7 @@ const Fatura = {
           <div class="panel metric principal">
             <span class="lbl">A pagar</span>
             <span class="val ${f.aPagarCentavos > 0 ? 'ac' : 'lm'}">${Formato.dinheiro(f.aPagarCentavos)}</span>
-            <span class="sub">${f.recebePagamento ? 'ESTA É A JANELA: PAGAR OU ABRIR' : 'NADA A PAGAR AQUI'}</span>
+            <span class="sub">${Fatura.leituraDoAPagar(f)}</span>
           </div>
           <div class="panel metric">
             <span class="lbl">Total</span>
@@ -206,6 +302,14 @@ const Fatura = {
 
         ${Fatura.explicarAcoes(f)}
       </section>`;
+  },
+
+  leituraDoAPagar(f) {
+    if (f.recebePagamento) return 'ESTA É A JANELA: PAGAR OU ABRIR';
+    if (f.status === 'ABERTA') return 'O CICLO AINDA ESTÁ CORRENDO';
+    if (f.status === 'FUTURA') return 'O EMISSOR NEM A EMITIU';
+    if (f.aPagarCentavos < 0) return 'CRÉDITO NO CARTÃO';
+    return 'ENCERRADA · NADA A PAGAR AQUI';
   },
 
   leitura(f) {
@@ -327,6 +431,7 @@ const Fatura = {
 
       const acoes = {
         contrato: () => Fatura.montar(botao.dataset.id),
+        'abrir-lancamento': () => { window.location.hash = `#/extrato/${botao.dataset.id}`; },
         anterior: () => Fatura.andar(1),
         seguinte: () => Fatura.andar(-1),
         pagar: () => Fatura.abrirPagamento(),
@@ -343,12 +448,13 @@ const Fatura = {
     });
   },
 
-  andar(passos) {
+  async andar(passos) {
     const indice = Fatura.dados.itens.indexOf(Fatura.emFoco()) + passos;
     if (indice < 0 || indice >= Fatura.dados.itens.length) return;
 
     Fatura.emFocoId = Fatura.dados.itens[indice].id;
     Fatura.pagando = false;
+    await Fatura.carregarLancamentos();
     Fatura.desenhar();
   },
 

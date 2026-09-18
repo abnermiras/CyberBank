@@ -8,9 +8,11 @@ import br.com.cyberbank.comum.contexto.ContextoDaRequisicao;
 import br.com.cyberbank.fatura.aplicacao.AbrirFaturaUseCase;
 import br.com.cyberbank.fatura.aplicacao.CartaoComFaturas;
 import br.com.cyberbank.fatura.aplicacao.FecharFaturaUseCase;
+import br.com.cyberbank.fatura.aplicacao.LancamentosDaFatura;
 import br.com.cyberbank.fatura.aplicacao.PagarFaturaUseCase;
 import br.com.cyberbank.fatura.dominio.FaturaComNumeros;
 import br.com.cyberbank.fatura.aplicacao.VerFaturasDoCartaoUseCase;
+import br.com.cyberbank.fatura.aplicacao.VerLancamentosDaFaturaUseCase;
 import br.com.cyberbank.fatura.dominio.Fatura;
 import br.com.cyberbank.fatura.dominio.NumerosDaFatura;
 import br.com.cyberbank.fatura.dominio.StatusDaFatura;
@@ -63,14 +65,41 @@ public class FaturaController {
     public record PagamentoRequest(Long contaPagadoraId, Long valor, LocalDate dataEvento) {
     }
 
+    public record LinhaResponse(
+            Long id,
+            LocalDate dataEvento,
+            String descricao,
+            String sentido,
+            long valorCentavos,
+            String situacao,
+            boolean doCiclo,
+            @JsonInclude(JsonInclude.Include.NON_NULL) String categoria,
+            @JsonInclude(JsonInclude.Include.NON_NULL) Integer parcela,
+            @JsonInclude(JsonInclude.Include.NON_NULL) Integer parcelas) {
+    }
+
+    public record GrupoResponse(Long meioId, String nome, long totalCentavos,
+            List<LinhaResponse> itens) {
+    }
+
+    public record LancamentosResponse(
+            long totalCentavos,
+            List<GrupoResponse> cartoes,
+            @JsonInclude(JsonInclude.Include.NON_NULL) LinhaResponse saldoAnterior,
+            @JsonInclude(JsonInclude.Include.NON_NULL) LinhaResponse roladoParaASeguinte) {
+    }
+
     private final VerFaturasDoCartaoUseCase verFaturas;
+    private final VerLancamentosDaFaturaUseCase verLancamentos;
     private final PagarFaturaUseCase pagarFatura;
     private final FecharFaturaUseCase fecharFatura;
     private final AbrirFaturaUseCase abrirFatura;
 
-    public FaturaController(VerFaturasDoCartaoUseCase verFaturas, PagarFaturaUseCase pagarFatura,
+    public FaturaController(VerFaturasDoCartaoUseCase verFaturas,
+            VerLancamentosDaFaturaUseCase verLancamentos, PagarFaturaUseCase pagarFatura,
             FecharFaturaUseCase fecharFatura, AbrirFaturaUseCase abrirFatura) {
         this.verFaturas = verFaturas;
+        this.verLancamentos = verLancamentos;
         this.pagarFatura = pagarFatura;
         this.fecharFatura = fecharFatura;
         this.abrirFatura = abrirFatura;
@@ -82,6 +111,30 @@ public class FaturaController {
 
         return new ListaResponse(paraResposta(cartao),
                 cartao.faturas().stream().map(FaturaController::paraResposta).toList());
+    }
+
+    @GetMapping("/{faturaId}/lancamentos")
+    public LancamentosResponse lancamentos(@PathVariable Long ambienteId,
+            @PathVariable Long faturaId) {
+
+        LancamentosDaFatura da = verLancamentos.executar(ambienteId, faturaId);
+
+        return new LancamentosResponse(da.totalCentavos(),
+                da.cartoes().stream()
+                        .map(cartao -> new GrupoResponse(cartao.meioId(), cartao.nome(),
+                                cartao.totalCentavos(),
+                                cartao.itens().stream().map(FaturaController::paraLinha).toList()))
+                        .toList(),
+                paraLinha(da.saldoAnterior()), paraLinha(da.roladoParaASeguinte()));
+    }
+
+    private static LinhaResponse paraLinha(LancamentosDaFatura.LancamentoDaFatura l) {
+        if (l == null) {
+            return null;
+        }
+        return new LinhaResponse(l.id(), l.dataEvento(), l.descricao(), l.sentido(),
+                l.valorCentavos(), l.situacao(), l.doCiclo(), l.categoria(), l.parcela(),
+                l.parcelas());
     }
 
     @PostMapping("/{faturaId}/pagamentos")

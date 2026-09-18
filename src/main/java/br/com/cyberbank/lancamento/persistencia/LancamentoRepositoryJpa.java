@@ -80,6 +80,14 @@ public class LancamentoRepositoryJpa implements LancamentoRepository {
     }
 
     @Override
+    public List<Lancamento> listarDaFatura(Long faturaId, Long ambienteId) {
+        return jpa.findByFaturaIdAndAmbienteIdOrderByDataEventoAscIdAsc(faturaId, ambienteId)
+                .stream()
+                .map(LancamentoRepositoryJpa::paraDominio)
+                .toList();
+    }
+
+    @Override
     public List<Lancamento> listarDoParcelamento(Long parcelamentoId, Long ambienteId) {
         return jpa.findByParcelamentoIdAndAmbienteIdOrderByIdAsc(parcelamentoId, ambienteId)
                 .stream()

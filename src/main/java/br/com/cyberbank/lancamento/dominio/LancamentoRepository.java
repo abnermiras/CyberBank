@@ -15,6 +15,8 @@ public interface LancamentoRepository {
 
     List<Lancamento> listarDaTransferencia(Long transferenciaId, Long ambienteId);
 
+    List<Lancamento> listarDaFatura(Long faturaId, Long ambienteId);
+
     List<Lancamento> listarDoParcelamento(Long parcelamentoId, Long ambienteId);
 
     void excluirDoParcelamento(Long parcelamentoId, Long ambienteId);

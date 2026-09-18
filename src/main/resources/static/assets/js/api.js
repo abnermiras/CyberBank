@@ -124,6 +124,9 @@ const API = {
   listarFaturas: (ambienteId, contaId) =>
     API.get(API.doAmbiente(ambienteId, `/faturas?contaId=${contaId}`)),
 
+  lancamentosDaFatura: (ambienteId, faturaId) =>
+    API.get(API.doAmbiente(ambienteId, `/faturas/${faturaId}/lancamentos`)),
+
   pagarFatura: (ambienteId, faturaId, corpo) =>
     API.post(API.doAmbiente(ambienteId, `/faturas/${faturaId}/pagamentos`), corpo),
 

@@ -137,6 +137,50 @@ dentro dela fica**, parcelas e pagamentos agendados inclusive.
 | `FATURA_NAO_ABRE` (409) | Não é a última fechada, ou já encerrou. **Fatura encerrada não abre** — é o que impede a rolagem de rolar para si mesma, para sempre |
 | `NAO_ENCONTRADO` (404) | Fatura inexistente ou de outro ambiente |
 
+## `GET /api/v1/ambientes/{ambienteId}/faturas/{faturaId}/lancamentos`
+
+O que a fatura cobra, **agrupado por cartão do contrato**. Um contrato tem vários cartões e a
+fatura é uma só; a pergunta *"quanto cada cartão gastou"* só tem resposta separando
+(`docs/06-interface/fatura.md`).
+
+```
+GET /api/v1/ambientes/1/faturas/42/lancamentos
+
+200 OK
+{
+  "totalCentavos": 327728,
+  "cartoes": [
+    { "meioId": 7, "nome": "FÍSICO ****1234", "totalCentavos": 287728,
+      "itens": [
+        { "id": 51, "dataEvento": "2026-09-18", "descricao": "Aulas de espanhol",
+          "sentido": "SAIDA", "valorCentavos": 166668, "situacao": "PROVISIONADO",
+          "doCiclo": false, "categoria": "Educação", "parcela": 1, "parcelas": 3 }
+      ] },
+    { "meioId": 9, "nome": "FREELANCE ****0987", "totalCentavos": 40000, "itens": [ ... ] }
+  ],
+  "saldoAnterior": { "id": 88, "descricao": "Saldo da fatura anterior", ... },
+  "roladoParaASeguinte": { "id": 91, "descricao": "Rolado para a fatura seguinte", ... }
+}
+```
+
+**Quem agrupa é o servidor**, e não a tela: *quais cartões pertencem a este contrato* é fato do
+domínio. **Cartão sem lançamento não vira grupo vazio** — grupo sem linha não é grupo.
+
+| Campo | Nota |
+|---|---|
+| `totalCentavos` | O mesmo total da fatura, e os subtotais dos grupos somam ele **mais** o saldo anterior |
+| `saldoAnterior` | O **débito** de rolagem que esta fatura recebeu. **Fora dos grupos**, porque não é de cartão nenhum: é dívida que mudou de período. **Ausente** quando não houve |
+| `roladoParaASeguinte` | O **crédito** de rolagem — a saída da dívida desta fatura para a próxima. Já está **fora do total**, e é por isso que o total histórico não cai. **Ausente** quando não houve |
+| `categoria` | O nome resolvido, como `GET /lancamentos/{id}` faz. **Ausente** quando o lançamento está pendente |
+| `parcela` · `parcelas` | *Qual de quantas*, como o emissor imprime. **Ausentes** fora de um parcelamento |
+
+**Sem cursor**, e é a mesma razão do Diário: a fatura é um recorte **fechado** — a pergunta é
+sobre um período, e o período acabou.
+
+| Erro | Quando |
+|---|---|
+| `NAO_ENCONTRADO` (404) | Fatura inexistente ou de outro ambiente |
+
 ## O ciclo roda sozinho, e não tem endpoint
 
 Fechar, abrir a seguinte, encerrar as quitadas e rolar as vencidas é **rotina**, não requisição:

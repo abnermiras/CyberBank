@@ -568,6 +568,76 @@ class CicloDaFaturaIT {
                 .findFirst().orElseThrow();
     }
 
+    @Test
+    void o_saldo_anterior_vai_no_topo_e_o_credito_de_rolagem_no_fim() {
+        RELOGIO.em(LocalDate.of(2026, 9, 10));
+        Sessao sessao = novaSessao("saldoanterior");
+        Integer cartao = criarCartao(sessao, "UltraVioleta");
+        comprar(sessao, cartao, 100000, "Setembro");
+
+        sessao = avancarPara(sessao, LocalDate.of(2026, 10, 6));
+        rotinaDiaria.executar();
+
+        Integer outubro = (Integer) competencia(faturas(sessao, cartao), "2026-10").get("id");
+        Integer novembro = (Integer) competencia(faturas(sessao, cartao), "2026-11").get("id");
+
+        var queRolou = get(sessao, "/faturas/" + outubro + "/lancamentos").getBody();
+        assertThat(queRolou)
+                .as("o crédito é a saída da dívida dela: vai no fim, como carimbo")
+                .containsKey("roladoParaASeguinte");
+        assertThat((Map<String, Object>) queRolou.get("roladoParaASeguinte"))
+                .containsEntry("valorCentavos", 100000)
+                .containsEntry("sentido", "ENTRADA");
+        assertThat(queRolou)
+                .as("ela não recebeu saldo anterior de ninguém")
+                .doesNotContainKey("saldoAnterior");
+        assertThat(queRolou)
+                .as("o total histórico não cai: o crédito fica fora dele")
+                .containsEntry("totalCentavos", 100000);
+
+        var queRecebeu = get(sessao, "/faturas/" + novembro + "/lancamentos").getBody();
+        assertThat((Map<String, Object>) queRecebeu.get("saldoAnterior"))
+                .as("a primeira linha da fatura de papel, e não é de cartão nenhum")
+                .containsEntry("valorCentavos", 100000)
+                .containsEntry("sentido", "SAIDA")
+                .containsEntry("descricao", "Saldo da fatura anterior");
+        assertThat((List<?>) queRecebeu.get("cartoes"))
+                .as("o saldo anterior fica fora dos grupos de cartão")
+                .isEmpty();
+        assertThat(queRecebeu).containsEntry("totalCentavos", 100000);
+    }
+
+    @Test
+    void a_linha_da_parcela_diz_qual_de_quantas() {
+        RELOGIO.em(LocalDate.of(2026, 9, 10));
+        Sessao sessao = novaSessao("linhadaparcela");
+        Integer cartao = criarCartao(sessao, "UltraVioleta");
+        Integer meio = cartaoDe(sessao, cartao);
+
+        post(sessao, "/parcelamentos", new HashMap<>(Map.of(
+                "meioId", meio, "valor", 500000, "parcelas", 3,
+                "dataEvento", "2026-09-10", "descricao", "Aulas de espanhol")));
+
+        Integer outubro = (Integer) competencia(faturas(sessao, cartao), "2026-10").get("id");
+        var grupos = (List<Map<String, Object>>) get(sessao, "/faturas/" + outubro + "/lancamentos")
+                .getBody().get("cartoes");
+
+        var linha = (Map<String, Object>) ((List<?>) grupos.get(0).get("itens")).get(0);
+        assertThat(linha).containsEntry("parcela", 1);
+        assertThat(linha).containsEntry("parcelas", 3);
+        assertThat(linha).containsEntry("valorCentavos", 166668);
+
+        Integer dezembro = (Integer) competencia(faturas(sessao, cartao), "2026-12").get("id");
+        var terceira = (Map<String, Object>) ((List<?>) ((List<Map<String, Object>>)
+                get(sessao, "/faturas/" + dezembro + "/lancamentos").getBody().get("cartoes"))
+                .get(0).get("itens")).get(0);
+
+        assertThat(terceira)
+                .as("a k-ésima fatura mostra a k-ésima parcela")
+                .containsEntry("parcela", 3);
+        assertThat(terceira).containsEntry("parcelas", 3);
+    }
+
     private List<String> situacoesDaFatura(Sessao sessao, Integer faturaId) {
         return extrato(sessao).stream()
                 .filter(l -> faturaId.equals(l.get("faturaId")))

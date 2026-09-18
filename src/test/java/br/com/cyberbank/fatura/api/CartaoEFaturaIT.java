@@ -213,6 +213,100 @@ class CartaoEFaturaIT {
         });
     }
 
+    @Test
+    void a_fatura_mostra_o_extrato_de_cada_cartao_do_contrato_separado() {
+        var sessao = novaSessao("porcartao");
+        Integer cartao = criarCartaoComDois(sessao);
+        Integer categoria = criarCategoria(sessao, "Mercado", "SAIDA");
+
+        var cartoes = itens(get(sessao, "/meios-de-pagamento")).stream()
+                .filter(m -> cartao.equals(m.get("contaId")))
+                .toList();
+
+        comprarCom(sessao, (Integer) cartoes.get(0).get("id"), categoria, 121060);
+        comprarCom(sessao, (Integer) cartoes.get(1).get("id"), categoria, 40000);
+        comprarCom(sessao, (Integer) cartoes.get(0).get("id"), categoria, 5000);
+
+        Integer aberta = (Integer) faturas(sessao, cartao).get(0).get("id");
+        var corpo = get(sessao, "/faturas/" + aberta + "/lancamentos").getBody();
+
+        assertThat(corpo).containsEntry("totalCentavos", 166060);
+
+        var grupos = (List<Map<String, Object>>) corpo.get("cartoes");
+        assertThat(grupos).as("um contrato, uma fatura, um grupo por cartão").hasSize(2);
+
+        assertThat(grupos).anySatisfy(grupo -> {
+            assertThat(grupo).containsEntry("nome", "FÍSICO ****1234");
+            assertThat(grupo).containsEntry("totalCentavos", 126060);
+            assertThat((List<?>) grupo.get("itens")).hasSize(2);
+        });
+        assertThat(grupos).anySatisfy(grupo -> {
+            assertThat(grupo).containsEntry("nome", "FREELANCE ****0987");
+            assertThat(grupo).containsEntry("totalCentavos", 40000);
+            assertThat((List<?>) grupo.get("itens")).hasSize(1);
+        });
+
+        assertThat(grupos.stream()
+                .mapToLong(g -> ((Number) g.get("totalCentavos")).longValue()).sum())
+                .as("os subtotais somam o total da fatura")
+                .isEqualTo(166060);
+
+        assertThat(corpo)
+                .as("sem rolagem não há saldo anterior nem crédito de saída")
+                .doesNotContainKey("saldoAnterior");
+    }
+
+    @Test
+    void cartao_sem_lancamento_nao_vira_grupo_vazio_na_fatura() {
+        var sessao = novaSessao("grupovazio");
+        Integer cartao = criarCartaoComDois(sessao);
+        Integer categoria = criarCategoria(sessao, "Mercado", "SAIDA");
+
+        Integer primeiro = itens(get(sessao, "/meios-de-pagamento")).stream()
+                .filter(m -> cartao.equals(m.get("contaId")))
+                .map(m -> (Integer) m.get("id")).findFirst().orElseThrow();
+
+        comprarCom(sessao, primeiro, categoria, 30000);
+
+        Integer aberta = (Integer) faturas(sessao, cartao).get(0).get("id");
+        var grupos = (List<Map<String, Object>>) get(sessao, "/faturas/" + aberta + "/lancamentos")
+                .getBody().get("cartoes");
+
+        assertThat(grupos)
+                .as("o outro cartão existe e não gastou: grupo sem linha não é grupo")
+                .hasSize(1);
+    }
+
+    @Test
+    void a_fatura_vazia_responde_vazia_em_vez_de_erro() {
+        var sessao = novaSessao("faturavazia");
+        Integer cartao = criarCartao(sessao, "UltraVioleta", 5, 8, 1500000L);
+
+        Integer aberta = (Integer) faturas(sessao, cartao).get(0).get("id");
+        var corpo = get(sessao, "/faturas/" + aberta + "/lancamentos").getBody();
+
+        assertThat(corpo).containsEntry("totalCentavos", 0);
+        assertThat((List<?>) corpo.get("cartoes")).isEmpty();
+    }
+
+    private Integer criarCartaoComDois(Sessao sessao) {
+        var resposta = post(sessao, "/contas", campos(Map.of(
+                "nome", "UltraVioleta", "tipo", "CARTAO",
+                "diaVencimento", 5, "diasAntesFechamento", 8,
+                "cartoes", List.of("FÍSICO ****1234", "FREELANCE ****0987"))));
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        return (Integer) resposta.getBody().get("id");
+    }
+
+    private void comprarCom(Sessao sessao, Integer meioId, Integer categoriaId, int valor) {
+        var resposta = post(sessao, "/lancamentos", campos(Map.of(
+                "meioId", meioId, "categoriaId", categoriaId, "sentido", "SAIDA",
+                "valor", valor, "dataEvento", hoje().toString(), "descricao", "Compra")));
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    }
+
     private LocalDate hoje() {
         return LocalDate.now(BRASILIA);
     }

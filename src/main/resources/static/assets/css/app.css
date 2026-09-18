@@ -49,6 +49,13 @@ body{display:flex;flex-direction:column;min-height:100vh}
 .grid2 .metric .val{font-size:clamp(21px,2.1vw,31px);white-space:nowrap}
 
 /* o numero que importa e o maior elemento da tela: o a pagar domina os outros tres */
+.grupo-cartao{margin-bottom:16px}
+.grupo-cartao:last-of-type{margin-bottom:0}
+.grupo-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+  padding:0 0 7px;margin-bottom:4px;border-bottom:1px solid var(--line)}
+.grupo-head span{font:10px var(--mono);letter-spacing:.16em;color:var(--cyan);text-transform:uppercase}
+.grupo-head b{font:600 15px var(--disp);font-variant-numeric:tabular-nums;color:var(--muted)}
+
 .numeros-da-fatura{display:grid;grid-template-columns:1.7fr 1fr 1fr 1fr;gap:14px}
 .numeros-da-fatura .metric .val{font-size:clamp(18px,1.7vw,24px);white-space:nowrap}
 .numeros-da-fatura .metric.principal .val{font-size:clamp(30px,4.2vw,46px)}
