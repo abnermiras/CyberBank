@@ -154,16 +154,17 @@
     </section>
     <section class="tela hidden" data-tela="fatura">
       <div class="telahead">
-        <div><div class="eyebrow">CARTÃO // O CICLO</div><h2 class="th">Fatura</h2></div>
-        <div class="hstack gap14 wrap">
-          <span class="tele">CONTRATO</span>
-          <select id="faturaCartao"></select>
+        <div>
+          <div class="eyebrow">CARTÃO // O CICLO</div>
+          <h2 class="th"><span class="glitch" data-t="Fatura">Fatura</span></h2>
         </div>
+        <div class="tele" id="faturaTele">—</div>
       </div>
 
+      <div class="seg hidden" id="faturaContratos"></div>
       <div id="avisoFatura"></div>
       <div id="cabecalhoDoCartao"></div>
-      <div id="listaDeFaturas"></div>
+      <div id="faturaEmFoco"></div>
 
       <p class="rodape-regra">A fatura <b>não move dinheiro</b>: quem move é a compra, que
         aumenta a dívida, e o pagamento, que a diminui. Por isso ela não guarda total — os três

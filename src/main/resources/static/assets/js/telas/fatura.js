@@ -1,11 +1,10 @@
 const Fatura = {
-  ROTULO_DE_STATUS: { FUTURA: 'FUTURA', ABERTA: 'ABERTA', FECHADA: 'FECHADA' },
-
-  cartoes: [],
   contas: [],
+  cartoes: [],
   cartaoId: null,
+  emFocoId: null,
   dados: null,
-  pagando: null,
+  pagando: false,
   informandoLimite: false,
   ligado: false,
 
@@ -31,14 +30,18 @@ const Fatura = {
       Fatura.desenharSemCartao();
       return;
     }
-    const pedido = Number(cartaoEscolhido);
-    if (pedido && Fatura.cartoes.some((c) => c.id === pedido)) {
-      Fatura.cartaoId = pedido;
-    } else if (!Fatura.cartoes.some((c) => c.id === Fatura.cartaoId)) {
-      Fatura.cartaoId = Fatura.cartoes[0].id;
-    }
 
-    Fatura.montarSeletor();
+    const pedido = Number(cartaoEscolhido);
+    const trocou = pedido && pedido !== Fatura.cartaoId
+      && Fatura.cartoes.some((c) => c.id === pedido);
+
+    if (trocou) Fatura.cartaoId = pedido;
+    else if (!Fatura.cartoes.some((c) => c.id === Fatura.cartaoId)) {
+      Fatura.cartaoId = Fatura.cartoes[0].id;
+      Fatura.emFocoId = null;
+    }
+    if (trocou) Fatura.emFocoId = null;
+
     await Fatura.recarregar();
   },
 
@@ -51,21 +54,27 @@ const Fatura = {
       return;
     }
 
+    if (!Fatura.dados.itens.some((f) => f.id === Fatura.emFocoId)) {
+      Fatura.emFocoId = Fatura.aQueImporta().id;
+    }
     Fatura.desenhar();
   },
 
-  montarSeletor() {
-    const seletor = document.getElementById('faturaCartao');
-    seletor.innerHTML = Fatura.cartoes
-      .map((c) => `<option value="${c.id}"${c.id === Fatura.cartaoId ? ' selected' : ''}>
-        ${Formato.texto(c.nome)}</option>`).join('');
-    seletor.classList.toggle('hidden', Fatura.cartoes.length < 2);
+  aQueImporta() {
+    return Fatura.dados.itens.find((f) => f.recebePagamento)
+      || Fatura.dados.itens.find((f) => f.status === 'ABERTA')
+      || Fatura.dados.itens[0];
+  },
+
+  emFoco() {
+    return Fatura.dados.itens.find((f) => f.id === Fatura.emFocoId);
   },
 
   desenharSemCartao() {
-    document.getElementById('faturaCartao').classList.add('hidden');
+    document.getElementById('faturaTele').textContent = 'NENHUM CONTRATO';
+    document.getElementById('faturaContratos').classList.add('hidden');
     document.getElementById('cabecalhoDoCartao').innerHTML = '';
-    document.getElementById('listaDeFaturas').innerHTML = `
+    document.getElementById('faturaEmFoco').innerHTML = `
       <div class="panel">
         <div class="emespera">
           <h4>Nenhum contrato de cartão ainda</h4>
@@ -78,9 +87,22 @@ const Fatura = {
   },
 
   desenhar() {
+    Fatura.desenharContratos();
+    document.getElementById('faturaTele').textContent =
+      `${Fatura.dados.itens.length} FATURA${Fatura.dados.itens.length > 1 ? 'S' : ''} NO CICLO`;
     document.getElementById('cabecalhoDoCartao').innerHTML = Fatura.cabecalho();
-    document.getElementById('listaDeFaturas').innerHTML = Fatura.dados.itens
-      .map((fatura) => Fatura.cartao(fatura)).join('');
+    document.getElementById('faturaEmFoco').innerHTML = Fatura.painelDaFatura();
+  },
+
+  desenharContratos() {
+    const alvo = document.getElementById('faturaContratos');
+    alvo.classList.toggle('hidden', Fatura.cartoes.length < 2);
+    if (Fatura.cartoes.length < 2) return;
+
+    alvo.style.gridTemplateColumns = `repeat(${Fatura.cartoes.length},1fr)`;
+    alvo.innerHTML = Fatura.cartoes.map((c) => `
+      <button type="button" class="${c.id === Fatura.cartaoId ? 'on' : ''}"
+              data-fatura="contrato" data-id="${c.id}">${Formato.texto(c.nome)}</button>`).join('');
   },
 
   cabecalho() {
@@ -88,132 +110,151 @@ const Fatura = {
     const disponivel = c.limiteDisponivelCentavos;
 
     return `
-      <section class="panel hot">
-        <span class="corner tr"></span><span class="corner bl"></span>
-        <div class="panel-head">
-          <h3>${Formato.texto(c.nome)}</h3>
-          <span class="tele">FECHA ${c.diasAntesFechamento} DIAS ANTES · VENCE DIA ${c.diaVencimento}</span>
+      <div class="grid2">
+        <div class="panel hot metric"><span class="corner tr"></span>
+          <span class="lbl">Dívida · agora</span>
+          <span class="val ${c.dividaCentavos > 0 ? 'pk' : ''}">${Formato.dinheiro(c.dividaCentavos)}</span>
+          <span class="sub">O SALDO DA CONTA CARTÃO, SEM CÁLCULO PRÓPRIO</span>
         </div>
-
-        <div class="kpis">
-          <div class="kpi"><span class="rot">Dívida · agora</span>
-            <b class="${c.dividaCentavos > 0 ? 'neg' : ''}">${Formato.dinheiro(c.dividaCentavos)}</b>
-            <span class="sub">O SALDO DA CONTA CARTÃO, SEM CÁLCULO PRÓPRIO</span></div>
-          <div class="kpi"><span class="rot">Limite disponível</span>
-            <b class="${disponivel != null && disponivel < 0 ? 'neg' : ''}">${
-              disponivel == null ? '—' : Formato.dinheiro(disponivel)}</b>
-            <span class="sub">${c.limiteCentavos == null
-              ? 'SEM LIMITE INFORMADO'
-              : `LIMITE ${Formato.dinheiro(c.limiteCentavos)} · INFORMADO EM ${Formato.dia(c.limiteInformadoEm)}`}</span></div>
+        <div class="panel metric">
+          <span class="lbl">Limite disponível</span>
+          <span class="val ${disponivel != null && disponivel < 0 ? 'pk' : 'cy'}">${
+            disponivel == null ? '—' : Formato.dinheiro(disponivel)}</span>
+          <span class="sub">${c.limiteCentavos == null
+            ? 'SEM LIMITE INFORMADO'
+            : `LIMITE ${Formato.dinheiro(c.limiteCentavos)} · DE ${Formato.dia(c.limiteInformadoEm)}`}</span>
         </div>
+      </div>
 
-        ${c.limitePodeEstarDesatualizado ? `<div class="aviso">A dívida passou do limite que você
-          informou: ele pode estar desatualizado. <b>O limite nunca trava um lançamento</b> —
-          recusar uma compra que o emissor já aprovou seria o app discordando do banco.</div>` : ''}
+      ${c.limitePodeEstarDesatualizado ? `<div class="aviso mt10">A dívida passou do limite que
+        você informou: ele pode estar desatualizado. <b>O limite nunca trava um lançamento</b> —
+        recusar uma compra que o emissor já aprovou seria o app discordando do banco.</div>` : ''}
 
-        ${Fatura.informandoLimite ? `
-          <div class="conta-edicao mt10">
-            <input id="novoLimite" type="text" inputmode="decimal" placeholder="15000,00"
-                   value="${c.limiteCentavos == null ? '' : (c.limiteCentavos / 100).toFixed(2).replace('.', ',')}">
-            <button class="btn sm primary" type="button" data-fatura="salvar-limite">Salvar</button>
-            <button class="btn sm ghost" type="button" data-fatura="cancelar">Cancelar</button>
-          </div>
-          <p class="dica">O sistema nunca corrige este número sozinho, e ele passa a carregar a
-            data de hoje: é a idade dele que a tela mostra.</p>`
-        : `<div class="conta-acoes">
-            <button class="btn sm ghost" type="button" data-fatura="informar-limite">Informar limite</button>
-          </div>`}
-      </section>`;
+      ${Fatura.informandoLimite ? `
+        <div class="conta-edicao mt10">
+          <input id="novoLimite" type="text" inputmode="decimal" placeholder="15000,00"
+                 value="${c.limiteCentavos == null ? '' : (c.limiteCentavos / 100).toFixed(2).replace('.', ',')}">
+          <button class="btn sm primary" type="button" data-fatura="salvar-limite">Salvar</button>
+          <button class="btn sm ghost" type="button" data-fatura="cancelar">Cancelar</button>
+        </div>
+        <p class="dica">O sistema nunca corrige este número sozinho, e ele passa a carregar a
+          data de hoje: é a idade dele que a tela mostra.</p>`
+      : `<div class="conta-acoes">
+          <button class="btn sm acao" type="button" data-fatura="informar-limite">Informar limite</button>
+        </div>`}`;
   },
 
-  cartao(fatura) {
-    const pagando = Fatura.pagando === fatura.id;
+  painelDaFatura() {
+    const f = Fatura.emFoco();
+    const indice = Fatura.dados.itens.indexOf(f);
 
     return `
-      <section class="panel mt18${fatura.status === 'ABERTA' ? ' hot' : ''}" id="fatura${fatura.id}">
+      <section class="panel hot mt18">
+        <span class="corner tr"></span><span class="corner bl"></span>
         <div class="panel-head">
-          <h3>${Formato.mes(fatura.competencia)}</h3>
+          <div class="seletor-dia">
+            <button class="btn sm ghost" type="button" data-fatura="anterior"
+                    aria-label="Fatura anterior"
+                    ${indice >= Fatura.dados.itens.length - 1 ? 'disabled' : ''}>‹</button>
+            <h3 style="margin:0;align-self:center">${Formato.mes(f.competencia)}</h3>
+            <button class="btn sm ghost" type="button" data-fatura="seguinte"
+                    aria-label="Fatura seguinte" ${indice <= 0 ? 'disabled' : ''}>›</button>
+          </div>
           <div class="hstack gap14 wrap">
-            <span class="tag">${Fatura.ROTULO_DE_STATUS[fatura.status]}</span>
-            ${Fatura.leitura(fatura)}
-            <span class="tele">FECHA ${Formato.dia(fatura.dataFechamento)} ·
-              VENCE ${Formato.dia(fatura.dataVencimento)}</span>
+            <span class="tag">${f.status}</span>
+            ${Fatura.leitura(f)}
+            <span class="tele">FECHA ${Formato.dia(f.dataFechamento)} ·
+              VENCE ${Formato.dia(f.dataVencimento)}</span>
           </div>
         </div>
 
-        <dl class="det-lista">
-          <dt>Total</dt><dd>${Formato.dinheiro(fatura.totalCentavos)}</dd>
-          <dt>Pago</dt><dd>${Formato.dinheiro(fatura.pagoCentavos)}</dd>
-          ${fatura.roladoCentavos
-            ? `<dt>Rolado</dt><dd>${Formato.dinheiro(fatura.roladoCentavos)}</dd>` : ''}
-          ${fatura.agendadoCentavos
-            ? `<dt>Agendado</dt><dd>${Formato.dinheiro(fatura.agendadoCentavos)}
-               <i class="det-fraco">ainda não saiu, e por isso não entra no pago</i></dd>` : ''}
-          <dt>A pagar</dt><dd><b>${Formato.dinheiro(fatura.aPagarCentavos)}</b></dd>
-        </dl>
-
-        ${pagando ? Fatura.formularioDePagamento(fatura) : ''}
-
-        <div class="conta-acoes">
-          ${fatura.recebePagamento && !pagando
-            ? `<button class="btn sm entra" type="button" data-fatura="pagar" data-id="${fatura.id}">Pagar</button>` : ''}
-          ${fatura.recebePagamento && Fatura.ehAUltimaFechada(fatura) && !pagando
-            ? `<button class="btn sm ghost" type="button" data-fatura="abrir" data-id="${fatura.id}">Abrir</button>` : ''}
-          ${fatura.status === 'ABERTA' && !pagando
-            ? `<button class="btn sm ghost" type="button" data-fatura="fechar" data-id="${fatura.id}">Fechar à mão</button>` : ''}
+        <div class="numeros-da-fatura mt10">
+          <div class="panel metric principal">
+            <span class="lbl">A pagar</span>
+            <span class="val ${f.aPagarCentavos > 0 ? 'ac' : 'lm'}">${Formato.dinheiro(f.aPagarCentavos)}</span>
+            <span class="sub">${f.recebePagamento ? 'ESTA É A JANELA: PAGAR OU ABRIR' : 'NADA A PAGAR AQUI'}</span>
+          </div>
+          <div class="panel metric">
+            <span class="lbl">Total</span>
+            <span class="val">${Formato.dinheiro(f.totalCentavos)}</span>
+            <span class="sub">SOMA DOS LANÇAMENTOS DELA</span>
+          </div>
+          <div class="panel metric">
+            <span class="lbl">Pago</span>
+            <span class="val">${Formato.dinheiro(f.pagoCentavos)}</span>
+            <span class="sub">SÓ O QUE JÁ SAIU DA CONTA</span>
+          </div>
+          <div class="panel metric">
+            <span class="lbl">${f.roladoCentavos ? 'Rolado' : 'Agendado'}</span>
+            <span class="val">${Formato.dinheiro(f.roladoCentavos || f.agendadoCentavos)}</span>
+            <span class="sub">${f.roladoCentavos
+              ? 'FOI PARA A FATURA SEGUINTE'
+              : 'MARCADO E AINDA NÃO REALIZADO'}</span>
+          </div>
         </div>
 
-        ${Fatura.explicarAcoes(fatura)}
+        ${Fatura.pagando ? Fatura.formularioDePagamento(f) : ''}
+
+        <div class="conta-acoes">
+          ${f.recebePagamento && !Fatura.pagando
+            ? `<button class="btn sm primary" type="button" data-fatura="pagar">Pagar</button>` : ''}
+          ${f.recebePagamento && Fatura.ehAUltimaFechada(f) && !Fatura.pagando
+            ? `<button class="btn sm acao" type="button" data-fatura="abrir">Abrir</button>` : ''}
+          ${f.status === 'ABERTA' && !Fatura.pagando
+            ? `<button class="btn sm acao" type="button" data-fatura="fechar">Fechar à mão</button>` : ''}
+        </div>
+
+        ${Fatura.explicarAcoes(f)}
       </section>`;
   },
 
-  leitura(fatura) {
+  leitura(f) {
     const marcas = [];
-    if (fatura.rolada) marcas.push('<span class="tag">ROLADA</span>');
-    if (fatura.pagoCentavos > 0 && fatura.pagoCentavos < fatura.totalCentavos) {
+    if (f.rolada) marcas.push('<span class="tag">ROLADA</span>');
+    if (f.pagoCentavos > 0 && f.pagoCentavos < f.totalCentavos) {
       marcas.push('<span class="tag">PARCIAL</span>');
     }
-    if (fatura.pagoCentavos >= fatura.totalCentavos && fatura.totalCentavos > 0) {
+    if (f.pagoCentavos >= f.totalCentavos && f.totalCentavos > 0) {
       marcas.push('<span class="tag real">QUITADA</span>');
     }
-    if (fatura.aPagarCentavos < 0) marcas.push('<span class="tag real">CRÉDITO NO CARTÃO</span>');
+    if (f.aPagarCentavos < 0) marcas.push('<span class="tag real">CRÉDITO NO CARTÃO</span>');
     return marcas.join(' ');
   },
 
-  ehAUltimaFechada(fatura) {
-    const fechadas = Fatura.dados.itens.filter((f) => f.status === 'FECHADA');
-    return fechadas.length > 0 && fechadas[0].id === fatura.id;
+  ehAUltimaFechada(f) {
+    const fechadas = Fatura.dados.itens.filter((x) => x.status === 'FECHADA');
+    return fechadas.length > 0 && fechadas[0].id === f.id;
   },
 
-  explicarAcoes(fatura) {
-    if (fatura.status === 'FUTURA') {
+  explicarAcoes(f) {
+    if (f.status === 'FUTURA') {
       return `<p class="dica">Ela existe só para segurar parcela de mês que ainda não chegou. O
         emissor nem a emitiu: não há o que pagar aqui.</p>`;
     }
-    if (fatura.status === 'ABERTA') {
+    if (f.status === 'ABERTA') {
       return `<p class="dica">O ciclo ainda está correndo e o valor ainda vai mudar — pagar
         antes do fechamento é <b>antecipar</b>, outra mecânica. <b>Fechar à mão é
         contingência</b>: o banco fechou em dia diferente, a rotina não rodou quando devia.</p>`;
     }
-    if (fatura.recebePagamento) {
+    if (f.recebePagamento) {
       return `<p class="dica">É esta a janela: <b>fechada e ainda devendo</b> é o que se pode
         pagar <b>e</b> o que se pode abrir — um número, duas operações. Abrir serve para
         continuar lançando nela, e devolve a seguinte para <b>FUTURA</b> sem mexer no que ela já
         tem.</p>`;
     }
     return `<p class="dica">Encerrada: o <b>a pagar</b> dela é zero, e os lançamentos dela já
-      saíram de provisionado. ${fatura.rolada
+      saíram de provisionado. ${f.rolada
         ? 'O que faltava rolou para a seguinte — o total histórico não cai, e a dívida do cartão não mudou.'
         : 'O pagamento cobriu o total.'} Para corrigir o passado, edita-se o lançamento no
       Extrato: <b>fatura fechada não congela nada</b>.</p>`;
   },
 
-  formularioDePagamento(fatura) {
+  formularioDePagamento(f) {
     const pagadoras = Fatura.contas.filter((c) => c.entraEmCaixa && !c.inativa);
     const padrao = Fatura.dados.cartao.contaPagadoraPadraoId;
 
     if (!pagadoras.length) {
-      return `<div class="aviso err">Nenhuma conta de caixa ativa para pagar a partir dela.
+      return `<div class="aviso err mt10">Nenhuma conta de caixa ativa para pagar a partir dela.
         Pagar a fatura é uma <b>transferência</b>, e ela precisa de uma origem.</div>`;
     }
 
@@ -228,7 +269,7 @@ const Fatura = {
         <div class="field" style="margin:0">
           <label for="pagaValor">Valor</label>
           <input id="pagaValor" type="text" inputmode="decimal"
-                 value="${(fatura.aPagarCentavos / 100).toFixed(2).replace('.', ',')}">
+                 value="${(f.aPagarCentavos / 100).toFixed(2).replace('.', ',')}">
         </div>
         <div class="field" style="margin:0">
           <label for="pagaDia">Dia</label>
@@ -239,22 +280,23 @@ const Fatura = {
                     aria-label="Escolher no calendário" title="Escolher no calendário">▦</button>
           </div>
         </div>
-        <button class="btn primary" type="button" data-fatura="confirmar-pagamento"
-                data-id="${fatura.id}">Registrar</button>
+        <button class="btn primary" type="button" data-fatura="confirmar-pagamento">Registrar</button>
         <button class="btn ghost" type="button" data-fatura="cancelar">Cancelar</button>
       </div>
       <p class="dica" id="explicaPagamento"></p>`;
   },
 
-  explicarPagamento(fatura) {
+  explicarPagamento() {
     const alvo = document.getElementById('explicaPagamento');
     if (!alvo) return;
 
+    const f = Fatura.emFoco();
     const valor = Formato.centavos(document.getElementById('pagaValor').value) || 0;
     const dia = CampoDeData.valor('pagaDia');
-    const conta = Fatura.contas.find((c) => c.id === Number(document.getElementById('pagaCom').value));
+    const conta = Fatura.contas.find(
+      (c) => c.id === Number(document.getElementById('pagaCom').value));
     const futuro = dia && dia > Formato.hoje();
-    const resto = fatura.aPagarCentavos - valor;
+    const resto = f.aPagarCentavos - valor;
 
     alvo.innerHTML = `Vai criar <b>dois lançamentos</b> — saída de
       ${Formato.texto(conta ? conta.nome : '—')} e entrada em
@@ -273,27 +315,27 @@ const Fatura = {
   },
 
   ligarOuvintes() {
-    document.getElementById('faturaCartao').addEventListener('change', async (evento) => {
-      Fatura.cartaoId = Number(evento.target.value);
-      Fatura.pagando = null;
-      await Fatura.recarregar();
+    const tela = document.querySelector('[data-tela="fatura"]');
+
+    tela.addEventListener('input', () => {
+      if (Fatura.pagando) Fatura.explicarPagamento();
     });
 
-    document.querySelector('[data-tela="fatura"]').addEventListener('input', () => {
-      if (Fatura.pagando) Fatura.explicarPagamento(Fatura.emFatura(Fatura.pagando));
-    });
-
-    document.querySelector('[data-tela="fatura"]').addEventListener('click', async (evento) => {
+    tela.addEventListener('click', async (evento) => {
       const botao = evento.target.closest('[data-fatura]');
       if (!botao) return;
-      const id = Number(botao.dataset.id);
 
       const acoes = {
-        pagar: () => Fatura.abrirPagamento(id),
+        contrato: () => Fatura.montar(botao.dataset.id),
+        anterior: () => Fatura.andar(1),
+        seguinte: () => Fatura.andar(-1),
+        pagar: () => Fatura.abrirPagamento(),
         cancelar: () => Fatura.fechar(),
-        'confirmar-pagamento': () => Fatura.pagar(id),
-        fechar: () => Fatura.tentar(() => API.fecharFatura(Contexto.ambiente.id, id)),
-        abrir: () => Fatura.tentar(() => API.abrirFatura(Contexto.ambiente.id, id)),
+        'confirmar-pagamento': () => Fatura.pagar(),
+        fechar: () => Fatura.tentar(
+          () => API.fecharFatura(Contexto.ambiente.id, Fatura.emFocoId)),
+        abrir: () => Fatura.tentar(
+          () => API.abrirFatura(Contexto.ambiente.id, Fatura.emFocoId)),
         'informar-limite': () => Fatura.abrirLimite(),
         'salvar-limite': () => Fatura.salvarLimite(),
       };
@@ -301,40 +343,45 @@ const Fatura = {
     });
   },
 
-  emFatura(id) {
-    return Fatura.dados.itens.find((f) => f.id === id);
+  andar(passos) {
+    const indice = Fatura.dados.itens.indexOf(Fatura.emFoco()) + passos;
+    if (indice < 0 || indice >= Fatura.dados.itens.length) return;
+
+    Fatura.emFocoId = Fatura.dados.itens[indice].id;
+    Fatura.pagando = false;
+    Fatura.desenhar();
   },
 
-  abrirPagamento(id) {
-    Fatura.pagando = id;
+  abrirPagamento() {
+    Fatura.pagando = true;
     Fatura.informandoLimite = false;
     Fatura.desenhar();
     CampoDeData.ligar('pagaDia');
-    Fatura.explicarPagamento(Fatura.emFatura(id));
+    Fatura.explicarPagamento();
     document.getElementById('pagaValor').focus();
   },
 
   abrirLimite() {
     Fatura.informandoLimite = true;
-    Fatura.pagando = null;
+    Fatura.pagando = false;
     Fatura.desenhar();
     document.getElementById('novoLimite').focus();
   },
 
   fechar() {
-    Fatura.pagando = null;
+    Fatura.pagando = false;
     Fatura.informandoLimite = false;
     Fatura.desenhar();
   },
 
-  async pagar(id) {
+  async pagar() {
     const dia = CampoDeData.valor('pagaDia');
     if (!dia) {
       Fatura.avisar('Dia inválido. Use dd/mm/aaaa, ou o calendário.');
       return;
     }
 
-    await Fatura.tentar(() => API.pagarFatura(Contexto.ambiente.id, id, {
+    await Fatura.tentar(() => API.pagarFatura(Contexto.ambiente.id, Fatura.emFocoId, {
       contaPagadoraId: Number(document.getElementById('pagaCom').value),
       valor: Formato.centavos(document.getElementById('pagaValor').value),
       dataEvento: dia,
@@ -351,13 +398,13 @@ const Fatura = {
     try {
       await acao();
       Fatura.avisar(null);
-      Fatura.pagando = null;
+      Fatura.pagando = false;
       Fatura.informandoLimite = false;
     } catch (erro) {
       if (tratarFalha(erro)) return;
       Fatura.avisar(erro.paraGente());
     }
-    await Fatura.montar();
+    await Fatura.recarregar();
   },
 
   avisar(mensagem) {

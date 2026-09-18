@@ -15,10 +15,21 @@ A tela do **ciclo do cartão**. O Extrato responde *"para onde o dinheiro foi"*;
 Ela é a tela mais fácil de desenhar errado, porque o que o usuário quer ver não é o saldo do
 cartão — é **o recorte que o banco vai cobrar**. Por isso o eixo dela é a fatura, e não a conta.
 
-## O contrato no topo, as faturas embaixo
+## Uma fatura por vez, e o contrato em chips
 
-O seletor do cabeçalho escolhe o **contrato** — a conta `CARTAO`. Ele **some quando há um
-cartão só**: seletor de uma opção é uma pergunta sem resposta alternativa.
+**A tela mostra uma fatura**, não a pilha delas: com os lançamentos dentro, empilhar dois anos
+de cartão daria 24 painéis, e a pergunta nunca é *"como foram todas"*.
+
+Ela **abre na que importa** — a `FECHADA` que ainda deve, ou, na falta dela, a `ABERTA`. É a
+mesma escolha que o bloco da Home faz, e de propósito: **dois lugares mostrando o mesmo fato não
+podem calculá-lo duas vezes**. Para as outras, a navegação `‹ competência ›` reusa o desenho do
+seletor de dia do Diário, e as setas **desabilitam nas pontas** — o cartão tem um número fechado
+de faturas, e seta que não leva a lugar nenhum explica sete vezes.
+
+O contrato — a conta `CARTAO` — é escolhido em **chips**, e não num `<select>`: o dropdown
+nativo é pintado pelo sistema operacional e não aceita tema
+(`docs/06-interface/direcao-visual.md`). Eles **somem quando há um contrato só**: seletor de uma
+opção é uma pergunta sem resposta alternativa.
 
 Físico, virtual e adicional **não aparecem aqui**, e a ausência é a regra: limite, ciclo e
 fatura são do contrato, nunca do cartão (`docs/02-dominio/meio-de-pagamento.md`). Quem quer ver
@@ -37,10 +48,16 @@ ter recusado a compra.
 **Informar o limite é ato do usuário, e a tela lembra disso** (`docs/02-dominio/conta.md`): o
 sistema nunca o corrige sozinho, e o número passa a carregar a data de hoje.
 
-## Cada fatura mostra os três números, e só eles
+## O `a pagar` é o maior número da tela
 
-`Total`, `Pago` e `A pagar` sempre; `Rolado` e `Agendado` **só quando existem**. Campo que não
-se aplica não ocupa linha.
+É a primeira regra da direção visual aplicada aqui: **o número que importa é o maior elemento, e
+a telemetria é moldura.** `A pagar` domina; `Total` e `Pago` ficam ao lado, menores, porque são
+a conta que o produz. `Rolado` toma o lugar de `Agendado` quando existe — a fatura que rolou não
+tem mais o que agendar.
+
+Acima deles, o **contrato**: a dívida e o limite disponível, que são do cartão inteiro e não
+desta fatura. A separação é o que impede a pergunta *"devo R$ 1.610 ou R$ 5.000?"* — a primeira
+é desta fatura, a segunda é do contrato, e as duas são verdade.
 
 O **agendado** é o que mais precisa da legenda, e ela está ao lado dele: *ainda não saiu, e por
 isso não entra no pago*. Sem isso o usuário lê "R$ 0,00 pago" numa fatura que ele já resolveu e

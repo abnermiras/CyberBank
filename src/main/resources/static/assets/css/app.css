@@ -45,6 +45,17 @@ body{display:flex;flex-direction:column;min-height:100vh}
 .grid3 .metric{min-height:104px;justify-content:center}
 .grid4 .metric .val{font-size:clamp(21px,2.1vw,31px);white-space:nowrap}
 .grid4 .metric{min-height:104px;justify-content:center}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.grid2 .metric .val{font-size:clamp(21px,2.1vw,31px);white-space:nowrap}
+
+/* o numero que importa e o maior elemento da tela: o a pagar domina os outros tres */
+.numeros-da-fatura{display:grid;grid-template-columns:1.7fr 1fr 1fr 1fr;gap:14px}
+.numeros-da-fatura .metric .val{font-size:clamp(18px,1.7vw,24px);white-space:nowrap}
+.numeros-da-fatura .metric.principal .val{font-size:clamp(30px,4.2vw,46px)}
+@media (max-width:860px){
+  .numeros-da-fatura{grid-template-columns:1fr 1fr}
+  .numeros-da-fatura .metric.principal{grid-column:1 / -1}
+}
 .grid-2-1{display:grid;grid-template-columns:1.35fr .65fr;gap:14px;align-items:start}
 
 .semdado .val{color:var(--dim)}
