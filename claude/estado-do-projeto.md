@@ -7,11 +7,15 @@
 > **Ele está fora do roteador de propósito** (`ADR-0008`): é doc de passagem entre sessões, não
 > de tarefa, e não deve entrar no custo de rota nenhuma.
 
-Última sessão: **2026-09-17**, na máquina Linux, com o Claude Code no terminal.
-**A fatia 3 está de pé: dá para abrir conta com saldo, cadastrar meio de pagamento, lançar,
-transferir e ver o Extrato — e "em caixa", "guardado" e "patrimônio" saem do banco, somados
-dos lançamentos.** O vale-refeição fica fora do caixa e a transferência não mexe no
-patrimônio, os dois conferidos contra Postgres real.
+Última sessão: **2026-09-18**, na máquina Linux, com o Claude Code no terminal.
+**O cartão de crédito está de pé, e com ele a Fase 1 fecha o que faltava de dinheiro:** dá para
+abrir uma conta `CARTAO` com ciclo e limite, comprar no crédito, parcelar, ver a fatura fechar e
+abrir sozinha, pagar (hoje ou agendado), e assistir ao que não foi pago **rolar** para a
+seguinte. A dívida é o saldo da conta, os três números da fatura são soma de lançamento, e
+**nada disso é coluna**.
+
+A fatia 3 continua de pé embaixo: conta com saldo, meio de pagamento, lançar, transferir e o
+Extrato — e "em caixa", "guardado" e "patrimônio" saem do banco, somados dos lançamentos.
 
 **O esqueleto está commitado e no GitHub:** `4be103d` na branch `esqueleto-do-projeto`,
 mergeado em `main` por `9e015a2`. O bloqueio do push acabou.
@@ -21,6 +25,7 @@ comando entregue ao Abner, e o de 17/09 ainda não saiu.
 
 | Sessão | O que saiu |
 |---|---|
+| **18/09 (o cartão e a fatura — a fatia grande)** | O item 10 inteiro, em **quatro commits** na branch `cartao-e-fatura`. **`V009`** traz o contrato de cartão na `conta` (limite, ciclo, conta pagadora), a tabela **`fatura`** e as três colunas adiadas do `lancamento`; a **`ABERTA` única** e **uma fatura por competência** viraram índice, e não confiança na aplicação · o pacote é **`fatura/`**, como o `ADR-0008` já tinha respondido, e os três números **não moram na `Fatura`** — vêm de uma consulta em `lancamento`, e o teste de fronteira continua verde · **`AgendaDoCiclo`** devolve **um passo por vez** e o caso de uso relê o estado: daí saem de graça o *dia a dia em ordem cronológica* e o *encerrar antes de fechar*, sem exceção escrita · **pagar, fechar e abrir à mão**, a **tela Fatura** e o bloco da Home · o **parcelamento**, com o centavo na primeira parcela e o **cenário do Abner** virando teste · **`docs.py check` em 0 erros**, e o `catalogo-tabelas-do-ambiente` quebrou por assunto, como o `ADR-0008` manda. **189 testes de unidade e 111 de integração** |
 | **17/09 (os botões ganham cor)** | Pedido do Abner, e ele já pediu na semântica certa: amarelo informar, verde aportar, vermelho resgatar. As três casam com a paleta — *ação*, *entrada*, *saída*. A única correção foi de vocabulário: **não existe "vermelho"**, o rosa acumula *saída* **e** *ação destrutiva*. Resgate é saída, então a cor é essa mesma — mas as classes passam a ser nomeadas **pelo significado** (`acao`, `entra`, `sai`, `danger`), e `sai` e `danger` pintam igual de propósito, com nomes diferentes para quem lê o código saber qual leitura vale. Contraste conferido no navegador: 15.5, 14.3 e 5.2 — o mínimo do doc é 4.5 |
 | **17/09 (aportar sem sair da Reserva)** | O atalho que o `reserva.md` tinha deixado nomeado como pendência. **Nenhuma capacidade nova** — aporte e resgate são transferências desde a fatia 3 —, mas a tela passa a afirmar a consequência **antes** do clique: *o patrimônio não muda, o dinheiro só troca de bolso*, que é a invariante que a intuição contraria. A outra ponta vem do **servidor** (`contasDeCaixa` na reserva), porque *de onde o dinheiro sai para uma aplicação* é regra e não opção de tela: aplicação não financia aplicação, e benefício não é fungível · sem conta de caixa os botões desabilitam e a linha **diz por quê** · o teste novo trava a frase do doc — *"se um aporte alterar o patrimônio, é bug"* — contra Postgres real |
 | **17/09 (o campo de data cinza)** | Bug do Abner: o campo de data do **Diário** aparecia no cinza do sistema operacional. O markup estava certo — `type="text"` dentro de `.campo-data`, como o `Calendario` de 17/09 exige. O errado era o **CSS**: a pintura de campo estava presa ao container (`.field input`), e o seletor de dia reusa o `campo-data` **fora** de um `.field`. Agora o visual pertence ao controle, e a armadilha está no `direcao-visual.md` · de carona obrigatória, não oportunista: alargar o campo para o texto caber empurrava o `Hoje` mais para fora a 380px, então **a lacuna do Diário a 380px fechou junto** — `.seletor-dia` passa a quebrar linha |
@@ -223,7 +228,10 @@ produzido uma regra correta para um lançamento que não devia existir.
 
 ### Fatura — `fatura-cartao.md` (ciclo) e `fatura-pagamento.md` (dinheiro)
 
-**Fechada em 07/09. Zero itens em aberto nos dois docs.**
+**Fechada em 07/09. Zero itens em aberto nos dois docs — e implementada em 18/09**, com dois
+achados que os docs não tinham nomeado (30 e 31 lá embaixo): quem encerra a fatura quitada por
+pagamento **agendado**, e o `agendado` como quarto número, que é o que impede a projeção de
+contar a mesma dívida duas vezes.
 
 | Decisão | Valor |
 |---|---|
@@ -280,7 +288,7 @@ classifica — registra.
 | Formulário completo | **Explica o que o modelo vai fazer** antes de fazer |
 | Ação destrutiva ou retroativa | Mostra o **impacto numérico** antes de confirmar |
 | Densidade | HUD denso. O número que importa é o maior elemento da tela |
-| Telas | Home · Extrato · Fatura · Séries · Reserva · **Diário** · Cadastro · **Perfil**. **De pé: Home, Extrato, Cadastro, Diário e Perfil.** A **Home é o cockpit** (`06-interface/dashboard.md`); o Perfil fica fora do rail, com a porta no avatar do canto superior direito |
+| Telas | Home · Extrato · **Fatura** · Séries · Reserva · **Diário** · Cadastro · **Perfil**. **De pé: todas menos Séries.** A **Home é o cockpit** (`06-interface/dashboard.md`); o Perfil fica fora do rail, com a porta no avatar do canto superior direito |
 | **Dashboard da Home** | O do protótipo, agrupado por categoria, com a linha **"guardado"** separada do gasto |
 | **Dado que envelhece na tela** | Aplicação mostra a data do último valor; o limite avisa quando a dívida passa dele |
 | **Hierarquia mora no lugar, não num campo** | Um card por raiz, "+ subcategoria" **dentro** do card |
@@ -349,7 +357,35 @@ classifica — registra.
     achado 23 outra vez — regra escrita que nada exercita —, e a diferença é que ali existia
     um escape no código e aqui não existia nada.
 
-Os achados 8 a 29 são o argumento do método inteiro: todas essas regras estavam escritas,
+30. **Ninguém encerrava a fatura quitada por pagamento agendado** (18/09). O
+    `fatura-pagamento.md` decide *quando* a fatura encerra — quitada, ou vencida e rolada — e
+    descreve só o gatilho do **vencimento** na rotina. Mas o pagamento agendado nasce `PREVISTO`
+    e é a **rotina** que o realiza: naquele instante a fatura fica quitada, e a rodada do dia
+    seguinte procura *"vencida com a pagar > 0"* e não a acha. Os lançamentos dela ficariam
+    `PROVISIONADO` **para sempre**, o limite nunca voltaria, e nenhuma tela acusaria. Padrão:
+    *o doc descreveu o gatilho de um caminho e o outro caminho não tinha dono.* A saída não foi
+    um carimbo — foi **o mesmo número**: encerrar toda `FECHADA` com `a pagar` zerado que ainda
+    tenha lançamento provisionado. E, de carona, a **ordem** dos dois passos da rotina virou
+    regra: realizar os previstos do dia vem **antes** do ciclo das faturas, senão a fatura rola
+    uma dívida que acabou de ser paga.
+
+31. **O doc afirmava que o `a pagar` caía ao agendar o pagamento, e ele não cai** (18/09). O
+    `conta.md` escrevia *"se você já agendou, o `a pagar` daquela fatura já caiu no mesmo valor,
+    então nada é contado duas vezes"*. Só que `pago` é a soma dos **`REALIZADO`**, e tem de ser:
+    contar o previsto ali faria a fatura ler como quitada e **encerrar antes de o dinheiro
+    sair**. Somando os números, *"quanto sobra até o fim do mês"* contaria a mesma dívida duas
+    vezes — uma no `PREVISTO` da conta, outra no `a pagar` da fatura. Padrão: *dois docs
+    corretos isoladamente, e a frase de um só é verdadeira se a regra do outro for outra.* A
+    saída foi um **quarto número**, o `agendado`, que não entra no `a pagar` e é o que a
+    projeção desconta. É o achado 14 outra vez, e de novo somando.
+
+32. **O Diário pintava de verde toda compra parcelada** (18/09). O chip de valor decidia o sinal
+    por `dados.sentido`, e o evento que não o carrega caía no `+`: `SERIE_CRIADA` mostrava
+    *"+R$ 5.000,00"* para uma compra. Achado de **olhar a tela depois de mexer no servidor** —
+    nenhum teste olha para o sinal de um chip. Padrão: *default silencioso num campo opcional.*
+    Sem sentido, o número passou a ser neutro.
+
+Os achados 8 a 32 são o argumento do método inteiro: todas essas regras estavam escritas,
 commitadas e plausíveis. Só quebraram quando alguém **somou os números** — leu duas linhas lado
 a lado, tentou usar a tela, foi conferir no doc, perguntou para que a regra servia, olhou para a
 tela que ninguém estava mexendo, fez o relógio andar, ou perguntou se a coisa existia.
@@ -387,11 +423,17 @@ ordem está fixada no `lacunas-para-codigo.md`:
 9. ~~**`evento` e a rotina diária**~~ ✅ **Fechado em 17/09.** A gravação está de pé, em
    `V006`, com a rotina e o `ADR-0013`. **A tela do Diário continua sendo Fase 2** — o que
    entrou é o registro, que é o que não se reconstitui depois.
-10. **Cartão e fatura** — conta `CARTAO`, meio `CREDITO`, as cinco colunas adiadas de
-   `lancamento`, fechamento, pagamento e rolagem. É a fatia grande, e os dois docs dela já
-   estão fechados desde 07/09.
-11. **Rodada de protótipo** — ver abaixo; o backlog do `dominio.js` está aberto desde 01/09,
-   e agora o `prototipo/` está **atrás do app de verdade**, não só do modelo.
+10. ~~**Cartão e fatura**~~ ✅ **Fechado em 18/09**, na branch `cartao-e-fatura`, em quatro
+   commits. Entraram conta `CARTAO`, meio `CREDITO`, quatro das cinco colunas adiadas de
+   `lancamento` (`recorrencia_id` fica para a Fase 2), fechamento, abertura, pagamento,
+   rolagem, encerramento, o **parcelamento** e as duas telas. **A branch não foi mergeada** —
+   ela existe para o Abner conferir e voltar fácil; o merge é `git merge --no-ff`.
+11. **Rodada de protótipo** — ver abaixo; o backlog do `dominio.js` está aberto desde 01/09, e
+   depois de 18/09 o `prototipo/` está **muito atrás do app de verdade**: fatura, rolagem,
+   pagamento e parcelamento existem em Java, com teste contra Postgres, e o `dominio.js`
+   continua com o `ajustarPagamento` que morreu. **A pergunta de verdade passou a ser se ele
+   ainda vale**: o que ele tem e o app não tem é o `conferir()` e o `verificar.js` — e esses
+   dois é que mereciam nascer do lado de cá.
 12. ~~**Tela de Perfil**~~ ✅ **Fechada em 17/09**, nos três commits combinados. Ficaram
     reservados na tela, dizendo o que esperam: **convites recebidos**, **convidar alguém** e
     **sessões ativas** — os três entram com o convite. **Renomear categoria** na tela continua
@@ -431,7 +473,9 @@ ordem está fixada no `lacunas-para-codigo.md`:
     ativo produz dezenas de eventos por mês
 11. **Estorno parcelado: emissores divergem.** Observar o que vier na fatura
 12. **Débito automático muda comportamento** ou é só rótulo? (vai junto com a recorrência)
-13. **Recorrência é Fase 2 ou 3?** Decidir ao fechar a Fase 1
+13. **Recorrência é Fase 2 ou 3?** Decidir ao fechar a Fase 1. O lugar dela já está preparado:
+    o pacote `recorrencia/` existe, o passo do fechamento está escrito e marcado, e falta a
+    coluna `recorrencia_id` — que é uma migration de uma linha, mais a tabela
 14. **Contenção do cadastro aberto** — limite por origem e verificação de e-mail no cadastro.
     O gatilho para **fechar de vez** continua sendo sair da rede local; ele foi olhado em 07/09
     e a escolha foi **manter aberto**, com a lógica de contenção para depois
@@ -456,7 +500,7 @@ a razão de ela ter sumido vale mais que a pergunta.)*
 
 ## Estado da documentação
 
-**82 documentos**, 16 stubs. Stub = conteúdo inexistente: **perguntar, nunca deduzir.**
+**87 documentos**, 16 stubs. Stub = conteúdo inexistente: **perguntar, nunca deduzir.**
 
 Escritos: `CLAUDE.md`, `CONVENTIONS.md`, os 6 fluxos, todo o `00-produto/` menos `jornadas`,
 **`06-interface/dashboard`** (a Home) e **`06-interface/extrato`** (a lista e o detalhe),
@@ -466,15 +510,21 @@ Escritos: `CLAUDE.md`, `CONVENTIONS.md`, os 6 fluxos, todo o `00-produto/` menos
 `catalogo-tabelas` virou **dois**, quebrado por família em 16/09),
 **`01-arquitetura/` menos observabilidade**, **`07-operacao/build-e-run` e `testes`**, e as
 ADRs **0001 a 0014**. Em 17/09 entraram **`02-dominio/usuario`**, **`04-api/endpoints-usuario`**
-e **`06-interface/perfil`**.
+e **`06-interface/perfil`**; em 18/09, **`04-api/endpoints-faturas`**,
+**`04-api/endpoints-series`**, **`06-interface/fatura`** e
+**`03-dados/catalogo-tabelas-do-cartao`**.
 
-`fatura-cartao.md` está em **300 linhas, no teto do `CONVENTIONS`** — a próxima coisa que entrar
-ali obriga a quebrar por subdomínio, como o `fatura-pagamento.md` já nasceu. O
-`catalogo-tabelas.md` **já passou por isso** em 16/09: virou ele mais o
-`catalogo-tabelas-do-ambiente.md`, e o corte foi a família, que é o eixo do próprio doc.
+`fatura-cartao.md` está em **300 linhas, no teto do `CONVENTIONS`**, e a fatia do cartão
+**passou por ele sem precisar crescer**: as regras já estavam todas escritas, e o que mudou foi
+o *"o que ainda não existe"* dos vizinhos. O que quebrou foi o
+`catalogo-tabelas-do-ambiente.md`, com `fatura` e `parcelamento` dentro: virou ele mais o
+**`catalogo-tabelas-do-cartao.md`**, e o corte foi o **assunto**, que é o eixo do `ADR-0008`. É
+a segunda quebra dessa família — a primeira foi em 16/09, por família.
 
-**Custo de contexto** (`docs.py custo`, fim de 17/09): rotas entre ~2,6k e **~17,7k**; ler
-tudo custaria ~125k. A rota que importa, `novo-caso-de-uso`, está em **~5,4k**.
+**Custo de contexto** (`docs.py custo`, fim de 18/09): rotas entre **~2,6k e ~19,1k**; ler tudo
+custaria **~160k**. A rota que importa, `novo-caso-de-uso`, continua em **~5,4k** — ela não
+mexeu com a fatia do cartão, e é o ponto do `ADR-0008`: doc novo só encarece a rota de quem
+precisa dele.
 
 **A inflação prevista continua, e agora dói.** `novo-meio-de-pagamento` está em **~16,3k**,
 `nova-integracao-externa` em ~10,8k e `nova-migration` em ~9,7k — as três passaram do que o
@@ -570,13 +620,15 @@ Extrato funcionando abre o app, não ele.
   domínio, nunca subir o número"*
 - **`deploy.md`, `runbook.md`, `backup-restore.md` e `observabilidade.md` seguem stub** — são
   de operação e nascem quando houver o que operar
-- **Não há fatura** no código: os assuntos são `usuario`, `ambiente`, `categoria`, `conta`,
-  `meio`, `lancamento` e `evento`. **Patrimônio existe** desde 17/09, dentro de `conta` —
-  aplicação é uma conta, e por isso não virou pacote
-- **O código tem sete assuntos** desde 17/09: `usuario` saiu de dentro de `ambiente` pelo
-  `ADR-0014`, com `Usuario`, `Sessao`, `Senhas`, o login e os quatro casos de uso. O encontro
-  dos dois no cadastro virou `CriarAmbientePessoalUseCase`, na `aplicacao` de `ambiente` —
-  aplicação chama aplicação, como já era com `categoria`
+- **O código tem nove assuntos** desde 18/09: `usuario`, `ambiente`, `categoria`, `conta`,
+  `meio`, `lancamento`, `evento`, **`fatura`** e **`recorrencia`**. **Patrimônio existe** desde
+  17/09 dentro de `conta` — aplicação é uma conta, e por isso não virou pacote. `recorrencia/`
+  nasceu com **só o `Parcelamento`** dentro, pelo nome do doc dono (`ADR-0008`); a `Recorrencia`
+  é Fase 2
+- **`recorrencia_id` é a única das cinco colunas adiadas que ainda não existe** no `lancamento`.
+  `fatura_id`, `pagamento_de_fatura_id` e `rolagem_de_fatura` entraram na `V009`,
+  `parcelamento_id` na `V011`, e as três migrations repetem a mesma frase da `V004`: coluna com
+  `REFERENCES` para tabela que não existe não é schema
 - **O `LD_LIBRARY_PATH` do navegador dirigido é `~/.cache/cyberbank-driver/libs/raiz/usr/lib/x86_64-linux-gnu`** — com o `raiz/` no meio, que a nota de 17/09 tinha omitido. E `spring-boot:run` serve o front de `target/classes`: mexeu em `static/`, roda `./mvnw resources:resources` antes de recarregar, senão o navegador mostra a versão velha e a conclusão sai errada
 - **Ninguém verifica papel em lugar nenhum.** Dono, editor e leitor estão no modelo e no banco;
   nenhum caso de uso os consulta. Não é buraco de segurança hoje — sem convite, todo ambiente

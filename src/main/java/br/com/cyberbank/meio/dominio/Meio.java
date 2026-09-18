@@ -27,9 +27,6 @@ public record Meio(
         List<ErroDeValidacao> erros = new ArrayList<>();
         if (tipo == null) {
             erros.add(new ErroDeValidacao("tipo", "OBRIGATORIO", "Escolha o tipo do meio."));
-        } else if (tipo.dependeDeFatura()) {
-            erros.add(new ErroDeValidacao("tipo", "INDISPONIVEL",
-                    "Cartão de crédito ainda não pode ser cadastrado."));
         } else {
             validarNome(nome, tipo, erros);
         }
@@ -56,6 +53,10 @@ public record Meio(
             return dataEvento;
         }
         return dataEfeitoInformada == null ? dataEvento : dataEfeitoInformada;
+    }
+
+    public boolean temFatura() {
+        return tipo.temFatura();
     }
 
     public void exigirAtivoParaLancar() {

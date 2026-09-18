@@ -81,6 +81,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | Documento | Dono do fato | Status |
 |---|---|---|
 | [`catalogo-tabelas-do-ambiente.md`](03-dados/catalogo-tabelas-do-ambiente.md) | definicao coluna a coluna das tabelas com ambiente_id, com constraints, indices e politicas | ativo |
+| [`catalogo-tabelas-do-cartao.md`](03-dados/catalogo-tabelas-do-cartao.md) | definicao coluna a coluna de fatura e parcelamento, com constraints, indices e politicas | ativo |
 | [`catalogo-tabelas.md`](03-dados/catalogo-tabelas.md) | indice das tabelas e definicao coluna a coluna das familias do usuario e de ligacao | ativo |
 | [`migrations.md`](03-dados/migrations.md) | ferramenta, numeracao e nomes, o que nunca muda depois de aplicado, e como fazer mudanca destrutiva | ativo |
 | [`modelo-de-dados.md`](03-dados/modelo-de-dados.md) | entidades, relacionamentos, estrategia de chaves, como valor e data sao guardados, e o padrao de RLS | ativo |
@@ -94,9 +95,11 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | [`endpoints-categorias.md`](04-api/endpoints-categorias.md) | contrato dos endpoints de categoria e regras de categorizacao | ativo |
 | [`endpoints-contas.md`](04-api/endpoints-contas.md) | contrato dos endpoints de conta e saldo | ativo |
 | [`endpoints-eventos.md`](04-api/endpoints-eventos.md) | contrato do Diario — os eventos de um dia de um ambiente | ativo |
+| [`endpoints-faturas.md`](04-api/endpoints-faturas.md) | contrato dos endpoints de fatura de cartao | ativo |
 | [`endpoints-lancamentos.md`](04-api/endpoints-lancamentos.md) | contrato dos endpoints de lancamento, extrato, transferencia e estorno | ativo |
 | [`endpoints-meios-pagamento.md`](04-api/endpoints-meios-pagamento.md) | contrato dos endpoints de meio de pagamento | ativo |
 | [`endpoints-relatorios.md`](04-api/endpoints-relatorios.md) | contrato dos endpoints de agregacao e relatorio | ativo |
+| [`endpoints-series.md`](04-api/endpoints-series.md) | contrato dos endpoints de parcelamento | ativo |
 | [`endpoints-usuario.md`](04-api/endpoints-usuario.md) | cadastro, login, logout e o proprio perfil — rota, payload e erros | ativo |
 | [`erros.md`](04-api/erros.md) | o corpo de resposta de erro, o catalogo de codigos e a regra do que o erro nao conta | ativo |
 
@@ -120,6 +123,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | [`dashboard.md`](06-interface/dashboard.md) | o que a Home mostra, em que ordem e por que — o cockpit de decidir | ativo |
 | [`direcao-visual.md`](06-interface/direcao-visual.md) | a linguagem visual do Cyberbank: paleta, tipografia, forma e o limite do efeito | rascunho |
 | [`extrato.md`](06-interface/extrato.md) | a lista de movimento, a linha resumida e o modal que abre um lancamento inteiro | ativo |
+| [`fatura.md`](06-interface/fatura.md) | a tela do ciclo do cartao: os tres numeros de cada fatura, a janela que importa e as acoes de pagar, fechar e abrir | ativo |
 | [`navegacao.md`](06-interface/navegacao.md) | estrutura de navegacao, onde o ambiente vive na tela e como se lanca | rascunho |
 | [`perfil.md`](06-interface/perfil.md) | a tela do proprio usuario: onde se entra, as secoes, o seletor de avatar e os espacos reservados | ativo |
 | [`reserva.md`](06-interface/reserva.md) | a tela do patrimonio: as aplicacoes, a idade do valor informado e a distincao entre fluxo de caixa e patrimonio | ativo |
@@ -148,5 +152,5 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 
 ---
 
-**83 documentos · 16 ainda em stub.**
+**87 documentos · 16 ainda em stub.**
 Stub = conteudo inexistente: pergunte, nao deduza.

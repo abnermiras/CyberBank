@@ -8,6 +8,7 @@ import java.util.List;
 import br.com.cyberbank.comum.contexto.ContextoDaRequisicao;
 import br.com.cyberbank.comum.erro.ErroDeValidacao;
 import br.com.cyberbank.comum.erro.ValidacaoException;
+import br.com.cyberbank.conta.aplicacao.AberturaDeConta;
 import br.com.cyberbank.conta.aplicacao.AbrirContaUseCase;
 import br.com.cyberbank.conta.aplicacao.AlterarAtivacaoContaUseCase;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -18,9 +19,11 @@ import br.com.cyberbank.conta.aplicacao.InformarValorDaAplicacaoUseCase;
 import br.com.cyberbank.conta.aplicacao.Reserva;
 import br.com.cyberbank.conta.aplicacao.VerReservaUseCase;
 import br.com.cyberbank.conta.aplicacao.ExcluirContaUseCase;
+import br.com.cyberbank.conta.aplicacao.InformarLimiteDoCartaoUseCase;
 import br.com.cyberbank.conta.aplicacao.ListarContasUseCase;
 import br.com.cyberbank.conta.aplicacao.RenomearContaUseCase;
 import br.com.cyberbank.conta.dominio.Conta;
+import br.com.cyberbank.conta.dominio.ContratoDeCartao;
 import br.com.cyberbank.conta.dominio.TipoDeConta;
 import br.com.cyberbank.meio.dominio.TipoDeMeio;
 
@@ -50,7 +53,12 @@ public class ContaController {
             long saldoRealizadoCentavos,
             long previstoAteOFimDoMesCentavos,
             long saldoProjetadoCentavos,
-            List<TipoDeMeio> tiposDeMeioDisponiveis) {
+            List<TipoDeMeio> tiposDeMeioDisponiveis,
+            @JsonInclude(JsonInclude.Include.NON_NULL) Integer diaVencimento,
+            @JsonInclude(JsonInclude.Include.NON_NULL) Integer diasAntesFechamento,
+            @JsonInclude(JsonInclude.Include.NON_NULL) Long limiteCentavos,
+            @JsonInclude(JsonInclude.Include.NON_NULL) LocalDate limiteInformadoEm,
+            @JsonInclude(JsonInclude.Include.NON_NULL) Long contaPagadoraPadraoId) {
     }
 
     public record ListaResponse(List<ContaResponse> itens, long emCaixaCentavos,
@@ -67,13 +75,17 @@ public class ContaController {
     }
 
     public record AberturaRequest(String nome, TipoDeConta tipo, Long saldoInicial,
-            List<TipoDeMeio> meios) {
+            List<TipoDeMeio> meios, List<String> cartoes, Integer diaVencimento,
+            Integer diasAntesFechamento, Long limite, Long contaPagadoraPadraoId) {
     }
 
     public record AlteracaoRequest(String nome, Boolean inativa) {
     }
 
     public record ValorAtualRequest(Long valorCentavos) {
+    }
+
+    public record LimiteRequest(Long limite) {
     }
 
     public record ReservaResponse(List<AplicacaoResponse> aplicacoes,
@@ -97,11 +109,12 @@ public class ContaController {
     private final RenomearContaUseCase renomearConta;
     private final AlterarAtivacaoContaUseCase alterarAtivacao;
     private final ExcluirContaUseCase excluirConta;
+    private final InformarLimiteDoCartaoUseCase informarLimite;
 
     public ContaController(ListarContasUseCase listarContas, VerReservaUseCase verReserva,
             InformarValorDaAplicacaoUseCase informarValor, AbrirContaUseCase abrirConta,
             RenomearContaUseCase renomearConta, AlterarAtivacaoContaUseCase alterarAtivacao,
-            ExcluirContaUseCase excluirConta) {
+            ExcluirContaUseCase excluirConta, InformarLimiteDoCartaoUseCase informarLimite) {
         this.listarContas = listarContas;
         this.verReserva = verReserva;
         this.informarValor = informarValor;
@@ -109,6 +122,7 @@ public class ContaController {
         this.renomearConta = renomearConta;
         this.alterarAtivacao = alterarAtivacao;
         this.excluirConta = excluirConta;
+        this.informarLimite = informarLimite;
     }
 
     @GetMapping("/reserva")
@@ -135,6 +149,14 @@ public class ContaController {
         return reserva(ambienteId);
     }
 
+    @PutMapping("/{contaId}/limite")
+    public ContaGravadaResponse informarLimiteDoCartao(@PathVariable Long ambienteId,
+            @PathVariable Long contaId, @RequestBody LimiteRequest requisicao) {
+
+        return paraRespostaGravada(informarLimite.executar(ambienteId,
+                ContextoDaRequisicao.usuarioId(), contaId, requisicao.limite()));
+    }
+
     @GetMapping
     public ListaResponse listar(@PathVariable Long ambienteId,
             @RequestParam(defaultValue = "false") boolean inativas) {
@@ -159,8 +181,10 @@ public class ContaController {
             @RequestBody AberturaRequest requisicao) {
 
         Conta criada = abrirConta.executar(ambienteId, ContextoDaRequisicao.usuarioId(),
-                requisicao.nome(), requisicao.tipo(), requisicao.saldoInicial(),
-                requisicao.meios() == null ? List.of() : requisicao.meios()).conta();
+                new AberturaDeConta(requisicao.nome(), requisicao.tipo(),
+                        requisicao.saldoInicial(), requisicao.meios(), requisicao.cartoes(),
+                        requisicao.diaVencimento(), requisicao.diasAntesFechamento(),
+                        requisicao.limite(), requisicao.contaPagadoraPadraoId())).conta();
 
         return ResponseEntity
                 .created(URI.create("/api/v1/ambientes/" + ambienteId + "/contas/" + criada.id()))
@@ -196,7 +220,6 @@ public class ContaController {
 
     private static List<TipoDisponivelResponse> tiposDisponiveis() {
         return Arrays.stream(TipoDeConta.values())
-                .filter(tipo -> !tipo.dependeDeFatura())
                 .map(tipo -> new TipoDisponivelResponse(tipo, tipo.entraNoFluxoDeCaixa(),
                         tipo.entraEmCaixa(), tipo.aceitaSaldoInicial(),
                         TipoDeMeio.daConta(tipo.name())))
@@ -212,12 +235,19 @@ public class ContaController {
 
     private static ContaResponse paraResposta(ContaComSaldo comSaldo) {
         Conta conta = comSaldo.conta();
+        ContratoDeCartao contrato = conta.contrato();
+
         return new ContaResponse(conta.id(), conta.nome(), conta.tipo(),
                 conta.entraNoFluxoDeCaixa(), conta.entraEmCaixa(), conta.inativa(),
                 comSaldo.saldoRealizadoCentavos(),
                 comSaldo.previstoNoHorizonteCentavos(),
                 comSaldo.saldoProjetadoCentavos(),
-                TipoDeMeio.daConta(conta.tipo().name()));
+                TipoDeMeio.daConta(conta.tipo().name()),
+                contrato == null ? null : contrato.diaVencimento(),
+                contrato == null ? null : contrato.diasAntesFechamento(),
+                contrato == null ? null : contrato.limiteCentavos(),
+                contrato == null ? null : contrato.limiteInformadoEm(),
+                contrato == null ? null : contrato.contaPagadoraPadraoId());
     }
 
     private static ContaGravadaResponse paraRespostaGravada(Conta conta) {

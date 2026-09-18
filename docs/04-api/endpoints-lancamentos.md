@@ -57,6 +57,7 @@ chave de ordenação, e isso é detalhe do servidor.
 | `categoriaId` | Sempre presente; `null` **é** a pendência. Campo que se aplica e está vazio vem `null` |
 | `meioId` | **Não vem** em transferência nem no lançamento de abertura: ali ninguém pagou nada. Campo que não se aplica não vem |
 | `transferenciaId`, `estornoDeId`, `estabelecimento` | Só vêm quando existem |
+| `faturaId` · `parcelamentoId` | Em qual fatura a compra **entra** e de que compra dividida ela é parte. Só no crédito, e lá a situação é sempre `PROVISIONADO`: comprou, deve (`docs/04-api/endpoints-faturas.md`) |
 | `doCiclo` | `true` no que o sistema criou sozinho. É o que a tela usa para não oferecer o botão de excluir |
 | `dataEvento`, `dataEfeito` | Data de domínio: `"AAAA-MM-DD"`, dia local, **sem fuso** |
 
@@ -200,7 +201,7 @@ existe metade de transferência. Nesse caso `contaId`, `meioId`, `categoriaId`, 
 transferência não tem vencimento — **`dataEvento` move as duas datas dos dois lados**.
 
 Campos aceitos: `contaId`, `meioId`, `categoriaId`, `sentido`, `valor`, `dataEvento`,
-`dataEfeito`, `descricao`, `situacao`.
+`dataEfeito`, `descricao`, `situacao`, `faturaId`.
 
 **Quem manda na conta é o `meioId`, exatamente como no `POST`.** O meio já aponta para uma
 conta, e é dela que o lançamento passa a ser — mandar `contaId` junto só serve para confirmar
@@ -211,6 +212,16 @@ lançamento na conta A pago por um meio da conta B não descreve nada que possa 
 Em meio à vista as duas datas são a mesma, então corrigir só a `dataEvento` move as duas; e
 trocar um boleto por um meio à vista junta as duas no dia do evento. Só meio que separa as
 duas datas aceita `dataEfeito` própria.
+
+**`faturaId` move o lançamento de fatura, e para qualquer fatura daquele cartão — aberta ou
+não.** É o conserto de quando o palpite do sistema erra: a `dataFechamento` do app é uma
+estimativa do que o emissor faz, e uma compra do dia do fechamento pode cair dos dois lados
+(`docs/02-dominio/fatura-cartao.md`). **Nenhum estado de fatura trava a edição** — fechada não
+congela nada. Mover não muda data nenhuma: no crédito `dataEfeito = dataEvento`, sempre.
+
+**Trocar o meio para dentro ou para fora do crédito leva fatura e situação junto**, pelo mesmo
+*"quem manda na conta é o meio"*: virando crédito ele cai na `ABERTA` e passa a `PROVISIONADO`;
+saindo, perde a fatura e a situação volta a ser decidida pela `dataEfeito`.
 
 **Meio e conta só precisam estar ativos quando o `meioId` muda.** Corrigir a descrição de um
 lançamento antigo não ressuscita a discussão sobre a conta que foi inativada desde então.
@@ -227,6 +238,7 @@ inventaria um dinheiro que voltou.
 | `CATEGORIA_NAO_ESCOLHIVEL` (409) | A categoria nova não é destino de lançamento |
 | `CATEGORIA_DE_OUTRO_SENTIDO` (409) | A categoria nova é do outro sentido. Vale contra o sentido **resultante** da correção, não o antigo |
 | `MEIO_INCOMPATIVEL_COM_CONTA` (409) | O `contaId` enviado não é a conta do meio resultante |
+| `NAO_ENCONTRADO` (404) | O `faturaId` enviado não existe, é de outro ambiente **ou é de outro cartão** — as três respondem igual |
 | `MEIO_INATIVO` (409) | O `meioId` **novo** está inativo |
 | `CONTA_INATIVA` (409) | A conta do `meioId` **novo** está inativa |
 | `NAO_ENCONTRADO` (404) | Lançamento inexistente ou de outro ambiente |
@@ -282,10 +294,6 @@ tirar a linha já refaz tudo que deriva dela.
 
 ## O que ainda não existe
 
-- **`fatura`, `parcelamento` e `recorrencia`** nos campos e no corpo — dependem do cartão.
-- **A transição automática `PREVISTO → REALIZADO` pela data.** Hoje a situação é decidida no
-  nascimento e só a correção do usuário a move; enquanto a rotina não existir, um boleto
-  previsto continua previsto depois do vencimento.
-- **O histórico de alteração** que `docs/02-dominio/lancamento.md` entrega pelo evento. Depende
-  de `docs/02-dominio/evento.md`, que é Fase 1 e ainda não tem código.
+- **`recorrencia`** no campo e no corpo — é Fase 2. O parcelamento tem recurso próprio
+  (`docs/04-api/endpoints-series.md`), e o `DELETE` numa parcela responde `PARCELA_ISOLADA`.
 - **Contagem total** do extrato: com cursor ela é consulta separada, e ninguém precisou dela.

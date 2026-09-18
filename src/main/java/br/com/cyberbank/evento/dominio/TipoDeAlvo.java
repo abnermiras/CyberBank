@@ -4,5 +4,7 @@ public enum TipoDeAlvo {
     LANCAMENTO,
     CONTA,
     MEIO,
-    CATEGORIA
+    CATEGORIA,
+    FATURA,
+    SERIE
 }

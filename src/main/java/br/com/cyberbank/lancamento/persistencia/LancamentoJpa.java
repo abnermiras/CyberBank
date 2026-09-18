@@ -21,6 +21,14 @@ interface LancamentoJpa extends JpaRepository<LancamentoEntity, Long> {
     List<LancamentoEntity> findByTransferenciaIdAndAmbienteIdOrderByIdAsc(
             Long transferenciaId, Long ambienteId);
 
+    List<LancamentoEntity> findByFaturaIdAndAmbienteIdOrderByDataEventoAscIdAsc(Long faturaId,
+            Long ambienteId);
+
+    List<LancamentoEntity> findByParcelamentoIdAndAmbienteIdOrderByIdAsc(Long parcelamentoId,
+            Long ambienteId);
+
+    void deleteByParcelamentoIdAndAmbienteId(Long parcelamentoId, Long ambienteId);
+
     boolean existsByContaId(Long contaId);
 
     boolean existsByMeioId(Long meioId);
@@ -196,8 +204,52 @@ interface LancamentoJpa extends JpaRepository<LancamentoEntity, Long> {
             @Param("previsto") Situacao previsto,
             Pageable pagina);
 
+    @Query("""
+            select l.faturaId,
+                   coalesce(sum(case when l.rolagemDeFatura is not null and l.sentido = :entrada
+                                     then 0
+                                     when l.sentido = :entrada then -l.valorCentavos
+                                     else l.valorCentavos end), 0),
+                   coalesce(sum(case when l.rolagemDeFatura is not null and l.sentido = :entrada
+                                     then l.valorCentavos else 0 end), 0),
+                   coalesce(sum(case when l.situacao = :provisionado then 1 else 0 end), 0)
+              from LancamentoEntity l
+             where l.faturaId in :faturas
+             group by l.faturaId
+            """)
+    List<Object[]> somarPorFatura(@Param("faturas") Collection<Long> faturas,
+            @Param("entrada") Sentido entrada,
+            @Param("provisionado") Situacao provisionado);
+
+    @Query("""
+            select l.pagamentoDeFaturaId,
+                   coalesce(sum(case when l.situacao = :realizado
+                                     then l.valorCentavos else 0 end), 0),
+                   coalesce(sum(case when l.situacao = :previsto
+                                     then l.valorCentavos else 0 end), 0)
+              from LancamentoEntity l
+             where l.pagamentoDeFaturaId in :faturas
+             group by l.pagamentoDeFaturaId
+            """)
+    List<Object[]> somarPagamentosPorFatura(@Param("faturas") Collection<Long> faturas,
+            @Param("realizado") Situacao realizado,
+            @Param("previsto") Situacao previsto);
+
     long countByAmbienteIdAndCategoriaIdIsNull(Long ambienteId);
 
     @Query(value = "select nextval('transferencia_id_seq')", nativeQuery = true)
     long proximoIdDeTransferencia();
+
+    @Query(value = "select nextval('rolagem_de_fatura_seq')", nativeQuery = true)
+    long proximoIdDeRolagem();
+
+    @Modifying
+    @Query("""
+            update LancamentoEntity l
+               set l.situacao = :realizado
+             where l.faturaId = :faturaId and l.situacao = :provisionado
+            """)
+    int liquidarProvisionadosDaFatura(@Param("faturaId") Long faturaId,
+            @Param("provisionado") Situacao provisionado,
+            @Param("realizado") Situacao realizado);
 }

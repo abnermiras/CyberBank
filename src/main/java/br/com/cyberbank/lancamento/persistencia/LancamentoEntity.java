@@ -64,6 +64,18 @@ public class LancamentoEntity {
     @Column(name = "estorno_de_id")
     private Long estornoDeId;
 
+    @Column(name = "fatura_id")
+    private Long faturaId;
+
+    @Column(name = "pagamento_de_fatura_id")
+    private Long pagamentoDeFaturaId;
+
+    @Column(name = "rolagem_de_fatura")
+    private Long rolagemDeFatura;
+
+    @Column(name = "parcelamento_id")
+    private Long parcelamentoId;
+
     @Column(name = "do_ciclo", nullable = false)
     private boolean doCiclo;
 
@@ -79,7 +91,8 @@ public class LancamentoEntity {
     public LancamentoEntity(Long id, Long ambienteId, Long contaId, Long meioId, Long categoriaId,
             Long autorId, Sentido sentido, long valorCentavos, LocalDate dataEvento,
             LocalDate dataEfeito, String descricao, Situacao situacao, Long transferenciaId,
-            Long estornoDeId, boolean doCiclo, String estabelecimento, Instant criadoEm) {
+            Long estornoDeId, Long faturaId, Long pagamentoDeFaturaId, Long rolagemDeFatura,
+            Long parcelamentoId, boolean doCiclo, String estabelecimento, Instant criadoEm) {
         this.id = id;
         this.ambienteId = ambienteId;
         this.contaId = contaId;
@@ -94,6 +107,10 @@ public class LancamentoEntity {
         this.situacao = situacao;
         this.transferenciaId = transferenciaId;
         this.estornoDeId = estornoDeId;
+        this.faturaId = faturaId;
+        this.pagamentoDeFaturaId = pagamentoDeFaturaId;
+        this.rolagemDeFatura = rolagemDeFatura;
+        this.parcelamentoId = parcelamentoId;
         this.doCiclo = doCiclo;
         this.estabelecimento = estabelecimento;
         this.criadoEm = criadoEm;
@@ -153,6 +170,22 @@ public class LancamentoEntity {
 
     public Long getEstornoDeId() {
         return estornoDeId;
+    }
+
+    public Long getFaturaId() {
+        return faturaId;
+    }
+
+    public Long getPagamentoDeFaturaId() {
+        return pagamentoDeFaturaId;
+    }
+
+    public Long getRolagemDeFatura() {
+        return rolagemDeFatura;
+    }
+
+    public Long getParcelamentoId() {
+        return parcelamentoId;
     }
 
     public boolean isDoCiclo() {

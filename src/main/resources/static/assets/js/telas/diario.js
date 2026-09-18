@@ -11,6 +11,8 @@ const Diario = {
     CONTA: '#/cadastro',
     MEIO: '#/cadastro',
     CATEGORIA: '#/cadastro',
+    FATURA: (id, dados) => (dados.contaId ? `#/fatura/${dados.contaId}` : '#/fatura'),
+    SERIE: (id, dados) => (dados.contaId ? `#/fatura/${dados.contaId}` : null),
   },
 
   FRASES: {
@@ -44,11 +46,42 @@ const Diario = {
     CATEGORIA_INATIVADA: (d) => `inativou a categoria <b>${Formato.texto(d.nome)}</b>`,
     CATEGORIA_REATIVADA: (d) => `reativou a categoria <b>${Formato.texto(d.nome)}</b>`,
     CATEGORIA_EXCLUIDA: (d) => `excluiu a categoria <b>${Formato.texto(d.nome)}</b>`,
+
+    FATURA_FECHADA: (d) =>
+      `a fatura de <b>${Formato.mes(d.competencia)}</b> fechou — vence em ${Formato.dia(d.dataVencimento)}`,
+    FATURA_ABERTA_PELO_CICLO: (d) =>
+      `abriu a fatura de <b>${Formato.mes(d.competencia)}</b> — fecha em ${Formato.dia(d.dataFechamento)}`,
+    FATURA_ROLADA: (d) =>
+      `<b>${Formato.dinheiro(d.valor)}</b> que a fatura de ${Formato.mes(d.competencia)} `
+      + `não recebeu rolaram para a de <b>${Formato.mes(d.competenciaDestino)}</b>`,
+    FATURA_ENCERRADA: (d) =>
+      `a fatura de <b>${Formato.mes(d.competencia)}</b> encerrou: o que estava provisionado nela virou realizado`,
+
+    FATURA_PAGA: (d) =>
+      `pagou <b>${Formato.dinheiro(d.valor)}</b> da fatura de ${Formato.mes(d.competencia)}`
+      + `${d.situacao === 'PREVISTO' ? `, agendado para ${Formato.dia(d.dia)}` : ''}`,
+    FATURA_FECHADA_PELO_USUARIO: (d) =>
+      `fechou à mão a fatura de <b>${Formato.mes(d.competencia)}</b> — vence em ${Formato.dia(d.dataVencimento)}`,
+    FATURA_ABERTA_PELO_USUARIO: (d) =>
+      `abriu de novo a fatura de <b>${Formato.mes(d.competencia)}</b>`
+      + `${d.competenciaDevolvida
+        ? `, e a de ${Formato.mes(d.competenciaDevolvida)} voltou a ser futura` : ''}`,
+    LIMITE_INFORMADO: (d) =>
+      `informou o limite de <b>${Formato.texto(d.nome)}</b>${Diario.deParas(d)}`,
+
+    SERIE_CRIADA: (d) =>
+      `parcelou <b>${Diario.desc(d)}</b> em <b>${d.parcelas}x</b>`,
+    SERIE_ALTERADA: (d) =>
+      `alterou o parcelamento de <b>${Formato.texto(d.descricao)}</b> — as ${d.parcelas} parcelas`
+      + ` foram redistribuídas${Diario.deParas(d)}`,
+    SERIE_CANCELADA: (d) =>
+      `excluiu o parcelamento de <b>${Formato.texto(d.descricao)}</b> e as ${d.parcelas} parcelas dele`,
   },
 
   ROTULO_DO_CAMPO: {
     nome: 'nome',
     valor: 'valor',
+    limite: 'limite',
     descricao: 'descrição',
     sentido: 'sentido',
     situacao: 'situação',
@@ -163,12 +196,12 @@ const Diario = {
   valorDaLinha(dados) {
     if (dados.valor == null) return '';
     const cru = Formato.dinheiro(dados.valor).replace('−', '');
-    if (dados.transferenciaId) return cru;
+    if (dados.transferenciaId || !dados.sentido) return cru;
     return `${dados.sentido === 'SAIDA' ? '−' : '+'}${cru}`;
   },
 
   corDoValor(dados) {
-    if (dados.transferenciaId) return '';
+    if (dados.transferenciaId || !dados.sentido) return '';
     return dados.sentido === 'SAIDA' ? 'neg' : 'pos';
   },
 
@@ -176,7 +209,7 @@ const Diario = {
     if (!e.alvo || e.tipo.endsWith('_EXCLUIDO') || e.tipo.endsWith('_EXCLUIDA')) return null;
     const destino = Diario.TELA_DO_ALVO[e.alvo.tipo];
     if (!destino) return null;
-    return typeof destino === 'function' ? destino(e.alvo.id) : destino;
+    return typeof destino === 'function' ? destino(e.alvo.id, e.dados || {}) : destino;
   },
 
   deParas(dados) {
@@ -193,7 +226,7 @@ const Diario = {
 
   valor(campo, bruto) {
     if (bruto == null) return '—';
-    if (campo === 'valor') return Formato.dinheiro(bruto);
+    if (campo === 'valor' || campo === 'limite') return Formato.dinheiro(bruto);
     if (campo === 'dataEvento' || campo === 'dataEfeito') return Formato.dia(bruto);
     if (campo === 'categoriaId') return Formato.texto(Diario.nomeDaCategoria(bruto));
     if (campo === 'contaId') return Formato.texto(Diario.nomeDaConta(bruto));

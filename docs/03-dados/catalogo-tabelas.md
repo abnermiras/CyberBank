@@ -2,7 +2,7 @@
 id: 03-dados/catalogo-tabelas
 titulo: Catalogo de tabelas
 dono: indice das tabelas e definicao coluna a coluna das familias do usuario e de ligacao
-ler-junto: [03-dados/catalogo-tabelas-do-ambiente, 03-dados/modelo-de-dados, 03-dados/migrations]
+ler-junto: [03-dados/catalogo-tabelas-do-ambiente, 03-dados/catalogo-tabelas-do-cartao, 03-dados/modelo-de-dados, 03-dados/migrations]
 status: ativo
 ---
 
@@ -18,8 +18,10 @@ com `CHECK`.
 **A família decide a proteção** (`modelo-de-dados.md`), e ela está dita em cada seção.
 
 As tabelas **do ambiente** — as que têm `ambiente_id` — estão em
-`docs/03-dados/catalogo-tabelas-do-ambiente.md`. Aqui ficam as do **usuário** e as de
-**ligação**, mais as funções de contexto que todas as políticas leem.
+`docs/03-dados/catalogo-tabelas-do-ambiente.md`, e as do **cartão** (`fatura` e `parcelamento`)
+em `docs/03-dados/catalogo-tabelas-do-cartao.md`, que saiu daquele quando ele passou das 300
+linhas. Aqui ficam as do **usuário** e as de **ligação**, mais as funções de contexto que todas
+as políticas leem.
 
 | Tabela | Família | Migration |
 |---|---|---|
@@ -27,11 +29,14 @@ As tabelas **do ambiente** — as que têm `ambiente_id` — estão em
 | `sessao` | do usuário | `V001` |
 | `ambiente` | de ligação | `V001` |
 | `acesso` | de ligação | `V001` |
-| `categoria` | **do ambiente** | `V002` |
-| `conta` | **do ambiente** | `V004` |
-| `meio` | **do ambiente** | `V004` |
-| `lancamento` | **do ambiente** | `V004` |
+| `categoria` | **do ambiente** | `V002` · `V003` |
+| `conta` | **do ambiente** | `V004` · `V009` |
+| `meio` | **do ambiente** | `V004` · `V005` |
+| `lancamento` | **do ambiente** | `V004` · `V009` · `V011` |
 | `vinculo` | de ligação | `V004` |
+| `evento` | **do ambiente** | `V006` · `V008` · `V009` · `V010` · `V011` |
+| `fatura` | **do ambiente** (cartão) | `V009` |
+| `parcelamento` | **do ambiente** (cartão) | `V011` |
 
 ## Funções de contexto
 

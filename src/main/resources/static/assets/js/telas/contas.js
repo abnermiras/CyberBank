@@ -4,6 +4,7 @@ const Contas = {
     CARTEIRA: 'CARTEIRA',
     APLICACAO: 'APLICAÇÃO',
     BENEFICIO: 'BENEFÍCIO',
+    CARTAO: 'CARTÃO',
   },
 
   EXPLICA_TIPO: {
@@ -11,6 +12,7 @@ const Contas = {
     CARTEIRA: 'Dinheiro vivo — carteira, cofre, colchão. O nome é seu; o que o sistema sabe é que só sai dinheiro em espécie.',
     APLICACAO: 'Dinheiro guardado. Fica fora do fluxo de caixa: mover para cá não é gasto, é guardar.',
     BENEFICIO: 'Vale-refeição e afins. É gasto da vida, mas não é caixa: esse saldo só compra uma coisa.',
+    CARTAO: 'O contrato de cartão de crédito. O saldo dele é a dívida, e por isso ele é gasto da vida sem ser caixa.',
   },
 
   ROTULO_DE_MEIO: {
@@ -21,6 +23,7 @@ const Contas = {
     BOLETO: 'Boleto',
     DINHEIRO: 'Dinheiro',
     BENEFICIO: 'Cartão do benefício',
+    CREDITO: 'Cartão de crédito',
   },
 
   identidadeDoMeio(meio, contas) {
@@ -82,15 +85,42 @@ const Contas = {
 
   aoTrocarTipo() {
     const tipo = Contas.tipoEscolhido();
-    Contas.meiosEscolhidos = new Set(tipo.meios.length === 1 ? tipo.meios : []);
+    const cartao = tipo.tipo === 'CARTAO';
+
+    Contas.meiosEscolhidos = new Set(!cartao && tipo.meios.length === 1 ? tipo.meios : []);
     document.getElementById('contaSaldo').closest('.field')
       .classList.toggle('hidden', !tipo.aceitaSaldoInicial);
+    document.getElementById('cicloDoCartao').classList.toggle('hidden', !cartao);
+    document.getElementById('campoDosMeios').classList.toggle('hidden', cartao);
+    document.getElementById('campoDosCartoes').classList.toggle('hidden', !cartao);
+
+    if (cartao) Contas.montarContasPagadoras();
     Contas.desenharMeiosDaAbertura();
+  },
+
+  montarContasPagadoras() {
+    const seletor = document.getElementById('contaPagadora');
+    const pagadoras = Contas.contas.filter((c) => c.entraEmCaixa && !c.inativa);
+
+    seletor.innerHTML = ['<option value="">— escolher na hora de pagar —</option>']
+      .concat(pagadoras.map((c) => `<option value="${c.id}">${Formato.texto(c.nome)}</option>`))
+      .join('');
+  },
+
+  cicloDoCartao() {
+    const dia = Number(document.getElementById('contaDiaVencimento').value);
+    const antes = Number(document.getElementById('contaDiasAntes').value);
+    return dia && antes ? { dia, antes } : null;
   },
 
   desenharMeiosDaAbertura() {
     const tipo = Contas.tipoEscolhido();
     const alvo = document.getElementById('meiosDaConta');
+
+    if (tipo.tipo === 'CARTAO') {
+      Contas.explicar();
+      return;
+    }
 
     if (!tipo.meios.length) {
       alvo.innerHTML = '<span class="tele">NÃO SE PAGA COM UMA APLICAÇÃO — RESGATA-SE ANTES</span>';
@@ -111,23 +141,41 @@ const Contas = {
 
   explicar() {
     const tipo = Contas.tipoEscolhido();
-    const centavos = Formato.centavos(document.getElementById('contaSaldo').value);
-
-    const abertura = !tipo.aceitaSaldoInicial
-      ? 'Cartão de crédito não tem saldo de abertura.'
-      : centavos
-        ? `Vai nascer um <b>lançamento de abertura</b> de ${Formato.dinheiro(centavos)}, já
-           realizado, na categoria de sistema <b>Saldo de abertura</b>. Ele é do ciclo: você
-           corrige o valor, mas não o exclui.`
-        : 'Sem saldo informado a conta nasce zerada, e nenhum lançamento é criado.';
 
     document.getElementById('contaExplica').innerHTML =
-      `${Contas.EXPLICA_TIPO[tipo.tipo] || ''} ${abertura}`;
+      `${Contas.EXPLICA_TIPO[tipo.tipo] || ''} ${tipo.tipo === 'CARTAO'
+        ? Contas.explicarCartao()
+        : Contas.explicarAbertura(tipo)}`;
+  },
+
+  explicarAbertura(tipo) {
+    const centavos = Formato.centavos(document.getElementById('contaSaldo').value);
+
+    return centavos
+      ? `Vai nascer um <b>lançamento de abertura</b> de ${Formato.dinheiro(centavos)}, já
+         realizado, na categoria de sistema <b>Saldo de abertura</b>. Ele é do ciclo: você
+         corrige o valor, mas não o exclui.`
+      : 'Sem saldo informado a conta nasce zerada, e nenhum lançamento é criado.';
+  },
+
+  explicarCartao() {
+    if (!Contas.cicloDoCartao()) {
+      return `Informe <b>o dia do vencimento</b> e <b>quantos dias antes ele fecha</b>: é daí
+              que saem as duas datas de toda fatura.`;
+    }
+
+    return `A conta nasce <b>zerada</b> — dívida de cartão não é um número, é um conjunto de
+            faturas — e já com a <b>fatura ABERTA do ciclo corrente, vazia</b>. O que você
+            comprar cai nela, e as datas dela aparecem aqui embaixo assim que ela existir. A
+            conta pagadora é só o que vem preenchido na hora de pagar: <b>nada sai dela
+            sozinho</b>.`;
   },
 
   ligarOuvintes() {
     document.getElementById('contaTipo').addEventListener('change', Contas.aoTrocarTipo);
     document.getElementById('contaSaldo').addEventListener('input', Contas.explicar);
+    document.getElementById('contaDiaVencimento').addEventListener('input', Contas.explicar);
+    document.getElementById('contaDiasAntes').addEventListener('input', Contas.explicar);
 
     document.getElementById('meiosDaConta').addEventListener('change', (evento) => {
       const caixa = evento.target.closest('[data-meio]');
@@ -160,6 +208,7 @@ const Contas = {
         confirmar: () => Contas.confirmar(id),
         excluir: () => Contas.excluir(id),
         'abrir-meio': () => Contas.abrirMeio(id),
+        'somar-cartao': () => Contas.somarCartao(id),
         'somar-meio': () => Contas.somarMeio(id, botao.dataset.meio),
         'inativar-meio': () => Contas.alterarAtivacaoMeio(id, true),
         'reativar-meio': () => Contas.alterarAtivacaoMeio(id, false),
@@ -214,10 +263,20 @@ const Contas = {
             </div>`}
         </div>
 
+        ${conta.tipo === 'CARTAO' ? `
+          <div class="conta-ciclo">
+            <span class="tele">FECHA ${conta.diasAntesFechamento} DIAS ANTES DE VENCER ·
+              VENCE DIA ${conta.diaVencimento}</span>
+            ${conta.limiteCentavos ? `<span class="tele">LIMITE
+              ${Formato.dinheiro(conta.limiteCentavos)} · INFORMADO EM
+              ${Formato.dia(conta.limiteInformadoEm)}</span>`
+              : '<span class="tele">SEM LIMITE INFORMADO</span>'}
+          </div>` : ''}
+
         <div class="conta-meios">
           ${meus.map((m) => `
             <span class="sub-chip${m.inativo ? ' ina' : ''}">
-              ${Contas.ROTULO_DE_MEIO[m.tipo] || m.tipo}
+              ${Formato.texto(m.nome) || Contas.ROTULO_DE_MEIO[m.tipo] || m.tipo}
               <button class="chip-b" type="button"
                       data-acao="${m.inativo ? 'reativar-meio' : 'inativar-meio'}"
                       data-id="${m.id}">${m.inativo ? 'reativar' : 'inativar'}</button>
@@ -227,7 +286,9 @@ const Contas = {
             ? '<span class="tele">APLICAÇÃO NÃO TEM MEIO — PARA GASTAR, RESGATA-SE ANTES</span>' : ''}
           ${!meus.length && conta.tiposDeMeioDisponiveis.length
             ? '<span class="tele">SEM MEIO — ESTA CONTA AINDA NÃO LANÇA NADA</span>' : ''}
-          ${faltando.length && !somandoMeio
+          ${conta.tipo === 'CARTAO'
+            ? `<button class="chip-mais" type="button" data-acao="somar-cartao" data-id="${conta.id}">+ cartão</button>` : ''}
+          ${conta.tipo !== 'CARTAO' && faltando.length && !somandoMeio
             ? `<button class="chip-mais" type="button" data-acao="abrir-meio" data-id="${conta.id}">+ meio</button>` : ''}
         </div>
 
@@ -257,6 +318,10 @@ const Contas = {
   async abrir() {
     const tipo = Contas.tipoEscolhido();
     const bruto = document.getElementById('contaSaldo').value;
+    const limite = document.getElementById('contaLimite').value;
+    const pagadora = document.getElementById('contaPagadora').value;
+    const ciclo = Contas.cicloDoCartao();
+    const cartao = tipo.tipo === 'CARTAO';
 
     await Contas.tentar(() => API.abrirConta(Contexto.ambiente.id, {
       nome: document.getElementById('contaNome').value,
@@ -264,7 +329,12 @@ const Contas = {
       saldoInicial: !tipo.aceitaSaldoInicial || bruto.trim() === ''
         ? null
         : Formato.centavos(bruto),
-      meios: [...Contas.meiosEscolhidos],
+      meios: cartao ? [] : [...Contas.meiosEscolhidos],
+      cartoes: cartao ? Contas.cartoesInformados() : [],
+      diaVencimento: cartao && ciclo ? ciclo.dia : null,
+      diasAntesFechamento: cartao && ciclo ? ciclo.antes : null,
+      limite: cartao && limite.trim() !== '' ? Formato.centavos(limite) : null,
+      contaPagadoraPadraoId: cartao && pagadora ? Number(pagadora) : null,
     }), () => {
       document.getElementById('fConta').reset();
       Contas.aoTrocarTipo();
@@ -272,11 +342,26 @@ const Contas = {
     });
   },
 
+  cartoesInformados() {
+    return document.getElementById('contaCartoes').value
+      .split(',')
+      .map((nome) => nome.trim())
+      .filter(Boolean);
+  },
+
   abrirMeio(contaId) {
     Contas.abrindoMeioEm = contaId;
     Contas.editando = null;
     Contas.confirmando = null;
     Contas.desenhar();
+  },
+
+  async somarCartao(contaId) {
+    const nome = window.prompt('Nome do cartão — é ele que distingue físico, virtual e adicional');
+    if (!nome || !nome.trim()) return;
+
+    await Contas.tentar(() => API.cadastrarMeio(Contexto.ambiente.id,
+      { tipo: 'CREDITO', contaId, nome: nome.trim() }));
   },
 
   async somarMeio(contaId, tipo) {

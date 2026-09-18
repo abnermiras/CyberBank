@@ -96,18 +96,22 @@ Erro previsível tem código, e **o código entra aqui antes de existir no códi
 | `CATEGORIA_SEM_COR_PROPRIA` | 409 | Trocar a cor de uma **subcategoria**. Ela herda a cor da raiz e não tem cor própria (`docs/02-dominio/categoria.md`) |
 | `FATURA_NAO_RECEBE_PAGAMENTO` | 409 | A fatura não é `FECHADA` com `a pagar` maior que zero |
 | `FATURA_NAO_ABRE` | 409 | Não é a última fechada, ou já encerrou |
+| `FATURA_FORA_DO_CICLO` | 409 | A transição pedida não sai do estado em que a fatura está: fechar o que não é `ABERTA`, abrir pelo ciclo o que não é `FUTURA`. **Não é erro de usuário** — é a invariante do ciclo recusando uma corrida entre duas rodadas da rotina |
 | `LANCAMENTO_DO_CICLO` | 409 | Excluir o que o ciclo criou: parcela isolada, par de rolagem, lançamento de abertura |
 | `LANCAMENTO_COM_ESTORNO` | 409 | Excluir um lançamento que tem estorno apontando para ele. O estorno ficaria órfão; exclui-se o estorno primeiro |
+| `PARCELA_ISOLADA` | 409 | Excluir **uma** parcela de um parcelamento. Quebraria a soma das parcelas, e o usuário já não edita parcela sozinha: quem se arrepende exclui o **parcelamento** (`docs/02-dominio/recorrencia.md`) |
 | `TRANSFERENCIA_MESMA_CONTA` | 409 | Origem e destino iguais. Transferência é um par entre contas **diferentes** (`docs/02-dominio/lancamento.md`) |
 | `BENEFICIO_NAO_TRANSFERE` | 409 | Conta `BENEFICIO` como origem ou destino de transferência. O saldo dela não é fungível — entra por receita e sai por gasto no meio dele |
 | `CARTAO_SEM_SALDO_INICIAL` | 422 | Saldo inicial numa conta `CARTAO` |
 | `TIPO_DE_CONTA_IMUTAVEL` | 409 | Trocar o tipo de uma conta que já tem lançamento |
 | `CONTA_NAO_E_APLICACAO` | 409 | Informar o **valor atual** de uma conta que não é `APLICACAO`. O saldo das outras é a soma do que se movimentou de verdade; informá-lo à mão seria inventar dinheiro sem fato por trás (`docs/02-dominio/aplicacao-patrimonio.md`) |
+| `CONTA_NAO_E_CARTAO` | 409 | Ler fatura, limite ou ciclo de uma conta que não é `CARTAO`. Fatura é recorte de um período do **contrato de cartão**, e as outras contas não têm ciclo nenhum para recortar (`docs/02-dominio/fatura-cartao.md`) |
 | `MEIO_INCOMPATIVEL_COM_CONTA` | 409 | O tipo do meio não casa com o tipo da conta: `DEBITO`/`PIX`/`BOLETO` fora de uma `CORRENTE`, `DINHEIRO` fora de uma `CARTEIRA`, `BENEFICIO` fora de uma `BENEFICIO`, `CREDITO` fora de uma `CARTAO` — ou qualquer meio apontando para uma `APLICACAO`, com que não se paga (`docs/02-dominio/meio-de-pagamento.md`) |
 | `TIPO_DE_MEIO_IMUTAVEL` | 409 | Trocar o tipo de um meio que já tem lançamento |
 | `MEIO_COM_LANCAMENTO` | 409 | Excluir um meio que já teve lançamento. O caminho é inativar |
 | `MEIO_DUPLICADO_NA_CONTA` | 409 | A conta já tem um meio desse tipo. O par `(conta, tipo)` identifica o meio, e só `CREDITO` se repete — um contrato tem vários cartões (`docs/02-dominio/meio-de-pagamento.md`) |
 | `MEIO_INATIVO` | 409 | Lançamento **do usuário** num meio inativo, nem por captura |
+| `MEIO_NAO_PARCELA` | 409 | Parcelar uma compra num meio que não é `CREDITO`. **Só o cartão tem fatura e só ele parcela** — o que espalha a cobrança pelos meses é a fatura de cada parcela, e fora do crédito não há fatura nenhuma (`docs/02-dominio/meio-de-pagamento.md`) |
 | `AMBIENTE_INVALIDO` | 409 | Categoria de outro ambiente, ou conta sem vínculo (`ADR-0004`) |
 
 **Cada linha aponta para uma invariante já escrita no domínio.** Código novo sem invariante

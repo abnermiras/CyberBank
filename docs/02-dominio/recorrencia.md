@@ -8,9 +8,11 @@ status: rascunho
 
 # Recorrência e parcelamento
 
-> **Quando.** O **parcelamento** é Fase 1. A **recorrência** não é
-> (`docs/00-produto/roadmap.md`) — ela está escrita aqui porque a regra foi decidida junto
-> com a fatura, e porque o passo do fechamento que a lança depende dela.
+> **Quando.** O **parcelamento existe**, desde o cartão: entra por
+> `docs/04-api/endpoints-series.md`, e o pacote de código é `recorrencia/`, pelo nome deste doc
+> (`ADR-0008`). A **recorrência** é Fase 2 (`docs/00-produto/roadmap.md`) — ela está escrita
+> aqui porque a regra foi decidida junto com a fatura, e porque o passo do fechamento que a
+> lança depende dela.
 
 São **duas coisas diferentes** que geram várias linhas no extrato. Tratar as duas com a
 mesma regra é o erro que este doc existe para impedir.
@@ -103,6 +105,12 @@ todos os saldos derivados**. Não existe recálculo a disparar.
 
 Cancelar um parcelamento não é apagar a compra — a compra aconteceu. As parcelas
 **já realizadas ficam**; as `PREVISTO` somem.
+
+**E no cartão não existe parcela `PREVISTO`**: todas nascem `PROVISIONADO` na data da compra
+(`ADR-0006`), então não há o que cancelar. O que existe é **excluir o parcelamento**, que é a
+outra coisa — *nunca correspondeu a nada* — e leva as N parcelas junto
+(`docs/02-dominio/lancamento.md`). É o único caminho: tirar **uma** parcela quebraria a soma, e
+o `PARCELA_ISOLADA` recusa.
 
 ### Quando a loja estorna a compra
 
@@ -225,6 +233,15 @@ do que o caso comum, e o caso comum não deve pagar o preço do raro.
 
 > ☐ **A definir:** débito automático é atributo da recorrência (já decidido), mas falta
 > escrever o que ele muda no comportamento — se nada muda além de rótulo, ele é rótulo.
+
+## O que ainda não existe
+
+| O que falta | Consequência hoje |
+|---|---|
+| **A `Recorrencia` inteira** | Não há tabela, não há coluna `recorrencia_id` no lançamento e o fechamento tem dois passos, não três. Assinatura se lança à mão, todo mês |
+| **A tela de Séries** | O parcelamento aparece no **detalhe de cada parcela** (`docs/06-interface/extrato.md`), e não há lista dos parcelamentos vivos |
+| **Mostrar quais faturas mudam antes de confirmar** | A regra está escrita — *editar série nunca muda o valor de uma fatura paga sem mostrar quais* —, e a borda ainda devolve só as parcelas redistribuídas. A tela de Séries é onde esse aviso cabe |
+| **Antecipar parcelas** | Fase 2 (`docs/00-produto/roadmap.md`) |
 
 **Decidido:** todas as parcelas continuam com `dataEvento` **da compra**, e quem espalha os
 R$ 5.000 é o **relatório**, olhando a fatura de cada parcela. O padrão do relatório de gasto é

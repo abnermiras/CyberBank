@@ -34,7 +34,7 @@ public enum TipoDeConta {
         return this != BENEFICIO;
     }
 
-    public boolean dependeDeFatura() {
+    public boolean ehContratoDeCartao() {
         return this == CARTAO;
     }
 }

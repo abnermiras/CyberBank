@@ -3,6 +3,18 @@ package br.com.cyberbank.evento.dominio;
 public enum TipoDeEvento {
 
     LANCAMENTO_REALIZADO(OrigemDeEvento.SISTEMA),
+    FATURA_FECHADA(OrigemDeEvento.SISTEMA),
+    FATURA_ABERTA_PELO_CICLO(OrigemDeEvento.SISTEMA),
+    FATURA_ROLADA(OrigemDeEvento.SISTEMA),
+    FATURA_ENCERRADA(OrigemDeEvento.SISTEMA),
+
+    FATURA_PAGA(OrigemDeEvento.USUARIO),
+    FATURA_FECHADA_PELO_USUARIO(OrigemDeEvento.USUARIO),
+    FATURA_ABERTA_PELO_USUARIO(OrigemDeEvento.USUARIO),
+    LIMITE_INFORMADO(OrigemDeEvento.USUARIO),
+    SERIE_CRIADA(OrigemDeEvento.USUARIO),
+    SERIE_ALTERADA(OrigemDeEvento.USUARIO),
+    SERIE_CANCELADA(OrigemDeEvento.USUARIO),
 
     LANCAMENTO_CRIADO(OrigemDeEvento.USUARIO),
     LANCAMENTO_EDITADO(OrigemDeEvento.USUARIO),

@@ -25,7 +25,7 @@ metades da tela discordando é pior que a tela demorar.
 | 1 | **Os quatro números** | Quanto tenho, quanto sobra, quanto guardei, quanto sou |
 | 2 | **Gasto por categoria** | Para onde o dinheiro foi **neste mês** |
 | 3 | **Pendências** | O que o sistema não sabe classificar — e o usuário resolve **ali** |
-| 4 | **Fatura** | *(reservado — ver abaixo)* |
+| 4 | **Fatura** | A janela que importa de cada cartão |
 | 5 | **O que vem por aí** | O que ainda vai cair até o fim do mês |
 | 6 | **O mês em números** | Entrou, saiu, guardou — e o ritmo do que sobra |
 
@@ -76,15 +76,19 @@ caminho que ninguém percorre, e a fila só cresce.
 
 Lista até cinco; o resto está no Extrato, com o filtro de pendência ligado.
 
-## 4. Fatura — bloco reservado
+## 4. Fatura
 
-A conta `CARTAO` e a fatura ainda não existem (`docs/02-dominio/fatura-cartao.md`). O bloco
-**existe na tela dizendo o que espera**, em vez de sumir: tela que esconde o que falta ensina
-que o app não faz.
+**A janela que importa**, uma linha por cartão: a fatura `FECHADA` que ainda deve, ou, na falta
+dela, a `ABERTA`. O **a pagar** é o número grande, com o vencimento (ou o fechamento, se ela
+ainda está aberta) e o mês da competência embaixo. Se há pagamento agendado, ele aparece — é o
+que impede o usuário de pagar duas vezes.
 
-Quando a fatura existir, ele mostra a **janela que importa** — a fatura `FECHADA` com valor a
-pagar, ou a `ABERTA` —, o total, as datas de fechamento e vencimento, e as ações de fechar e
-pagar. É o recorte que o protótipo já validou.
+**As ações não estão aqui**, e é de propósito: a linha leva à tela da Fatura
+(`docs/06-interface/fatura.md`), que é onde o estado decide quais botões existem. A Home é onde
+se **olha antes de decidir**; decidir é na tela do objeto.
+
+**Sem cartão o bloco diz isso**, em vez de sumir: tela que esconde o que falta ensina que o app
+não faz.
 
 ## 5. O que vem por aí
 
@@ -96,8 +100,11 @@ qualquer `PREVISTO`.
   *Hoje* é escrito por extenso, porque é o único que muda o que se faz agora.
 - Cada linha leva ao Extrato.
 - Vazio é resposta: *nada previsto até o fim do mês*.
-- O rodapé nomeia **o que ainda não entra aqui**: recorrência e fatura de cartão. Um número que
-  esconde o que não sabe é um número em que se confia demais.
+- O rodapé nomeia **o que ainda não entra aqui**: recorrência. A fatura passou a entrar — o
+  `a pagar` das que vencem até lá é descontado da **sobra**, por consulta e não por lançamento
+  inventado, e o que já tem pagamento agendado não é contado duas vezes
+  (`docs/02-dominio/conta.md`). Um número que esconde o que não sabe é um número em que se
+  confia demais.
 
 ## 6. O mês em números
 

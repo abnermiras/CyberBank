@@ -15,6 +15,12 @@ public interface LancamentoRepository {
 
     List<Lancamento> listarDaTransferencia(Long transferenciaId, Long ambienteId);
 
+    List<Lancamento> listarDaFatura(Long faturaId, Long ambienteId);
+
+    List<Lancamento> listarDoParcelamento(Long parcelamentoId, Long ambienteId);
+
+    void excluirDoParcelamento(Long parcelamentoId, Long ambienteId);
+
     Optional<Lancamento> buscarEstornoDe(Long lancamentoId, Long ambienteId);
 
     List<Lancamento> listarPrevistosVencidos(Long ambienteId, LocalDate ate);
@@ -31,6 +37,8 @@ public interface LancamentoRepository {
 
     List<Lancamento> listarPrevistosAte(
             Long ambienteId, LocalDate de, LocalDate ate, Collection<Long> contas, int limite);
+
+    List<TotaisDeFatura> totaisDasFaturas(Collection<Long> faturaIds);
 
     long contarPendencias(Long ambienteId);
 
@@ -55,4 +63,8 @@ public interface LancamentoRepository {
     void excluirPrevistosDaConta(Long contaId, Long ambienteId);
 
     long proximoIdDeTransferencia();
+
+    long proximoIdDeRolagem();
+
+    int liquidarProvisionadosDaFatura(Long faturaId);
 }

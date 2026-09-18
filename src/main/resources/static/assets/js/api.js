@@ -112,6 +112,30 @@ const API = {
 
   excluirConta: (ambienteId, id) => API.remover(API.doAmbiente(ambienteId, `/contas/${id}`)),
 
+  informarLimite: (ambienteId, contaId, limite) =>
+    API.put(API.doAmbiente(ambienteId, `/contas/${contaId}/limite`), { limite }),
+
+  parcelar: (ambienteId, corpo) =>
+    API.post(API.doAmbiente(ambienteId, '/parcelamentos'), corpo),
+
+  excluirParcelamento: (ambienteId, id) =>
+    API.remover(API.doAmbiente(ambienteId, `/parcelamentos/${id}`)),
+
+  listarFaturas: (ambienteId, contaId) =>
+    API.get(API.doAmbiente(ambienteId, `/faturas?contaId=${contaId}`)),
+
+  lancamentosDaFatura: (ambienteId, faturaId) =>
+    API.get(API.doAmbiente(ambienteId, `/faturas/${faturaId}/lancamentos`)),
+
+  pagarFatura: (ambienteId, faturaId, corpo) =>
+    API.post(API.doAmbiente(ambienteId, `/faturas/${faturaId}/pagamentos`), corpo),
+
+  fecharFatura: (ambienteId, faturaId) =>
+    API.post(API.doAmbiente(ambienteId, `/faturas/${faturaId}/fechamento`), {}),
+
+  abrirFatura: (ambienteId, faturaId) =>
+    API.post(API.doAmbiente(ambienteId, `/faturas/${faturaId}/abertura`), {}),
+
   listarMeios: (ambienteId) =>
     API.get(API.doAmbiente(ambienteId, '/meios-de-pagamento?inativos=true')),
 

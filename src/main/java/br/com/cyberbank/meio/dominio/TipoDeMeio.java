@@ -34,11 +34,11 @@ public enum TipoDeMeio {
         return tipoDeContaExigido.equals(tipoDaConta);
     }
 
-    public boolean dependeDeFatura() {
+    public boolean temNome() {
         return this == CREDITO;
     }
 
-    public boolean temNome() {
+    public boolean temFatura() {
         return this == CREDITO;
     }
 

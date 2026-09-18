@@ -51,6 +51,8 @@ public class LancamentoController {
             boolean doCiclo,
             @JsonInclude(JsonInclude.Include.NON_NULL) Long transferenciaId,
             @JsonInclude(JsonInclude.Include.NON_NULL) Long estornoDeId,
+            @JsonInclude(JsonInclude.Include.NON_NULL) Long faturaId,
+            @JsonInclude(JsonInclude.Include.NON_NULL) Long parcelamentoId,
             @JsonInclude(JsonInclude.Include.NON_NULL) String estabelecimento) {
     }
 
@@ -68,6 +70,8 @@ public class LancamentoController {
             @JsonInclude(JsonInclude.Include.NON_NULL) DetalheDoLancamento.ContaDoLancamento conta,
             @JsonInclude(JsonInclude.Include.NON_NULL) DetalheDoLancamento.MeioDoLancamento meio,
             @JsonInclude(JsonInclude.Include.NON_NULL) DetalheDoLancamento.CategoriaDoLancamento categoria,
+            @JsonInclude(JsonInclude.Include.NON_NULL) DetalheDoLancamento.FaturaDoLancamento fatura,
+            @JsonInclude(JsonInclude.Include.NON_NULL) DetalheDoLancamento.SerieDoLancamento serie,
             @JsonInclude(JsonInclude.Include.NON_NULL) AutorResponse autor,
             @JsonInclude(JsonInclude.Include.NON_NULL) TransferenciaResponse transferencia,
             @JsonInclude(JsonInclude.Include.NON_NULL) Long estornoDeId,
@@ -94,7 +98,7 @@ public class LancamentoController {
 
     public record CorrecaoRequest(Long contaId, Long meioId, Long categoriaId, Sentido sentido,
             Long valor, LocalDate dataEvento, LocalDate dataEfeito, String descricao,
-            Situacao situacao) {
+            Situacao situacao, Long faturaId) {
     }
 
     public record EstornoRequest(LocalDate dataEvento) {
@@ -146,6 +150,7 @@ public class LancamentoController {
         return new DetalheResponse(l.id(), l.sentido(), l.valorCentavos(), l.descricao(),
                 l.dataEvento(), l.dataEfeito(), l.situacao(), l.doCiclo(), l.criadoEm(),
                 l.estabelecimento(), detalhe.conta(), detalhe.meio(), detalhe.categoria(),
+                detalhe.fatura(), detalhe.serie(),
                 detalhe.autor() == null ? null
                         : new AutorResponse(l.autorId(), detalhe.autor()),
                 l.transferenciaId() == null ? null
@@ -191,7 +196,7 @@ public class LancamentoController {
                 ContextoDaRequisicao.usuarioId(), lancamentoId, requisicao.contaId(),
                 requisicao.meioId(), requisicao.categoriaId(), requisicao.sentido(),
                 requisicao.valor(), requisicao.dataEvento(), requisicao.dataEfeito(),
-                requisicao.descricao(), requisicao.situacao());
+                requisicao.descricao(), requisicao.situacao(), requisicao.faturaId());
 
         return new ExtratoResponse(
                 alterados.stream().map(LancamentoController::paraResposta).toList(), null);
@@ -223,6 +228,6 @@ public class LancamentoController {
         return new LancamentoResponse(l.id(), l.contaId(), l.meioId(), l.categoriaId(),
                 l.autorId(), l.sentido(), l.valorCentavos(), l.dataEvento(), l.dataEfeito(),
                 l.descricao(), l.situacao(), l.doCiclo(), l.transferenciaId(), l.estornoDeId(),
-                l.estabelecimento());
+                l.faturaId(), l.parcelamentoId(), l.estabelecimento());
     }
 }

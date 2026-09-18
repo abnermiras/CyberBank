@@ -26,13 +26,13 @@ class LancamentoTest {
 
     private Lancamento mercado() {
         return Lancamento.doUsuario(AMBIENTE, CONTA, MEIO, CATEGORIA, AUTOR, Sentido.SAIDA,
-                30000L, HOJE, HOJE, "Mercado", Situacao.REALIZADO, null, AGORA);
+                30000L, HOJE, HOJE, "Mercado", Situacao.REALIZADO, null, null, AGORA);
     }
 
     @Test
     void o_valor_e_sempre_positivo_e_o_sinal_vem_do_sentido() {
         assertThatThrownBy(() -> Lancamento.doUsuario(AMBIENTE, CONTA, MEIO, CATEGORIA, AUTOR,
-                Sentido.SAIDA, -30000L, HOJE, HOJE, "Mercado", Situacao.REALIZADO, null, AGORA))
+                Sentido.SAIDA, -30000L, HOJE, HOJE, "Mercado", Situacao.REALIZADO, null, null, AGORA))
                 .isInstanceOf(ValidacaoException.class);
 
         assertThat(mercado().valorComSinal()).isEqualTo(-30000L);
@@ -41,7 +41,7 @@ class LancamentoTest {
     @Test
     void zero_nao_e_lancamento() {
         assertThatThrownBy(() -> Lancamento.doUsuario(AMBIENTE, CONTA, MEIO, CATEGORIA, AUTOR,
-                Sentido.SAIDA, 0L, HOJE, HOJE, "Nada", Situacao.REALIZADO, null, AGORA))
+                Sentido.SAIDA, 0L, HOJE, HOJE, "Nada", Situacao.REALIZADO, null, null, AGORA))
                 .isInstanceOf(ValidacaoException.class);
     }
 
@@ -49,14 +49,14 @@ class LancamentoTest {
     void a_data_de_efeito_nunca_antecede_a_do_evento() {
         assertThatThrownBy(() -> Lancamento.doUsuario(AMBIENTE, CONTA, MEIO, CATEGORIA, AUTOR,
                 Sentido.SAIDA, 30000L, HOJE, HOJE.minusDays(1), "Mercado", Situacao.REALIZADO,
-                null, AGORA))
+                null, null, AGORA))
                 .isInstanceOf(ValidacaoException.class);
     }
 
     @Test
     void gasto_real_tem_meio_de_pagamento() {
         assertThatThrownBy(() -> Lancamento.doUsuario(AMBIENTE, CONTA, null, CATEGORIA, AUTOR,
-                Sentido.SAIDA, 30000L, HOJE, HOJE, "Mercado", Situacao.REALIZADO, null, AGORA))
+                Sentido.SAIDA, 30000L, HOJE, HOJE, "Mercado", Situacao.REALIZADO, null, null, AGORA))
                 .isInstanceOf(ValidacaoException.class);
     }
 
@@ -79,7 +79,7 @@ class LancamentoTest {
     @Test
     void a_data_realiza_o_previsto_e_so_quando_ela_chega() {
         Lancamento boleto = Lancamento.doUsuario(AMBIENTE, CONTA, MEIO, CATEGORIA, AUTOR,
-                Sentido.SAIDA, 19900L, HOJE, HOJE.plusDays(10), "Luz", Situacao.PREVISTO, null,
+                Sentido.SAIDA, 19900L, HOJE, HOJE.plusDays(10), "Luz", Situacao.PREVISTO, null, null,
                 AGORA);
 
         assertThat(boleto.realizadoPelaData(HOJE).situacao()).isEqualTo(Situacao.PREVISTO);
@@ -163,7 +163,8 @@ class LancamentoTest {
     @Test
     void o_estorno_inverte_o_sentido_herda_a_categoria_e_aponta_para_o_original() {
         Lancamento compra = comId(30L, mercado());
-        Lancamento estorno = compra.estornadoEm(HOJE.plusDays(3), AUTOR, AGORA);
+        Lancamento estorno = compra.estornadoEm(HOJE.plusDays(3), AUTOR, null,
+                Situacao.REALIZADO, AGORA);
 
         assertThat(estorno.sentido()).isEqualTo(Sentido.ENTRADA);
         assertThat(estorno.valorCentavos()).isEqualTo(compra.valorCentavos());
@@ -189,7 +190,7 @@ class LancamentoTest {
     @Test
     void pendencia_e_categoria_nula_e_nada_alem_disso() {
         Lancamento semCategoria = Lancamento.doUsuario(AMBIENTE, CONTA, MEIO, null, AUTOR,
-                Sentido.SAIDA, 5000L, HOJE, HOJE, "MEDTECH 24H", Situacao.REALIZADO, null, AGORA);
+                Sentido.SAIDA, 5000L, HOJE, HOJE, "MEDTECH 24H", Situacao.REALIZADO, null, null, AGORA);
 
         assertThat(semCategoria.pendente()).isTrue();
         assertThat(mercado().pendente()).isFalse();
@@ -265,7 +266,8 @@ class LancamentoTest {
     private static Lancamento comId(Long id, Lancamento l) {
         return new Lancamento(id, l.ambienteId(), l.contaId(), l.meioId(), l.categoriaId(),
                 l.autorId(), l.sentido(), l.valorCentavos(), l.dataEvento(), l.dataEfeito(),
-                l.descricao(), l.situacao(), l.transferenciaId(), l.estornoDeId(), l.doCiclo(),
+                l.descricao(), l.situacao(), l.transferenciaId(), l.estornoDeId(), l.faturaId(),
+                l.pagamentoDeFaturaId(), l.rolagemDeFatura(), l.parcelamentoId(), l.doCiclo(),
                 l.estabelecimento(), l.criadoEm());
     }
 }

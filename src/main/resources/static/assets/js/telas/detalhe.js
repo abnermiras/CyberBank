@@ -572,16 +572,42 @@ const Detalhe = {
     return linhas.length ? Detalhe.bloco('Ligações', linhas.join('')) : '';
   },
 
+  ROTULO_DE_STATUS: { FUTURA: 'FUTURA', ABERTA: 'ABERTA', FECHADA: 'FECHADA' },
+
   serieEFatura() {
+    const fatura = Detalhe.dados && Detalhe.dados.fatura;
+    const serie = Detalhe.dados && Detalhe.dados.serie;
+
+    if (!fatura) {
+      return `
+        <section class="det-bloco">
+          <h4>Série e fatura <span class="tele">NÃO SE APLICA</span></h4>
+          <div class="emespera">
+            <p>Só compra no <b>crédito</b> entra em fatura, e só ela se parcela. Este lançamento
+              não é de crédito: não há fatura nem série a mostrar.</p>
+          </div>
+        </section>`;
+    }
+
     return `
       <section class="det-bloco">
-        <h4>Série e fatura <span class="tele">AINDA NÃO EXISTE</span></h4>
-        <div class="emespera">
-          <p>Quando o cartão entrar, é aqui que vai dizer <b>de qual fatura</b> este lançamento
-            é e em que <b>mês</b> ele conta. E, se for parcela, <b>qual de quantas</b> — com o
-            valor da compra inteira.</p>
-          <div class="falta">FALTA PARA ISSO EXISTIR: <b>fatura</b> · <b>parcelamento</b></div>
-        </div>
+        <h4>Série e fatura</h4>
+        <dl>
+          ${serie ? Detalhe.par('Parcela',
+            `<b>${serie.numero} de ${serie.parcelas}</b>, da compra de
+             <b>${Formato.dinheiro(serie.valorDaCompraCentavos)}</b> em
+             ${Formato.dia(serie.dataDaCompra)}`) : ''}
+          ${Detalhe.par('Fatura', `<b>${Formato.texto(Formato.mes(fatura.competencia))}</b>
+            <span class="tag">${Detalhe.ROTULO_DE_STATUS[fatura.status] || fatura.status}</span>`)}
+          ${Detalhe.par('Fecha em', Formato.dia(fatura.dataFechamento))}
+          ${Detalhe.par('Vence em', Formato.dia(fatura.dataVencimento))}
+        </dl>
+        <p class="dica">O gasto conta no mês do <b>vencimento</b> desta fatura — é o eixo padrão
+          do relatório, e é o que bate com o dinheiro que sai. A fatura é editável: este
+          lançamento pode ser movido para qualquer fatura deste cartão, aberta ou não.
+          ${serie ? `<br><br><b>Parcela não se edita nem se exclui sozinha</b>: ela é um pedaço
+            de uma compra só, e mexer nela quebraria a soma. Editar o parcelamento altera
+            <b>todas</b> as parcelas, sempre — e quem se arrepende exclui o parcelamento.` : ''}</p>
       </section>`;
   },
 

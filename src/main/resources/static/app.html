@@ -90,15 +90,9 @@
           <section class="panel">
             <div class="panel-head">
               <h3>Fatura</h3>
-              <span class="tele">AINDA NÃO EXISTE</span>
+              <span class="tele" id="faturaHomeTele">—</span>
             </div>
-            <div class="emespera">
-              <h4>O ciclo do cartão entra aqui</h4>
-              <p>A fatura <b>fechada</b> com valor a pagar, o total, as datas de fechamento e
-                vencimento, e os botões de <b>fechar</b> e <b>pagar</b> — no lugar onde se olha
-                antes de decidir.</p>
-              <div class="falta">FALTA PARA ELA EXISTIR: <b>conta CARTAO</b> · <b>fatura</b></div>
-            </div>
+            <div id="faturaHome"></div>
           </section>
         </div>
       </div>
@@ -112,8 +106,9 @@
           <div class="horizonte-totais" id="horizonteTotais"></div>
           <div id="proximosList"></div>
           <p class="rodape-regra">Aqui está o que já tem data: <b>boleto</b> e o que foi lançado
-            como previsto. <b>Recorrência</b> e <b>fatura de cartão</b> ainda não entram — e o
-            número que esconde o que não sabe é o número em que se confia demais.</p>
+            como previsto, e o <b>a pagar</b> das faturas que vencem até lá já está descontado
+            da sobra. <b>Recorrência</b> ainda não entra — e o número que esconde o que não sabe
+            é o número em que se confia demais.</p>
         </section>
 
         <section class="panel">
@@ -157,7 +152,26 @@
           abertura se corrige editando o valor.</p>
       </section>
     </section>
-    <section class="tela hidden" data-tela="fatura"></section>
+    <section class="tela hidden" data-tela="fatura">
+      <div class="telahead">
+        <div>
+          <div class="eyebrow">CARTÃO // O CICLO</div>
+          <h2 class="th"><span class="glitch" data-t="Fatura">Fatura</span></h2>
+        </div>
+        <div class="tele" id="faturaTele">—</div>
+      </div>
+
+      <div class="seg hidden" id="faturaContratos"></div>
+      <div id="avisoFatura"></div>
+      <div id="cabecalhoDoCartao"></div>
+      <div id="faturaEmFoco"></div>
+
+      <p class="rodape-regra">A fatura <b>não move dinheiro</b>: quem move é a compra, que
+        aumenta a dívida, e o pagamento, que a diminui. Por isso ela não guarda total — os três
+        números são sempre a soma dos lançamentos dela. <b>Fechar não liquida nada</b>: quem
+        liquida é o encerramento, quitada ou vencida e rolada. E <b>fatura fechada não congela
+        lançamento nenhum</b> — para corrigir o passado, edita-se a linha no Extrato.</p>
+    </section>
     <section class="tela hidden" data-tela="series"></section>
     <section class="tela hidden" data-tela="reserva">
       <div class="telahead">
@@ -462,9 +476,36 @@
               <button class="btn primary" type="submit" id="btnConta">Abrir conta</button>
             </div>
 
-            <div class="field mt10" style="margin-bottom:0">
+            <div class="formraiz mt10 hidden" id="cicloDoCartao">
+              <div class="field" style="margin:0">
+                <label for="contaDiaVencimento">Vence dia</label>
+                <input id="contaDiaVencimento" type="number" min="1" max="31" placeholder="5">
+              </div>
+              <div class="field" style="margin:0">
+                <label for="contaDiasAntes">Fecha quantos dias antes</label>
+                <input id="contaDiasAntes" type="number" min="1" max="28" placeholder="8">
+              </div>
+              <div class="field" style="margin:0">
+                <label for="contaLimite">Limite</label>
+                <input id="contaLimite" type="text" inputmode="decimal" placeholder="15000,00">
+              </div>
+              <div class="field" style="margin:0">
+                <label for="contaPagadora">Paga normalmente pela</label>
+                <select id="contaPagadora"></select>
+              </div>
+            </div>
+
+            <div class="field mt10" style="margin-bottom:0" id="campoDosMeios">
               <label>Como se paga com ela</label>
               <div class="opcoes" id="meiosDaConta"></div>
+            </div>
+
+            <div class="field mt10 hidden" style="margin-bottom:0" id="campoDosCartoes">
+              <label for="contaCartoes">Cartões deste contrato</label>
+              <input id="contaCartoes" type="text" maxlength="200"
+                     placeholder="FÍSICO ****1234, FREELANCE ****0987">
+              <span class="tele">UM NOME POR CARTÃO, SEPARADOS POR VÍRGULA — FÍSICO, VIRTUAL E
+                ADICIONAL DIVIDEM O MESMO CONTRATO</span>
             </div>
 
             <p class="dica mt10" id="contaExplica"></p>
@@ -555,10 +596,10 @@
       <button type="button" data-aba="RECEITA">RECEITA</button>
       <button type="button" data-aba="TRANSFERENCIA">TRANSFERÊNCIA</button>
       <button type="button" data-aba="CREDITO" disabled
-              title="Entra com o cartão de crédito">CRÉDITO</button>
+              title="Cadastre uma conta CARTÃO e um cartão dela">CRÉDITO</button>
     </div>
-    <p class="dica" id="compAbaCredito">A aba <b>CRÉDITO</b> — compra parcelada no cartão —
-      espera a conta <b>CARTAO</b> e a <b>fatura</b>, que ainda não existem.</p>
+    <p class="dica hidden" id="compAbaCredito">A aba <b>CRÉDITO</b> espera uma conta
+      <b>CARTÃO</b> com pelo menos um cartão. Cadastre no <b>Cadastro → contas e meios</b>.</p>
 
     <form id="fCompleto" autocomplete="off">
       <div class="row">
@@ -603,6 +644,12 @@
         </div>
       </div>
 
+      <div class="field hidden" id="campoCompParcelas">
+        <label for="compParcelas">Em quantas vezes</label>
+        <input id="compParcelas" type="number" min="1" max="99" step="1" value="1">
+        <span class="tele">1 É À VISTA · A PARTIR DE 2, AS PARCELAS NASCEM TODAS JUNTAS</span>
+      </div>
+
       <div class="explica" id="compExplica"></div>
       <div id="compAviso"></div>
       <button class="btn primary" style="width:100%" type="submit" id="btnCompleto">Registrar</button>
@@ -620,6 +667,7 @@
 <script src="assets/js/telas/contas.js"></script>
 <script src="assets/js/lancar.js"></script>
 <script src="assets/js/telas/extrato.js"></script>
+<script src="assets/js/telas/fatura.js"></script>
 <script src="assets/js/telas/reserva.js"></script>
 <script src="assets/js/telas/diario.js"></script>
 <script src="assets/js/telas/detalhe.js"></script>

@@ -14,6 +14,8 @@ import br.com.cyberbank.evento.dominio.Alvo;
 import br.com.cyberbank.evento.dominio.Evento;
 import br.com.cyberbank.evento.dominio.EventoRepository;
 import br.com.cyberbank.evento.dominio.TipoDeEvento;
+import br.com.cyberbank.fatura.dominio.Fatura;
+import br.com.cyberbank.fatura.dominio.FaturaRepository;
 import br.com.cyberbank.lancamento.dominio.Lancamento;
 import br.com.cyberbank.lancamento.dominio.LancamentoRepository;
 import br.com.cyberbank.lancamento.dominio.Sentido;
@@ -30,17 +32,20 @@ public class EditarLancamentoUseCase {
     private final LancamentoRepository lancamentos;
     private final ContaRepository contas;
     private final MeioRepository meios;
+    private final FaturaRepository faturas;
     private final EscolhaDeCategoria escolhaDeCategoria;
     private final EventoRepository eventos;
     private final DiaLocal diaLocal;
     private final Clock relogio;
 
     public EditarLancamentoUseCase(LancamentoRepository lancamentos, ContaRepository contas,
-            MeioRepository meios, EscolhaDeCategoria escolhaDeCategoria, EventoRepository eventos,
+            MeioRepository meios, FaturaRepository faturas,
+            EscolhaDeCategoria escolhaDeCategoria, EventoRepository eventos,
             DiaLocal diaLocal, Clock relogio) {
         this.lancamentos = lancamentos;
         this.contas = contas;
         this.meios = meios;
+        this.faturas = faturas;
         this.escolhaDeCategoria = escolhaDeCategoria;
         this.eventos = eventos;
         this.diaLocal = diaLocal;
@@ -51,7 +56,7 @@ public class EditarLancamentoUseCase {
     public List<Lancamento> executar(Long ambienteId, Long autorId, Long lancamentoId,
             Long novaContaId, Long novoMeioId, Long novaCategoriaId, Sentido novoSentido,
             Long novoValorCentavos, LocalDate novaDataEvento, LocalDate novaDataEfeito,
-            String novaDescricao, Situacao novaSituacao) {
+            String novaDescricao, Situacao novaSituacao, Long novaFaturaId) {
 
         Lancamento lancamento = lancamentos.buscarDoAmbiente(lancamentoId, ambienteId)
                 .orElseThrow(() -> new RegraDeDominioException(CodigoDeErro.NAO_ENCONTRADO));
@@ -64,7 +69,8 @@ public class EditarLancamentoUseCase {
                         novaDescricao, novaSituacao)
                 : List.of(lancamentos.salvar(corrigirUmSo(ambienteId, lancamento, novaContaId,
                         novoMeioId, novaCategoriaId, novoSentido, novoValorCentavos,
-                        novaDataEvento, novaDataEfeito, novaDescricao, novaSituacao)));
+                        novaDataEvento, novaDataEfeito, novaDescricao, novaSituacao,
+                        novaFaturaId)));
 
         Lancamento depois = corrigidos.stream()
                 .filter(corrigido -> corrigido.id().equals(lancamentoId))
@@ -79,7 +85,7 @@ public class EditarLancamentoUseCase {
     private Lancamento corrigirUmSo(Long ambienteId, Lancamento lancamento, Long novaContaId,
             Long novoMeioId, Long novaCategoriaId, Sentido novoSentido, Long novoValorCentavos,
             LocalDate novaDataEvento, LocalDate novaDataEfeito, String novaDescricao,
-            Situacao novaSituacao) {
+            Situacao novaSituacao, Long novaFaturaId) {
 
         Meio meio = meioResultante(ambienteId, lancamento, novoMeioId);
         if (meio == null) {
@@ -101,8 +107,45 @@ public class EditarLancamentoUseCase {
         LocalDate dataEfeito = meio.dataEfeitoPara(dataEvento,
                 dataEfeitoInformada(lancamento, meio, novaDataEfeito));
 
-        return lancamento.corrigido(meio.contaId(), meio.id(), novaCategoriaId, novoSentido,
-                novoValorCentavos, dataEvento, dataEfeito, novaDescricao, novaSituacao);
+        Long faturaId = faturaResultante(ambienteId, lancamento, meio, novaFaturaId);
+
+        Lancamento corrigido = lancamento
+                .corrigido(meio.contaId(), meio.id(), novaCategoriaId, novoSentido,
+                        novoValorCentavos, dataEvento, dataEfeito, novaDescricao, novaSituacao)
+                .naFatura(faturaId);
+
+        if (novaSituacao != null || lancamento.entraEmFatura() == corrigido.entraEmFatura()) {
+            return corrigido;
+        }
+        return corrigido.comSituacao(corrigido.entraEmFatura()
+                ? Situacao.PROVISIONADO
+                : situacaoPelaData(dataEfeito));
+    }
+
+    private Long faturaResultante(Long ambienteId, Lancamento lancamento, Meio meio,
+            Long novaFaturaId) {
+
+        if (!meio.temFatura()) {
+            return null;
+        }
+        if (novaFaturaId != null) {
+            Fatura escolhida = faturas.buscarDoAmbiente(novaFaturaId, ambienteId)
+                    .orElseThrow(() -> new RegraDeDominioException(CodigoDeErro.NAO_ENCONTRADO));
+            if (!escolhida.contaId().equals(meio.contaId())) {
+                throw new RegraDeDominioException(CodigoDeErro.NAO_ENCONTRADO);
+            }
+            return escolhida.id();
+        }
+        if (lancamento.entraEmFatura() && meio.contaId().equals(lancamento.contaId())) {
+            return lancamento.faturaId();
+        }
+        return faturas.buscarAbertaDaConta(meio.contaId())
+                .orElseThrow(() -> new RegraDeDominioException(CodigoDeErro.NAO_ENCONTRADO))
+                .id();
+    }
+
+    private Situacao situacaoPelaData(LocalDate dataEfeito) {
+        return dataEfeito.isAfter(diaLocal.hoje()) ? Situacao.PREVISTO : Situacao.REALIZADO;
     }
 
     private static LocalDate dataEfeitoInformada(Lancamento lancamento, Meio meio,

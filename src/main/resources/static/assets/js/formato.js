@@ -13,6 +13,15 @@ const Formato = {
     return `${dia}/${mes}/${ano}`;
   },
 
+  MESES: ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto',
+    'setembro', 'outubro', 'novembro', 'dezembro'],
+
+  mes(competencia) {
+    if (!competencia) return '—';
+    const [ano, mes] = String(competencia).split('-');
+    return `${Formato.MESES[Number(mes) - 1]} de ${ano}`;
+  },
+
   hoje() {
     const agora = new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
     const [dia, mes, ano] = agora.split('/');

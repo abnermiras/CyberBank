@@ -53,7 +53,9 @@ GET /api/v1/ambientes/1/contas
     { "tipo": "APLICACAO", "entraNoFluxoDeCaixa": false, "entraEmCaixa": false,
       "aceitaSaldoInicial": true, "meios": [] },
     { "tipo": "BENEFICIO", "entraNoFluxoDeCaixa": true, "entraEmCaixa": false,
-      "aceitaSaldoInicial": true, "meios": ["BENEFICIO"] }
+      "aceitaSaldoInicial": true, "meios": ["BENEFICIO"] },
+    { "tipo": "CARTAO", "entraNoFluxoDeCaixa": true, "entraEmCaixa": false,
+      "aceitaSaldoInicial": false, "meios": ["CREDITO"] }
   ]
 }
 ```
@@ -63,8 +65,10 @@ para montar o seletor de tipo e as caixas de meio, **sem manter uma segunda cóp
 `docs/02-dominio/meio-de-pagamento.md` dentro do JavaScript**. Um fato, um dono, e a borda
 serve o dono.
 
-`CARTAO` **não aparece** em `tiposDisponiveis` enquanto a fatura não existir — é assim que a
-tela some com a opção sem precisar saber por quê.
+Uma conta `CARTAO` traz também **`diaVencimento`, `diasAntesFechamento`, `limiteCentavos`,
+`limiteInformadoEm` e `contaPagadoraPadraoId`**; nas outras os cinco campos **não vêm**. O ciclo
+e o limite são do contrato, nunca do cartão (`docs/02-dominio/meio-de-pagamento.md`), e a fatura
+em si está em `docs/04-api/endpoints-faturas.md`.
 
 | Campo | Nota |
 |---|---|
@@ -146,6 +150,34 @@ redesenhar.
 | `CONTA_NAO_E_APLICACAO` (409) | A conta existe e não é `APLICACAO`. O saldo das outras é a soma do que se movimentou de verdade |
 | `NAO_ENCONTRADO` (404) | Conta inexistente ou de outro ambiente |
 
+## `PUT /api/v1/ambientes/{ambienteId}/contas/{contaId}/limite`
+
+O limite do cartão, que é do **contrato** e nunca do cartão
+(`docs/02-dominio/meio-de-pagamento.md`). **É informado pelo usuário e o sistema nunca o corrige
+sozinho** — ele passa a carregar a data de hoje, e é essa idade que a tela mostra (regra 7 do
+`CLAUDE.md`).
+
+```
+PUT /api/v1/ambientes/1/contas/9/limite
+{ "limite": 1500000 }
+
+200 OK
+{ "id": 9, "nome": "UltraVioleta", "tipo": "CARTAO", ... }
+```
+
+**É `PUT` porque é declaração, não fato:** informar de novo o mesmo número é a mesma afirmação,
+com data nova. Grava `LIMITE_INFORMADO` com o de/para.
+
+**O limite nunca trava um lançamento.** Ele orienta: quando a dívida passa dele, o disponível
+fica negativo e `GET /faturas` diz que ele pode estar desatualizado — recusar uma compra que o
+emissor já aprovou seria o app discordando do banco.
+
+| Erro | Quando |
+|---|---|
+| `CONTA_NAO_E_CARTAO` (409) | A conta existe e não é `CARTAO`: só o contrato de cartão tem limite |
+| `VALIDACAO` (422) | `limite` ausente ou não positivo |
+| `NAO_ENCONTRADO` (404) | Conta inexistente ou de outro ambiente |
+
 ## `POST /api/v1/ambientes/{ambienteId}/contas`
 
 Abre a conta. Se vier `saldoInicial`, **nasce junto um lançamento de abertura** — saldo inicial
@@ -166,9 +198,18 @@ Location: /api/v1/ambientes/1/contas/1
 | Campo | Obrigatório | Nota |
 |---|:--:|---|
 | `nome` | sim | Até 80 caracteres |
-| `tipo` | sim | `CORRENTE`, `CARTEIRA`, `APLICACAO`, `BENEFICIO`. **`CARTAO` ainda não** — ver *O que ainda não existe* |
-| `saldoInicial` | não | Inteiro em centavos, **com sinal**: negativo abre a conta no vermelho, e o lançamento nasce `SAIDA` com valor positivo. Ausente, `null` ou `0` não criam lançamento nenhum — zero não é lançamento |
+| `tipo` | sim | `CORRENTE`, `CARTEIRA`, `APLICACAO`, `BENEFICIO`, `CARTAO` |
+| `saldoInicial` | não | Inteiro em centavos, **com sinal**: negativo abre a conta no vermelho, e o lançamento nasce `SAIDA` com valor positivo. Ausente, `null` ou `0` não criam lançamento nenhum — zero não é lançamento. **Proibido na `CARTAO`** |
 | `meios` | não | Os tipos de meio que a conta passa a ter, **no mesmo ato**. Não existe cadastro de meio à parte (`docs/02-dominio/meio-de-pagamento.md`). Repetido na lista conta uma vez só; ausente ou vazio abre a conta sem meio nenhum, e ela ainda não lança nada |
+| `cartoes` | não | **Só na `CARTAO`**: os nomes dos cartões do contrato — físico, virtual, adicional —, um meio `CREDITO` para cada. É lista de **nome** e não de tipo porque só o `CREDITO` tem nome, e nele o nome é a identidade |
+| `diaVencimento` | **na `CARTAO`** | 1 a 31. Dia maior que o mês cai no último dia dele |
+| `diasAntesFechamento` | **na `CARTAO`** | 1 a 28, dias corridos. `dataFechamento = dataVencimento − diasAntesFechamento`, o que a joga naturalmente para o mês anterior |
+| `limite` | não | Só na `CARTAO`. Inteiro em centavos, positivo. **Informado pelo usuário e nunca corrigido pelo sistema** — ele passa a carregar a data de hoje como `limiteInformadoEm` (regra 7 do `CLAUDE.md`) |
+| `contaPagadoraPadraoId` | não | Só na `CARTAO`, e de uma conta do mesmo ambiente. **É só o que vem preenchido** no formulário de pagamento: nada nasce dela sozinho |
+
+**Abrir uma `CARTAO` cria junto a fatura `ABERTA` do ciclo corrente, vazia** — aquele cujo
+fechamento ainda não passou. Sem ela a invariante da `ABERTA` única seria falsa até o primeiro
+fechamento, e a primeira compra não teria onde cair (`docs/02-dominio/fatura-cartao.md`).
 
 **Os dois eixos não vêm na requisição**: eles saem do `tipo` no nascimento. Deixar o cliente
 escolher seria deixá-lo contradizer o modelo — uma `APLICACAO` "que entra em caixa" mentiria
@@ -180,7 +221,7 @@ corrige o valor dele, mas não o exclui (`docs/02-dominio/lancamento.md`).
 
 | Erro | Quando |
 |---|---|
-| `VALIDACAO` (422) | `nome` vazio ou longo demais; `tipo` ausente; `tipo: "CARTAO"` enquanto a fatura não existir |
+| `VALIDACAO` (422) | `nome` vazio ou longo demais; `tipo` ausente; `CARTAO` sem `diaVencimento` ou sem `diasAntesFechamento`; ciclo de fatura em conta que não é `CARTAO`; `limite` sem ser positivo |
 | `CARTAO_SEM_SALDO_INICIAL` (422) | `saldoInicial` numa conta `CARTAO` — a única exceção da regra do saldo inicial |
 | `CORPO_INVALIDO` (400) | `tipo` fora da lista |
 
@@ -235,12 +276,12 @@ DELETE /api/v1/ambientes/1/contas/4
 
 ## O que ainda não existe
 
-- **Conta `CARTAO`**, que nasce com a fatura `ABERTA` do ciclo corrente e guarda limite, dia de
-  vencimento, dias de fechamento e conta pagadora padrão. O `CHECK` da coluna `tipo` já aceita
-  `CARTAO`: quem recusa hoje é o caso de uso, e a fatia da fatura não vai precisar de migration
-  em cima de dado real.
-- **Saldo projetado** — o realizado mais o `PREVISTO` até uma data, menos o `a pagar` das
-  faturas que vencem até lá. Depende da fatura.
+- **O `a pagar` das faturas no `saldoProjetadoCentavos` de cada conta**, e ele **não vai**
+  entrar: o sistema não sabe de qual conta você vai pagar (`docs/02-dominio/conta.md`). O
+  desconto é do agregado, e já está em `GET /relatorios/resumo`.
+- **Trocar o ciclo de um cartão** (`diaVencimento`, `diasAntesFechamento`) depois de aberto. A
+  regra está escrita — vale da próxima fatura a nascer, e fatura já criada mantém suas datas —,
+  e o `PATCH` ainda não expõe os campos.
 - **Papel**: nenhum endpoint desta página verifica se o usuário é dono, editor ou leitor. A
   gestão de papel e o convite não existem, e todo ambiente hoje tem exatamente um acesso, que é
   o do dono. A verificação entra com o convite (`docs/02-dominio/ambiente-financeiro.md`).

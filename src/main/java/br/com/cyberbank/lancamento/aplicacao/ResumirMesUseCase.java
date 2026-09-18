@@ -14,6 +14,7 @@ import br.com.cyberbank.categoria.dominio.Categoria;
 import br.com.cyberbank.comum.tempo.DiaLocal;
 import br.com.cyberbank.conta.aplicacao.ContaComSaldo;
 import br.com.cyberbank.conta.aplicacao.ListarContasUseCase;
+import br.com.cyberbank.fatura.aplicacao.NumerosDasFaturas;
 import br.com.cyberbank.lancamento.dominio.JanelaDoPrevisto;
 import br.com.cyberbank.lancamento.dominio.LancamentoRepository;
 import br.com.cyberbank.lancamento.dominio.RelatorioDoMes;
@@ -32,13 +33,16 @@ public class ResumirMesUseCase {
     private final LancamentoRepository lancamentos;
     private final ListarContasUseCase listarContas;
     private final ListarCategoriasUseCase listarCategorias;
+    private final NumerosDasFaturas numerosDasFaturas;
     private final DiaLocal diaLocal;
 
     public ResumirMesUseCase(LancamentoRepository lancamentos, ListarContasUseCase listarContas,
-            ListarCategoriasUseCase listarCategorias, DiaLocal diaLocal) {
+            ListarCategoriasUseCase listarCategorias, NumerosDasFaturas numerosDasFaturas,
+            DiaLocal diaLocal) {
         this.lancamentos = lancamentos;
         this.listarContas = listarContas;
         this.listarCategorias = listarCategorias;
+        this.numerosDasFaturas = numerosDasFaturas;
         this.diaLocal = diaLocal;
     }
 
@@ -76,6 +80,7 @@ public class ResumirMesUseCase {
                 patrimonio,
                 previstos.getOrDefault(Sentido.SAIDA, 0L),
                 previstos.getOrDefault(Sentido.ENTRADA, 0L),
+                numerosDasFaturas.aPagarDasQueVencemEntre(ambienteId, janela.de(), janela.ate()),
                 RelatorioDoMes.somarSentido(buckets, categorias, Sentido.ENTRADA),
                 RelatorioDoMes.somarSentido(buckets, categorias, Sentido.SAIDA),
                 lancamentos.somarAportes(ambienteId, primeiroDia, ultimoDia, foraDoFluxo),

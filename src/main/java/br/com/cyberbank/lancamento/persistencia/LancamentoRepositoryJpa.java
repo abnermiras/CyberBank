@@ -2,7 +2,9 @@ package br.com.cyberbank.lancamento.persistencia;
 
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import br.com.cyberbank.lancamento.dominio.Cursor;
@@ -16,6 +18,7 @@ import br.com.cyberbank.lancamento.dominio.JanelaDoPrevisto;
 import br.com.cyberbank.lancamento.dominio.SaldoDeConta;
 import br.com.cyberbank.lancamento.dominio.Sentido;
 import br.com.cyberbank.lancamento.dominio.Situacao;
+import br.com.cyberbank.lancamento.dominio.TotaisDeFatura;
 import br.com.cyberbank.lancamento.dominio.TotalPorSentido;
 
 import org.springframework.data.domain.PageRequest;
@@ -77,6 +80,27 @@ public class LancamentoRepositoryJpa implements LancamentoRepository {
     }
 
     @Override
+    public List<Lancamento> listarDaFatura(Long faturaId, Long ambienteId) {
+        return jpa.findByFaturaIdAndAmbienteIdOrderByDataEventoAscIdAsc(faturaId, ambienteId)
+                .stream()
+                .map(LancamentoRepositoryJpa::paraDominio)
+                .toList();
+    }
+
+    @Override
+    public List<Lancamento> listarDoParcelamento(Long parcelamentoId, Long ambienteId) {
+        return jpa.findByParcelamentoIdAndAmbienteIdOrderByIdAsc(parcelamentoId, ambienteId)
+                .stream()
+                .map(LancamentoRepositoryJpa::paraDominio)
+                .toList();
+    }
+
+    @Override
+    public void excluirDoParcelamento(Long parcelamentoId, Long ambienteId) {
+        jpa.deleteByParcelamentoIdAndAmbienteId(parcelamentoId, ambienteId);
+    }
+
+    @Override
     public Optional<Lancamento> buscarEstornoDe(Long lancamentoId, Long ambienteId) {
         return jpa.findByEstornoDeIdAndAmbienteId(lancamentoId, ambienteId)
                 .map(LancamentoRepositoryJpa::paraDominio);
@@ -124,6 +148,36 @@ public class LancamentoRepositoryJpa implements LancamentoRepository {
         return jpa.previstosDoHorizonte(ambienteId, de, ate, contas, Situacao.PREVISTO,
                         PageRequest.of(0, limite)).stream()
                 .map(LancamentoRepositoryJpa::paraDominio)
+                .toList();
+    }
+
+    @Override
+    public List<TotaisDeFatura> totaisDasFaturas(Collection<Long> faturaIds) {
+        if (faturaIds.isEmpty()) {
+            return List.of();
+        }
+
+        Map<Long, Long> pagoPorFatura = new HashMap<>();
+        Map<Long, Long> agendadoPorFatura = new HashMap<>();
+        for (Object[] linha : jpa.somarPagamentosPorFatura(faturaIds, Situacao.REALIZADO,
+                Situacao.PREVISTO)) {
+            pagoPorFatura.put((Long) linha[0], (Long) linha[1]);
+            agendadoPorFatura.put((Long) linha[0], (Long) linha[2]);
+        }
+
+        Map<Long, TotaisDeFatura> porFatura = new HashMap<>();
+        for (Object[] linha : jpa.somarPorFatura(faturaIds, Sentido.ENTRADA,
+                Situacao.PROVISIONADO)) {
+            Long faturaId = (Long) linha[0];
+            porFatura.put(faturaId, new TotaisDeFatura(faturaId, (Long) linha[1],
+                    pagoPorFatura.getOrDefault(faturaId, 0L), (Long) linha[2],
+                    agendadoPorFatura.getOrDefault(faturaId, 0L), ((Long) linha[3]) > 0));
+        }
+
+        return faturaIds.stream()
+                .map(faturaId -> porFatura.getOrDefault(faturaId, new TotaisDeFatura(faturaId, 0,
+                        pagoPorFatura.getOrDefault(faturaId, 0L), 0,
+                        agendadoPorFatura.getOrDefault(faturaId, 0L), false)))
                 .toList();
     }
 
@@ -203,10 +257,22 @@ public class LancamentoRepositoryJpa implements LancamentoRepository {
         return jpa.proximoIdDeTransferencia();
     }
 
+    @Override
+    public long proximoIdDeRolagem() {
+        return jpa.proximoIdDeRolagem();
+    }
+
+    @Override
+    public int liquidarProvisionadosDaFatura(Long faturaId) {
+        return jpa.liquidarProvisionadosDaFatura(faturaId, Situacao.PROVISIONADO,
+                Situacao.REALIZADO);
+    }
+
     private static LancamentoEntity paraEntidade(Lancamento l) {
         return new LancamentoEntity(l.id(), l.ambienteId(), l.contaId(), l.meioId(),
                 l.categoriaId(), l.autorId(), l.sentido(), l.valorCentavos(), l.dataEvento(),
                 l.dataEfeito(), l.descricao(), l.situacao(), l.transferenciaId(), l.estornoDeId(),
+                l.faturaId(), l.pagamentoDeFaturaId(), l.rolagemDeFatura(), l.parcelamentoId(),
                 l.doCiclo(), l.estabelecimento(), l.criadoEm());
     }
 
@@ -214,7 +280,8 @@ public class LancamentoRepositoryJpa implements LancamentoRepository {
         return new Lancamento(e.getId(), e.getAmbienteId(), e.getContaId(), e.getMeioId(),
                 e.getCategoriaId(), e.getAutorId(), e.getSentido(), e.getValorCentavos(),
                 e.getDataEvento(), e.getDataEfeito(), e.getDescricao(), e.getSituacao(),
-                e.getTransferenciaId(), e.getEstornoDeId(), e.isDoCiclo(), e.getEstabelecimento(),
-                e.getCriadoEm());
+                e.getTransferenciaId(), e.getEstornoDeId(), e.getFaturaId(),
+                e.getPagamentoDeFaturaId(), e.getRolagemDeFatura(), e.getParcelamentoId(),
+                e.isDoCiclo(), e.getEstabelecimento(), e.getCriadoEm());
     }
 }

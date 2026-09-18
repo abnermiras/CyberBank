@@ -48,6 +48,10 @@ As variantes de botão levam o nome do que a ação **é**, e a cor sai daí —
 | `danger` | pink, contorno | Ação **destrutiva**: excluir |
 | `ghost` | cinza | Recuar, cancelar, desistir. Nunca compete com nada |
 
+**Chip de contexto é ciano, não amarelo.** O grupo `.seg` — abas do formulário completo,
+contratos da Fatura — marca o ativo em `--cyan`, porque escolher *sobre o que se está olhando* é
+**estrutura**, não ação. O amarelo da tela continua sendo um só, e é o do botão que faz algo.
+
 **`sai` e `danger` são a mesma cor, e isso é a paleta sendo honesta, não um descuido:** rosa
 significa *saída de dinheiro* **e** *ação destrutiva*, as duas desde sempre. O que as separa é
 o contexto — nunca aparecem na mesma linha —, e é por isso que as classes têm nomes
@@ -139,12 +143,25 @@ As duas famílias vêm de CDN com pilha de fallback. Sem rede, a interface cai p
 > Elemento que abre camada flutuante não leva `clip-path` — o chanfro dele vira borda ou
 > pseudo-elemento.
 
-> ⚠ **Armadilha real, achada no navegador:** a pintura de um campo estava presa ao
-> **container** — `.field input` —, e não ao campo. O seletor de dia do Diário reusa o mesmo
-> `campo-data` fora de um `.field`, e apareceu **cinza do sistema operacional** no meio de um
-> app cyberpunk. É o mesmo sintoma que matou o `input[type=date]`, por outra causa.
-> **O visual de um controle pertence ao controle, não a quem o embrulha** — senão o segundo
-> lugar que o reusar volta ao padrão do navegador, e ninguém percebe até ver.
+### A pintura de um controle pertence ao seletor de elemento
+
+**Regra, não aviso:** `input`, `select` e `textarea` são pintados **por tipo de elemento** —
+`input[type="text"]`, `select`, `textarea` —, nunca por container. O `.field` cuida **só de
+layout**: margem e rótulo.
+
+Ela já foi aviso, e o aviso não impediu a segunda ocorrência. Em 17/09 a pintura estava presa a
+`.field input`, o seletor de dia do Diário reusou o `campo-data` fora de um `.field`, e apareceu
+**cinza do sistema operacional** no meio de um app cyberpunk. O conserto daquele dia desamarrou
+**só o `campo-data`** — e em 18/09 o seletor de contrato da Fatura, um `<select>` no `telahead`,
+caiu exatamente no mesmo buraco. **Armadilha consertada só no caso que a revelou volta pelo
+segundo caso.**
+
+> ⚠ **E o `<select>` nativo tem um limite que nenhuma regra de CSS resolve:** o **dropdown
+> aberto** é desenhado pelo sistema operacional e não aceita tema. Pintar o controle fechado
+> deixa a tela coerente até o clique. Onde a lista importa — e o usuário vai olhar para ela —,
+> o caminho é **não usar `<select>`**: chips (`.seg`) quando as opções são poucas e cabem, ou um
+> painel próprio, como o `Calendario` que nasceu quando o `input[type=date]` caiu pela mesma
+> razão.
 
 ## Movimento
 

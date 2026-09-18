@@ -9,6 +9,8 @@ import br.com.cyberbank.comum.contexto.ContextoDaRequisicao;
 import br.com.cyberbank.comum.erro.ErroDeValidacao;
 import br.com.cyberbank.comum.erro.ValidacaoException;
 import br.com.cyberbank.comum.tempo.DiaLocal;
+import br.com.cyberbank.fatura.aplicacao.FaturaNaHome;
+import br.com.cyberbank.fatura.aplicacao.VerFaturasQueImportamUseCase;
 import br.com.cyberbank.lancamento.aplicacao.ResumirMesUseCase;
 import br.com.cyberbank.lancamento.dominio.Lancamento;
 import br.com.cyberbank.lancamento.dominio.RelatorioDoMes;
@@ -36,17 +38,29 @@ public class RelatorioController {
                                  long emCaixaCentavos, long guardadoCentavos,
                                  long patrimonioCentavos, long sobraAteOFimDoMesCentavos,
                                  long aPagarCentavos, long aReceberCentavos,
+                                 long faturasAPagarCentavos,
                                  long entrouNoMesCentavos, long saiuNoMesCentavos,
                                  long guardadoNoMesCentavos, long pendencias,
                                  List<GastoResponse> gastoPorCategoria,
-                                 List<PrevistoResponse> proximos) {
+                                 List<PrevistoResponse> proximos,
+                                 List<FaturaResponse> faturas) {
+    }
+
+    public record FaturaResponse(Long cartaoId, String cartao, Long faturaId, String competencia,
+                                 String status, LocalDate dataFechamento,
+                                 LocalDate dataVencimento, long totalCentavos,
+                                 long aPagarCentavos, long agendadoCentavos,
+                                 long dividaCentavos, boolean recebePagamento) {
     }
 
     private final ResumirMesUseCase resumirMes;
+    private final VerFaturasQueImportamUseCase verFaturasQueImportam;
     private final DiaLocal diaLocal;
 
-    public RelatorioController(ResumirMesUseCase resumirMes, DiaLocal diaLocal) {
+    public RelatorioController(ResumirMesUseCase resumirMes,
+            VerFaturasQueImportamUseCase verFaturasQueImportam, DiaLocal diaLocal) {
         this.resumirMes = resumirMes;
+        this.verFaturasQueImportam = verFaturasQueImportam;
         this.diaLocal = diaLocal;
     }
 
@@ -67,12 +81,26 @@ public class RelatorioController {
                 resumo.sobraAteOFimDoMesCentavos(),
                 resumo.aPagarCentavos(),
                 resumo.aReceberCentavos(),
+                resumo.faturasAPagarCentavos(),
                 resumo.entrouNoMesCentavos(),
                 resumo.saiuNoMesCentavos(),
                 resumo.guardadoNoMesCentavos(),
                 resumo.pendencias(),
                 resumo.gastoPorCategoria().stream().map(RelatorioController::gasto).toList(),
-                resumo.proximos().stream().map(RelatorioController::previsto).toList());
+                resumo.proximos().stream().map(RelatorioController::previsto).toList(),
+                verFaturasQueImportam.executar(ContextoDaRequisicao.ambienteId()).stream()
+                        .map(RelatorioController::fatura).toList());
+    }
+
+    private static FaturaResponse fatura(FaturaNaHome naHome) {
+        var fatura = naHome.fatura().fatura();
+        var numeros = naHome.fatura().numeros();
+
+        return new FaturaResponse(naHome.cartao().id(), naHome.cartao().nome(), fatura.id(),
+                fatura.competencia().toString(), fatura.status().name(), fatura.dataFechamento(),
+                fatura.dataVencimento(), numeros.totalCentavos(), numeros.aPagarCentavos(),
+                numeros.agendadoCentavos(), naHome.dividaCentavos(),
+                fatura.naJanelaDoPagamentoEDaAbertura(numeros));
     }
 
     private YearMonth mesEscolhido(String mes) {

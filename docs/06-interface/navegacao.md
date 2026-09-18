@@ -63,7 +63,15 @@ em algo aprendível.
 
 ### As abas do formulário completo
 
-**GASTO · RECEITA · TRANSFERÊNCIA**, e **CRÉDITO desabilitado**.
+**GASTO · RECEITA · TRANSFERÊNCIA · CRÉDITO**. A de crédito **só existe quando funciona**: ela
+fica desabilitada enquanto não houver uma conta `CARTAO` com pelo menos um cartão, e a linha ao
+lado diz o que falta. É a regra do *botão que só existe quando funciona* aplicada a uma aba.
+
+**GASTO e RECEITA não oferecem cartão de crédito, e CRÉDITO só oferece cartão.** As abas
+existem para a pessoa ver o que vai acontecer, e crédito acontece diferente: a compra cai na
+**fatura `ABERTA`** — pelo status, nunca pela data —, nasce `PROVISIONADO`, e não tem campo de
+vencimento, porque no crédito as duas datas são a mesma
+(`docs/02-dominio/fatura-cartao.md`).
 
 **Não há aba de boleto**, e a ausência é a regra aparecendo no lugar certo: boleto é um
 **meio**, e é o meio que decide se existem duas datas (`docs/02-dominio/meio-de-pagamento.md`).
@@ -81,7 +89,7 @@ esperando, senão ensina que o app está quebrado.
 |---|---|
 | **Home** | Quanto tenho, quanto sobra, o que está pendente, como está a fatura |
 | **Extrato** | Todo movimento do ambiente, filtrável por conta e por pendência. A linha abre o **detalhe** do lançamento (`docs/06-interface/extrato.md`) |
-| **Fatura** | O ciclo do cartão e as ações de fechar, pagar e abrir (só na última fechada) |
+| **Fatura** | O ciclo do cartão e as ações de fechar, pagar e abrir (só na última fechada) — `docs/06-interface/fatura.md` |
 | **Reserva** | Contas, aplicações e a diferença entre fluxo de caixa e patrimônio |
 | **Séries** | Os parcelamentos e as recorrências vivos, e o que muda ao alterar cada um |
 | **Cadastro** | As árvores de categoria do usuário: criar, inativar, reativar e excluir |

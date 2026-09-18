@@ -83,7 +83,7 @@ class MeioTest {
         assertThat(vocabulario).allSatisfy(tipo -> {
             assertThat(tipo.tipoDeContaExigido()).isEqualTo("CORRENTE");
             assertThat(tipo.separaAsDuasDatas()).isFalse();
-            assertThat(tipo.dependeDeFatura()).isFalse();
+            assertThat(tipo.temFatura()).isFalse();
             assertThat(tipo.temNome()).isFalse();
             assertThat(tipo.repetePorConta()).isFalse();
         });
@@ -111,9 +111,22 @@ class MeioTest {
     }
 
     @Test
-    void cartao_de_credito_ainda_nao_se_cadastra_porque_depende_da_fatura() {
-        assertThatThrownBy(() -> Meio.novo(AMBIENTE, "Físico ****1234", TipoDeMeio.CREDITO, CONTA, "CARTAO", AGORA))
+    void o_cartao_de_credito_aponta_para_uma_conta_cartao_e_o_nome_dele_e_a_identidade() {
+        Meio fisico = Meio.novo(AMBIENTE, "Físico ****1234", TipoDeMeio.CREDITO, CONTA,
+                "CARTAO", AGORA);
+
+        assertThat(fisico.nome()).isEqualTo("Físico ****1234");
+        assertThat(fisico.temFatura()).isTrue();
+
+        assertThatThrownBy(() -> Meio.novo(AMBIENTE, null, TipoDeMeio.CREDITO, CONTA, "CARTAO",
+                AGORA))
                 .isInstanceOf(ValidacaoException.class);
+
+        assertThatThrownBy(() -> Meio.novo(AMBIENTE, "Físico ****1234", TipoDeMeio.CREDITO, CONTA,
+                "CORRENTE", AGORA))
+                .isInstanceOf(RegraDeDominioException.class)
+                .extracting(e -> ((RegraDeDominioException) e).codigo())
+                .isEqualTo(CodigoDeErro.MEIO_INCOMPATIVEL_COM_CONTA);
     }
 
     @Test

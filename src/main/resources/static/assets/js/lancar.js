@@ -5,7 +5,7 @@ const Lancar = {
   aba: 'GASTO',
   sentidoRapido: 'SAIDA',
 
-  SENTIDO_DA_ABA: { GASTO: 'SAIDA', RECEITA: 'ENTRADA' },
+  SENTIDO_DA_ABA: { GASTO: 'SAIDA', RECEITA: 'ENTRADA', CREDITO: 'SAIDA' },
 
   async abrirRapido() {
     if (!(await Lancar.carregar())) return;
@@ -24,6 +24,7 @@ const Lancar = {
     if (!(await Lancar.carregar())) return;
 
     Lancar.fecharRapido();
+    Lancar.liberarAbaDeCredito();
     Lancar.trocarAba(aba || 'GASTO');
     if (!CampoDeData.valor('compData')) CampoDeData.definir('compData', Formato.hoje());
     document.getElementById('modalCompleto').hidden = false;
@@ -33,6 +34,12 @@ const Lancar = {
   fecharCompleto() {
     document.getElementById('modalCompleto').hidden = true;
     Lancar.avisar('compAviso', null);
+
+    document.getElementById('compValor').value = '';
+    document.getElementById('compDescricao').value = '';
+    document.getElementById('compParcelas').value = '1';
+    CampoDeData.definir('compVencimento', Formato.hoje());
+    document.getElementById('compVencimento').value = '';
   },
 
   aberto() {
@@ -95,6 +102,8 @@ const Lancar = {
       () => Lancar.montarSubcategorias('comp'));
     ['compDe', 'compPara'].forEach((id) =>
       document.getElementById(id).addEventListener('change', Lancar.explicarCompleto));
+    ['compParcelas', 'compValor'].forEach((id) =>
+      document.getElementById(id).addEventListener('input', Lancar.explicarCompleto));
 
     document.getElementById('fRapido').addEventListener('submit', async (evento) => {
       evento.preventDefault();
@@ -162,6 +171,16 @@ const Lancar = {
       + '</optgroup>';
   },
 
+  cartoes() {
+    return Lancar.meios.filter((m) => m.tipo === 'CREDITO');
+  },
+
+  meiosDaAba(aba) {
+    return aba === 'CREDITO'
+      ? Lancar.cartoes()
+      : Lancar.meios.filter((m) => m.tipo !== 'CREDITO');
+  },
+
   trocarAba(aba) {
     Lancar.aba = aba;
     document.querySelectorAll('#compAbas [data-aba]').forEach((botao) => {
@@ -169,6 +188,7 @@ const Lancar = {
     });
 
     const transferencia = aba === 'TRANSFERENCIA';
+    document.getElementById('campoCompParcelas').classList.toggle('hidden', aba !== 'CREDITO');
     document.getElementById('linhaMeioCategoria').classList.toggle('hidden', transferencia);
     document.getElementById('linhaTransferencia').classList.toggle('hidden', !transferencia);
     document.getElementById('campoCompSubcategoria').classList.toggle('hidden', transferencia);
@@ -182,12 +202,13 @@ const Lancar = {
       if (ativas.length > 1) document.getElementById('compPara').selectedIndex = 1;
       document.getElementById('btnCompleto').disabled = ativas.length < 2;
     } else {
+      const daAba = Lancar.meiosDaAba(aba);
       const meio = document.getElementById('compMeio');
-      meio.innerHTML = Lancar.meios.length
-        ? Lancar.meios.map((m) =>
+      meio.innerHTML = daAba.length
+        ? daAba.map((m) =>
           `<option value="${m.id}">${Formato.texto(Lancar.rotuloDoMeio(m))}</option>`).join('')
-        : '<option value="">— sem meio de pagamento —</option>';
-      document.getElementById('btnCompleto').disabled = !Lancar.meios.length;
+        : `<option value="">— ${aba === 'CREDITO' ? 'nenhum cartão de crédito' : 'sem meio de pagamento'} —</option>`;
+      document.getElementById('btnCompleto').disabled = !daAba.length;
       Lancar.montarCategorias();
     }
     Lancar.explicarCompleto();
@@ -224,8 +245,43 @@ const Lancar = {
     return Contas.identidadeDoMeio(meio, Lancar.contas);
   },
 
+  parcelasEscolhidas() {
+    const bruto = Number(document.getElementById('compParcelas').value);
+    return Number.isInteger(bruto) && bruto >= 2 ? bruto : 1;
+  },
+
+  explicarParcelas() {
+    const parcelas = Lancar.parcelasEscolhidas();
+    if (parcelas < 2) return '';
+
+    const total = Formato.centavos(document.getElementById('compValor').value);
+    if (!total) {
+      return `<br><br>Em <b>${parcelas}x</b>: as parcelas nascem <b>todas juntas</b> e todas
+        provisionadas na data da compra — a compra aconteceu uma vez, e quem espalha a cobrança
+        pelos meses é a fatura de cada parcela.`;
+    }
+
+    const base = Math.floor(total / parcelas);
+    const primeira = base + (total - base * parcelas);
+
+    return `<br><br>Em <b>${parcelas}x</b>: a primeira de <b>${Formato.dinheiro(primeira)}</b> e
+      as ${parcelas - 1} seguintes de <b>${Formato.dinheiro(base)}</b> — <b>o centavo que sobra
+      vai na primeira</b>, que é o que a maioria dos emissores faz. Todas nascem juntas e
+      provisionadas na data da compra, cada uma na fatura do seu mês: os
+      ${Formato.dinheiro(total)} <b>comem o limite agora</b>, como na vida real.`;
+  },
+
   meioEscolhido() {
     return Lancar.meios.find((m) => String(m.id) === document.getElementById('compMeio').value);
+  },
+
+  liberarAbaDeCredito() {
+    const cartoes = Lancar.cartoes();
+    const botao = document.querySelector('#compAbas [data-aba="CREDITO"]');
+
+    botao.disabled = !cartoes.length;
+    botao.title = cartoes.length ? '' : 'Cadastre uma conta CARTÃO e um cartão dela';
+    document.getElementById('compAbaCredito').classList.toggle('hidden', cartoes.length > 0);
   },
 
   explicarCompleto() {
@@ -253,6 +309,18 @@ const Lancar = {
       return;
     }
     const conta = Lancar.contas.find((c) => c.id === meio.contaId);
+
+    if (Lancar.aba === 'CREDITO') {
+      document.getElementById('campoCompVencimento').classList.add('hidden');
+      alvo.innerHTML = `Cai na <b>fatura ABERTA</b> de
+         ${Formato.texto(conta ? conta.nome : '—')} — a fatura vem do <b>status</b>, nunca da
+         data —, e nasce <b>PROVISIONADO</b>: comprou, deve. A dívida do cartão sobe na hora, e
+         a conta corrente só se move no dia em que você pagar a fatura. <b>O limite não trava
+         nada</b>: recusar uma compra que o emissor já aprovou seria o app discordando do banco.
+         ${Lancar.explicarParcelas()}`;
+      return;
+    }
+
     alvo.innerHTML = meio.separaAsDuasDatas
       ? `Sai de <b>${Formato.texto(conta ? conta.nome : '—')}</b> no <b>vencimento</b>, não
          hoje: até lá o lançamento é <b>PREVISTO</b> e não entra no saldo realizado.`
@@ -316,6 +384,19 @@ const Lancar = {
       : null;
 
     const vencimento = CampoDeData.valor('compVencimento');
+    const parcelas = Lancar.aba === 'CREDITO' ? Lancar.parcelasEscolhidas() : 1;
+
+    if (parcelas >= 2) {
+      await Lancar.enviar('compAviso', () => API.parcelar(Contexto.ambiente.id, {
+        meioId: meio.id,
+        categoriaId,
+        valor,
+        parcelas,
+        dataEvento,
+        descricao,
+      }), Lancar.fecharCompleto);
+      return;
+    }
 
     await Lancar.enviar('compAviso', () => API.lancar(Contexto.ambiente.id, {
       meioId: meio.id,
