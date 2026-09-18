@@ -24,4 +24,8 @@ public record Alvo(TipoDeAlvo tipo, Long id) {
     public static Alvo categoria(Long id) {
         return new Alvo(TipoDeAlvo.CATEGORIA, id);
     }
+
+    public static Alvo fatura(Long id) {
+        return new Alvo(TipoDeAlvo.FATURA, id);
+    }
 }

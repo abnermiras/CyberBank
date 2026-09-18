@@ -24,6 +24,7 @@ public enum CodigoDeErro {
     CARTAO_SEM_SALDO_INICIAL(422, "Cartão de crédito não tem saldo inicial"),
     CONTA_NAO_E_APLICACAO(409, "Só uma aplicação tem valor atual informado"),
     CONTA_NAO_E_CARTAO(409, "Esta conta não é um contrato de cartão de crédito"),
+    FATURA_FORA_DO_CICLO(409, "Esta fatura não está no ponto do ciclo que a operação exige"),
     MEIO_INCOMPATIVEL_COM_CONTA(409, "Este meio não serve para esta conta"),
     MEIO_COM_LANCAMENTO(409, "Este meio já tem lançamento"),
     MEIO_DUPLICADO_NA_CONTA(409, "Esta conta já tem um meio desse tipo"),

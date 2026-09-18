@@ -142,15 +142,17 @@ public class LancamentoRepositoryJpa implements LancamentoRepository {
         }
 
         Map<Long, TotaisDeFatura> porFatura = new HashMap<>();
-        for (Object[] linha : jpa.somarPorFatura(faturaIds, Sentido.ENTRADA)) {
+        for (Object[] linha : jpa.somarPorFatura(faturaIds, Sentido.ENTRADA,
+                Situacao.PROVISIONADO)) {
             Long faturaId = (Long) linha[0];
             porFatura.put(faturaId, new TotaisDeFatura(faturaId, (Long) linha[1],
-                    pagoPorFatura.getOrDefault(faturaId, 0L), (Long) linha[2]));
+                    pagoPorFatura.getOrDefault(faturaId, 0L), (Long) linha[2],
+                    ((Long) linha[3]) > 0));
         }
 
         return faturaIds.stream()
                 .map(faturaId -> porFatura.getOrDefault(faturaId, new TotaisDeFatura(faturaId, 0,
-                        pagoPorFatura.getOrDefault(faturaId, 0L), 0)))
+                        pagoPorFatura.getOrDefault(faturaId, 0L), 0, false)))
                 .toList();
     }
 
@@ -228,6 +230,17 @@ public class LancamentoRepositoryJpa implements LancamentoRepository {
     @Override
     public long proximoIdDeTransferencia() {
         return jpa.proximoIdDeTransferencia();
+    }
+
+    @Override
+    public long proximoIdDeRolagem() {
+        return jpa.proximoIdDeRolagem();
+    }
+
+    @Override
+    public int liquidarProvisionadosDaFatura(Long faturaId) {
+        return jpa.liquidarProvisionadosDaFatura(faturaId, Situacao.PROVISIONADO,
+                Situacao.REALIZADO);
     }
 
     private static LancamentoEntity paraEntidade(Lancamento l) {

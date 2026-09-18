@@ -6,6 +6,7 @@ import br.com.cyberbank.ambiente.dominio.AmbienteDaRotina;
 import br.com.cyberbank.ambiente.dominio.AmbienteRepository;
 import br.com.cyberbank.comum.contexto.ContextoDaRequisicao;
 import br.com.cyberbank.comum.tempo.DiaLocal;
+import br.com.cyberbank.fatura.aplicacao.RodarCicloDasFaturasUseCase;
 import br.com.cyberbank.lancamento.aplicacao.RealizarLancamentosVencidosUseCase;
 
 import org.slf4j.Logger;
@@ -22,30 +23,32 @@ public class RotinaDiaria {
 
     private final AmbienteRepository ambientes;
     private final RealizarLancamentosVencidosUseCase realizarVencidos;
+    private final RodarCicloDasFaturasUseCase rodarCicloDasFaturas;
 
     public RotinaDiaria(AmbienteRepository ambientes,
-            RealizarLancamentosVencidosUseCase realizarVencidos) {
+            RealizarLancamentosVencidosUseCase realizarVencidos,
+            RodarCicloDasFaturasUseCase rodarCicloDasFaturas) {
         this.ambientes = ambientes;
         this.realizarVencidos = realizarVencidos;
+        this.rodarCicloDasFaturas = rodarCicloDasFaturas;
     }
 
     @EventListener(ApplicationReadyEvent.class)
     @Scheduled(cron = "0 5 0 * * *", zone = DiaLocal.FUSO_DE_BRASILIA)
     public void executar() {
         List<AmbienteDaRotina> todos = ambientes.listarParaRotina();
-        int realizados = 0;
+        int passos = 0;
 
         for (AmbienteDaRotina ambiente : todos) {
             try {
-                realizados += executarNoAmbiente(ambiente);
+                passos += executarNoAmbiente(ambiente);
             } catch (RuntimeException falha) {
                 LOG.error("rotina diaria falhou no ambiente {}", ambiente.ambienteId(), falha);
             }
         }
 
-        if (realizados > 0) {
-            LOG.info("rotina diaria: {} lancamentos realizados em {} ambientes",
-                    realizados, todos.size());
+        if (passos > 0) {
+            LOG.info("rotina diaria: {} passos em {} ambientes", passos, todos.size());
         }
     }
 
@@ -53,7 +56,9 @@ public class RotinaDiaria {
         ContextoDaRequisicao.definirUsuario(ambiente.donoId());
         ContextoDaRequisicao.definirAmbiente(ambiente.ambienteId());
         try {
-            return realizarVencidos.executar(ambiente.ambienteId(), ambiente.donoId());
+            int realizados = realizarVencidos.executar(ambiente.ambienteId(), ambiente.donoId());
+            return realizados
+                    + rodarCicloDasFaturas.executar(ambiente.ambienteId(), ambiente.donoId());
         } finally {
             ContextoDaRequisicao.limpar();
         }

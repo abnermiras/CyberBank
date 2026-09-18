@@ -57,4 +57,8 @@ public interface LancamentoRepository {
     void excluirPrevistosDaConta(Long contaId, Long ambienteId);
 
     long proximoIdDeTransferencia();
+
+    long proximoIdDeRolagem();
+
+    int liquidarProvisionadosDaFatura(Long faturaId);
 }

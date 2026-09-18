@@ -5,7 +5,7 @@ import java.time.YearMonth;
 import java.util.List;
 
 import br.com.cyberbank.fatura.aplicacao.CartaoComFaturas;
-import br.com.cyberbank.fatura.aplicacao.FaturaComNumeros;
+import br.com.cyberbank.fatura.dominio.FaturaComNumeros;
 import br.com.cyberbank.fatura.aplicacao.VerFaturasDoCartaoUseCase;
 import br.com.cyberbank.fatura.dominio.Fatura;
 import br.com.cyberbank.fatura.dominio.NumerosDaFatura;

@@ -128,6 +128,24 @@ public record Lancamento(
         return List.of(saida, entrada);
     }
 
+    public static List<Lancamento> parDeRolagem(Long ambienteId, Long contaDoCartaoId,
+            Long categoriaDoCreditoId, Long categoriaDoDebitoId, Long autorId,
+            long valorCentavos, LocalDate dia, Long faturaQueVenceuId, Long faturaAbertaId,
+            long rolagemDeFatura, Instant agora) {
+
+        Lancamento credito = new Lancamento(null, ambienteId, contaDoCartaoId, null,
+                categoriaDoCreditoId, autorId, Sentido.ENTRADA, valorCentavos, dia, dia,
+                "Rolado para a fatura seguinte", Situacao.REALIZADO, null, null,
+                faturaQueVenceuId, null, rolagemDeFatura, true, null, agora);
+
+        Lancamento debito = new Lancamento(null, ambienteId, contaDoCartaoId, null,
+                categoriaDoDebitoId, autorId, Sentido.SAIDA, valorCentavos, dia, dia,
+                "Saldo da fatura anterior", Situacao.PROVISIONADO, null, null,
+                faturaAbertaId, null, rolagemDeFatura, true, null, agora);
+
+        return List.of(credito, debito);
+    }
+
     public Lancamento estornadoEm(LocalDate dia, Long autorDoEstornoId, Long faturaDoEstornoId,
             Situacao situacaoDoEstorno, Instant agora) {
 

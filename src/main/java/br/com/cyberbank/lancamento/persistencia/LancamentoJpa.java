@@ -203,13 +203,15 @@ interface LancamentoJpa extends JpaRepository<LancamentoEntity, Long> {
                                      when l.sentido = :entrada then -l.valorCentavos
                                      else l.valorCentavos end), 0),
                    coalesce(sum(case when l.rolagemDeFatura is not null and l.sentido = :entrada
-                                     then l.valorCentavos else 0 end), 0)
+                                     then l.valorCentavos else 0 end), 0),
+                   coalesce(sum(case when l.situacao = :provisionado then 1 else 0 end), 0)
               from LancamentoEntity l
              where l.faturaId in :faturas
              group by l.faturaId
             """)
     List<Object[]> somarPorFatura(@Param("faturas") Collection<Long> faturas,
-            @Param("entrada") Sentido entrada);
+            @Param("entrada") Sentido entrada,
+            @Param("provisionado") Situacao provisionado);
 
     @Query("""
             select l.pagamentoDeFaturaId, coalesce(sum(l.valorCentavos), 0)
@@ -225,4 +227,17 @@ interface LancamentoJpa extends JpaRepository<LancamentoEntity, Long> {
 
     @Query(value = "select nextval('transferencia_id_seq')", nativeQuery = true)
     long proximoIdDeTransferencia();
+
+    @Query(value = "select nextval('rolagem_de_fatura_seq')", nativeQuery = true)
+    long proximoIdDeRolagem();
+
+    @Modifying
+    @Query("""
+            update LancamentoEntity l
+               set l.situacao = :realizado
+             where l.faturaId = :faturaId and l.situacao = :provisionado
+            """)
+    int liquidarProvisionadosDaFatura(@Param("faturaId") Long faturaId,
+            @Param("provisionado") Situacao provisionado,
+            @Param("realizado") Situacao realizado);
 }

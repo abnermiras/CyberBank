@@ -4,5 +4,6 @@ public record TotaisDeFatura(
         Long faturaId,
         long totalCentavos,
         long pagoCentavos,
-        long roladoCentavos) {
+        long roladoCentavos,
+        boolean temProvisionado) {
 }

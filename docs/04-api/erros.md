@@ -96,6 +96,7 @@ Erro previsível tem código, e **o código entra aqui antes de existir no códi
 | `CATEGORIA_SEM_COR_PROPRIA` | 409 | Trocar a cor de uma **subcategoria**. Ela herda a cor da raiz e não tem cor própria (`docs/02-dominio/categoria.md`) |
 | `FATURA_NAO_RECEBE_PAGAMENTO` | 409 | A fatura não é `FECHADA` com `a pagar` maior que zero |
 | `FATURA_NAO_ABRE` | 409 | Não é a última fechada, ou já encerrou |
+| `FATURA_FORA_DO_CICLO` | 409 | A transição pedida não sai do estado em que a fatura está: fechar o que não é `ABERTA`, abrir pelo ciclo o que não é `FUTURA`. **Não é erro de usuário** — é a invariante do ciclo recusando uma corrida entre duas rodadas da rotina |
 | `LANCAMENTO_DO_CICLO` | 409 | Excluir o que o ciclo criou: parcela isolada, par de rolagem, lançamento de abertura |
 | `LANCAMENTO_COM_ESTORNO` | 409 | Excluir um lançamento que tem estorno apontando para ele. O estorno ficaria órfão; exclui-se o estorno primeiro |
 | `TRANSFERENCIA_MESMA_CONTA` | 409 | Origem e destino iguais. Transferência é um par entre contas **diferentes** (`docs/02-dominio/lancamento.md`) |

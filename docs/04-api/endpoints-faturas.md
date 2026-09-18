@@ -80,6 +80,18 @@ e pode ser **aberta**: um número, duas operações (`docs/02-dominio/fatura-car
 | `CONTA_NAO_E_CARTAO` (409) | A conta existe e não é `CARTAO`. As outras não têm ciclo nenhum para recortar |
 | `NAO_ENCONTRADO` (404) | Conta inexistente ou de outro ambiente |
 
+## O ciclo roda sozinho, e não tem endpoint
+
+Fechar, abrir a seguinte, encerrar as quitadas e rolar as vencidas é **rotina**, não requisição:
+ela roda uma vez por dia, é idempotente e **recupera atraso em ordem cronológica** — se o
+Raspberry Pi ficou dois ciclos desligado, janeiro rola para a fatura que estava aberta quando
+janeiro venceu, e só então fevereiro fecha, vence e rola
+(`docs/02-dominio/fatura-cartao.md`, `docs/02-dominio/fatura-pagamento.md`).
+
+O que a borda mostra disso é o **Diário**: cada passo que de fato acontece grava
+`FATURA_FECHADA`, `FATURA_ABERTA_PELO_CICLO`, `FATURA_ROLADA` e `FATURA_ENCERRADA`, com a fatura
+como alvo (`docs/04-api/endpoints-eventos.md`). **Rodada que não fecha nada não grava nada.**
+
 ## Compra no crédito
 
 **Não há endpoint de compra aqui.** Comprar no cartão é `POST /lancamentos` com um `meioId` de
@@ -97,9 +109,6 @@ daquele cartão. Mover um lançamento de fatura é `PATCH /lancamentos/{id}` com
 - **`POST .../faturas/{id}/fechamento` e `POST .../faturas/{id}/abertura`** — fechar e abrir à
   mão, que são **contingência** e não fluxo normal: o banco fechou em dia diferente, a rotina
   não rodou quando devia. Abrir vale só para a última fechada que ainda deve.
-- **O ciclo automático** — fechar, abrir a seguinte, encerrar as quitadas e rolar as vencidas.
-  Enquanto ele não existir, **a fatura `ABERTA` nunca fecha sozinha**, e um cartão tem uma
-  fatura só.
 - **Parcelamento** — `POST /lancamentos` ainda não divide uma compra em N.
 - **Papel**: nenhum endpoint desta página verifica se o usuário é dono, editor ou leitor. A
   verificação entra com o convite (`docs/02-dominio/ambiente-financeiro.md`).

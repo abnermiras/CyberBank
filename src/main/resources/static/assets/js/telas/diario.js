@@ -44,6 +44,16 @@ const Diario = {
     CATEGORIA_INATIVADA: (d) => `inativou a categoria <b>${Formato.texto(d.nome)}</b>`,
     CATEGORIA_REATIVADA: (d) => `reativou a categoria <b>${Formato.texto(d.nome)}</b>`,
     CATEGORIA_EXCLUIDA: (d) => `excluiu a categoria <b>${Formato.texto(d.nome)}</b>`,
+
+    FATURA_FECHADA: (d) =>
+      `a fatura de <b>${Formato.mes(d.competencia)}</b> fechou — vence em ${Formato.dia(d.dataVencimento)}`,
+    FATURA_ABERTA_PELO_CICLO: (d) =>
+      `abriu a fatura de <b>${Formato.mes(d.competencia)}</b> — fecha em ${Formato.dia(d.dataFechamento)}`,
+    FATURA_ROLADA: (d) =>
+      `<b>${Formato.dinheiro(d.valor)}</b> que a fatura de ${Formato.mes(d.competencia)} `
+      + `não recebeu rolaram para a de <b>${Formato.mes(d.competenciaDestino)}</b>`,
+    FATURA_ENCERRADA: (d) =>
+      `a fatura de <b>${Formato.mes(d.competencia)}</b> encerrou: o que estava provisionado nela virou realizado`,
   },
 
   ROTULO_DO_CAMPO: {

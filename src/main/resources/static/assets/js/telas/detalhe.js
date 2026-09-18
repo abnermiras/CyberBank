@@ -594,7 +594,7 @@ const Detalhe = {
       <section class="det-bloco">
         <h4>Série e fatura</h4>
         <dl>
-          ${Detalhe.par('Fatura', `<b>${Formato.texto(Detalhe.mesDaFatura(fatura.competencia))}</b>
+          ${Detalhe.par('Fatura', `<b>${Formato.texto(Formato.mes(fatura.competencia))}</b>
             <span class="tag">${Detalhe.ROTULO_DE_STATUS[fatura.status] || fatura.status}</span>`)}
           ${Detalhe.par('Fecha em', Formato.dia(fatura.dataFechamento))}
           ${Detalhe.par('Vence em', Formato.dia(fatura.dataVencimento))}
@@ -603,13 +603,6 @@ const Detalhe = {
           do relatório, e é o que bate com o dinheiro que sai. A fatura é editável: este
           lançamento pode ser movido para qualquer fatura deste cartão, aberta ou não.</p>
       </section>`;
-  },
-
-  mesDaFatura(competencia) {
-    const [ano, mes] = String(competencia).split('-');
-    const nomes = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto',
-      'setembro', 'outubro', 'novembro', 'dezembro'];
-    return `${nomes[Number(mes) - 1]} de ${ano}`;
   },
 
   oQueJaAconteceu() {

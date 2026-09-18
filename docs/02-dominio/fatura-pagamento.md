@@ -135,6 +135,22 @@ uma fatura já encerrada cuja correção fez o total **subir** volta a ter `a pa
 a passagem seguinte rola o que ela voltou a dever (ver *Corrigir o passado*). Não existe
 "encerrada" como estado que impeça isso; existe o número.
 
+### O encerramento por quitação também é da rotina
+
+A quitação encerra a fatura *"na hora"* quando você paga hoje — o caso de uso do pagamento
+liquida ali mesmo. Mas o pagamento **agendado** nasce `PREVISTO` e é a **rotina** que o realiza:
+naquele instante a fatura passa a estar quitada, e se ninguém a encerrar os lançamentos dela
+ficam `PROVISIONADO` **para sempre**, o limite nunca volta e nenhuma tela acusa.
+
+Por isso a rotina tem **dois gatilhos, e os dois são o mesmo número**: rolar a `FECHADA` vencida
+com `a pagar` maior que zero, e **encerrar a `FECHADA` cujo `a pagar` chegou a zero e que ainda
+tem lançamento provisionado**. A segunda condição é o que torna o passo idempotente sem carimbo:
+fatura já liquidada não tem o que liquidar, e rodada que não faz nada não grava nada.
+
+E a ordem dentro da rotina diária é regra, não arrumação: **realizar os previstos do dia vem
+antes do ciclo das faturas.** Invertido, o pagamento agendado para hoje ainda seria `PREVISTO`
+quando o ciclo somasse o `a pagar`, e a fatura rolaria uma dívida que acabou de ser paga.
+
 **A primeira rolagem de uma fatura é datada no vencimento dela.** Uma rolagem **posterior,
 disparada por correção, é datada no dia em que a rotina rodou**: o vencimento antigo está num
 mês que já foi vivido, e pôr um lançamento lá seria o sistema reescrevendo o passado. O fato é
@@ -233,6 +249,10 @@ um valor **já refaz tudo que deriva dele**. A memória do que mudou vive no **e
 - Rolagem nunca entra em relatório de gasto nem na fila de pendências.
 - O encerramento roda **no dia seguinte ao vencimento**, é idempotente e recupera atraso em
   ordem cronológica.
+- A fatura encerra por **dois caminhos e um número só**: vencida com `a pagar` maior que zero
+  (rola) ou com `a pagar` zerado e lançamento ainda provisionado (liquida). O segundo é o que
+  pega a fatura quitada por um pagamento **agendado**, que quem realiza é a rotina.
+- Na rotina diária, **realizar os previstos do dia vem antes do ciclo das faturas**.
 - Fatura encerrada **não recebe pagamento**: o `a pagar` dela é zero por construção. Quando
   uma correção o torna positivo de novo, quem o devolve a zero é a **rolagem**, nunca um
   pagamento novo naquela fatura.

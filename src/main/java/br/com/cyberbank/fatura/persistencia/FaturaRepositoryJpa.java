@@ -30,6 +30,12 @@ public class FaturaRepositoryJpa implements FaturaRepository {
     }
 
     @Override
+    public Optional<Fatura> buscarDaCompetencia(Long contaId, YearMonth competencia) {
+        return jpa.findByContaIdAndCompetencia(contaId, competencia.atDay(1))
+                .map(FaturaRepositoryJpa::paraDominio);
+    }
+
+    @Override
     public Optional<Fatura> buscarAbertaDaConta(Long contaId) {
         return jpa.findByContaIdAndStatus(contaId, StatusDaFatura.ABERTA)
                 .map(FaturaRepositoryJpa::paraDominio);
