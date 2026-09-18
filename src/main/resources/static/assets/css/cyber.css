@@ -100,8 +100,12 @@ h1,h2,h3{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter
 .btn:hover{background:rgba(0,240,255,.12);box-shadow:0 0 18px rgba(0,240,255,.25)}
 .btn.primary{background:var(--acid);border-color:var(--acid);color:#0a0a05;font-weight:700}
 .btn.primary:hover{box-shadow:0 0 24px rgba(247,241,60,.4);background:#fffa5e}
-.btn.danger{color:var(--pink);border-color:var(--pink)}
-.btn.danger:hover{background:rgba(255,31,145,.14);box-shadow:0 0 18px rgba(255,31,145,.25)}
+.btn.acao{color:var(--acid);border-color:var(--acid)}
+.btn.acao:hover{background:rgba(247,241,60,.14);box-shadow:0 0 18px rgba(247,241,60,.25)}
+.btn.entra{color:var(--lime);border-color:var(--lime)}
+.btn.entra:hover{background:rgba(92,255,157,.14);box-shadow:0 0 18px rgba(92,255,157,.25)}
+.btn.danger,.btn.sai{color:var(--pink);border-color:var(--pink)}
+.btn.danger:hover,.btn.sai:hover{background:rgba(255,31,145,.14);box-shadow:0 0 18px rgba(255,31,145,.25)}
 .btn.ghost{color:var(--muted);border-color:var(--line)}
 .btn.ghost:hover{color:var(--ink);border-color:var(--dim);background:rgba(255,255,255,.03)}
 .btn:disabled{opacity:.32;cursor:not-allowed;box-shadow:none;background:transparent}

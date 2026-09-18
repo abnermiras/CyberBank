@@ -35,6 +35,27 @@ Cada cor tem **um** significado. Amarelo é sempre ação ou atenção; rosa é 
 ou saída; verde é sempre entrada ou patrimônio. Cor decorativa que não significa nada é o
 começo do fim da legibilidade.
 
+### O botão é nomeado pelo significado, não pela cor
+
+As variantes de botão levam o nome do que a ação **é**, e a cor sai daí — não o contrário:
+
+| Classe | Cor | Quando |
+|---|---|---|
+| `primary` | acid, **preenchido** | A ação principal de um formulário. Uma por vez |
+| `acao` | acid, contorno | Ação sem consequência de dinheiro: informar, abrir, editar |
+| `entra` | lime, contorno | Dinheiro **entrando** onde se está olhando: aportar |
+| `sai` | pink, contorno | Dinheiro **saindo** de onde se está olhando: resgatar |
+| `danger` | pink, contorno | Ação **destrutiva**: excluir |
+| `ghost` | cinza | Recuar, cancelar, desistir. Nunca compete com nada |
+
+**`sai` e `danger` são a mesma cor, e isso é a paleta sendo honesta, não um descuido:** rosa
+significa *saída de dinheiro* **e** *ação destrutiva*, as duas desde sempre. O que as separa é
+o contexto — nunca aparecem na mesma linha —, e é por isso que as classes têm nomes
+diferentes apesar de pintarem igual: quem lê o código vê qual das duas leituras vale ali.
+
+**Nenhuma variante é preenchida além de `primary`.** Preenchimento é peso, e peso é hierarquia:
+três botões sólidos na mesma linha não têm ordem nenhuma.
+
 ## Cor de sinal e cor de identidade
 
 A regra acima — *cada cor tem um significado* — vale para **cor de sinal**, e ela continua

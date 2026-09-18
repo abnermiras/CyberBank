@@ -129,11 +129,11 @@ const Reserva = {
 
         <div class="linha-acoes">
           ${informando || movendo ? '' : `
-            <button class="btn sm ghost" type="button" data-reserva="informar"
+            <button class="btn sm acao" type="button" data-reserva="informar"
                     data-id="${a.id}">Informar valor</button>
-            <button class="btn sm ghost" type="button" data-reserva="aportar"
+            <button class="btn sm entra" type="button" data-reserva="aportar"
                     data-id="${a.id}"${semCaixa || a.inativa ? ' disabled' : ''}>Aportar</button>
-            <button class="btn sm ghost" type="button" data-reserva="resgatar"
+            <button class="btn sm sai" type="button" data-reserva="resgatar"
                     data-id="${a.id}"${semCaixa || a.inativa ? ' disabled' : ''}>Resgatar</button>
             ${semCaixa
               ? '<span class="tele">SEM CONTA DE CAIXA PARA MOVER DINHEIRO</span>' : ''}`}
@@ -186,7 +186,7 @@ const Reserva = {
                  value="${aporte ? 'Aporte em ' : 'Resgate de '}${Formato.texto(a.nome)}"
                  required>
         </div>
-        <button class="btn sm primary" type="button" data-reserva="mover"
+        <button class="btn sm ${aporte ? 'entra' : 'sai'}" type="button" data-reserva="mover"
                 data-id="${a.id}">${aporte ? 'Aportar' : 'Resgatar'}</button>
         <button class="btn sm ghost" type="button" data-reserva="desistir">Desistir</button>
         <p class="dica">${aporte
