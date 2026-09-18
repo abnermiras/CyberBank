@@ -24,12 +24,6 @@ const EM_ESPERA = {
     responde: 'Os parcelamentos e as recorrências vivos, e o que muda ao alterar cada um. Parcelamento altera todas as parcelas sempre; recorrência pergunta se é só o futuro ou o passado também.',
     falta: ['parcelamento', 'recorrência'],
   },
-  reserva: {
-    olho: 'PATRIMÔNIO // FORA DO CAIXA',
-    titulo: 'Reserva',
-    responde: 'Contas, aplicações e a diferença entre fluxo de caixa e patrimônio. É onde o valor informado de uma aplicação mostra a idade dele — o sistema nunca extrapola rendimento.',
-    falta: ['valor informado da aplicação', 'a tela de patrimônio'],
-  },
 };
 
 const seletor = (id) => document.querySelector(`[data-tela="${id}"]`);
@@ -64,6 +58,7 @@ const ABA_DO_CADASTRO = { categorias: () => Cadastro.montar(), contas: () => Con
 const AO_ENTRAR = {
   home: () => Home.montar(),
   extrato: (lancamentoId) => Extrato.montar(lancamentoId),
+  reserva: () => Reserva.montar(),
   diario: () => Diario.montar(),
   cadastro: () => abrirAba(document.querySelector('#abasCadastro .aba.on').dataset.aba),
   perfil: () => Perfil.montar(),

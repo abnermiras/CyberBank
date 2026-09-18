@@ -85,6 +85,60 @@ Contas inativas entram nos dois agregados: histórico e saldo continuam existind
 | `NAO_AUTENTICADO` (401) | Sem sessão |
 | `NAO_ENCONTRADO` (404) | Ambiente inexistente **ou sem acesso** — a mesma resposta para os dois |
 
+## `GET /api/v1/ambientes/{ambienteId}/contas/reserva`
+
+A tela do patrimônio (`docs/06-interface/reserva.md`): as aplicações com a **idade do valor
+informado**, e os três totais que a Home já mostra.
+
+```
+GET /api/v1/ambientes/1/contas/reserva
+
+200 OK
+{
+  "aplicacoes": [
+    { "id": 3, "nome": "Poupança", "inativa": false,
+      "saldoRealizadoCentavos": 1000000, "informadoEm": "2026-07-20",
+      "diasDeIdade": 59, "desatualizada": true }
+  ],
+  "guardadoCentavos": 1000000,
+  "emCaixaCentavos": 500000,
+  "patrimonioCentavos": 1500000,
+  "algumaDesatualizada": true
+}
+```
+
+`informadoEm` é a `dataEvento` do último lançamento de **rendimento** da conta, ou a da
+**abertura**, se nunca houve rendimento. **Ausente** quando não há nem uma nem outra — e aí
+`desatualizada` é `false`: o que nunca teve valor não tem idade
+(`docs/02-dominio/aplicacao-patrimonio.md`).
+
+## `PUT /api/v1/ambientes/{ambienteId}/contas/{contaId}/valor-atual`
+
+Quanto a aplicação **vale hoje**. O sistema não sobrescreve saldo nenhum: ele grava a
+**diferença** como um lançamento de rendimento, com a data de hoje e categoria de sistema.
+
+```
+PUT /api/v1/ambientes/1/contas/3/valor-atual
+{ "valorCentavos": 1012500 }
+
+200 OK
+{ "aplicacoes": [ { "id": 3, "saldoRealizadoCentavos": 1012500,
+                    "informadoEm": "2026-09-17", "diasDeIdade": 0,
+                    "desatualizada": false } ], ... }
+```
+
+A resposta é a **reserva inteira**, não o lançamento criado: quem chamou está olhando a tela do
+patrimônio, e devolver um lançamento solto obrigaria a tela a uma segunda requisição só para
+redesenhar.
+
+**É `PUT` e é idempotente no que importa:** informar de novo o mesmo valor devolve `200` e
+**não grava nada** — não houve fato. Repetir a chamada não empilha rendimento zerado.
+
+| Erro | Quando |
+|---|---|
+| `CONTA_NAO_E_APLICACAO` (409) | A conta existe e não é `APLICACAO`. O saldo das outras é a soma do que se movimentou de verdade |
+| `NAO_ENCONTRADO` (404) | Conta inexistente ou de outro ambiente |
+
 ## `POST /api/v1/ambientes/{ambienteId}/contas`
 
 Abre a conta. Se vier `saldoInicial`, **nasce junto um lançamento de abertura** — saldo inicial

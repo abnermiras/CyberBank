@@ -102,6 +102,7 @@ Erro previsível tem código, e **o código entra aqui antes de existir no códi
 | `BENEFICIO_NAO_TRANSFERE` | 409 | Conta `BENEFICIO` como origem ou destino de transferência. O saldo dela não é fungível — entra por receita e sai por gasto no meio dele |
 | `CARTAO_SEM_SALDO_INICIAL` | 422 | Saldo inicial numa conta `CARTAO` |
 | `TIPO_DE_CONTA_IMUTAVEL` | 409 | Trocar o tipo de uma conta que já tem lançamento |
+| `CONTA_NAO_E_APLICACAO` | 409 | Informar o **valor atual** de uma conta que não é `APLICACAO`. O saldo das outras é a soma do que se movimentou de verdade; informá-lo à mão seria inventar dinheiro sem fato por trás (`docs/02-dominio/aplicacao-patrimonio.md`) |
 | `MEIO_INCOMPATIVEL_COM_CONTA` | 409 | O tipo do meio não casa com o tipo da conta: `DEBITO`/`PIX`/`BOLETO` fora de uma `CORRENTE`, `DINHEIRO` fora de uma `CARTEIRA`, `BENEFICIO` fora de uma `BENEFICIO`, `CREDITO` fora de uma `CARTAO` — ou qualquer meio apontando para uma `APLICACAO`, com que não se paga (`docs/02-dominio/meio-de-pagamento.md`) |
 | `TIPO_DE_MEIO_IMUTAVEL` | 409 | Trocar o tipo de um meio que já tem lançamento |
 | `MEIO_COM_LANCAMENTO` | 409 | Excluir um meio que já teve lançamento. O caminho é inativar |

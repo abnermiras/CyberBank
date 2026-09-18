@@ -10,7 +10,13 @@ import br.com.cyberbank.comum.erro.ErroDeValidacao;
 import br.com.cyberbank.comum.erro.ValidacaoException;
 import br.com.cyberbank.conta.aplicacao.AbrirContaUseCase;
 import br.com.cyberbank.conta.aplicacao.AlterarAtivacaoContaUseCase;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+import br.com.cyberbank.conta.aplicacao.AplicacaoNaReserva;
 import br.com.cyberbank.conta.aplicacao.ContaComSaldo;
+import br.com.cyberbank.conta.aplicacao.InformarValorDaAplicacaoUseCase;
+import br.com.cyberbank.conta.aplicacao.Reserva;
+import br.com.cyberbank.conta.aplicacao.VerReservaUseCase;
 import br.com.cyberbank.conta.aplicacao.ExcluirContaUseCase;
 import br.com.cyberbank.conta.aplicacao.ListarContasUseCase;
 import br.com.cyberbank.conta.aplicacao.RenomearContaUseCase;
@@ -24,6 +30,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -66,20 +73,58 @@ public class ContaController {
     public record AlteracaoRequest(String nome, Boolean inativa) {
     }
 
+    public record ValorAtualRequest(Long valorCentavos) {
+    }
+
+    public record ReservaResponse(List<AplicacaoResponse> aplicacoes, long guardadoCentavos,
+            long emCaixaCentavos, long patrimonioCentavos, boolean algumaDesatualizada) {
+    }
+
+    public record AplicacaoResponse(Long id, String nome, boolean inativa,
+            long saldoRealizadoCentavos,
+            @JsonInclude(JsonInclude.Include.NON_NULL) LocalDate informadoEm,
+            long diasDeIdade, boolean desatualizada) {
+    }
+
     private final ListarContasUseCase listarContas;
+    private final VerReservaUseCase verReserva;
+    private final InformarValorDaAplicacaoUseCase informarValor;
     private final AbrirContaUseCase abrirConta;
     private final RenomearContaUseCase renomearConta;
     private final AlterarAtivacaoContaUseCase alterarAtivacao;
     private final ExcluirContaUseCase excluirConta;
 
-    public ContaController(ListarContasUseCase listarContas, AbrirContaUseCase abrirConta,
+    public ContaController(ListarContasUseCase listarContas, VerReservaUseCase verReserva,
+            InformarValorDaAplicacaoUseCase informarValor, AbrirContaUseCase abrirConta,
             RenomearContaUseCase renomearConta, AlterarAtivacaoContaUseCase alterarAtivacao,
             ExcluirContaUseCase excluirConta) {
         this.listarContas = listarContas;
+        this.verReserva = verReserva;
+        this.informarValor = informarValor;
         this.abrirConta = abrirConta;
         this.renomearConta = renomearConta;
         this.alterarAtivacao = alterarAtivacao;
         this.excluirConta = excluirConta;
+    }
+
+    @GetMapping("/reserva")
+    public ReservaResponse reserva(@PathVariable Long ambienteId) {
+        Reserva reserva = verReserva.executar(ambienteId);
+
+        return new ReservaResponse(
+                reserva.aplicacoes().stream().map(ContaController::paraResposta).toList(),
+                reserva.guardadoCentavos(), reserva.emCaixaCentavos(),
+                reserva.patrimonioCentavos(), reserva.algumaDesatualizada());
+    }
+
+    @PutMapping("/{contaId}/valor-atual")
+    public ReservaResponse informarValorAtual(@PathVariable Long ambienteId,
+            @PathVariable Long contaId, @RequestBody ValorAtualRequest requisicao) {
+
+        informarValor.executar(ambienteId, ContextoDaRequisicao.usuarioId(), contaId,
+                requisicao.valorCentavos() == null ? 0L : requisicao.valorCentavos());
+
+        return reserva(ambienteId);
     }
 
     @GetMapping
@@ -148,6 +193,13 @@ public class ContaController {
                         tipo.entraEmCaixa(), tipo.aceitaSaldoInicial(),
                         TipoDeMeio.daConta(tipo.name())))
                 .toList();
+    }
+
+    private static AplicacaoResponse paraResposta(AplicacaoNaReserva aplicacao) {
+        return new AplicacaoResponse(aplicacao.conta().id(), aplicacao.conta().nome(),
+                aplicacao.conta().inativa(), aplicacao.valor().saldoCentavos(),
+                aplicacao.valor().informadoEm(), aplicacao.diasDeIdade(),
+                aplicacao.desatualizada());
     }
 
     private static ContaResponse paraResposta(ContaComSaldo comSaldo) {

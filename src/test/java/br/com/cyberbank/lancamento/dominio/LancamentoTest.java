@@ -234,6 +234,34 @@ class LancamentoTest {
                 .isInstanceOf(RegraDeDominioException.class);
     }
 
+    @Test
+    void o_valor_informado_da_aplicacao_vira_a_diferenca_e_nunca_sobrescreve_o_saldo() {
+        Lancamento rendeu = Lancamento.deRendimento(AMBIENTE, CONTA, CATEGORIA, AUTOR,
+                12500L, HOJE, AGORA);
+
+        assertThat(rendeu.sentido()).isEqualTo(Sentido.ENTRADA);
+        assertThat(rendeu.valorCentavos())
+                .as("o lançamento é a diferença: o saldo continua sendo a soma dos lançamentos")
+                .isEqualTo(12500L);
+        assertThat(rendeu.situacao()).isEqualTo(Situacao.REALIZADO);
+        assertThat(rendeu.meioId()).as("ninguém pagou nada: a aplicação rendeu").isNull();
+        assertThat(rendeu.doCiclo())
+                .as("quem informou foi o usuário, e ele pode corrigir o que digitou errado")
+                .isFalse();
+
+        assertThat(Lancamento.deRendimento(AMBIENTE, CONTA, CATEGORIA, AUTOR, -3000L, HOJE, AGORA)
+                .sentido())
+                .as("perder também é informar")
+                .isEqualTo(Sentido.SAIDA);
+    }
+
+    @Test
+    void informar_o_valor_que_a_aplicacao_ja_vale_nao_e_lancamento() {
+        assertThatThrownBy(() ->
+                Lancamento.deRendimento(AMBIENTE, CONTA, CATEGORIA, AUTOR, 0L, HOJE, AGORA))
+                .isInstanceOf(ValidacaoException.class);
+    }
+
     private static Lancamento comId(Long id, Lancamento l) {
         return new Lancamento(id, l.ambienteId(), l.contaId(), l.meioId(), l.categoriaId(),
                 l.autorId(), l.sentido(), l.valorCentavos(), l.dataEvento(), l.dataEfeito(),

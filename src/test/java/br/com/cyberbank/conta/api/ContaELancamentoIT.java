@@ -473,6 +473,69 @@ class ContaELancamentoIT {
                 .containsEntry("previstoAte", fimDoMes.toString());
     }
 
+    @Test
+    @SuppressWarnings("unchecked")
+    void o_valor_informado_da_aplicacao_vira_rendimento_e_nao_sobrescreve_nada() {
+        var sessao = novaSessao("reserva");
+
+        Integer poupanca = criarConta(sessao, "Poupança", "APLICACAO", 1000000L);
+
+        var antes = (Map<String, Object>) itens(get(sessao, "/contas/reserva"), "aplicacoes")
+                .get(0);
+        assertThat(antes).containsEntry("saldoRealizadoCentavos", 1000000);
+        assertThat(antes)
+                .as("sem rendimento nenhum, a idade vem da abertura")
+                .containsEntry("desatualizada", false)
+                .containsEntry("diasDeIdade", 0);
+
+        var resposta = troca(http().put()
+                .uri(caminho(sessao, "/contas/" + poupanca + "/valor-atual"))
+                .body(Map.of("valorCentavos", 1012500)), sessao);
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+        var depois = (Map<String, Object>) itens(resposta, "aplicacoes").get(0);
+        assertThat(depois)
+                .as("o saldo continua sendo a soma dos lançamentos: gravou-se a diferença")
+                .containsEntry("saldoRealizadoCentavos", 1012500);
+
+        var rendimento = itens(get(sessao, "/lancamentos")).stream()
+                .filter(l -> "Rendimento".equals(l.get("descricao")))
+                .findFirst().orElseThrow();
+        assertThat(rendimento).containsEntry("valor", 12500);
+        assertThat(rendimento).containsEntry("sentido", "ENTRADA");
+        assertThat(rendimento).containsEntry("situacao", "REALIZADO");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void informar_o_valor_que_ela_ja_vale_nao_grava_lancamento_nenhum() {
+        var sessao = novaSessao("mesmovalor");
+        Integer poupanca = criarConta(sessao, "Poupança", "APLICACAO", 1000000L);
+
+        var resposta = troca(http().put()
+                .uri(caminho(sessao, "/contas/" + poupanca + "/valor-atual"))
+                .body(Map.of("valorCentavos", 1000000)), sessao);
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(itens(get(sessao, "/lancamentos")))
+                .as("informar o mesmo número não é um fato novo")
+                .hasSize(1);
+    }
+
+    @Test
+    void conta_que_nao_e_aplicacao_nao_tem_valor_informado() {
+        var sessao = novaSessao("naoaplicacao");
+        Integer nubank = criarConta(sessao, "Nubank", "CORRENTE", 500000L);
+
+        var resposta = troca(http().put()
+                .uri(caminho(sessao, "/contas/" + nubank + "/valor-atual"))
+                .body(Map.of("valorCentavos", 900000)), sessao);
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(resposta.getBody()).containsEntry("codigo", "CONTA_NAO_E_APLICACAO");
+    }
+
     private Integer criarConta(Sessao sessao, String nome, String tipo, Long saldoInicial) {
         return criarConta(sessao, nome, tipo, saldoInicial, List.of());
     }
@@ -611,6 +674,12 @@ class ContaELancamentoIT {
     @SuppressWarnings("unchecked")
     private static List<Map<String, Object>> itens(ResponseEntity<Map<String, Object>> resposta) {
         return (List<Map<String, Object>>) resposta.getBody().get("itens");
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Map<String, Object>> itens(ResponseEntity<Map<String, Object>> resposta,
+            String chave) {
+        return (List<Map<String, Object>>) resposta.getBody().get(chave);
     }
 
     private RestClient http() {

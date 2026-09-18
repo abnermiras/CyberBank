@@ -122,6 +122,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | [`extrato.md`](06-interface/extrato.md) | a lista de movimento, a linha resumida e o modal que abre um lancamento inteiro | ativo |
 | [`navegacao.md`](06-interface/navegacao.md) | estrutura de navegacao, onde o ambiente vive na tela e como se lanca | rascunho |
 | [`perfil.md`](06-interface/perfil.md) | a tela do proprio usuario: onde se entra, as secoes, o seletor de avatar e os espacos reservados | ativo |
+| [`reserva.md`](06-interface/reserva.md) | a tela do patrimonio: as aplicacoes, a idade do valor informado e a distincao entre fluxo de caixa e patrimonio | ativo |
 
 ## Operacao — build, deploy e incidentes
 
@@ -147,5 +148,5 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 
 ---
 
-**82 documentos · 16 ainda em stub.**
+**83 documentos · 16 ainda em stub.**
 Stub = conteudo inexistente: pergunte, nao deduza.

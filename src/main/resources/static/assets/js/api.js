@@ -32,6 +32,8 @@ const API = {
     CATEGORIA_NAO_ESCOLHIVEL:
       'Esta categoria não é destino de lançamento: ou está inativa, ou tem subcategoria ativa.',
     CONTA_INATIVA: 'Esta conta está inativa e não recebe lançamento novo.',
+    CONTA_NAO_E_APLICACAO:
+      'Só uma aplicação tem valor informado: o saldo das outras é a soma do que se movimentou.',
     CONTA_COM_LANCAMENTO: 'Esta conta já tem lançamento. O caminho é inativar.',
     CARTAO_SEM_SALDO_INICIAL:
       'Cartão de crédito não tem saldo de abertura: a dívida é o conjunto das faturas.',
@@ -121,6 +123,11 @@ const API = {
 
   excluirMeio: (ambienteId, id) =>
     API.remover(API.doAmbiente(ambienteId, `/meios-de-pagamento/${id}`)),
+
+  reserva: (ambienteId) => API.get(API.doAmbiente(ambienteId, '/contas/reserva')),
+
+  informarValorDaAplicacao: (ambienteId, contaId, corpo) =>
+    API.put(API.doAmbiente(ambienteId, `/contas/${contaId}/valor-atual`), corpo),
 
   resumoDoMes: (ambienteId, mes) =>
     API.get(API.doAmbiente(ambienteId, '/relatorios/resumo' + (mes ? `?mes=${mes}` : ''))),

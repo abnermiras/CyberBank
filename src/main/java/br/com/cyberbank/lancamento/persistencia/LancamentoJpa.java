@@ -142,6 +142,16 @@ interface LancamentoJpa extends JpaRepository<LancamentoEntity, Long> {
             @Param("previsto") Situacao previsto);
 
     @Query("""
+            select l.contaId, max(l.dataEvento)
+              from LancamentoEntity l
+             where l.ambienteId = :ambienteId
+               and l.categoriaId in :categorias
+             group by l.contaId
+            """)
+    List<Object[]> ultimoDiaPorConta(@Param("ambienteId") Long ambienteId,
+            @Param("categorias") Collection<Long> categorias);
+
+    @Query("""
             select l.contaId, coalesce(sum(case when l.sentido = :entrada
                                                 then l.valorCentavos else -l.valorCentavos end), 0)
               from LancamentoEntity l

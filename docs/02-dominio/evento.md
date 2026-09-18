@@ -116,7 +116,7 @@ critério do resto do projeto.
 | `LANCAMENTO_CRIADO` · `LANCAMENTO_EDITADO` · `LANCAMENTO_ESTORNADO` · `LANCAMENTO_EXCLUIDO` | O `EDITADO` carrega o de/para em `dados`: é ele que cumpre o *"sempre com histórico"*. O `EXCLUIDO` é o único cujo `alvo` aponta para algo que **não existe mais** — ver abaixo |
 | `FATURA_PAGA` | Pagamento de fatura, parcial ou total |
 | `FATURA_ABERTA_PELO_USUARIO` | A última fechada foi reaberta à mão |
-| `VALOR_DE_APLICACAO_INFORMADO` | O usuário atualizou o valor atual — e a **diferença lançada** vem em `dados` |
+| `VALOR_DE_APLICACAO_INFORMADO` | O usuário atualizou o valor atual — e a **diferença lançada** vem em `dados`, junto do de/para do saldo. O **alvo é a conta**, não o lançamento de rendimento: é o que faz o histórico responder *"desde quando esse número está aí"* mesmo que alguém exclua o rendimento depois (`docs/02-dominio/aplicacao-patrimonio.md`) |
 | `LIMITE_INFORMADO` | O usuário informou o limite do cartão |
 | `CATEGORIA_CRIADA` · `CATEGORIA_RENOMEADA` · `CATEGORIA_RECOLORIDA` · `CATEGORIA_INATIVADA` · `CATEGORIA_REATIVADA` · `CATEGORIA_EXCLUIDA` | Ciclo de vida da categoria (`docs/02-dominio/categoria.md`) |
 | `CONTA_CRIADA` · `CONTA_RENOMEADA` · `CONTA_INATIVADA` · `CONTA_REATIVADA` · `CONTA_EXCLUIDA` | Idem para conta |

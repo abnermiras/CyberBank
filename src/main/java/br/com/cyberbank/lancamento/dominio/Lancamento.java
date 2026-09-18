@@ -46,6 +46,18 @@ public record Lancamento(
                 Situacao.REALIZADO, null, null, true, null, agora);
     }
 
+    public static Lancamento deRendimento(Long ambienteId, Long contaId, Long categoriaId,
+            Long autorId, long diferencaComSinal, LocalDate dia, Instant agora) {
+
+        if (diferencaComSinal == 0) {
+            throw new ValidacaoException(List.of(new ErroDeValidacao("valorAtual", "SEM_DIFERENCA",
+                    "O valor informado é o que a aplicação já vale: não há rendimento a gravar.")));
+        }
+        return new Lancamento(null, ambienteId, contaId, null, categoriaId, autorId,
+                Sentido.de(diferencaComSinal), Math.abs(diferencaComSinal), dia, dia,
+                "Rendimento", Situacao.REALIZADO, null, null, false, null, agora);
+    }
+
     public static Lancamento doUsuario(Long ambienteId, Long contaId, Long meioId,
             Long categoriaId, Long autorId, Sentido sentido, Long valorCentavos,
             LocalDate dataEvento, LocalDate dataEfeito, String descricao, Situacao situacao,
