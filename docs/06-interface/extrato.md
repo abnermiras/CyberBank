@@ -103,6 +103,25 @@ vez de uma confirmação que a pessoa aprende a clicar sem ler.
 descrição e situação valem para os dois lados; conta, meio e categoria não se corrigem de um
 lado só. O formulário diz isso em vez de esconder os campos calado.
 
+## O filtro de conta responde com números, não só com linhas
+
+Escolher uma conta no filtro passou a mostrar **três números** acima da lista: `SALDO AGORA`,
+`PREVISTO ATÉ dd/mm` e `PROJETADO`. Sem eles, a única forma de saber quanto havia no Nubank era
+filtrar e **somar as linhas à mão** — numa tela cujo cabeçalho diz *"saldo é sempre a soma
+disto"*.
+
+**Os três juntos são a conta inteira, não só o resultado**: o do meio é o que separa os outros
+dois, e carrega a data no próprio rótulo. É a regra do `dashboard.md` — *número de projeção sem
+a conta à vista é número que ninguém confere* — e é também o que explica por que um `PREVISTO`
+visível na lista pode não estar no número: ele vence depois do fim do mês, e o rótulo diz até
+onde a projeção foi.
+
+**Com `TODAS AS CONTAS` não há números, e a ausência é a resposta.** Somar corrente com
+aplicação daria um total que não responde pergunta nenhuma, e as três leituras que respondem —
+em caixa, guardado e patrimônio — já existem na Home, cada uma com seu recorte
+(`docs/02-dominio/conta.md`). A faixa diz isso e aponta para lá, em vez de inventar uma quarta
+leitura que contradiria as três.
+
 ## As ações moram no detalhe
 
 `ESTORNAR` e `EXCLUIR` **saíram da linha**. A linha ficou com uma função só — abrir —, e as

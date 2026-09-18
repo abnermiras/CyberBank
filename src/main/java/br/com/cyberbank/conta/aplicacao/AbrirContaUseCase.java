@@ -68,7 +68,7 @@ public class AbrirContaUseCase {
                 cadastrarMeio.executar(ambienteId, autorId, null, tipoDeMeio, gravada.id()));
 
         if (saldoInicialCentavos == null || saldoInicialCentavos == 0) {
-            return new ContaComSaldo(gravada, 0);
+            return new ContaComSaldo(gravada, 0, 0);
         }
 
         Sentido sentido = saldoInicialCentavos >= 0 ? Sentido.ENTRADA : Sentido.SAIDA;
@@ -82,6 +82,6 @@ public class AbrirContaUseCase {
                 categoriaDeAbertura, autorId, saldoInicialCentavos, diaLocal.hoje(),
                 relogio.instant())));
 
-        return new ContaComSaldo(gravada, saldoInicialCentavos);
+        return new ContaComSaldo(gravada, saldoInicialCentavos, 0);
     }
 }

@@ -1,6 +1,7 @@
 package br.com.cyberbank.conta.api;
 
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
@@ -40,11 +41,14 @@ public class ContaController {
             boolean entraEmCaixa,
             boolean inativa,
             long saldoRealizadoCentavos,
+            long previstoAteOFimDoMesCentavos,
+            long saldoProjetadoCentavos,
             List<TipoDeMeio> tiposDeMeioDisponiveis) {
     }
 
     public record ListaResponse(List<ContaResponse> itens, long emCaixaCentavos,
-            long patrimonioCentavos, List<TipoDisponivelResponse> tiposDisponiveis) {
+            long patrimonioCentavos, LocalDate previstoAte,
+            List<TipoDisponivelResponse> tiposDisponiveis) {
     }
 
     public record TipoDisponivelResponse(TipoDeConta tipo, boolean entraNoFluxoDeCaixa,
@@ -94,7 +98,7 @@ public class ContaController {
                 .sum();
 
         return new ListaResponse(contas.stream().map(ContaController::paraResposta).toList(),
-                emCaixa, patrimonio, tiposDisponiveis());
+                emCaixa, patrimonio, listarContas.horizonte().ate(), tiposDisponiveis());
     }
 
     @PostMapping
@@ -151,6 +155,8 @@ public class ContaController {
         return new ContaResponse(conta.id(), conta.nome(), conta.tipo(),
                 conta.entraNoFluxoDeCaixa(), conta.entraEmCaixa(), conta.inativa(),
                 comSaldo.saldoRealizadoCentavos(),
+                comSaldo.previstoNoHorizonteCentavos(),
+                comSaldo.saldoProjetadoCentavos(),
                 TipoDeMeio.daConta(conta.tipo().name()));
     }
 

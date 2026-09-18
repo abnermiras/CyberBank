@@ -53,6 +53,12 @@ body{display:flex;flex-direction:column;min-height:100vh}
   font:10px/1.8 var(--mono);color:var(--dim);letter-spacing:.1em;text-transform:uppercase}
 .emespera .falta b{color:var(--acid);font-weight:400}
 
+.totais-conta{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;
+  padding:14px 0 16px;border-bottom:1px solid var(--line)}
+.totais-conta .metric .val{font-size:clamp(19px,1.8vw,26px);white-space:nowrap}
+.totais-conta .metric .sub{margin-top:2px}
+.totais-sem-conta{padding:12px 0 14px;border-bottom:1px solid var(--line)}
+@media(max-width:700px){.totais-conta{grid-template-columns:1fr;gap:10px}}
 .contagem{font:10px var(--mono);letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
 .contagem b{color:var(--cyan);font-weight:400}
 .contagem .escondidas{color:var(--acid)}

@@ -1,11 +1,13 @@
 package br.com.cyberbank.conta.aplicacao;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import br.com.cyberbank.comum.tempo.DiaLocal;
 import br.com.cyberbank.conta.dominio.ContaRepository;
+import br.com.cyberbank.lancamento.dominio.JanelaDoPrevisto;
 import br.com.cyberbank.lancamento.dominio.LancamentoRepository;
 import br.com.cyberbank.lancamento.dominio.SaldoDeConta;
 
@@ -26,15 +28,29 @@ public class ListarContasUseCase {
         this.diaLocal = diaLocal;
     }
 
+    public JanelaDoPrevisto horizonte() {
+        return JanelaDoPrevisto.doMesCorrente(diaLocal.hoje());
+    }
+
     @Transactional(readOnly = true)
     public List<ContaComSaldo> executar(Long ambienteId, boolean inativas) {
-        Map<Long, Long> saldos = lancamentos
-                .saldoRealizadoPorConta(ambienteId, diaLocal.hoje()).stream()
-                .collect(Collectors.toMap(SaldoDeConta::contaId, SaldoDeConta::saldoCentavos));
+        LocalDate hoje = diaLocal.hoje();
+
+        Map<Long, Long> saldos = porConta(
+                lancamentos.saldoRealizadoPorConta(ambienteId, hoje));
+        Map<Long, Long> previstos = porConta(
+                lancamentos.previstoPorConta(ambienteId, horizonte()));
 
         return contas.listarDoAmbiente(ambienteId).stream()
                 .filter(conta -> inativas || !conta.inativa())
-                .map(conta -> new ContaComSaldo(conta, saldos.getOrDefault(conta.id(), 0L)))
+                .map(conta -> new ContaComSaldo(conta,
+                        saldos.getOrDefault(conta.id(), 0L),
+                        previstos.getOrDefault(conta.id(), 0L)))
                 .toList();
+    }
+
+    private static Map<Long, Long> porConta(List<SaldoDeConta> saldos) {
+        return saldos.stream()
+                .collect(Collectors.toMap(SaldoDeConta::contaId, SaldoDeConta::saldoCentavos));
     }
 }

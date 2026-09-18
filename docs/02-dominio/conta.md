@@ -101,6 +101,16 @@ contado duas vezes.
 | **Saldo realizado** | Tudo que **já aconteceu** até hoje: `REALIZADO` e `PROVISIONADO` (`ADR-0006`) | Quanto tem na conta agora — e, na `CARTAO`, quanto se deve |
 | **Saldo projetado** | Realizado mais o `PREVISTO` até uma data futura, **menos o `a pagar` das faturas que vencem até lá** | Quanto sobra até o fim do mês |
 
+**O horizonte padrão é o fim do mês corrente, e a janela começa hoje** — não no dia 1º. O que
+estava previsto e cuja data já passou não é projeção: ou a rotina já o realizou, ou ele é uma
+pendência de conciliação, e nos dois casos somá-lo ao futuro contaria duas vezes. A janela é
+uma só no sistema, e é ela que a Home e o Extrato dividem: **dois lugares mostrando o mesmo
+número nunca podem calculá-lo duas vezes.**
+
+**O projetado nunca aparece sem o realizado ao lado, e nunca sem a data no rótulo.** É a
+mesma regra que a Home já pratica em *"em caixa · agora"* e *"sobra até `dd/mm`"*
+(`docs/06-interface/dashboard.md`): são perguntas diferentes, e a data é o que as separa.
+
 **Saldo inicial é um lançamento**, não um campo: ao criar a conta com saldo existente, nasce
 um lançamento de abertura naquele valor, `REALIZADO` — o dinheiro já está lá. Assim a frase
 "saldo é a soma dos lançamentos" continua verdadeira literalmente, sem um "mais o saldo
@@ -166,7 +176,7 @@ que o código ainda não faz (`docs/04-api/endpoints-contas.md` tem o contrato d
 |---|---|
 | **Criar conta `CARTAO`** | Ela nasce com a fatura `ABERTA` do ciclo corrente, e guarda limite, dia de vencimento, dias de fechamento e conta pagadora padrão. Nada disso existe enquanto a fatura não existir. O `CHECK` da coluna `tipo` **já aceita** `CARTAO`: quem recusa é o caso de uso, e a fatia da fatura não vai precisar de migration sobre dado real |
 | **Trocar o `tipo`** | O endpoint não expõe o campo. A regra — *não muda depois de existir lançamento* — está escrita e o código `TIPO_DE_CONTA_IMUTAVEL` está no catálogo de erros, esperando a tela que precisar dele |
-| **Saldo projetado** | O realizado mais o `PREVISTO` até uma data, **menos o `a pagar` das faturas que vencem até lá**. A segunda metade depende da fatura, e meia conta daria um número que ninguém pode usar |
+| **O `a pagar` da fatura dentro do projetado** | O projetado existe e soma o `PREVISTO` até o fim do mês. Falta a segunda metade — descontar o `a pagar` das faturas que vencem até lá —, e ela depende da fatura existir. Enquanto não existe **não há fatura nenhuma para descontar**, então o número está completo hoje e fica otimista no dia em que o cartão entrar: quem implementar a fatura corrige aqui |
 | **Dono e editor × leitor** | Nenhum caso de uso verifica papel. Hoje todo ambiente tem exatamente um acesso, o do dono, porque convite e compartilhamento não existem — não há leitor no sistema para barrar. A verificação entra com o convite (`docs/02-dominio/ambiente-financeiro.md`) |
 
 ## Fronteiras com outros docs

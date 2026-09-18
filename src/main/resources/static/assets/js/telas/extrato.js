@@ -4,6 +4,7 @@ const Extrato = {
   contas: [],
   meios: [],
   arvore: [],
+  previstoAte: null,
   itens: [],
   proximo: null,
   filtroConta: '',
@@ -32,6 +33,7 @@ const Extrato = {
         API.arvoreDeCategorias(Contexto.ambiente.id),
       ]);
       Extrato.contas = contas.itens;
+      Extrato.previstoAte = contas.previstoAte;
       Extrato.meios = meios.itens;
       Extrato.arvore = arvore.itens.filter((raiz) => !raiz.sistema);
     } catch (erro) {
@@ -98,11 +100,50 @@ const Extrato = {
       ? `${Extrato.itens.length} CARREGADO${Extrato.itens.length > 1 ? 'S' : ''}${pendentes ? ` · ${pendentes} SEM CATEGORIA` : ''}`
       : 'NADA AINDA';
 
+    Extrato.desenharTotais();
+
     document.getElementById('linhas').innerHTML = Extrato.itens.length
       ? Extrato.itens.map(Extrato.linha).join('')
       : `<div class="vazio">${Extrato.somentePendentes
           ? 'Nenhuma pendência: todo lançamento tem categoria.'
           : 'Nenhum lançamento ainda. Comece abrindo uma conta com saldo.'}</div>`;
+  },
+
+  TOM_DO_PREVISTO(centavos) {
+    if (centavos < 0) return 'pk';
+    return centavos > 0 ? 'lm' : '';
+  },
+
+  desenharTotais() {
+    const alvo = document.getElementById('totaisDaConta');
+    const conta = Extrato.contas.find((c) => String(c.id) === String(Extrato.filtroConta));
+
+    if (!conta) {
+      alvo.className = 'totais-sem-conta';
+      alvo.innerHTML = `<div class="tele">ESCOLHA UMA CONTA PARA VER O SALDO DELA ·
+        OS NÚMEROS DO AMBIENTE INTEIRO SÃO OUTRA PERGUNTA, E ESTÃO NA
+        <a href="#/home">HOME</a></div>`;
+      return;
+    }
+
+    const previsto = conta.previstoAteOFimDoMesCentavos;
+    alvo.className = 'totais-conta';
+    alvo.innerHTML = `
+      <div class="metric">
+        <span class="lbl">Saldo agora</span>
+        <span class="val cy">${Formato.dinheiro(conta.saldoRealizadoCentavos)}</span>
+        <span class="sub">o que já aconteceu</span>
+      </div>
+      <div class="metric">
+        <span class="lbl">Previsto até ${Formato.dia(Extrato.previstoAte)}</span>
+        <span class="val ${Extrato.TOM_DO_PREVISTO(previsto)}">${previsto > 0 ? '+' : ''}${Formato.dinheiro(previsto)}</span>
+        <span class="sub">${previsto ? 'ainda não aconteceu' : 'nada previsto'}</span>
+      </div>
+      <div class="metric">
+        <span class="lbl">Projetado</span>
+        <span class="val ac">${Formato.dinheiro(conta.saldoProjetadoCentavos)}</span>
+        <span class="sub">os dois acima, somados</span>
+      </div>`;
   },
 
   linha(l) {

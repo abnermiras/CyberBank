@@ -33,14 +33,17 @@ GET /api/v1/ambientes/1/contas
     { "id": 1, "nome": "Nubank", "tipo": "CORRENTE",
       "entraNoFluxoDeCaixa": true, "entraEmCaixa": true,
       "inativa": false, "saldoRealizadoCentavos": 1093600,
+      "previstoAteOFimDoMesCentavos": -19900, "saldoProjetadoCentavos": 1073700,
       "tiposDeMeioDisponiveis": ["DEBITO","PIX","TED","DESCONTO_EM_FOLHA","BOLETO"] },
     { "id": 3, "nome": "Poupança", "tipo": "APLICACAO",
       "entraNoFluxoDeCaixa": false, "entraEmCaixa": false,
       "inativa": false, "saldoRealizadoCentavos": 1342400,
+      "previstoAteOFimDoMesCentavos": 0, "saldoProjetadoCentavos": 1342400,
       "tiposDeMeioDisponiveis": [] }
   ],
   "emCaixaCentavos": 1093600,
   "patrimonioCentavos": 2524000,
+  "previstoAte": "2026-09-30",
   "tiposDisponiveis": [
     { "tipo": "CORRENTE", "entraNoFluxoDeCaixa": true, "entraEmCaixa": true,
       "aceitaSaldoInicial": true,
@@ -66,6 +69,9 @@ tela some com a opção sem precisar saber por quê.
 | Campo | Nota |
 |---|---|
 | `saldoRealizadoCentavos` | Soma dos lançamentos com `situacao != PREVISTO` e `dataEfeito <= hoje`. **O teste é `!= PREVISTO`, nunca `== REALIZADO`** (`docs/02-dominio/lancamento.md`) |
+| `previstoAteOFimDoMesCentavos` | Soma **com sinal** dos `PREVISTO` desta conta entre hoje e `previstoAte`. Negativo é o que falta pagar. Zero quando não há nada previsto |
+| `saldoProjetadoCentavos` | `saldoRealizadoCentavos + previstoAteOFimDoMesCentavos`. Vem pronto porque **saldo é do dono da conta**, não da tela — e porque duas telas somando por conta própria é como dois números do mesmo fato passam a divergir |
+| `previstoAte` | O fim do horizonte, **no envelope e não em cada conta**: é um só para a resposta inteira. A tela o usa como rótulo em vez de recalcular o fim do mês, que é conta de fuso e é do servidor (`docs/02-dominio/conta.md`) |
 | `entraNoFluxoDeCaixa` | O movimento é gasto da vida? É **este campo**, e não o tipo, que o relatório de gasto consulta |
 | `entraEmCaixa` | O saldo paga **qualquer coisa**? Os dois são campo e não derivação do tipo, de propósito: tipo novo no futuro só precisa responder a estas duas perguntas |
 | `tiposDeMeioDisponiveis` | Quais meios cabem nesta conta. `CARTEIRA` devolve só `DINHEIRO` — **é isso que torna o dinheiro exclusivo**, sem precisar de regra própria; `APLICACAO` devolve vazio |
