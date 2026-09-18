@@ -26,3 +26,7 @@ desktop.ini
 logs/
 *.sql.gz
 *.dump
+
+# Cookie jar dos roteiros de conferencia no navegador
+ck*.txt
+cookies.txt

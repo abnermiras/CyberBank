@@ -100,12 +100,19 @@ GET /api/v1/ambientes/1/contas/reserva
       "saldoRealizadoCentavos": 1000000, "informadoEm": "2026-07-20",
       "diasDeIdade": 59, "desatualizada": true }
   ],
+  "contasDeCaixa": [ { "id": 1, "nome": "Nubank", "tipo": "CORRENTE" } ],
   "guardadoCentavos": 1000000,
   "emCaixaCentavos": 500000,
   "patrimonioCentavos": 1500000,
   "algumaDesatualizada": true
 }
 ```
+
+`contasDeCaixa` são as contas **ativas** com `entraEmCaixa = true`: a outra ponta possível de um
+aporte ou de um resgate. Vem daqui, e não da tela, porque *de onde o dinheiro sai para uma
+aplicação* é regra de domínio — a aplicação não financia outra aplicação, e o vale-benefício não
+entra porque o saldo dele não é fungível (`docs/02-dominio/conta.md`). O aporte em si é uma
+transferência comum: `POST /lancamentos/transferencias`.
 
 `informadoEm` é a `dataEvento` do último lançamento de **rendimento** da conta, ou a da
 **abertura**, se nunca houve rendimento. **Ausente** quando não há nem uma nem outra — e aí
