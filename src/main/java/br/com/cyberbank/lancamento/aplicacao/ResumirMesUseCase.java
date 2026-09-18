@@ -14,6 +14,7 @@ import br.com.cyberbank.categoria.dominio.Categoria;
 import br.com.cyberbank.comum.tempo.DiaLocal;
 import br.com.cyberbank.conta.aplicacao.ContaComSaldo;
 import br.com.cyberbank.conta.aplicacao.ListarContasUseCase;
+import br.com.cyberbank.lancamento.dominio.JanelaDoPrevisto;
 import br.com.cyberbank.lancamento.dominio.LancamentoRepository;
 import br.com.cyberbank.lancamento.dominio.RelatorioDoMes;
 import br.com.cyberbank.lancamento.dominio.ResumoDoMes;
@@ -61,9 +62,9 @@ public class ResumirMesUseCase {
         List<RelatorioDoMes.Bucket> buckets =
                 lancamentos.somarPorCategoria(ambienteId, primeiroDia, ultimoDia, deFluxo);
 
-        LocalDate inicioDoHorizonte = hoje.isAfter(primeiroDia) ? hoje : primeiroDia;
+        JanelaDoPrevisto janela = JanelaDoPrevisto.doMes(hoje, mes);
         Map<Sentido, Long> previstos = lancamentos
-                .somarPrevistos(ambienteId, inicioDoHorizonte, ultimoDia, deCaixa).stream()
+                .somarPrevistos(ambienteId, janela.de(), janela.ate(), deCaixa).stream()
                 .collect(Collectors.toMap(TotalPorSentido::sentido, TotalPorSentido::totalCentavos));
 
         return new ResumoDoMes(
@@ -80,7 +81,7 @@ public class ResumirMesUseCase {
                 lancamentos.somarAportes(ambienteId, primeiroDia, ultimoDia, foraDoFluxo),
                 lancamentos.contarPendencias(ambienteId),
                 RelatorioDoMes.gastoPorCategoria(buckets, categorias),
-                lancamentos.listarPrevistosAte(ambienteId, inicioDoHorizonte, ultimoDia,
+                lancamentos.listarPrevistosAte(ambienteId, janela.de(), janela.ate(),
                         deCaixa, PROXIMOS_NO_HORIZONTE));
     }
 

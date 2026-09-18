@@ -11,6 +11,7 @@ import br.com.cyberbank.lancamento.dominio.Lancamento;
 import br.com.cyberbank.lancamento.dominio.LancamentoRepository;
 import br.com.cyberbank.lancamento.dominio.Pagina;
 import br.com.cyberbank.lancamento.dominio.RelatorioDoMes;
+import br.com.cyberbank.lancamento.dominio.JanelaDoPrevisto;
 import br.com.cyberbank.lancamento.dominio.SaldoDeConta;
 import br.com.cyberbank.lancamento.dominio.Sentido;
 import br.com.cyberbank.lancamento.dominio.Situacao;
@@ -138,6 +139,18 @@ public class LancamentoRepositoryJpa implements LancamentoRepository {
     @Override
     public List<SaldoDeConta> saldoRealizadoPorConta(Long ambienteId, LocalDate ate) {
         return jpa.somarRealizadoPorConta(ambienteId, ate, Sentido.ENTRADA, Situacao.PREVISTO)
+                .stream()
+                .map(linha -> new SaldoDeConta((Long) linha[0], ((Number) linha[1]).longValue()))
+                .toList();
+    }
+
+    @Override
+    public List<SaldoDeConta> previstoPorConta(Long ambienteId, JanelaDoPrevisto janela) {
+        if (janela.vazia()) {
+            return List.of();
+        }
+        return jpa.somarPrevistoPorConta(ambienteId, janela.de(), janela.ate(),
+                        Sentido.ENTRADA, Situacao.PREVISTO)
                 .stream()
                 .map(linha -> new SaldoDeConta((Long) linha[0], ((Number) linha[1]).longValue()))
                 .toList();

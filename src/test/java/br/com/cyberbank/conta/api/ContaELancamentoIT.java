@@ -2,6 +2,8 @@ package br.com.cyberbank.conta.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +44,8 @@ class ContaELancamentoIT {
         registro.add("cyberbank.argon2.iteracoes", () -> 1);
         registro.add("cyberbank.argon2.paralelismo", () -> 1);
     }
+
+    private static final ZoneId BRASILIA = ZoneId.of("America/Sao_Paulo");
 
     @LocalServerPort
     private int porta;
@@ -435,6 +439,38 @@ class ContaELancamentoIT {
 
     private static Map<String, Object> campos(Map<String, Object> valores) {
         return new HashMap<>(valores);
+    }
+
+    @Test
+    void o_projetado_da_conta_soma_o_previsto_ate_o_fim_do_mes_e_para_ali() {
+        var sessao = novaSessao("projetado");
+        LocalDate hoje = LocalDate.now(BRASILIA);
+        LocalDate fimDoMes = hoje.withDayOfMonth(hoje.lengthOfMonth());
+
+        Integer nubank = criarConta(sessao, "Nubank", "CORRENTE", 500000L, List.of("BOLETO"));
+        Integer boleto = meioDa(sessao, nubank);
+
+        assertThat(lancar(sessao, campos(Map.of("meioId", boleto, "sentido", "SAIDA",
+                "valor", 19900, "dataEvento", hoje.toString(),
+                "dataEfeito", fimDoMes.toString(), "descricao", "Luz")))
+                .getStatusCode()).isEqualTo(HttpStatus.CREATED);
+
+        assertThat(lancar(sessao, campos(Map.of("meioId", boleto, "sentido", "SAIDA",
+                "valor", 45000, "dataEvento", hoje.toString(),
+                "dataEfeito", fimDoMes.plusDays(1).toString(), "descricao", "Mês que vem")))
+                .getStatusCode()).isEqualTo(HttpStatus.CREATED);
+
+        var conta = conta(sessao, nubank);
+
+        assertThat(conta).containsEntry("saldoRealizadoCentavos", 500000);
+        assertThat(conta)
+                .as("o previsto do mês que vem não é projeção deste mês")
+                .containsEntry("previstoAteOFimDoMesCentavos", -19900);
+        assertThat(conta).containsEntry("saldoProjetadoCentavos", 480100);
+
+        assertThat(contas(sessao).getBody())
+                .as("o horizonte vem do servidor: a tela não recalcula o fim do mês")
+                .containsEntry("previstoAte", fimDoMes.toString());
     }
 
     private Integer criarConta(Sessao sessao, String nome, String tipo, Long saldoInicial) {

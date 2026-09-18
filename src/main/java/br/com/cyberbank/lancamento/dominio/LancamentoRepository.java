@@ -38,6 +38,8 @@ public interface LancamentoRepository {
 
     List<SaldoDeConta> saldoRealizadoPorConta(Long ambienteId, LocalDate ate);
 
+    List<SaldoDeConta> previstoPorConta(Long ambienteId, JanelaDoPrevisto janela);
+
     boolean contaTemLancamento(Long contaId);
 
     boolean meioTemLancamento(Long meioId);
