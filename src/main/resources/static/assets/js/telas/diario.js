@@ -12,6 +12,7 @@ const Diario = {
     MEIO: '#/cadastro',
     CATEGORIA: '#/cadastro',
     FATURA: (id, dados) => (dados.contaId ? `#/fatura/${dados.contaId}` : '#/fatura'),
+    SERIE: (id, dados) => (dados.contaId ? `#/fatura/${dados.contaId}` : null),
   },
 
   FRASES: {
@@ -67,6 +68,14 @@ const Diario = {
         ? `, e a de ${Formato.mes(d.competenciaDevolvida)} voltou a ser futura` : ''}`,
     LIMITE_INFORMADO: (d) =>
       `informou o limite de <b>${Formato.texto(d.nome)}</b>${Diario.deParas(d)}`,
+
+    SERIE_CRIADA: (d) =>
+      `parcelou <b>${Diario.desc(d)}</b> em <b>${d.parcelas}x</b>`,
+    SERIE_ALTERADA: (d) =>
+      `alterou o parcelamento de <b>${Formato.texto(d.descricao)}</b> — as ${d.parcelas} parcelas`
+      + ` foram redistribuídas${Diario.deParas(d)}`,
+    SERIE_CANCELADA: (d) =>
+      `excluiu o parcelamento de <b>${Formato.texto(d.descricao)}</b> e as ${d.parcelas} parcelas dele`,
   },
 
   ROTULO_DO_CAMPO: {
@@ -187,12 +196,12 @@ const Diario = {
   valorDaLinha(dados) {
     if (dados.valor == null) return '';
     const cru = Formato.dinheiro(dados.valor).replace('−', '');
-    if (dados.transferenciaId) return cru;
+    if (dados.transferenciaId || !dados.sentido) return cru;
     return `${dados.sentido === 'SAIDA' ? '−' : '+'}${cru}`;
   },
 
   corDoValor(dados) {
-    if (dados.transferenciaId) return '';
+    if (dados.transferenciaId || !dados.sentido) return '';
     return dados.sentido === 'SAIDA' ? 'neg' : 'pos';
   },
 

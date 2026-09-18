@@ -40,7 +40,7 @@ isso?"*: primeiro o que se reconhece, por último o que é raro.
 | 3 | **Classificação** | `Raiz › Subcategoria`, na cor da raiz — ou o seletor, se está pendente |
 | 4 | **Quem e quando** | Quem lançou, a que horas foi cadastrado, e o texto bruto do estabelecimento |
 | 5 | **Ligações** | O outro lado da transferência, o estorno, o original |
-| 6 | **Série e fatura** | A fatura da compra no crédito — mês, estado e as duas datas. Série ainda reservada |
+| 6 | **Série e fatura** | A fatura da compra no crédito, e *parcela k de N* quando é parcela |
 | 7 | **O que já aconteceu com ele** | O histórico |
 | 8 | **Ações** | Editar, estornar e excluir |
 
@@ -67,10 +67,13 @@ ser prosa de doc e vira coisa que a pessoa lê na linha dela.
 **Fora do crédito ele diz que não se aplica**, em vez de sumir: só compra no crédito entra em
 fatura, e a tela que esconde o que não faz ensina errado.
 
-**A série continua reservada.** Parcelamento não existe (`docs/02-dominio/recorrencia.md`), e o
-bloco segue **dizendo o que vai dizer** — *"parcela 3 de 10, da compra de R$ 5.000"*. É o mesmo
-tratamento do bloco de fatura na Home e dos convites no Perfil: espaço reservado diz que o lugar
-é aqui; espaço ausente ensina que o app não faz.
+**Na parcela, o bloco diz qual de quantas** — *parcela 3 de 10, da compra de R$ 5.000 em
+18/09* —, e diz junto a regra que o usuário vai tentar violar: **parcela não se edita nem se
+exclui sozinha**. Ela é um pedaço de uma compra só, e mexer nela quebraria a soma; editar o
+parcelamento altera **todas**, sempre (`docs/02-dominio/recorrencia.md`).
+
+**Recorrência continua fora** — é Fase 2, e quando entrar é aqui que a ocorrência dirá de que
+regra ela nasceu.
 
 ### O histórico é a promessa sendo cumprida
 

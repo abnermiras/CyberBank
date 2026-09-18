@@ -52,6 +52,7 @@ public class LancamentoController {
             @JsonInclude(JsonInclude.Include.NON_NULL) Long transferenciaId,
             @JsonInclude(JsonInclude.Include.NON_NULL) Long estornoDeId,
             @JsonInclude(JsonInclude.Include.NON_NULL) Long faturaId,
+            @JsonInclude(JsonInclude.Include.NON_NULL) Long parcelamentoId,
             @JsonInclude(JsonInclude.Include.NON_NULL) String estabelecimento) {
     }
 
@@ -70,6 +71,7 @@ public class LancamentoController {
             @JsonInclude(JsonInclude.Include.NON_NULL) DetalheDoLancamento.MeioDoLancamento meio,
             @JsonInclude(JsonInclude.Include.NON_NULL) DetalheDoLancamento.CategoriaDoLancamento categoria,
             @JsonInclude(JsonInclude.Include.NON_NULL) DetalheDoLancamento.FaturaDoLancamento fatura,
+            @JsonInclude(JsonInclude.Include.NON_NULL) DetalheDoLancamento.SerieDoLancamento serie,
             @JsonInclude(JsonInclude.Include.NON_NULL) AutorResponse autor,
             @JsonInclude(JsonInclude.Include.NON_NULL) TransferenciaResponse transferencia,
             @JsonInclude(JsonInclude.Include.NON_NULL) Long estornoDeId,
@@ -148,7 +150,7 @@ public class LancamentoController {
         return new DetalheResponse(l.id(), l.sentido(), l.valorCentavos(), l.descricao(),
                 l.dataEvento(), l.dataEfeito(), l.situacao(), l.doCiclo(), l.criadoEm(),
                 l.estabelecimento(), detalhe.conta(), detalhe.meio(), detalhe.categoria(),
-                detalhe.fatura(),
+                detalhe.fatura(), detalhe.serie(),
                 detalhe.autor() == null ? null
                         : new AutorResponse(l.autorId(), detalhe.autor()),
                 l.transferenciaId() == null ? null
@@ -226,6 +228,6 @@ public class LancamentoController {
         return new LancamentoResponse(l.id(), l.contaId(), l.meioId(), l.categoriaId(),
                 l.autorId(), l.sentido(), l.valorCentavos(), l.dataEvento(), l.dataEfeito(),
                 l.descricao(), l.situacao(), l.doCiclo(), l.transferenciaId(), l.estornoDeId(),
-                l.faturaId(), l.estabelecimento());
+                l.faturaId(), l.parcelamentoId(), l.estabelecimento());
     }
 }

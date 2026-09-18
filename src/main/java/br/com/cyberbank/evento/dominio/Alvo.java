@@ -28,4 +28,8 @@ public record Alvo(TipoDeAlvo tipo, Long id) {
     public static Alvo fatura(Long id) {
         return new Alvo(TipoDeAlvo.FATURA, id);
     }
+
+    public static Alvo serie(Long id) {
+        return new Alvo(TipoDeAlvo.SERIE, id);
+    }
 }

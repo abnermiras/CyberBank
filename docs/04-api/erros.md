@@ -99,6 +99,7 @@ Erro previsível tem código, e **o código entra aqui antes de existir no códi
 | `FATURA_FORA_DO_CICLO` | 409 | A transição pedida não sai do estado em que a fatura está: fechar o que não é `ABERTA`, abrir pelo ciclo o que não é `FUTURA`. **Não é erro de usuário** — é a invariante do ciclo recusando uma corrida entre duas rodadas da rotina |
 | `LANCAMENTO_DO_CICLO` | 409 | Excluir o que o ciclo criou: parcela isolada, par de rolagem, lançamento de abertura |
 | `LANCAMENTO_COM_ESTORNO` | 409 | Excluir um lançamento que tem estorno apontando para ele. O estorno ficaria órfão; exclui-se o estorno primeiro |
+| `PARCELA_ISOLADA` | 409 | Excluir **uma** parcela de um parcelamento. Quebraria a soma das parcelas, e o usuário já não edita parcela sozinha: quem se arrepende exclui o **parcelamento** (`docs/02-dominio/recorrencia.md`) |
 | `TRANSFERENCIA_MESMA_CONTA` | 409 | Origem e destino iguais. Transferência é um par entre contas **diferentes** (`docs/02-dominio/lancamento.md`) |
 | `BENEFICIO_NAO_TRANSFERE` | 409 | Conta `BENEFICIO` como origem ou destino de transferência. O saldo dela não é fungível — entra por receita e sai por gasto no meio dele |
 | `CARTAO_SEM_SALDO_INICIAL` | 422 | Saldo inicial numa conta `CARTAO` |
@@ -110,6 +111,7 @@ Erro previsível tem código, e **o código entra aqui antes de existir no códi
 | `MEIO_COM_LANCAMENTO` | 409 | Excluir um meio que já teve lançamento. O caminho é inativar |
 | `MEIO_DUPLICADO_NA_CONTA` | 409 | A conta já tem um meio desse tipo. O par `(conta, tipo)` identifica o meio, e só `CREDITO` se repete — um contrato tem vários cartões (`docs/02-dominio/meio-de-pagamento.md`) |
 | `MEIO_INATIVO` | 409 | Lançamento **do usuário** num meio inativo, nem por captura |
+| `MEIO_NAO_PARCELA` | 409 | Parcelar uma compra num meio que não é `CREDITO`. **Só o cartão tem fatura e só ele parcela** — o que espalha a cobrança pelos meses é a fatura de cada parcela, e fora do crédito não há fatura nenhuma (`docs/02-dominio/meio-de-pagamento.md`) |
 | `AMBIENTE_INVALIDO` | 409 | Categoria de outro ambiente, ou conta sem vínculo (`ADR-0004`) |
 
 **Cada linha aponta para uma invariante já escrita no domínio.** Código novo sem invariante

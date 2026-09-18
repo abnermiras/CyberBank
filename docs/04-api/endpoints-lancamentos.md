@@ -57,7 +57,7 @@ chave de ordenação, e isso é detalhe do servidor.
 | `categoriaId` | Sempre presente; `null` **é** a pendência. Campo que se aplica e está vazio vem `null` |
 | `meioId` | **Não vem** em transferência nem no lançamento de abertura: ali ninguém pagou nada. Campo que não se aplica não vem |
 | `transferenciaId`, `estornoDeId`, `estabelecimento` | Só vêm quando existem |
-| `faturaId` | Em qual fatura a compra **entra**. Só no crédito, e lá a situação é sempre `PROVISIONADO`: comprou, deve (`docs/04-api/endpoints-faturas.md`) |
+| `faturaId` · `parcelamentoId` | Em qual fatura a compra **entra** e de que compra dividida ela é parte. Só no crédito, e lá a situação é sempre `PROVISIONADO`: comprou, deve (`docs/04-api/endpoints-faturas.md`) |
 | `doCiclo` | `true` no que o sistema criou sozinho. É o que a tela usa para não oferecer o botão de excluir |
 | `dataEvento`, `dataEfeito` | Data de domínio: `"AAAA-MM-DD"`, dia local, **sem fuso** |
 
@@ -294,6 +294,6 @@ tirar a linha já refaz tudo que deriva dela.
 
 ## O que ainda não existe
 
-- **`parcelamento` e `recorrencia`** nos campos e no corpo. `POST /lancamentos` ainda não divide
-  uma compra em N parcelas; a recorrência é Fase 2.
+- **`recorrencia`** no campo e no corpo — é Fase 2. O parcelamento tem recurso próprio
+  (`docs/04-api/endpoints-series.md`), e o `DELETE` numa parcela responde `PARCELA_ISOLADA`.
 - **Contagem total** do extrato: com cursor ela é consulta separada, e ninguém precisou dela.

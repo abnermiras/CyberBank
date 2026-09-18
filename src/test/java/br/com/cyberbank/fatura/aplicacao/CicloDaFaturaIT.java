@@ -417,6 +417,157 @@ class CicloDaFaturaIT {
         });
     }
 
+    @Test
+    void as_dez_parcelas_nascem_juntas_e_provisionadas_cada_uma_na_fatura_do_seu_mes() {
+        RELOGIO.em(LocalDate.of(2026, 9, 10));
+        Sessao sessao = novaSessao("parcelas");
+        Integer cartao = criarCartao(sessao, "UltraVioleta");
+        Integer meio = cartaoDe(sessao, cartao);
+
+        var resposta = post(sessao, "/parcelamentos", new HashMap<>(Map.of(
+                "meioId", meio, "valor", 500000, "parcelas", 3,
+                "dataEvento", "2026-09-10", "descricao", "Aulas de espanhol")));
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(itens(resposta)).hasSize(3);
+        assertThat(itens(resposta).stream().map(p -> p.get("valorCentavos")))
+                .as("o centavo que sobra vai na primeira parcela")
+                .containsExactly(166668, 166666, 166666);
+        assertThat(itens(resposta)).allSatisfy(parcela ->
+                assertThat(parcela)
+                        .as("todas nascem provisionadas na data da compra: a compra aconteceu uma vez")
+                        .containsEntry("situacao", "PROVISIONADO"));
+
+        var faturas = faturas(sessao, cartao);
+        assertThat(competencia(faturas, "2026-10"))
+                .as("a 1ª na ABERTA")
+                .containsEntry("totalCentavos", 166668);
+        assertThat(competencia(faturas, "2026-11")).containsEntry("status", "FUTURA");
+        assertThat(competencia(faturas, "2026-11")).containsEntry("totalCentavos", 166666);
+        assertThat(competencia(faturas, "2026-12"))
+                .as("as N−1 seguintes nas FUTURA, criadas na hora porque não existiam")
+                .containsEntry("totalCentavos", 166666);
+
+        assertThat(dividaDoCartao(sessao, cartao))
+                .as("quem parcelou R$ 5.000 em 3x deve R$ 5.000 hoje, e o limite já se comporta assim")
+                .isEqualTo(500000);
+    }
+
+    @Test
+    void o_cenario_do_abner_dez_parcelas_viradas_com_faturas_ja_pagas() {
+        RELOGIO.em(LocalDate.of(2026, 9, 10));
+        Sessao sessao = novaSessao("cenariodoabner");
+        Integer nubank = criarCorrente(sessao, "Nubank");
+        Integer cartao = criarCartao(sessao, "UltraVioleta");
+        Integer meio = cartaoDe(sessao, cartao);
+
+        var criado = post(sessao, "/parcelamentos", new HashMap<>(Map.of(
+                "meioId", meio, "valor", 10000, "parcelas", 10,
+                "dataEvento", "2026-09-10", "descricao", "Aulas")));
+        Integer parcelamento = (Integer) criado.getBody().get("id");
+
+        for (int ciclo = 0; ciclo < 4; ciclo++) {
+            sessao = avancarPara(sessao, LocalDate.of(2026, 10, 2).plusMonths(ciclo));
+            rotinaDiaria.executar();
+
+            var aPagar = faturas(sessao, cartao).stream()
+                    .filter(f -> Boolean.TRUE.equals(f.get("recebePagamento")))
+                    .findFirst().orElseThrow();
+
+            post(sessao, "/faturas/" + aPagar.get("id") + "/pagamentos", new HashMap<>(Map.of(
+                    "contaPagadoraId", nubank, "valor", aPagar.get("aPagarCentavos"))));
+        }
+
+        assertThat(faturas(sessao, cartao).stream()
+                .filter(f -> Boolean.TRUE.equals(f.get("encerrada"))
+                        && ((Number) f.get("pagoCentavos")).longValue() > 0))
+                .as("quatro faturas pagas antes da correção")
+                .hasSize(4);
+
+        var corrigido = troca(http().patch()
+                .uri(caminho(sessao, "/parcelamentos/" + parcelamento))
+                .body(Map.of("valor", 20000)), sessao);
+
+        assertThat(corrigido.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+        sessao = avancarPara(sessao, LocalDate.of(2027, 1, 10));
+        rotinaDiaria.executar();
+
+        var depois = faturas(sessao, cartao);
+        var pagas = depois.stream()
+                .filter(f -> ((Number) f.get("pagoCentavos")).longValue() > 0).toList();
+
+        assertThat(pagas)
+                .as("o sistema nunca reescreve um pagamento: as quatro continuam valendo R$ 10,00")
+                .allSatisfy(fatura -> assertThat(fatura).containsEntry("pagoCentavos", 1000));
+
+        assertThat(pagas)
+                .as("o que elas voltaram a dever rolou, e a rolagem é quem devolve o a pagar a zero")
+                .allSatisfy(fatura -> {
+                    assertThat(((Number) fatura.get("roladoCentavos")).longValue())
+                            .isEqualTo(1000);
+                    assertThat(fatura).containsEntry("aPagarCentavos", 0);
+                });
+
+        assertThat(depois.stream()
+                .mapToLong(f -> ((Number) f.get("totalCentavos")).longValue()
+                        - ((Number) f.get("roladoCentavos")).longValue())
+                .sum())
+                .as("as dez parcelas passam a valer R$ 20,00, e a compra inteira vale R$ 200,00")
+                .isEqualTo(20000);
+    }
+
+    @Test
+    void parcela_isolada_nao_se_exclui_quem_se_arrepende_exclui_o_parcelamento() {
+        RELOGIO.em(LocalDate.of(2026, 9, 10));
+        Sessao sessao = novaSessao("parcelaisolada");
+        Integer cartao = criarCartao(sessao, "UltraVioleta");
+        Integer meio = cartaoDe(sessao, cartao);
+
+        var criado = post(sessao, "/parcelamentos", new HashMap<>(Map.of(
+                "meioId", meio, "valor", 300000, "parcelas", 3,
+                "dataEvento", "2026-09-10", "descricao", "Aulas")));
+        Integer parcelamento = (Integer) criado.getBody().get("id");
+        Integer umaParcela = (Integer) itens(criado).get(1).get("id");
+
+        var recusa = troca(http().delete()
+                .uri(caminho(sessao, "/lancamentos/" + umaParcela)), sessao);
+
+        assertThat(recusa.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(recusa.getBody()).containsEntry("codigo", "PARCELA_ISOLADA");
+
+        var excluido = troca(http().delete()
+                .uri(caminho(sessao, "/parcelamentos/" + parcelamento)), sessao);
+
+        assertThat(excluido.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        assertThat(extrato(sessao)).as("a compra inteira some, e não meia compra").isEmpty();
+        assertThat(dividaDoCartao(sessao, cartao)).isZero();
+    }
+
+    @Test
+    void so_o_cartao_de_credito_parcela() {
+        RELOGIO.em(LocalDate.of(2026, 9, 10));
+        Sessao sessao = novaSessao("sopelocredito");
+        criarCorrente(sessao, "Nubank");
+
+        Integer pix = itens(get(sessao, "/meios-de-pagamento")).stream()
+                .map(m -> (Integer) m.get("id")).findFirst().orElseThrow();
+
+        var resposta = post(sessao, "/parcelamentos", new HashMap<>(Map.of(
+                "meioId", pix, "valor", 300000, "parcelas", 3,
+                "dataEvento", "2026-09-10", "descricao", "Aulas")));
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(resposta.getBody()).containsEntry("codigo", "MEIO_NAO_PARCELA");
+    }
+
+    private Integer cartaoDe(Sessao sessao, Integer contaId) {
+        return itens(get(sessao, "/meios-de-pagamento")).stream()
+                .filter(m -> contaId.equals(m.get("contaId")))
+                .map(m -> (Integer) m.get("id"))
+                .findFirst().orElseThrow();
+    }
+
     private List<String> situacoesDaFatura(Sessao sessao, Integer faturaId) {
         return extrato(sessao).stream()
                 .filter(l -> faturaId.equals(l.get("faturaId")))

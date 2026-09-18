@@ -159,9 +159,12 @@ O lançamento nasce `PROVISIONADO`, com `dataEfeito = dataEvento` e `faturaId` d
 daquele cartão. Mover um lançamento de fatura é `PATCH /lancamentos/{id}` com `faturaId`, para
 **qualquer** fatura daquele cartão, aberta ou não: fatura fechada não congela nada.
 
+**Compra parcelada é `POST /parcelamentos`** (`docs/04-api/endpoints-series.md`): a 1ª parcela na
+`ABERTA` e a parcela *k* na *k*-ésima fatura a partir dela, criada como `FUTURA` na hora. É o
+único caminho pelo qual uma fatura `FUTURA` ganha conteúdo — e a razão de ela existir.
+
 ## O que ainda não existe
 
-- **Parcelamento** — `POST /lancamentos` ainda não divide uma compra em N.
 - **Antecipar** o pagamento de uma fatura `ABERTA`, que é outra mecânica, com desconto do
   emissor — Fase 2 (`docs/00-produto/roadmap.md`).
 - **Papel**: nenhum endpoint desta página verifica se o usuário é dono, editor ou leitor. A

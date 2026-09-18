@@ -80,6 +80,19 @@ public class LancamentoRepositoryJpa implements LancamentoRepository {
     }
 
     @Override
+    public List<Lancamento> listarDoParcelamento(Long parcelamentoId, Long ambienteId) {
+        return jpa.findByParcelamentoIdAndAmbienteIdOrderByIdAsc(parcelamentoId, ambienteId)
+                .stream()
+                .map(LancamentoRepositoryJpa::paraDominio)
+                .toList();
+    }
+
+    @Override
+    public void excluirDoParcelamento(Long parcelamentoId, Long ambienteId) {
+        jpa.deleteByParcelamentoIdAndAmbienteId(parcelamentoId, ambienteId);
+    }
+
+    @Override
     public Optional<Lancamento> buscarEstornoDe(Long lancamentoId, Long ambienteId) {
         return jpa.findByEstornoDeIdAndAmbienteId(lancamentoId, ambienteId)
                 .map(LancamentoRepositoryJpa::paraDominio);
@@ -251,7 +264,7 @@ public class LancamentoRepositoryJpa implements LancamentoRepository {
         return new LancamentoEntity(l.id(), l.ambienteId(), l.contaId(), l.meioId(),
                 l.categoriaId(), l.autorId(), l.sentido(), l.valorCentavos(), l.dataEvento(),
                 l.dataEfeito(), l.descricao(), l.situacao(), l.transferenciaId(), l.estornoDeId(),
-                l.faturaId(), l.pagamentoDeFaturaId(), l.rolagemDeFatura(),
+                l.faturaId(), l.pagamentoDeFaturaId(), l.rolagemDeFatura(), l.parcelamentoId(),
                 l.doCiclo(), l.estabelecimento(), l.criadoEm());
     }
 
@@ -260,7 +273,7 @@ public class LancamentoRepositoryJpa implements LancamentoRepository {
                 e.getCategoriaId(), e.getAutorId(), e.getSentido(), e.getValorCentavos(),
                 e.getDataEvento(), e.getDataEfeito(), e.getDescricao(), e.getSituacao(),
                 e.getTransferenciaId(), e.getEstornoDeId(), e.getFaturaId(),
-                e.getPagamentoDeFaturaId(), e.getRolagemDeFatura(), e.isDoCiclo(),
-                e.getEstabelecimento(), e.getCriadoEm());
+                e.getPagamentoDeFaturaId(), e.getRolagemDeFatura(), e.getParcelamentoId(),
+                e.isDoCiclo(), e.getEstabelecimento(), e.getCriadoEm());
     }
 }

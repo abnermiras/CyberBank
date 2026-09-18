@@ -115,6 +115,12 @@ const API = {
   informarLimite: (ambienteId, contaId, limite) =>
     API.put(API.doAmbiente(ambienteId, `/contas/${contaId}/limite`), { limite }),
 
+  parcelar: (ambienteId, corpo) =>
+    API.post(API.doAmbiente(ambienteId, '/parcelamentos'), corpo),
+
+  excluirParcelamento: (ambienteId, id) =>
+    API.remover(API.doAmbiente(ambienteId, `/parcelamentos/${id}`)),
+
   listarFaturas: (ambienteId, contaId) =>
     API.get(API.doAmbiente(ambienteId, `/faturas?contaId=${contaId}`)),
 

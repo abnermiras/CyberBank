@@ -31,8 +31,10 @@ public enum CodigoDeErro {
     MEIO_COM_LANCAMENTO(409, "Este meio já tem lançamento"),
     MEIO_DUPLICADO_NA_CONTA(409, "Esta conta já tem um meio desse tipo"),
     MEIO_INATIVO(409, "Este meio está inativo"),
+    MEIO_NAO_PARCELA(409, "Só o cartão de crédito parcela"),
     LANCAMENTO_DO_CICLO(409, "Este lançamento foi criado pelo sistema"),
     LANCAMENTO_COM_ESTORNO(409, "Este lançamento tem um estorno apontando para ele"),
+    PARCELA_ISOLADA(409, "Parcela não se exclui sozinha: quem se arrepende exclui o parcelamento"),
     TRANSFERENCIA_MESMA_CONTA(409, "Origem e destino são a mesma conta"),
     BENEFICIO_NAO_TRANSFERE(409, "Conta de benefício não entra em transferência"),
     AMBIENTE_INVALIDO(409, "Este dado é de outro ambiente");

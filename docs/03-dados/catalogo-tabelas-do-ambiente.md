@@ -9,7 +9,10 @@ status: ativo
 # Catálogo de tabelas do ambiente
 
 As tabelas que têm `ambiente_id` e política de RLS por ambiente. As famílias **do usuário** e
-**de ligação** ficam em `docs/03-dados/catalogo-tabelas.md`, que também é o índice de todas.
+**de ligação** ficam em `docs/03-dados/catalogo-tabelas.md`, que também é o índice de todas — e
+as do **cartão** (`fatura` e `parcelamento`) saíram para
+`docs/03-dados/catalogo-tabelas-do-cartao.md` quando este passou das 300 linhas do `CONVENTIONS`.
+O corte é o **assunto**, que é o mesmo eixo do `ADR-0008`.
 
 As convenções de tipo e o padrão de RLS são de lá e de
 `docs/03-dados/modelo-de-dados.md`; aqui é a forma de cada uma.
@@ -137,6 +140,7 @@ exceção que confirma a regra — ele **não é derivado**, é declaração do 
 | `fatura_id` | `bigint` | sim | — | Em qual fatura o lançamento **entra**. FK simples → `fatura` |
 | `pagamento_de_fatura_id` | `bigint` | sim | — | Qual fatura este pagamento **quita**. Só o lado `ENTRADA` do par, na conta `CARTAO` |
 | `rolagem_de_fatura` | `bigint` | sim | — | Amarra o **par** da rolagem. Vem de `rolagem_de_fatura_seq`, e não é chave estrangeira: os dois lados apontam para faturas diferentes pelo `fatura_id` |
+| `parcelamento_id` | `bigint` | sim | — | De que compra dividida esta parcela faz parte (`V011`). FK simples → `parcelamento` |
 | `do_ciclo` | `boolean` | não | `false` | A fronteira do excluir |
 | `estabelecimento` | `varchar(200)` | sim | — | Texto bruto da captura |
 | `criado_em` | `timestamptz` | não | `now()` | |
@@ -161,8 +165,8 @@ ele é `bigint` como toda chave aqui.
 `rolagem_de_fatura_seq` é a segunda sequência de grupo, ao lado de `transferencia_id_seq`, e
 pela mesma razão.
 
-**Colunas que ainda não existem:** `parcelamento_id`, que vem com o parcelamento, e
-`recorrencia_id`, que é Fase 2. Coluna com `REFERENCES` para tabela inexistente não é schema.
+**Coluna que ainda não existe:** `recorrencia_id`, que é Fase 2. Coluna com `REFERENCES` para
+tabela inexistente não é schema — é a frase da `V004`, repetida pela `V009` e pela `V011`.
 
 ## RLS das tabelas da `V004`
 
@@ -189,49 +193,6 @@ Ela lê **só `acesso`**. Ler `conta` aqui recursionaria, porque a política de 
 propósito: ela entra com o caso de uso do compartilhamento, junto com a regra de quem pode
 compartilhar.
 
-## `fatura` — família do ambiente (`V009`)
-
-O recorte de um período da conta `CARTAO`. Guarda **só o que não se deriva**: em que ponto do
-ciclo ela está e as datas desse ciclo (`docs/02-dominio/fatura-cartao.md`).
-
-| Coluna | Tipo | Nulo | Default | Nota |
-|---|---|---|---|---|
-| `id` | `bigint` identity | não | — | PK |
-| `ambiente_id` | `bigint` | não | — | FK → `ambiente`, `ON DELETE CASCADE` |
-| `conta_id` | `bigint` | não | — | A conta `CARTAO`. **Com** chave composta, ao contrário de `lancamento`: a fatura é sempre do mesmo ambiente do contrato |
-| `competencia` | `date` | não | — | O **primeiro dia** do mês da fatura. É o eixo de ordem do ciclo, e o que torna *"a parcela k na k-ésima fatura"* uma conta em vez de uma busca |
-| `data_fechamento` | `date` | não | — | Calculada no nascimento e **nunca recalculada** |
-| `data_vencimento` | `date` | não | — | Idem. Mudar o ciclo vale da próxima fatura a nascer |
-| `status` | `varchar(10)` | não | — | `FUTURA`, `ABERTA`, `FECHADA`. **Não existe `REABERTA`** |
-| `criada_em` | `timestamptz` | não | `now()` | |
-
-**Nenhuma coluna de total, pago, rolado ou a pagar.** Os três números são soma de lançamento,
-calculada na leitura — a mesma regra do saldo de conta. Também **não há coluna de "encerrada"**,
-e a ausência é regra: *"não existe encerrada como estado que impeça isso; existe o número"*
-(`docs/02-dominio/fatura-pagamento.md`).
-
-| Constraint | Protege |
-|---|---|
-| `uq_fatura_aberta_por_conta` | Único parcial `WHERE status = 'ABERTA'`, em `(conta_id)`. **É a invariante mais cara deste arquivo:** *"exatamente uma `ABERTA` por conta `CARTAO`"* é o que faz *"a fatura vem do status, nunca da data"* devolver **uma** resposta. Escrita como índice porque confiança na aplicação não é invariante |
-| `uq_fatura_conta_competencia` | `(conta_id, competencia)`. Duas faturas do mesmo mês dariam dois destinos à mesma parcela |
-| `fk_fatura_conta` | `(conta_id, ambiente_id) → (id, ambiente_id)`, `ON DELETE CASCADE`. Excluir a conta leva as faturas dela — e a conta com lançamento já foi recusada antes disso |
-| `ck_fatura_status` | Os três estados |
-| `ck_fatura_competencia_e_o_primeiro_dia` | `extract(day from competencia) = 1` |
-| `ck_fatura_fecha_antes_de_vencer` | `data_fechamento < data_vencimento` |
-| `ix_fatura_ciclo` | `(ambiente_id, status, data_vencimento)` — a varredura da rotina: fechar o que chegou na data, encerrar o que venceu |
-
-`ENABLE` + `FORCE ROW LEVEL SECURITY`, com uma política só:
-
-| Política | Comando | Regra |
-|---|---|---|
-| `fatura_do_ambiente` | `ALL` | `ambiente_id = app_ambiente_id()`, no `USING` e no `WITH CHECK` |
-
-**Sem o `OR` do `ADR-0004`, e isso é decisão, não esquecimento** — é a mesma escolha que o
-`evento` fez na `V006`. *"Quem fecha e abre a fatura de um cartão compartilhado"* está em aberto,
-e *"partes da fatura"* é Fase 2. O preço está nomeado: o destino de um cartão compartilhado vê o
-**lançamento** dele e não vê a fatura em que ele caiu. O `OR` entra junto com o
-compartilhamento, que é quando a regra dele existir.
-
 ## `evento` — família do ambiente (`V006`)
 
 O registro do que aconteceu. **Só nasce e é lido**: não há `UPDATE` nem `DELETE` em lugar
@@ -246,7 +207,7 @@ nenhum, e a ausência das duas políticas é onde essa invariante para de depend
 | `origem` | `varchar(10)` | não | — | `SISTEMA` ou `USUARIO` |
 | `autor_id` | `bigint` | não | — | FK → `usuario`. No evento de sistema é o **dono do ambiente** |
 | `tipo` | `varchar(40)` | não | — | Lista fechada, no `CHECK` |
-| `alvo_tipo` | `varchar(20)` | sim | — | `LANCAMENTO`, `CONTA`, `MEIO`, `CATEGORIA` ou `FATURA` (`V009`) |
+| `alvo_tipo` | `varchar(20)` | sim | — | `LANCAMENTO`, `CONTA`, `MEIO`, `CATEGORIA`, `FATURA` (`V009`) ou `SERIE` (`V011`) |
 | `alvo_id` | `bigint` | sim | — | **Sem FK**, e é de propósito: ver abaixo |
 | `dados` | `jsonb` | sim | — | O punhado de valores da frase, não um espelho do objeto |
 

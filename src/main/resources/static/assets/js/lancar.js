@@ -96,6 +96,8 @@ const Lancar = {
       () => Lancar.montarSubcategorias('comp'));
     ['compDe', 'compPara'].forEach((id) =>
       document.getElementById(id).addEventListener('change', Lancar.explicarCompleto));
+    ['compParcelas', 'compValor'].forEach((id) =>
+      document.getElementById(id).addEventListener('input', Lancar.explicarCompleto));
 
     document.getElementById('fRapido').addEventListener('submit', async (evento) => {
       evento.preventDefault();
@@ -180,6 +182,7 @@ const Lancar = {
     });
 
     const transferencia = aba === 'TRANSFERENCIA';
+    document.getElementById('campoCompParcelas').classList.toggle('hidden', aba !== 'CREDITO');
     document.getElementById('linhaMeioCategoria').classList.toggle('hidden', transferencia);
     document.getElementById('linhaTransferencia').classList.toggle('hidden', !transferencia);
     document.getElementById('campoCompSubcategoria').classList.toggle('hidden', transferencia);
@@ -236,6 +239,32 @@ const Lancar = {
     return Contas.identidadeDoMeio(meio, Lancar.contas);
   },
 
+  parcelasEscolhidas() {
+    const bruto = Number(document.getElementById('compParcelas').value);
+    return Number.isInteger(bruto) && bruto >= 2 ? bruto : 1;
+  },
+
+  explicarParcelas() {
+    const parcelas = Lancar.parcelasEscolhidas();
+    if (parcelas < 2) return '';
+
+    const total = Formato.centavos(document.getElementById('compValor').value);
+    if (!total) {
+      return `<br><br>Em <b>${parcelas}x</b>: as parcelas nascem <b>todas juntas</b> e todas
+        provisionadas na data da compra — a compra aconteceu uma vez, e quem espalha a cobrança
+        pelos meses é a fatura de cada parcela.`;
+    }
+
+    const base = Math.floor(total / parcelas);
+    const primeira = base + (total - base * parcelas);
+
+    return `<br><br>Em <b>${parcelas}x</b>: a primeira de <b>${Formato.dinheiro(primeira)}</b> e
+      as ${parcelas - 1} seguintes de <b>${Formato.dinheiro(base)}</b> — <b>o centavo que sobra
+      vai na primeira</b>, que é o que a maioria dos emissores faz. Todas nascem juntas e
+      provisionadas na data da compra, cada uma na fatura do seu mês: os
+      ${Formato.dinheiro(total)} <b>comem o limite agora</b>, como na vida real.`;
+  },
+
   meioEscolhido() {
     return Lancar.meios.find((m) => String(m.id) === document.getElementById('compMeio').value);
   },
@@ -281,7 +310,8 @@ const Lancar = {
          ${Formato.texto(conta ? conta.nome : '—')} — a fatura vem do <b>status</b>, nunca da
          data —, e nasce <b>PROVISIONADO</b>: comprou, deve. A dívida do cartão sobe na hora, e
          a conta corrente só se move no dia em que você pagar a fatura. <b>O limite não trava
-         nada</b>: recusar uma compra que o emissor já aprovou seria o app discordando do banco.`;
+         nada</b>: recusar uma compra que o emissor já aprovou seria o app discordando do banco.
+         ${Lancar.explicarParcelas()}`;
       return;
     }
 
@@ -348,6 +378,19 @@ const Lancar = {
       : null;
 
     const vencimento = CampoDeData.valor('compVencimento');
+    const parcelas = Lancar.aba === 'CREDITO' ? Lancar.parcelasEscolhidas() : 1;
+
+    if (parcelas >= 2) {
+      await Lancar.enviar('compAviso', () => API.parcelar(Contexto.ambiente.id, {
+        meioId: meio.id,
+        categoriaId,
+        valor,
+        parcelas,
+        dataEvento,
+        descricao,
+      }), Lancar.fecharCompleto);
+      return;
+    }
 
     await Lancar.enviar('compAviso', () => API.lancar(Contexto.ambiente.id, {
       meioId: meio.id,

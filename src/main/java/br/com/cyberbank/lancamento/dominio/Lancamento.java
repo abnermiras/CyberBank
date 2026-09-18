@@ -30,6 +30,7 @@ public record Lancamento(
         Long faturaId,
         Long pagamentoDeFaturaId,
         Long rolagemDeFatura,
+        Long parcelamentoId,
         boolean doCiclo,
         String estabelecimento,
         Instant criadoEm) {
@@ -46,7 +47,7 @@ public record Lancamento(
         Sentido sentido = Sentido.de(saldoComSinal);
         return new Lancamento(null, ambienteId, contaId, null, categoriaDeSistemaId, autorId,
                 sentido, Math.abs(saldoComSinal), dia, dia, "Saldo de abertura",
-                Situacao.REALIZADO, null, null, null, null, null, true, null, agora);
+                Situacao.REALIZADO, null, null, null, null, null, null, true, null, agora);
     }
 
     public static Lancamento deRendimento(Long ambienteId, Long contaId, Long categoriaId,
@@ -58,7 +59,7 @@ public record Lancamento(
         }
         return new Lancamento(null, ambienteId, contaId, null, categoriaId, autorId,
                 Sentido.de(diferencaComSinal), Math.abs(diferencaComSinal), dia, dia,
-                "Rendimento", Situacao.REALIZADO, null, null, null, null, null, false, null, agora);
+                "Rendimento", Situacao.REALIZADO, null, null, null, null, null, null, false, null, agora);
     }
 
     public static Lancamento doUsuario(Long ambienteId, Long contaId, Long meioId,
@@ -84,7 +85,41 @@ public record Lancamento(
 
         return new Lancamento(null, ambienteId, contaId, meioId, categoriaId, autorId, sentido,
                 valorCentavos, dataEvento, dataEfeito, descricao.trim(), situacao, null, null,
-                faturaId, null, null, false, estabelecimento, agora);
+                faturaId, null, null, null, false, estabelecimento, agora);
+    }
+
+    public static List<Lancamento> parcelasDeUmaCompra(Long ambienteId, Long contaDoCartaoId,
+            Long meioId, Long categoriaId, Long autorId, List<Long> valores,
+            List<Long> faturasNaOrdem, LocalDate dataDaCompra, String descricao,
+            Long parcelamentoId, Instant agora) {
+
+        if (valores.size() != faturasNaOrdem.size()) {
+            throw new RegraDeDominioException(CodigoDeErro.NAO_ENCONTRADO);
+        }
+
+        List<Lancamento> parcelas = new ArrayList<>(valores.size());
+        for (int parcela = 0; parcela < valores.size(); parcela++) {
+            parcelas.add(new Lancamento(null, ambienteId, contaDoCartaoId, meioId, categoriaId,
+                    autorId, Sentido.SAIDA, valores.get(parcela), dataDaCompra, dataDaCompra,
+                    descricao, Situacao.PROVISIONADO, null, null, faturasNaOrdem.get(parcela),
+                    null, null, parcelamentoId, false, null, agora));
+        }
+        return parcelas;
+    }
+
+    public boolean ehParcela() {
+        return parcelamentoId != null;
+    }
+
+    public Lancamento comValorDaParcela(long novoValorCentavos, Long novaCategoriaId,
+            String novaDescricao) {
+
+        return new Lancamento(id, ambienteId, contaId, meioId,
+                novaCategoriaId == null ? categoriaId : novaCategoriaId, autorId, sentido,
+                novoValorCentavos, dataEvento, dataEfeito,
+                novaDescricao == null ? descricao : novaDescricao, situacao, transferenciaId,
+                estornoDeId, faturaId, pagamentoDeFaturaId, rolagemDeFatura, parcelamentoId,
+                doCiclo, estabelecimento, criadoEm);
     }
 
     public static Lancamento deCompraNoCredito(Long ambienteId, Long contaId, Long meioId,
@@ -118,12 +153,12 @@ public record Lancamento(
         Lancamento saida = new Lancamento(null, ambienteId, contaDeOrigemId, null,
                 categoriaDaSaidaId, autorId, Sentido.SAIDA, valorCentavos, dataEvento,
                 dataEfeito, descricao.trim(), situacao, transferenciaId, null, null, null, null,
-                false, null, agora);
+                null, false, null, agora);
 
         Lancamento entrada = new Lancamento(null, ambienteId, contaDeDestinoId, null,
                 categoriaDaEntradaId, autorId, Sentido.ENTRADA, valorCentavos, dataEvento,
                 dataEfeito, descricao.trim(), situacao, transferenciaId, null, null, null, null,
-                false, null, agora);
+                null, false, null, agora);
 
         return List.of(saida, entrada);
     }
@@ -136,12 +171,12 @@ public record Lancamento(
         Lancamento credito = new Lancamento(null, ambienteId, contaDoCartaoId, null,
                 categoriaDoCreditoId, autorId, Sentido.ENTRADA, valorCentavos, dia, dia,
                 "Rolado para a fatura seguinte", Situacao.REALIZADO, null, null,
-                faturaQueVenceuId, null, rolagemDeFatura, true, null, agora);
+                faturaQueVenceuId, null, rolagemDeFatura, null, true, null, agora);
 
         Lancamento debito = new Lancamento(null, ambienteId, contaDoCartaoId, null,
                 categoriaDoDebitoId, autorId, Sentido.SAIDA, valorCentavos, dia, dia,
                 "Saldo da fatura anterior", Situacao.PROVISIONADO, null, null,
-                faturaAbertaId, null, rolagemDeFatura, true, null, agora);
+                faturaAbertaId, null, rolagemDeFatura, null, true, null, agora);
 
         return List.of(credito, debito);
     }
@@ -161,8 +196,8 @@ public record Lancamento(
     public Lancamento quitando(Long faturaQuitadaId) {
         return new Lancamento(id, ambienteId, contaId, meioId, categoriaId, autorId, sentido,
                 valorCentavos, dataEvento, dataEfeito, descricao, situacao, transferenciaId,
-                estornoDeId, faturaId, faturaQuitadaId, rolagemDeFatura, doCiclo, estabelecimento,
-                criadoEm);
+                estornoDeId, faturaId, faturaQuitadaId, rolagemDeFatura, parcelamentoId, doCiclo,
+                estabelecimento, criadoEm);
     }
 
     public Lancamento estornadoEm(LocalDate dia, Long autorDoEstornoId, Long faturaDoEstornoId,
@@ -177,7 +212,7 @@ public record Lancamento(
         }
         return new Lancamento(null, ambienteId, contaId, meioId, categoriaId, autorDoEstornoId,
                 sentido.invertido(), valorCentavos, dia, dia, "Estorno de " + descricao,
-                situacaoDoEstorno, null, id, faturaDoEstornoId, null, null, false,
+                situacaoDoEstorno, null, id, faturaDoEstornoId, null, null, null, false,
                 estabelecimento, agora);
     }
 
@@ -210,7 +245,7 @@ public record Lancamento(
                 valor, evento, efeito, texto.trim(),
                 novaSituacao == null ? situacao : novaSituacao,
                 transferenciaId, estornoDeId, faturaId, pagamentoDeFaturaId, rolagemDeFatura,
-                doCiclo, estabelecimento, criadoEm);
+                parcelamentoId, doCiclo, estabelecimento, criadoEm);
     }
 
     public Lancamento corrigidoNaTransferencia(Long novoValorCentavos,
@@ -235,19 +270,22 @@ public record Lancamento(
 
         return new Lancamento(id, ambienteId, contaId, meioId, categoriaId, autorId, sentido,
                 valorCentavos, dataEvento, dataEfeito, descricao, situacao, transferenciaId,
-                estornoDeId, novaFaturaId, pagamentoDeFaturaId, rolagemDeFatura, doCiclo,
-                estabelecimento, criadoEm);
+                estornoDeId, novaFaturaId, pagamentoDeFaturaId, rolagemDeFatura, parcelamentoId,
+                doCiclo, estabelecimento, criadoEm);
     }
 
     public Lancamento comSituacao(Situacao nova) {
         return new Lancamento(id, ambienteId, contaId, meioId, categoriaId, autorId, sentido,
                 valorCentavos, dataEvento, dataEfeito, descricao, nova, transferenciaId,
-                estornoDeId, faturaId, pagamentoDeFaturaId, rolagemDeFatura, doCiclo,
-                estabelecimento, criadoEm);
+                estornoDeId, faturaId, pagamentoDeFaturaId, rolagemDeFatura, parcelamentoId,
+                doCiclo, estabelecimento, criadoEm);
     }
 
     public void exigirExcluivelPeloUsuario(boolean temEstorno) {
         exigirDoUsuario();
+        if (ehParcela()) {
+            throw new RegraDeDominioException(CodigoDeErro.PARCELA_ISOLADA);
+        }
         if (temEstorno) {
             throw new RegraDeDominioException(CodigoDeErro.LANCAMENTO_COM_ESTORNO);
         }

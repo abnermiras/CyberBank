@@ -267,7 +267,7 @@ class LancamentoTest {
         return new Lancamento(id, l.ambienteId(), l.contaId(), l.meioId(), l.categoriaId(),
                 l.autorId(), l.sentido(), l.valorCentavos(), l.dataEvento(), l.dataEfeito(),
                 l.descricao(), l.situacao(), l.transferenciaId(), l.estornoDeId(), l.faturaId(),
-                l.pagamentoDeFaturaId(), l.rolagemDeFatura(), l.doCiclo(), l.estabelecimento(),
-                l.criadoEm());
+                l.pagamentoDeFaturaId(), l.rolagemDeFatura(), l.parcelamentoId(), l.doCiclo(),
+                l.estabelecimento(), l.criadoEm());
     }
 }

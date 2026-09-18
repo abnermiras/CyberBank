@@ -86,6 +86,7 @@ public class PagarFaturaUseCase {
                 Evento.dados(
                         "competencia", fatura.competencia().toString(),
                         "valor", valorCentavos,
+                        "sentido", Sentido.SAIDA.name(),
                         "contaId", cartao.id(),
                         "contaPagadoraId", pagadora.id(),
                         "situacao", situacao.name(),
