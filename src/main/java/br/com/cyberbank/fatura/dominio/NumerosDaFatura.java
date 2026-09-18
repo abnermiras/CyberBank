@@ -1,11 +1,20 @@
 package br.com.cyberbank.fatura.dominio;
 
-public record NumerosDaFatura(long totalCentavos, long pagoCentavos, long roladoCentavos) {
+public record NumerosDaFatura(long totalCentavos, long pagoCentavos, long roladoCentavos,
+        long agendadoCentavos) {
 
-    public static final NumerosDaFatura VAZIA = new NumerosDaFatura(0, 0, 0);
+    public static final NumerosDaFatura VAZIA = new NumerosDaFatura(0, 0, 0, 0);
+
+    public NumerosDaFatura(long totalCentavos, long pagoCentavos, long roladoCentavos) {
+        this(totalCentavos, pagoCentavos, roladoCentavos, 0);
+    }
 
     public long aPagarCentavos() {
         return totalCentavos - pagoCentavos - roladoCentavos;
+    }
+
+    public long aPagarDescontandoOAgendadoCentavos() {
+        return Math.max(0, aPagarCentavos() - agendadoCentavos);
     }
 
     public boolean encerrada() {

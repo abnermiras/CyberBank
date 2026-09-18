@@ -121,6 +121,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | [`dashboard.md`](06-interface/dashboard.md) | o que a Home mostra, em que ordem e por que — o cockpit de decidir | ativo |
 | [`direcao-visual.md`](06-interface/direcao-visual.md) | a linguagem visual do Cyberbank: paleta, tipografia, forma e o limite do efeito | rascunho |
 | [`extrato.md`](06-interface/extrato.md) | a lista de movimento, a linha resumida e o modal que abre um lancamento inteiro | ativo |
+| [`fatura.md`](06-interface/fatura.md) | a tela do ciclo do cartao: os tres numeros de cada fatura, a janela que importa e as acoes de pagar, fechar e abrir | ativo |
 | [`navegacao.md`](06-interface/navegacao.md) | estrutura de navegacao, onde o ambiente vive na tela e como se lanca | rascunho |
 | [`perfil.md`](06-interface/perfil.md) | a tela do proprio usuario: onde se entra, as secoes, o seletor de avatar e os espacos reservados | ativo |
 | [`reserva.md`](06-interface/reserva.md) | a tela do patrimonio: as aplicacoes, a idade do valor informado e a distincao entre fluxo de caixa e patrimonio | ativo |
@@ -149,5 +150,5 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 
 ---
 
-**84 documentos · 16 ainda em stub.**
+**85 documentos · 16 ainda em stub.**
 Stub = conteudo inexistente: pergunte, nao deduza.

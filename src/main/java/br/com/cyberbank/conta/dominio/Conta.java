@@ -1,6 +1,7 @@
 package br.com.cyberbank.conta.dominio;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -79,6 +80,13 @@ public record Conta(
 
     public long limiteDisponivelCentavos(long dividaCentavos) {
         return contrato.limiteCentavos() - dividaCentavos;
+    }
+
+    public Conta comLimiteInformado(long limiteCentavos, LocalDate hoje) {
+        ContratoDeCartao atual = exigirContratoDeCartao();
+
+        return new Conta(id, ambienteId, nome, tipo, entraNoFluxoDeCaixa, entraEmCaixa,
+                atual.comLimite(limiteCentavos, hoje), inativa, criadaEm);
     }
 
     public Conta renomeada(String novoNome) {

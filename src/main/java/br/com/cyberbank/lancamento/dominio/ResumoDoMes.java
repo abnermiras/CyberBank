@@ -12,6 +12,7 @@ public record ResumoDoMes(
         long patrimonioCentavos,
         long aPagarCentavos,
         long aReceberCentavos,
+        long faturasAPagarCentavos,
         long entrouNoMesCentavos,
         long saiuNoMesCentavos,
         long guardadoNoMesCentavos,
@@ -20,7 +21,7 @@ public record ResumoDoMes(
         List<Lancamento> proximos) {
 
     public long sobraAteOFimDoMesCentavos() {
-        return emCaixaCentavos + aReceberCentavos - aPagarCentavos;
+        return emCaixaCentavos + aReceberCentavos - aPagarCentavos - faturasAPagarCentavos;
     }
 
     public int diasAteOFimDoMes() {

@@ -146,6 +146,25 @@ public record Lancamento(
         return List.of(credito, debito);
     }
 
+    public static List<Lancamento> parDePagamentoDeFatura(Long ambienteId, Long contaPagadoraId,
+            Long contaDoCartaoId, Long categoriaDaSaidaId, Long categoriaDaEntradaId,
+            Long autorId, Long valorCentavos, LocalDate dia, String descricao, Situacao situacao,
+            long transferenciaId, Long faturaQuitadaId, Instant agora) {
+
+        List<Lancamento> par = parDeTransferencia(ambienteId, contaPagadoraId, contaDoCartaoId,
+                categoriaDaSaidaId, categoriaDaEntradaId, autorId, valorCentavos, dia, dia,
+                descricao, situacao, transferenciaId, agora);
+
+        return List.of(par.getFirst(), par.getLast().quitando(faturaQuitadaId));
+    }
+
+    public Lancamento quitando(Long faturaQuitadaId) {
+        return new Lancamento(id, ambienteId, contaId, meioId, categoriaId, autorId, sentido,
+                valorCentavos, dataEvento, dataEfeito, descricao, situacao, transferenciaId,
+                estornoDeId, faturaId, faturaQuitadaId, rolagemDeFatura, doCiclo, estabelecimento,
+                criadoEm);
+    }
+
     public Lancamento estornadoEm(LocalDate dia, Long autorDoEstornoId, Long faturaDoEstornoId,
             Situacao situacaoDoEstorno, Instant agora) {
 

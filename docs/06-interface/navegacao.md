@@ -89,7 +89,7 @@ esperando, senão ensina que o app está quebrado.
 |---|---|
 | **Home** | Quanto tenho, quanto sobra, o que está pendente, como está a fatura |
 | **Extrato** | Todo movimento do ambiente, filtrável por conta e por pendência. A linha abre o **detalhe** do lançamento (`docs/06-interface/extrato.md`) |
-| **Fatura** | O ciclo do cartão e as ações de fechar, pagar e abrir (só na última fechada) |
+| **Fatura** | O ciclo do cartão e as ações de fechar, pagar e abrir (só na última fechada) — `docs/06-interface/fatura.md` |
 | **Reserva** | Contas, aplicações e a diferença entre fluxo de caixa e patrimônio |
 | **Séries** | Os parcelamentos e as recorrências vivos, e o que muda ao alterar cada um |
 | **Cadastro** | As árvores de categoria do usuário: criar, inativar, reativar e excluir |

@@ -137,8 +137,11 @@ public class LancamentoRepositoryJpa implements LancamentoRepository {
         }
 
         Map<Long, Long> pagoPorFatura = new HashMap<>();
-        for (Object[] linha : jpa.somarPagamentosPorFatura(faturaIds, Situacao.REALIZADO)) {
+        Map<Long, Long> agendadoPorFatura = new HashMap<>();
+        for (Object[] linha : jpa.somarPagamentosPorFatura(faturaIds, Situacao.REALIZADO,
+                Situacao.PREVISTO)) {
             pagoPorFatura.put((Long) linha[0], (Long) linha[1]);
+            agendadoPorFatura.put((Long) linha[0], (Long) linha[2]);
         }
 
         Map<Long, TotaisDeFatura> porFatura = new HashMap<>();
@@ -147,12 +150,13 @@ public class LancamentoRepositoryJpa implements LancamentoRepository {
             Long faturaId = (Long) linha[0];
             porFatura.put(faturaId, new TotaisDeFatura(faturaId, (Long) linha[1],
                     pagoPorFatura.getOrDefault(faturaId, 0L), (Long) linha[2],
-                    ((Long) linha[3]) > 0));
+                    agendadoPorFatura.getOrDefault(faturaId, 0L), ((Long) linha[3]) > 0));
         }
 
         return faturaIds.stream()
                 .map(faturaId -> porFatura.getOrDefault(faturaId, new TotaisDeFatura(faturaId, 0,
-                        pagoPorFatura.getOrDefault(faturaId, 0L), 0, false)))
+                        pagoPorFatura.getOrDefault(faturaId, 0L), 0,
+                        agendadoPorFatura.getOrDefault(faturaId, 0L), false)))
                 .toList();
     }
 

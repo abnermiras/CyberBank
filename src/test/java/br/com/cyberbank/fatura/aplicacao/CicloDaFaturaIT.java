@@ -256,6 +256,183 @@ class CicloDaFaturaIT {
         assertThat(competencia(faturas(sessao, cartao), "2026-11")).containsEntry("status", "ABERTA");
     }
 
+    @Test
+    void o_exemplo_literal_do_doc_paga_800_de_1610_60_e_o_resto_rola() {
+        RELOGIO.em(LocalDate.of(2026, 9, 10));
+        Sessao sessao = novaSessao("exemploliteral");
+        Integer nubank = criarCorrente(sessao, "Nubank");
+        Integer cartao = criarCartao(sessao, "UltraVioleta");
+        comprar(sessao, cartao, 161060, "Setembro");
+
+        sessao = avancarPara(sessao, LocalDate.of(2026, 9, 27));
+        rotinaDiaria.executar();
+        comprar(sessao, cartao, 110010, "Outubro");
+
+        Integer outubro = (Integer) competencia(faturas(sessao, cartao), "2026-10").get("id");
+
+        sessao = avancarPara(sessao, LocalDate.of(2026, 10, 1));
+        var agendado = post(sessao, "/faturas/" + outubro + "/pagamentos", new HashMap<>(Map.of(
+                "contaPagadoraId", nubank, "valor", 80000, "dataEvento", "2026-10-04")));
+        assertThat(agendado.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+        assertThat(competencia(faturas(sessao, cartao), "2026-10")).satisfies(fatura -> {
+            assertThat(fatura)
+                    .as("o pagamento agendado ainda não pagou: pago é só o REALIZADO")
+                    .containsEntry("pagoCentavos", 0);
+            assertThat(fatura).containsEntry("agendadoCentavos", 80000);
+            assertThat(fatura).containsEntry("aPagarCentavos", 161060);
+        });
+
+        sessao = avancarPara(sessao, LocalDate.of(2026, 10, 4));
+        rotinaDiaria.executar();
+
+        assertThat(competencia(faturas(sessao, cartao), "2026-10"))
+                .as("dia 4 o previsto realiza, e aí sim ele pagou")
+                .containsEntry("pagoCentavos", 80000);
+
+        sessao = avancarPara(sessao, LocalDate.of(2026, 10, 6));
+        rotinaDiaria.executar();
+
+        assertThat(competencia(faturas(sessao, cartao), "2026-10")).satisfies(outubroDepois -> {
+            assertThat(outubroDepois)
+                    .as("o total histórico não cai: outubro continua tendo sido R$ 1.610,60")
+                    .containsEntry("totalCentavos", 161060);
+            assertThat(outubroDepois).containsEntry("roladoCentavos", 81060);
+            assertThat(outubroDepois).containsEntry("aPagarCentavos", 0);
+        });
+
+        assertThat(competencia(faturas(sessao, cartao), "2026-11"))
+                .as("novembro, que tinha R$ 1.100,10 de compras, fecha em R$ 1.910,70")
+                .containsEntry("totalCentavos", 191070);
+    }
+
+    @Test
+    void quitar_encerra_a_fatura_na_hora_e_o_agendado_encerra_quando_a_rotina_o_realiza() {
+        RELOGIO.em(LocalDate.of(2026, 9, 10));
+        Sessao sessao = novaSessao("quitacao");
+        Integer nubank = criarCorrente(sessao, "Nubank");
+        Integer cartao = criarCartao(sessao, "UltraVioleta");
+        comprar(sessao, cartao, 100000, "Compra");
+
+        sessao = avancarPara(sessao, LocalDate.of(2026, 9, 27));
+        rotinaDiaria.executar();
+        Integer outubro = (Integer) competencia(faturas(sessao, cartao), "2026-10").get("id");
+
+        sessao = avancarPara(sessao, LocalDate.of(2026, 10, 1));
+        post(sessao, "/faturas/" + outubro + "/pagamentos", new HashMap<>(Map.of(
+                "contaPagadoraId", nubank, "valor", 100000, "dataEvento", "2026-10-03")));
+
+        assertThat(situacoesDaFatura(sessao, outubro))
+                .as("pagamento agendado não liquida nada: a fatura ainda não foi paga")
+                .contains("PROVISIONADO");
+
+        sessao = avancarPara(sessao, LocalDate.of(2026, 10, 3));
+        rotinaDiaria.executar();
+
+        assertThat(situacoesDaFatura(sessao, outubro))
+                .as("quem realizou o previsto foi a rotina — e é ela que tem de encerrar")
+                .containsOnly("REALIZADO");
+        assertThat(competencia(faturas(sessao, cartao), "2026-10"))
+                .containsEntry("encerrada", true);
+
+        sessao = avancarPara(sessao, LocalDate.of(2026, 10, 6));
+        rotinaDiaria.executar();
+        assertThat(competencia(faturas(sessao, cartao), "2026-10"))
+                .as("quitada não rola")
+                .containsEntry("roladoCentavos", 0);
+    }
+
+    @Test
+    void so_a_fechada_que_ainda_deve_recebe_pagamento_e_abre() {
+        RELOGIO.em(LocalDate.of(2026, 9, 10));
+        Sessao sessao = novaSessao("janelaunica");
+        Integer nubank = criarCorrente(sessao, "Nubank");
+        Integer cartao = criarCartao(sessao, "UltraVioleta");
+        comprar(sessao, cartao, 100000, "Compra");
+
+        Integer aberta = (Integer) faturas(sessao, cartao).get(0).get("id");
+
+        var naAberta = post(sessao, "/faturas/" + aberta + "/pagamentos", new HashMap<>(Map.of(
+                "contaPagadoraId", nubank, "valor", 100000)));
+        assertThat(naAberta.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(naAberta.getBody()).containsEntry("codigo", "FATURA_NAO_RECEBE_PAGAMENTO");
+
+        var abrirAAberta = post(sessao, "/faturas/" + aberta + "/abertura", Map.of());
+        assertThat(abrirAAberta.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(abrirAAberta.getBody()).containsEntry("codigo", "FATURA_NAO_ABRE");
+
+        sessao = avancarPara(sessao, LocalDate.of(2026, 10, 6));
+        rotinaDiaria.executar();
+
+        var rolada = competencia(faturas(sessao, cartao), "2026-10");
+        var naRolada = post(sessao, "/faturas/" + rolada.get("id") + "/abertura", Map.of());
+        assertThat(naRolada.getStatusCode())
+                .as("fatura encerrada não abre — é o que impede a rolagem de rolar para si mesma")
+                .isEqualTo(HttpStatus.CONFLICT);
+        assertThat(naRolada.getBody()).containsEntry("codigo", "FATURA_NAO_ABRE");
+    }
+
+    @Test
+    void abrir_a_ultima_fechada_devolve_a_seguinte_para_futura_sem_mexer_no_que_ela_tem() {
+        RELOGIO.em(LocalDate.of(2026, 9, 10));
+        Sessao sessao = novaSessao("abriramao");
+        Integer cartao = criarCartao(sessao, "UltraVioleta");
+        comprar(sessao, cartao, 100000, "Setembro");
+
+        sessao = avancarPara(sessao, LocalDate.of(2026, 9, 27));
+        rotinaDiaria.executar();
+        comprar(sessao, cartao, 5000, "Caiu em novembro por engano");
+
+        Integer outubro = (Integer) competencia(faturas(sessao, cartao), "2026-10").get("id");
+        var abertura = post(sessao, "/faturas/" + outubro + "/abertura", Map.of());
+
+        assertThat(abertura.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+        var depois = faturas(sessao, cartao);
+        assertThat(competencia(depois, "2026-10")).containsEntry("status", "ABERTA");
+        assertThat(competencia(depois, "2026-11"))
+                .as("a seguinte volta a FUTURA na hora, e o que já estava dentro dela fica")
+                .containsEntry("status", "FUTURA");
+        assertThat(competencia(depois, "2026-11")).containsEntry("totalCentavos", 5000);
+    }
+
+    @Test
+    void fechar_a_mao_e_contingencia_e_o_diario_diz_que_foi_o_usuario() {
+        RELOGIO.em(LocalDate.of(2026, 9, 10));
+        Sessao sessao = novaSessao("fecharamao");
+        Integer cartao = criarCartao(sessao, "UltraVioleta");
+        Integer aberta = (Integer) faturas(sessao, cartao).get(0).get("id");
+
+        var resposta = post(sessao, "/faturas/" + aberta + "/fechamento", Map.of());
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(competencia(faturas(sessao, cartao), "2026-10")).containsEntry("status", "FECHADA");
+        assertThat(competencia(faturas(sessao, cartao), "2026-11")).containsEntry("status", "ABERTA");
+
+        assertThat(eventosDoDia(sessao, "2026-09-10")).anySatisfy(evento -> {
+            assertThat(evento).containsEntry("tipo", "FATURA_FECHADA_PELO_USUARIO");
+            assertThat(evento)
+                    .as("o Diário responde por quem, e a rotina não pediu isto")
+                    .containsEntry("origem", "USUARIO");
+        });
+    }
+
+    private List<String> situacoesDaFatura(Sessao sessao, Integer faturaId) {
+        return extrato(sessao).stream()
+                .filter(l -> faturaId.equals(l.get("faturaId")))
+                .map(l -> String.valueOf(l.get("situacao")))
+                .toList();
+    }
+
+    private Integer criarCorrente(Sessao sessao, String nome) {
+        var resposta = post(sessao, "/contas", new HashMap<>(Map.of(
+                "nome", nome, "tipo", "CORRENTE", "saldoInicial", 5000000,
+                "meios", List.of("PIX"))));
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        return (Integer) resposta.getBody().get("id");
+    }
+
     private Map<String, Object> competencia(List<Map<String, Object>> faturas, String qual) {
         return faturas.stream()
                 .filter(f -> qual.equals(f.get("competencia")))

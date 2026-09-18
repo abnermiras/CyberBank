@@ -11,6 +11,7 @@ const Diario = {
     CONTA: '#/cadastro',
     MEIO: '#/cadastro',
     CATEGORIA: '#/cadastro',
+    FATURA: (id, dados) => (dados.contaId ? `#/fatura/${dados.contaId}` : '#/fatura'),
   },
 
   FRASES: {
@@ -54,11 +55,24 @@ const Diario = {
       + `não recebeu rolaram para a de <b>${Formato.mes(d.competenciaDestino)}</b>`,
     FATURA_ENCERRADA: (d) =>
       `a fatura de <b>${Formato.mes(d.competencia)}</b> encerrou: o que estava provisionado nela virou realizado`,
+
+    FATURA_PAGA: (d) =>
+      `pagou <b>${Formato.dinheiro(d.valor)}</b> da fatura de ${Formato.mes(d.competencia)}`
+      + `${d.situacao === 'PREVISTO' ? `, agendado para ${Formato.dia(d.dia)}` : ''}`,
+    FATURA_FECHADA_PELO_USUARIO: (d) =>
+      `fechou à mão a fatura de <b>${Formato.mes(d.competencia)}</b> — vence em ${Formato.dia(d.dataVencimento)}`,
+    FATURA_ABERTA_PELO_USUARIO: (d) =>
+      `abriu de novo a fatura de <b>${Formato.mes(d.competencia)}</b>`
+      + `${d.competenciaDevolvida
+        ? `, e a de ${Formato.mes(d.competenciaDevolvida)} voltou a ser futura` : ''}`,
+    LIMITE_INFORMADO: (d) =>
+      `informou o limite de <b>${Formato.texto(d.nome)}</b>${Diario.deParas(d)}`,
   },
 
   ROTULO_DO_CAMPO: {
     nome: 'nome',
     valor: 'valor',
+    limite: 'limite',
     descricao: 'descrição',
     sentido: 'sentido',
     situacao: 'situação',
@@ -186,7 +200,7 @@ const Diario = {
     if (!e.alvo || e.tipo.endsWith('_EXCLUIDO') || e.tipo.endsWith('_EXCLUIDA')) return null;
     const destino = Diario.TELA_DO_ALVO[e.alvo.tipo];
     if (!destino) return null;
-    return typeof destino === 'function' ? destino(e.alvo.id) : destino;
+    return typeof destino === 'function' ? destino(e.alvo.id, e.dados || {}) : destino;
   },
 
   deParas(dados) {
@@ -203,7 +217,7 @@ const Diario = {
 
   valor(campo, bruto) {
     if (bruto == null) return '—';
-    if (campo === 'valor') return Formato.dinheiro(bruto);
+    if (campo === 'valor' || campo === 'limite') return Formato.dinheiro(bruto);
     if (campo === 'dataEvento' || campo === 'dataEfeito') return Formato.dia(bruto);
     if (campo === 'categoriaId') return Formato.texto(Diario.nomeDaCategoria(bruto));
     if (campo === 'contaId') return Formato.texto(Diario.nomeDaConta(bruto));

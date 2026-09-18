@@ -17,4 +17,7 @@ interface FaturaJpa extends JpaRepository<FaturaEntity, Long> {
     Optional<FaturaEntity> findByContaIdAndCompetencia(Long contaId, LocalDate competencia);
 
     List<FaturaEntity> findByContaIdOrderByCompetenciaDesc(Long contaId);
+
+    List<FaturaEntity> findByAmbienteIdAndStatusAndDataVencimentoBetween(Long ambienteId,
+            StatusDaFatura status, LocalDate de, LocalDate ate);
 }

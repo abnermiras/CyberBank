@@ -214,14 +214,18 @@ interface LancamentoJpa extends JpaRepository<LancamentoEntity, Long> {
             @Param("provisionado") Situacao provisionado);
 
     @Query("""
-            select l.pagamentoDeFaturaId, coalesce(sum(l.valorCentavos), 0)
+            select l.pagamentoDeFaturaId,
+                   coalesce(sum(case when l.situacao = :realizado
+                                     then l.valorCentavos else 0 end), 0),
+                   coalesce(sum(case when l.situacao = :previsto
+                                     then l.valorCentavos else 0 end), 0)
               from LancamentoEntity l
              where l.pagamentoDeFaturaId in :faturas
-               and l.situacao = :realizado
              group by l.pagamentoDeFaturaId
             """)
     List<Object[]> somarPagamentosPorFatura(@Param("faturas") Collection<Long> faturas,
-            @Param("realizado") Situacao realizado);
+            @Param("realizado") Situacao realizado,
+            @Param("previsto") Situacao previsto);
 
     long countByAmbienteIdAndCategoriaIdIsNull(Long ambienteId);
 

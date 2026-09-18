@@ -5,5 +5,6 @@ public record TotaisDeFatura(
         long totalCentavos,
         long pagoCentavos,
         long roladoCentavos,
+        long agendadoCentavos,
         boolean temProvisionado) {
 }

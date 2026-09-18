@@ -92,9 +92,19 @@ na mesma tela sem rótulo:
 
 A fatura entra no projetado por **consulta**, não por lançamento: o sistema não cria pagamento
 previsto de fatura, porque não sabe de qual conta nem em que dia você vai pagar
-(`docs/02-dominio/fatura-pagamento.md`). Se você já agendou o pagamento, ele é um `PREVISTO`
-como outro qualquer — e o `a pagar` daquela fatura já caiu no mesmo valor, então nada é
-contado duas vezes.
+(`docs/02-dominio/fatura-pagamento.md`).
+
+**O desconto é do agregado, nunca do saldo projetado de uma conta.** *"Quanto sobra até o fim do
+mês"* e o em-caixa projetado descontam o `a pagar` das faturas que vencem na janela; o
+`saldoProjetado` de **cada conta** não muda, porque o sistema não sabe de qual conta o dinheiro
+vai sair — afirmá-lo seria o mesmo palpite que derrubou o pagamento previsto automático.
+
+**E o que já foi agendado não é contado duas vezes.** O pagamento agendado é um `PREVISTO`
+daquela conta e já está na projeção; o que a fatura acrescenta é só o que **ainda não tem
+pagamento marcado** — `a pagar` menos o agendado, nunca abaixo de zero. O `a pagar` em si **não
+cai** com o agendamento, e isso é de propósito: *pago* é a soma dos pagamentos `REALIZADO`
+(`docs/02-dominio/fatura-cartao.md`), e contar o previsto ali faria a fatura ler como quitada e
+**encerrar antes de o dinheiro sair**.
 
 | Leitura | Como se calcula | Para que serve |
 |---|---|---|

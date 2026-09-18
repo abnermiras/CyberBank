@@ -39,6 +39,7 @@ public class RodarCicloDasFaturasUseCase {
     private final ContaRepository contas;
     private final FaturaRepository faturas;
     private final NumerosDasFaturas numerosDasFaturas;
+    private final EncerramentoDaFatura encerramento;
     private final LancamentoRepository lancamentos;
     private final CategoriaRepository categorias;
     private final EventoRepository eventos;
@@ -46,12 +47,13 @@ public class RodarCicloDasFaturasUseCase {
     private final Clock relogio;
 
     public RodarCicloDasFaturasUseCase(ContaRepository contas, FaturaRepository faturas,
-            NumerosDasFaturas numerosDasFaturas, LancamentoRepository lancamentos,
-            CategoriaRepository categorias, EventoRepository eventos, DiaLocal diaLocal,
-            Clock relogio) {
+            NumerosDasFaturas numerosDasFaturas, EncerramentoDaFatura encerramento,
+            LancamentoRepository lancamentos, CategoriaRepository categorias,
+            EventoRepository eventos, DiaLocal diaLocal, Clock relogio) {
         this.contas = contas;
         this.faturas = faturas;
         this.numerosDasFaturas = numerosDasFaturas;
+        this.encerramento = encerramento;
         this.lancamentos = lancamentos;
         this.categorias = categorias;
         this.eventos = eventos;
@@ -132,14 +134,7 @@ public class RodarCicloDasFaturasUseCase {
     }
 
     private void encerrar(Fatura fatura, Long ambienteId, Long autorId, LocalDate hoje) {
-        lancamentos.liquidarProvisionadosDaFatura(fatura.id());
-
-        eventos.registrar(Evento.doSistema(ambienteId, autorId, TipoDeEvento.FATURA_ENCERRADA,
-                Alvo.fatura(fatura.id()),
-                Evento.dados(
-                        "competencia", fatura.competencia().toString(),
-                        "contaId", fatura.contaId()),
-                hoje, relogio.instant()));
+        encerramento.liquidar(ambienteId, autorId, fatura, hoje);
     }
 
     private void fechar(Fatura aberta, Long ambienteId, Long autorId, CicloDaFatura ciclo,

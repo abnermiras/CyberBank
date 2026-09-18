@@ -150,6 +150,34 @@ redesenhar.
 | `CONTA_NAO_E_APLICACAO` (409) | A conta existe e não é `APLICACAO`. O saldo das outras é a soma do que se movimentou de verdade |
 | `NAO_ENCONTRADO` (404) | Conta inexistente ou de outro ambiente |
 
+## `PUT /api/v1/ambientes/{ambienteId}/contas/{contaId}/limite`
+
+O limite do cartão, que é do **contrato** e nunca do cartão
+(`docs/02-dominio/meio-de-pagamento.md`). **É informado pelo usuário e o sistema nunca o corrige
+sozinho** — ele passa a carregar a data de hoje, e é essa idade que a tela mostra (regra 7 do
+`CLAUDE.md`).
+
+```
+PUT /api/v1/ambientes/1/contas/9/limite
+{ "limite": 1500000 }
+
+200 OK
+{ "id": 9, "nome": "UltraVioleta", "tipo": "CARTAO", ... }
+```
+
+**É `PUT` porque é declaração, não fato:** informar de novo o mesmo número é a mesma afirmação,
+com data nova. Grava `LIMITE_INFORMADO` com o de/para.
+
+**O limite nunca trava um lançamento.** Ele orienta: quando a dívida passa dele, o disponível
+fica negativo e `GET /faturas` diz que ele pode estar desatualizado — recusar uma compra que o
+emissor já aprovou seria o app discordando do banco.
+
+| Erro | Quando |
+|---|---|
+| `CONTA_NAO_E_CARTAO` (409) | A conta existe e não é `CARTAO`: só o contrato de cartão tem limite |
+| `VALIDACAO` (422) | `limite` ausente ou não positivo |
+| `NAO_ENCONTRADO` (404) | Conta inexistente ou de outro ambiente |
+
 ## `POST /api/v1/ambientes/{ambienteId}/contas`
 
 Abre a conta. Se vier `saldoInicial`, **nasce junto um lançamento de abertura** — saldo inicial
@@ -248,11 +276,12 @@ DELETE /api/v1/ambientes/1/contas/4
 
 ## O que ainda não existe
 
-- **Informar o limite depois de abrir a conta.** Ele entra no `POST` e ainda não tem
-  sub-recurso próprio para ser atualizado; o evento `LIMITE_INFORMADO` espera esse endpoint.
-- **O `a pagar` das faturas dentro do projetado.** O `saldoProjetadoCentavos` de cada conta
-  **não** desconta fatura, e não vai descontar: o sistema não sabe de qual conta você vai pagar
-  (`docs/02-dominio/conta.md`). O desconto é do agregado da Home, e entra com o pagamento.
+- **O `a pagar` das faturas no `saldoProjetadoCentavos` de cada conta**, e ele **não vai**
+  entrar: o sistema não sabe de qual conta você vai pagar (`docs/02-dominio/conta.md`). O
+  desconto é do agregado, e já está em `GET /relatorios/resumo`.
+- **Trocar o ciclo de um cartão** (`diaVencimento`, `diasAntesFechamento`) depois de aberto. A
+  regra está escrita — vale da próxima fatura a nascer, e fatura já criada mantém suas datas —,
+  e o `PATCH` ainda não expõe os campos.
 - **Papel**: nenhum endpoint desta página verifica se o usuário é dono, editor ou leitor. A
   gestão de papel e o convite não existem, e todo ambiente hoje tem exatamente um acesso, que é
   o do dono. A verificação entra com o convite (`docs/02-dominio/ambiente-financeiro.md`).

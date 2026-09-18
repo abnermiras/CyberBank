@@ -42,6 +42,7 @@ GET /api/v1/ambientes/1/relatorios/resumo?mes=2026-09
   "patrimonioCentavos": 2524000,
   "sobraAteOFimDoMesCentavos": 830000,
   "aPagarCentavos": 320000,
+  "faturasAPagarCentavos": 161060,
   "aReceberCentavos": 56400,
 
   "entrouNoMesCentavos": 1123600,
@@ -68,8 +69,9 @@ GET /api/v1/ambientes/1/relatorios/resumo?mes=2026-09
 | Campo | Como é |
 |---|---|
 | `emCaixaCentavos`, `guardadoCentavos`, `patrimonioCentavos` | Os mesmos de `GET /contas`, e pela mesma consulta: eles vêm juntos aqui para a Home não precisar de duas requisições para os quatro números do topo |
-| `sobraAteOFimDoMesCentavos` | Saldo **projetado** das contas de caixa até `ultimoDia`: o realizado mais tudo que ainda cai. É `emCaixa + aReceber − aPagar` |
+| `sobraAteOFimDoMesCentavos` | Saldo **projetado** das contas de caixa até `ultimoDia`: o realizado mais tudo que ainda cai. É `emCaixa + aReceber − aPagar − faturasAPagar` |
 | `aPagarCentavos`, `aReceberCentavos` | Os `PREVISTO` de **hoje até `ultimoDia`**, em conta de caixa. É o que sustenta a aritmética da sobra |
+| `faturasAPagarCentavos` | O `a pagar` das faturas que **vencem na janela**, menos o que já tem pagamento agendado. Entra por **consulta**, não por lançamento: o sistema não cria pagamento previsto de fatura, porque não sabe de qual conta nem em que dia você vai pagar. E o desconto do agendado é o que impede a mesma dívida de ser contada duas vezes — o pagamento marcado já está no `aPagar` (`docs/02-dominio/conta.md`) |
 | `entrouNoMesCentavos`, `saiuNoMesCentavos` | O que **aconteceu** no mês (`situacao != PREVISTO`), líquido de estorno, em conta de fluxo de caixa |
 | `guardadoNoMesCentavos` | Transferência que **entrou** numa conta fora do fluxo de caixa: o aporte. Não é gasto, e por isso não está em `gastoPorCategoria` |
 | `pendencias` | Quantos lançamentos do ambiente estão **sem categoria**. É a contagem inteira, não a da página |

@@ -19,6 +19,7 @@ import br.com.cyberbank.conta.aplicacao.InformarValorDaAplicacaoUseCase;
 import br.com.cyberbank.conta.aplicacao.Reserva;
 import br.com.cyberbank.conta.aplicacao.VerReservaUseCase;
 import br.com.cyberbank.conta.aplicacao.ExcluirContaUseCase;
+import br.com.cyberbank.conta.aplicacao.InformarLimiteDoCartaoUseCase;
 import br.com.cyberbank.conta.aplicacao.ListarContasUseCase;
 import br.com.cyberbank.conta.aplicacao.RenomearContaUseCase;
 import br.com.cyberbank.conta.dominio.Conta;
@@ -84,6 +85,9 @@ public class ContaController {
     public record ValorAtualRequest(Long valorCentavos) {
     }
 
+    public record LimiteRequest(Long limite) {
+    }
+
     public record ReservaResponse(List<AplicacaoResponse> aplicacoes,
             List<ContaDeCaixaResponse> contasDeCaixa, long guardadoCentavos,
             long emCaixaCentavos, long patrimonioCentavos, boolean algumaDesatualizada) {
@@ -105,11 +109,12 @@ public class ContaController {
     private final RenomearContaUseCase renomearConta;
     private final AlterarAtivacaoContaUseCase alterarAtivacao;
     private final ExcluirContaUseCase excluirConta;
+    private final InformarLimiteDoCartaoUseCase informarLimite;
 
     public ContaController(ListarContasUseCase listarContas, VerReservaUseCase verReserva,
             InformarValorDaAplicacaoUseCase informarValor, AbrirContaUseCase abrirConta,
             RenomearContaUseCase renomearConta, AlterarAtivacaoContaUseCase alterarAtivacao,
-            ExcluirContaUseCase excluirConta) {
+            ExcluirContaUseCase excluirConta, InformarLimiteDoCartaoUseCase informarLimite) {
         this.listarContas = listarContas;
         this.verReserva = verReserva;
         this.informarValor = informarValor;
@@ -117,6 +122,7 @@ public class ContaController {
         this.renomearConta = renomearConta;
         this.alterarAtivacao = alterarAtivacao;
         this.excluirConta = excluirConta;
+        this.informarLimite = informarLimite;
     }
 
     @GetMapping("/reserva")
@@ -141,6 +147,14 @@ public class ContaController {
                 requisicao.valorCentavos() == null ? 0L : requisicao.valorCentavos());
 
         return reserva(ambienteId);
+    }
+
+    @PutMapping("/{contaId}/limite")
+    public ContaGravadaResponse informarLimiteDoCartao(@PathVariable Long ambienteId,
+            @PathVariable Long contaId, @RequestBody LimiteRequest requisicao) {
+
+        return paraRespostaGravada(informarLimite.executar(ambienteId,
+                ContextoDaRequisicao.usuarioId(), contaId, requisicao.limite()));
     }
 
     @GetMapping

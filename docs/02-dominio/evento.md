@@ -115,6 +115,7 @@ critério do resto do projeto.
 |---|---|
 | `LANCAMENTO_CRIADO` · `LANCAMENTO_EDITADO` · `LANCAMENTO_ESTORNADO` · `LANCAMENTO_EXCLUIDO` | O `EDITADO` carrega o de/para em `dados`: é ele que cumpre o *"sempre com histórico"*. O `EXCLUIDO` é o único cujo `alvo` aponta para algo que **não existe mais** — ver abaixo |
 | `FATURA_PAGA` | Pagamento de fatura, parcial ou total |
+| `FATURA_FECHADA_PELO_USUARIO` | O usuário fechou a fatura à mão. **Par de `FATURA_FECHADA`**, e a distinção é a mesma que já separava as duas aberturas: fechar e abrir à mão são **contingência** (o banco fechou em dia diferente, a rotina não rodou), e é justamente por serem raros que precisam aparecer com o autor certo — reusar o tipo do ciclo faria o Diário assinar *A ROTINA* embaixo do que uma pessoa pediu |
 | `FATURA_ABERTA_PELO_USUARIO` | A última fechada foi reaberta à mão |
 | `VALOR_DE_APLICACAO_INFORMADO` | O usuário atualizou o valor atual — e a **diferença lançada** vem em `dados`, junto do de/para do saldo. O **alvo é a conta**, não o lançamento de rendimento: é o que faz o histórico responder *"desde quando esse número está aí"* mesmo que alguém exclua o rendimento depois (`docs/02-dominio/aplicacao-patrimonio.md`) |
 | `LIMITE_INFORMADO` | O usuário informou o limite do cartão |

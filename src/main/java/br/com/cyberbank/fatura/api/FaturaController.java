@@ -4,7 +4,11 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 
+import br.com.cyberbank.comum.contexto.ContextoDaRequisicao;
+import br.com.cyberbank.fatura.aplicacao.AbrirFaturaUseCase;
 import br.com.cyberbank.fatura.aplicacao.CartaoComFaturas;
+import br.com.cyberbank.fatura.aplicacao.FecharFaturaUseCase;
+import br.com.cyberbank.fatura.aplicacao.PagarFaturaUseCase;
 import br.com.cyberbank.fatura.dominio.FaturaComNumeros;
 import br.com.cyberbank.fatura.aplicacao.VerFaturasDoCartaoUseCase;
 import br.com.cyberbank.fatura.dominio.Fatura;
@@ -14,6 +18,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,9 +37,11 @@ public class FaturaController {
             long totalCentavos,
             long pagoCentavos,
             long roladoCentavos,
+            long agendadoCentavos,
             long aPagarCentavos,
             boolean encerrada,
-            boolean rolada) {
+            boolean rolada,
+            boolean recebePagamento) {
     }
 
     public record CartaoResponse(
@@ -52,10 +60,20 @@ public class FaturaController {
     public record ListaResponse(CartaoResponse cartao, List<FaturaResponse> itens) {
     }
 
-    private final VerFaturasDoCartaoUseCase verFaturas;
+    public record PagamentoRequest(Long contaPagadoraId, Long valor, LocalDate dataEvento) {
+    }
 
-    public FaturaController(VerFaturasDoCartaoUseCase verFaturas) {
+    private final VerFaturasDoCartaoUseCase verFaturas;
+    private final PagarFaturaUseCase pagarFatura;
+    private final FecharFaturaUseCase fecharFatura;
+    private final AbrirFaturaUseCase abrirFatura;
+
+    public FaturaController(VerFaturasDoCartaoUseCase verFaturas, PagarFaturaUseCase pagarFatura,
+            FecharFaturaUseCase fecharFatura, AbrirFaturaUseCase abrirFatura) {
         this.verFaturas = verFaturas;
+        this.pagarFatura = pagarFatura;
+        this.fecharFatura = fecharFatura;
+        this.abrirFatura = abrirFatura;
     }
 
     @GetMapping
@@ -64,6 +82,36 @@ public class FaturaController {
 
         return new ListaResponse(paraResposta(cartao),
                 cartao.faturas().stream().map(FaturaController::paraResposta).toList());
+    }
+
+    @PostMapping("/{faturaId}/pagamentos")
+    public ListaResponse pagar(@PathVariable Long ambienteId, @PathVariable Long faturaId,
+            @RequestBody PagamentoRequest requisicao) {
+
+        pagarFatura.executar(ambienteId, ContextoDaRequisicao.usuarioId(), faturaId,
+                requisicao.contaPagadoraId(), requisicao.valor(), requisicao.dataEvento());
+
+        return listar(ambienteId, contaDaFatura(ambienteId, faturaId));
+    }
+
+    @PostMapping("/{faturaId}/fechamento")
+    public ListaResponse fechar(@PathVariable Long ambienteId, @PathVariable Long faturaId) {
+        Fatura fechada = fecharFatura.executar(ambienteId, ContextoDaRequisicao.usuarioId(),
+                faturaId);
+
+        return listar(ambienteId, fechada.contaId());
+    }
+
+    @PostMapping("/{faturaId}/abertura")
+    public ListaResponse abrir(@PathVariable Long ambienteId, @PathVariable Long faturaId) {
+        Fatura aberta = abrirFatura.executar(ambienteId, ContextoDaRequisicao.usuarioId(),
+                faturaId);
+
+        return listar(ambienteId, aberta.contaId());
+    }
+
+    private Long contaDaFatura(Long ambienteId, Long faturaId) {
+        return verFaturas.contaDaFatura(ambienteId, faturaId);
     }
 
     private static CartaoResponse paraResposta(CartaoComFaturas cartao) {
@@ -85,7 +133,8 @@ public class FaturaController {
         return new FaturaResponse(fatura.id(), competencia(fatura.competencia()),
                 fatura.dataFechamento(), fatura.dataVencimento(), fatura.status(),
                 numeros.totalCentavos(), numeros.pagoCentavos(), numeros.roladoCentavos(),
-                numeros.aPagarCentavos(), numeros.encerrada(), numeros.rolada());
+                numeros.agendadoCentavos(), numeros.aPagarCentavos(), numeros.encerrada(),
+                numeros.rolada(), fatura.naJanelaDoPagamentoEDaAbertura(numeros));
     }
 
     private static String competencia(YearMonth competencia) {

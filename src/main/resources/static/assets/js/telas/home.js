@@ -29,6 +29,7 @@ const Home = {
     Home.pintarNumeros();
     Home.pintarGasto();
     Home.pintarPendencias(pendencias.itens);
+    Home.pintarFatura();
     Home.pintarHorizonte();
     Home.pintarMes();
   },
@@ -62,7 +63,41 @@ const Home = {
 
     document.getElementById('contaDaSobra').innerHTML =
       `${Formato.dinheiro(resumo.emCaixaCentavos)} + ${Formato.dinheiro(resumo.aReceberCentavos)}`
-      + ` − ${Formato.dinheiro(resumo.aPagarCentavos)}`;
+      + ` − ${Formato.dinheiro(resumo.aPagarCentavos)}`
+      + (resumo.faturasAPagarCentavos
+        ? ` − ${Formato.dinheiro(resumo.faturasAPagarCentavos)} <i>de fatura</i>` : '');
+  },
+
+  pintarFatura() {
+    const faturas = Home.resumo.faturas || [];
+    const tele = document.getElementById('faturaHomeTele');
+    const alvo = document.getElementById('faturaHome');
+
+    if (!faturas.length) {
+      tele.textContent = 'NENHUM CARTÃO ATIVO';
+      alvo.innerHTML = `<div class="vazio">Nenhum contrato de cartão ainda. A fatura é o recorte
+        de um período de uma conta <b>CARTÃO</b>.</div>`;
+      return;
+    }
+
+    tele.textContent = faturas.length > 1 ? `${faturas.length} CARTÕES` : 'A JANELA QUE IMPORTA';
+
+    alvo.innerHTML = faturas.map((f) => `
+      <a class="fatura-linha" href="#/fatura/${f.cartaoId}">
+        <div class="fatura-topo">
+          <b>${Formato.texto(f.cartao)}</b>
+          <span class="tag">${f.status}</span>
+        </div>
+        <div class="fatura-num ${f.aPagarCentavos > 0 ? 'neg' : ''}">
+          ${Formato.dinheiro(f.aPagarCentavos)}
+        </div>
+        <div class="tele">${f.recebePagamento
+          ? `A PAGAR · VENCE ${Formato.dia(f.dataVencimento)}`
+          : `EM ABERTO · FECHA ${Formato.dia(f.dataFechamento)}`} ·
+          ${Formato.mes(f.competencia).toUpperCase()}</div>
+        ${f.agendadoCentavos
+          ? `<div class="tele">${Formato.dinheiro(f.agendadoCentavos)} JÁ AGENDADOS</div>` : ''}
+      </a>`).join('');
   },
 
   numero(id, centavos) {

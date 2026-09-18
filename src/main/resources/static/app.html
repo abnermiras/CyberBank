@@ -90,15 +90,9 @@
           <section class="panel">
             <div class="panel-head">
               <h3>Fatura</h3>
-              <span class="tele">AINDA NÃO EXISTE</span>
+              <span class="tele" id="faturaHomeTele">—</span>
             </div>
-            <div class="emespera">
-              <h4>O ciclo do cartão entra aqui</h4>
-              <p>A fatura <b>fechada</b> com valor a pagar, o total, as datas de fechamento e
-                vencimento, e os botões de <b>fechar</b> e <b>pagar</b> — no lugar onde se olha
-                antes de decidir.</p>
-              <div class="falta">FALTA PARA ELA EXISTIR: <b>conta CARTAO</b> · <b>fatura</b></div>
-            </div>
+            <div id="faturaHome"></div>
           </section>
         </div>
       </div>
@@ -112,8 +106,9 @@
           <div class="horizonte-totais" id="horizonteTotais"></div>
           <div id="proximosList"></div>
           <p class="rodape-regra">Aqui está o que já tem data: <b>boleto</b> e o que foi lançado
-            como previsto. <b>Recorrência</b> e <b>fatura de cartão</b> ainda não entram — e o
-            número que esconde o que não sabe é o número em que se confia demais.</p>
+            como previsto, e o <b>a pagar</b> das faturas que vencem até lá já está descontado
+            da sobra. <b>Recorrência</b> ainda não entra — e o número que esconde o que não sabe
+            é o número em que se confia demais.</p>
         </section>
 
         <section class="panel">
@@ -157,7 +152,25 @@
           abertura se corrige editando o valor.</p>
       </section>
     </section>
-    <section class="tela hidden" data-tela="fatura"></section>
+    <section class="tela hidden" data-tela="fatura">
+      <div class="telahead">
+        <div><div class="eyebrow">CARTÃO // O CICLO</div><h2 class="th">Fatura</h2></div>
+        <div class="hstack gap14 wrap">
+          <span class="tele">CONTRATO</span>
+          <select id="faturaCartao"></select>
+        </div>
+      </div>
+
+      <div id="avisoFatura"></div>
+      <div id="cabecalhoDoCartao"></div>
+      <div id="listaDeFaturas"></div>
+
+      <p class="rodape-regra">A fatura <b>não move dinheiro</b>: quem move é a compra, que
+        aumenta a dívida, e o pagamento, que a diminui. Por isso ela não guarda total — os três
+        números são sempre a soma dos lançamentos dela. <b>Fechar não liquida nada</b>: quem
+        liquida é o encerramento, quitada ou vencida e rolada. E <b>fatura fechada não congela
+        lançamento nenhum</b> — para corrigir o passado, edita-se a linha no Extrato.</p>
+    </section>
     <section class="tela hidden" data-tela="series"></section>
     <section class="tela hidden" data-tela="reserva">
       <div class="telahead">
@@ -647,6 +660,7 @@
 <script src="assets/js/telas/contas.js"></script>
 <script src="assets/js/lancar.js"></script>
 <script src="assets/js/telas/extrato.js"></script>
+<script src="assets/js/telas/fatura.js"></script>
 <script src="assets/js/telas/reserva.js"></script>
 <script src="assets/js/telas/diario.js"></script>
 <script src="assets/js/telas/detalhe.js"></script>

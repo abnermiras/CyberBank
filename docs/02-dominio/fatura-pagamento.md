@@ -42,6 +42,13 @@ por isso não precisa de confirmação depois.
 > Nubank e entra em "quanto sobra até o fim do mês". Dia 19 ele realiza. Dia 21 a rotina acha
 > R$ 100 a pagar e rola para a fatura seguinte.
 
+**Enquanto ele não realiza, o `pago` da fatura não muda.** *Pago* é a soma dos pagamentos
+`REALIZADO`, e não poderia ser outra coisa: a quitação **encerra** a fatura, e contar o previsto
+ali a encerraria antes de o dinheiro sair. O que a fatura mostra é um quarto número, o
+**agendado** — quanto já tem pagamento marcado e ainda não aconteceu. Ele não entra no `a pagar`;
+serve para a tela não pedir de novo o que você já resolveu, e é ele que impede *"quanto sobra
+até o fim do mês"* de contar a mesma dívida duas vezes (`docs/02-dominio/conta.md`).
+
 **Quem liquida é o encerramento da fatura**, e ela encerra de dois jeitos: **quitada** — a
 soma dos pagamentos cobre o total — ou **vencida sem ser quitada**, e aí o que faltou rola.
 Nos dois casos os lançamentos dela saem de `PROVISIONADO` e viram `REALIZADO` (`ADR-0006`).

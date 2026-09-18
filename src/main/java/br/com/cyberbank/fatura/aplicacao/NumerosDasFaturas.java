@@ -1,5 +1,6 @@
 package br.com.cyberbank.fatura.aplicacao;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,12 @@ public class NumerosDasFaturas {
         return juntar(List.of(fatura)).getFirst();
     }
 
+    public long aPagarDasQueVencemEntre(Long ambienteId, LocalDate de, LocalDate ate) {
+        return juntar(faturas.listarDoAmbienteVencendoEntre(ambienteId, de, ate)).stream()
+                .mapToLong(fatura -> fatura.numeros().aPagarDescontandoOAgendadoCentavos())
+                .sum();
+    }
+
     private List<FaturaComNumeros> juntar(List<Fatura> faturasDaConta) {
         Map<Long, TotaisDeFatura> totais = new HashMap<>();
         for (TotaisDeFatura linha : lancamentos.totaisDasFaturas(
@@ -45,7 +52,7 @@ public class NumerosDasFaturas {
                     ? new FaturaComNumeros(fatura, NumerosDaFatura.VAZIA, false)
                     : new FaturaComNumeros(fatura,
                             new NumerosDaFatura(linha.totalCentavos(), linha.pagoCentavos(),
-                                    linha.roladoCentavos()),
+                                    linha.roladoCentavos(), linha.agendadoCentavos()),
                             linha.temProvisionado());
         }).toList();
     }

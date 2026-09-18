@@ -53,6 +53,24 @@ public record Fatura(
         return status == StatusDaFatura.FECHADA && numeros.aPagarCentavos() > 0;
     }
 
+    public void exigirQueRecebaPagamento(NumerosDaFatura numeros) {
+        if (!naJanelaDoPagamentoEDaAbertura(numeros)) {
+            throw new RegraDeDominioException(CodigoDeErro.FATURA_NAO_RECEBE_PAGAMENTO);
+        }
+    }
+
+    public Fatura abertaPeloUsuario(NumerosDaFatura numeros, boolean ehAUltimaFechada) {
+        if (!ehAUltimaFechada || !naJanelaDoPagamentoEDaAbertura(numeros)) {
+            throw new RegraDeDominioException(CodigoDeErro.FATURA_NAO_ABRE);
+        }
+        return comStatus(StatusDaFatura.ABERTA);
+    }
+
+    public Fatura devolvidaAFutura() {
+        exigirStatus(StatusDaFatura.ABERTA);
+        return comStatus(StatusDaFatura.FUTURA);
+    }
+
     private Fatura comStatus(StatusDaFatura novo) {
         return new Fatura(id, ambienteId, contaId, competencia, dataFechamento, dataVencimento,
                 novo, criadaEm);

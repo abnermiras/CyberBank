@@ -49,7 +49,8 @@ GET /api/v1/ambientes/1/faturas?contaId=9
       "dataFechamento": "2026-09-27", "dataVencimento": "2026-10-05",
       "status": "ABERTA",
       "totalCentavos": 356080, "pagoCentavos": 0, "roladoCentavos": 0,
-      "aPagarCentavos": 356080, "encerrada": false, "rolada": false }
+      "agendadoCentavos": 0, "aPagarCentavos": 356080,
+      "encerrada": false, "rolada": false, "recebePagamento": false }
   ]
 }
 ```
@@ -68,9 +69,11 @@ GET /api/v1/ambientes/1/faturas?contaId=9
 | `totalCentavos` | Soma dos lançamentos que apontam para ela, **menos o lado crédito de uma rolagem**. É por isso que o total histórico não cai quando a fatura rola (`ADR-0005`) |
 | `pagoCentavos` | Soma dos pagamentos **`REALIZADO`** que apontam para ela. O pagamento agendado ainda não pagou |
 | `roladoCentavos` | O crédito que o total já não conta |
+| `agendadoCentavos` | Quanto já tem pagamento **marcado e ainda não realizado**. **Não entra no `a pagar`** — serve para a tela não pedir de novo o que você já resolveu, e é ele que impede a projeção de contar a mesma dívida duas vezes (`docs/02-dominio/conta.md`) |
 | `aPagarCentavos` | `total − pago − rolado`. **Negativo é crédito** no cartão, e isso existe na vida real |
 | `encerrada` | `aPagar <= 0`. **É leitura, não estado salvo** — não existe "encerrada" como carimbo; existe o número (`docs/02-dominio/fatura-pagamento.md`) |
 | `rolada` | Venceu sem ser quitada e o que faltava rolou |
+| `recebePagamento` | **A janela**: `FECHADA` com `a pagar` maior que zero. Um número, duas operações — é o mesmo campo que diz se a fatura pode ser **aberta**, e é por isso que ele vem pronto em vez de a tela recompor a condição |
 
 **`aPagarCentavos` maior que zero numa `FECHADA` é a janela** em que a fatura pode ser **paga**
 e pode ser **aberta**: um número, duas operações (`docs/02-dominio/fatura-cartao.md`).
@@ -79,6 +82,60 @@ e pode ser **aberta**: um número, duas operações (`docs/02-dominio/fatura-car
 |---|---|
 | `CONTA_NAO_E_CARTAO` (409) | A conta existe e não é `CARTAO`. As outras não têm ciclo nenhum para recortar |
 | `NAO_ENCONTRADO` (404) | Conta inexistente ou de outro ambiente |
+
+## `POST /api/v1/ambientes/{ambienteId}/faturas/{faturaId}/pagamentos`
+
+Paga a fatura. **É uma transferência** da conta pagadora para a conta `CARTAO`, e nada além
+disso (`docs/02-dominio/fatura-pagamento.md`).
+
+```
+POST /api/v1/ambientes/1/faturas/42/pagamentos
+{ "contaPagadoraId": 1, "valor": 90000, "dataEvento": "2026-10-19" }
+
+200 OK
+{ "cartao": { ... }, "itens": [ ... ] }
+```
+
+| Campo | Obrigatório | Nota |
+|---|:--:|---|
+| `contaPagadoraId` | sim | **Qualquer conta que o ambiente acesse.** A `contaPagadoraPadrao` do cartão só preenche o formulário; nada nasce dela sozinho |
+| `valor` | sim | Inteiro em centavos. **Pagar menos é permitido** — a fatura fica parcial e nada é liquidado. Pagar mais também: sobra crédito na conta `CARTAO`, e isso existe na vida real |
+| `dataEvento` | não | Padrão hoje. **Dia à frente nasce `PREVISTO` e realiza pela data**, como um boleto registrado; hoje nasce `REALIZADO`. É declaração sua, e por isso não precisa de confirmação depois |
+
+A resposta é o **cartão inteiro**, não o lançamento criado: quem chamou está olhando a tela da
+fatura, e devolver um lançamento solto obrigaria a uma segunda requisição só para redesenhar.
+
+**Quitar encerra a fatura na hora** — os lançamentos dela saem de `PROVISIONADO`. Quando o
+pagamento é agendado, quem encerra é a **rotina**, no dia em que ela o realiza
+(`docs/02-dominio/fatura-pagamento.md`).
+
+| Erro | Quando |
+|---|---|
+| `FATURA_NAO_RECEBE_PAGAMENTO` (409) | Não é `FECHADA` com `a pagar` maior que zero. `FUTURA` o emissor nem emitiu; na `ABERTA` o valor ainda vai mudar (pagar antes é **antecipar**, Fase 2); encerrada já tem `a pagar` zero, e pagar de novo descontaria a mesma dívida duas vezes |
+| `BENEFICIO_NAO_TRANSFERE` (409) | A pagadora é uma conta `BENEFICIO`: aquele saldo não é fungível |
+| `CONTA_INATIVA` (409) | A conta pagadora está inativa |
+| `NAO_ENCONTRADO` (404) | Fatura ou conta inexistente, ou de outro ambiente |
+
+## `POST .../faturas/{faturaId}/fechamento` e `POST .../faturas/{faturaId}/abertura`
+
+**Contingência, não fluxo normal:** o banco fechou em dia diferente, a rotina não rodou quando
+devia (`docs/02-dominio/fatura-cartao.md`). Os dois são **sub-recursos**, porque verbo em
+caminho é proibido (`docs/04-api/convencoes.md`), e os dois devolvem o cartão inteiro.
+
+**Fechar** faz as mesmas duas coisas do ciclo — a `ABERTA` vira `FECHADA` e a seguinte abre,
+criada na hora se não existir — e grava `FATURA_FECHADA_PELO_USUARIO`, que é o par de
+`FATURA_FECHADA` com o autor certo (`docs/02-dominio/evento.md`).
+
+**Abrir** serve para uma coisa só: *o ciclo ainda está correndo e o sistema achou que tinha
+acabado*. Vale para a **última fechada**, e só enquanto o `a pagar` dela for maior que zero. A
+seguinte volta a `FUTURA` na hora — deixa de receber compra nova, e nada mais: **o que já estava
+dentro dela fica**, parcelas e pagamentos agendados inclusive.
+
+| Erro | Quando |
+|---|---|
+| `FATURA_FORA_DO_CICLO` (409) | Fechar o que não é `ABERTA` |
+| `FATURA_NAO_ABRE` (409) | Não é a última fechada, ou já encerrou. **Fatura encerrada não abre** — é o que impede a rolagem de rolar para si mesma, para sempre |
+| `NAO_ENCONTRADO` (404) | Fatura inexistente ou de outro ambiente |
 
 ## O ciclo roda sozinho, e não tem endpoint
 
@@ -104,11 +161,8 @@ daquele cartão. Mover um lançamento de fatura é `PATCH /lancamentos/{id}` com
 
 ## O que ainda não existe
 
-- **`POST .../faturas/{id}/pagamentos`** — pagar é uma transferência da conta pagadora para a
-  conta `CARTAO`, apontando para a fatura. Só a `FECHADA` que ainda tem `a pagar` recebe.
-- **`POST .../faturas/{id}/fechamento` e `POST .../faturas/{id}/abertura`** — fechar e abrir à
-  mão, que são **contingência** e não fluxo normal: o banco fechou em dia diferente, a rotina
-  não rodou quando devia. Abrir vale só para a última fechada que ainda deve.
 - **Parcelamento** — `POST /lancamentos` ainda não divide uma compra em N.
+- **Antecipar** o pagamento de uma fatura `ABERTA`, que é outra mecânica, com desconto do
+  emissor — Fase 2 (`docs/00-produto/roadmap.md`).
 - **Papel**: nenhum endpoint desta página verifica se o usuário é dono, editor ou leitor. A
   verificação entra com o convite (`docs/02-dominio/ambiente-financeiro.md`).

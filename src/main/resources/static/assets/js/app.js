@@ -12,12 +12,6 @@ const TELAS = [
 ];
 
 const EM_ESPERA = {
-  fatura: {
-    olho: 'CARTÃO // O CICLO',
-    titulo: 'Fatura',
-    responde: 'O ciclo do cartão e as ações de fechar, pagar e abrir — esta última só na última fatura fechada. O que vence sem ser pago rola para a seguinte.',
-    falta: ['conta CARTAO', 'fatura'],
-  },
   series: {
     olho: 'SÉRIES // O QUE SE REPETE',
     titulo: 'Séries',
@@ -58,6 +52,7 @@ const ABA_DO_CADASTRO = { categorias: () => Cadastro.montar(), contas: () => Con
 const AO_ENTRAR = {
   home: () => Home.montar(),
   extrato: (lancamentoId) => Extrato.montar(lancamentoId),
+  fatura: (cartaoId) => Fatura.montar(cartaoId),
   reserva: () => Reserva.montar(),
   diario: () => Diario.montar(),
   cadastro: () => abrirAba(document.querySelector('#abasCadastro .aba.on').dataset.aba),

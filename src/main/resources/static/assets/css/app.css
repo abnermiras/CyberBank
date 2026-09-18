@@ -363,6 +363,14 @@ details.painel-sistema:not([open]) summary .abrir::after{content:' ▼'}
 .conta-edicao input{flex:1;min-width:160px;padding:8px 10px;background:#03060b;
   border:1px solid var(--cyan);color:var(--ink);font:13px var(--mono);outline:none}
 .conta-ciclo{display:flex;flex-wrap:wrap;gap:6px 14px;margin:8px 0 0}
+.fatura-linha{display:block;padding:10px 0;border-bottom:1px solid var(--linha);text-decoration:none;color:inherit}
+.fatura-linha:last-child{border-bottom:0}
+.fatura-topo{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.fatura-num{font-family:var(--mono);font-size:22px;letter-spacing:-.02em;margin:2px 0}
+.fatura-num.neg{color:var(--pink)}
+.det-lista{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:10px 0 0}
+.det-lista dt{color:var(--dim);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.det-lista dd{margin:0;font-family:var(--mono)}
 .conta-meios{display:flex;flex-wrap:wrap;gap:6px;margin:11px 0;min-height:22px}
 .conta-meios .sub-chip i{font-style:normal;color:var(--dim);font-size:9px;letter-spacing:.1em}
 .conta-acoes{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding-top:11px;

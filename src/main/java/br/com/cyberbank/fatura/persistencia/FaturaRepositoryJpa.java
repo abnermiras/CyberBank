@@ -1,5 +1,6 @@
 package br.com.cyberbank.fatura.persistencia;
 
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.Optional;
@@ -21,7 +22,7 @@ public class FaturaRepositoryJpa implements FaturaRepository {
 
     @Override
     public Fatura salvar(Fatura fatura) {
-        return paraDominio(jpa.save(paraEntidade(fatura)));
+        return paraDominio(jpa.saveAndFlush(paraEntidade(fatura)));
     }
 
     @Override
@@ -39,6 +40,16 @@ public class FaturaRepositoryJpa implements FaturaRepository {
     public Optional<Fatura> buscarAbertaDaConta(Long contaId) {
         return jpa.findByContaIdAndStatus(contaId, StatusDaFatura.ABERTA)
                 .map(FaturaRepositoryJpa::paraDominio);
+    }
+
+    @Override
+    public List<Fatura> listarDoAmbienteVencendoEntre(Long ambienteId, LocalDate de,
+            LocalDate ate) {
+
+        return jpa.findByAmbienteIdAndStatusAndDataVencimentoBetween(ambienteId,
+                        StatusDaFatura.FECHADA, de, ate).stream()
+                .map(FaturaRepositoryJpa::paraDominio)
+                .toList();
     }
 
     @Override
