@@ -5,6 +5,15 @@ spring:
   application:
     name: cyberbank
 
+  web:
+    resources:
+      cache:
+        cachecontrol:
+          # O front nao tem hash no nome do arquivo, entao o navegador precisa perguntar
+          # antes de reusar: sem isso ele guarda por heuristica e mistura versao velha
+          # com nova (docs/07-operacao/build-e-run.md).
+          no-cache: true
+
   datasource:
     # O papel da aplicacao: nao e dono das tabelas e nao tem BYPASSRLS (ADR-0002).
     url: ${DB_URL}

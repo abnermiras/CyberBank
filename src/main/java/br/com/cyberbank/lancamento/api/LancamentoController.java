@@ -92,8 +92,9 @@ public class LancamentoController {
             LocalDate dataEvento, String descricao) {
     }
 
-    public record CorrecaoRequest(Long contaId, Long categoriaId, Sentido sentido, Long valor,
-            LocalDate dataEvento, LocalDate dataEfeito, String descricao, Situacao situacao) {
+    public record CorrecaoRequest(Long contaId, Long meioId, Long categoriaId, Sentido sentido,
+            Long valor, LocalDate dataEvento, LocalDate dataEfeito, String descricao,
+            Situacao situacao) {
     }
 
     public record EstornoRequest(LocalDate dataEvento) {
@@ -187,7 +188,8 @@ public class LancamentoController {
             @PathVariable Long lancamentoId, @RequestBody CorrecaoRequest requisicao) {
 
         List<Lancamento> alterados = editarLancamento.executar(ambienteId,
-                ContextoDaRequisicao.usuarioId(), lancamentoId, requisicao.contaId(), requisicao.categoriaId(), requisicao.sentido(),
+                ContextoDaRequisicao.usuarioId(), lancamentoId, requisicao.contaId(),
+                requisicao.meioId(), requisicao.categoriaId(), requisicao.sentido(),
                 requisicao.valor(), requisicao.dataEvento(), requisicao.dataEfeito(),
                 requisicao.descricao(), requisicao.situacao());
 

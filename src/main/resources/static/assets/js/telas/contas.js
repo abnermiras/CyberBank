@@ -23,6 +23,12 @@ const Contas = {
     BENEFICIO: 'Cartão do benefício',
   },
 
+  identidadeDoMeio(meio, contas) {
+    const conta = (contas || []).find((c) => c.id === meio.contaId);
+    const tipo = Contas.ROTULO_DE_MEIO[meio.tipo] || meio.tipo;
+    return `${conta ? conta.nome : '—'} · ${meio.nome || tipo}`;
+  },
+
   contas: [],
   meios: [],
   tipos: [],

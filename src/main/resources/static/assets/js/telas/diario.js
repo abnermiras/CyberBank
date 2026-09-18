@@ -51,6 +51,7 @@ const Diario = {
     sentido: 'sentido',
     situacao: 'situação',
     contaId: 'conta',
+    meioId: 'meio',
     categoriaId: 'categoria',
     dataEvento: 'data do evento',
     dataEfeito: 'data de efeito',
@@ -194,6 +195,7 @@ const Diario = {
     if (campo === 'dataEvento' || campo === 'dataEfeito') return Formato.dia(bruto);
     if (campo === 'categoriaId') return Formato.texto(Diario.nomeDaCategoria(bruto));
     if (campo === 'contaId') return Formato.texto(Diario.nomeDaConta(bruto));
+    if (campo === 'meioId') return Formato.texto(Diario.nomeDoMeio(bruto));
     return Formato.texto(bruto);
   },
 
@@ -209,6 +211,11 @@ const Diario = {
   nomeDaConta(id) {
     const conta = (Extrato.contas || []).find((c) => c.id === id);
     return conta ? conta.nome : `#${id}`;
+  },
+
+  nomeDoMeio(id) {
+    const meio = (Extrato.meios || []).find((m) => m.id === id);
+    return meio ? Contas.identidadeDoMeio(meio, Extrato.contas) : `#${id}`;
   },
 
   desc(dados) {

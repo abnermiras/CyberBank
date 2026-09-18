@@ -41,6 +41,23 @@ python3 docs/_tools/docs.py custo     o custo de contexto por rota
 node prototipo/verificar.js           as provas do protótipo
 ```
 
+## O front em desenvolvimento
+
+`spring-boot:run` serve `src/main/resources/static` a partir de **`target/classes`**. Mexeu no
+front, roda `./mvnw resources:resources` antes de recarregar — senão o navegador recebe a
+versão anterior e a conclusão sai errada.
+
+**O front é servido com `Cache-Control: no-cache`**, e não é excesso de zelo. Os arquivos não
+têm hash no nome, e sem esse cabeçalho o navegador guarda cada um por **heurística** — algo em
+torno de 10% da idade do arquivo. O efeito é pior que servir cache demais: um arquivo que
+estava parado há dias fica guardado por horas **ao lado** de um que acabou de mudar, e o app
+roda meio novo e meio velho. `no-cache` não proíbe o cache; obriga a **perguntar** antes de
+reusar, e a resposta é um `304` de alguns bytes.
+
+*(Foi assim que o "+" de lançar e o "Editar" do detalhe morreram em 17/09, enquanto a
+transferência continuava editando: o `contas.js` em cache não tinha a função que os dois
+arquivos novos chamavam. `FrontEstaticoIT` existe para isso não voltar.)*
+
 ## O banco local
 
 `compose.yml` sobe **um** serviço: o Postgres, na mesma versão de produção. A aplicação roda
@@ -111,6 +128,7 @@ WSL, e parâmetro copiado de tutorial ou trava o login ou não protege nada.
 - Nenhum segredo é versionado; o `.env.exemplo` tem os nomes e nenhum valor.
 - Variável obrigatória ausente derruba a subida, e a mensagem diz qual é.
 - Migrations são aplicadas pelo Flyway na subida, com o papel dono. Nunca à mão.
+- Nenhum arquivo do front é servido sem `Cache-Control` — sem ele o navegador mistura versões.
 
 ## Fronteiras com outros docs
 

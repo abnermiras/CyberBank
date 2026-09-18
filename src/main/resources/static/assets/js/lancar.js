@@ -221,11 +221,7 @@ const Lancar = {
   },
 
   rotuloDoMeio(meio) {
-    const conta = Lancar.contas.find((c) => c.id === meio.contaId);
-    const tipo = Contas.ROTULO_DE_MEIO[meio.tipo] || meio.tipo;
-    return meio.nome
-      ? `${conta ? conta.nome : '—'} · ${meio.nome}`
-      : `${conta ? conta.nome : '—'} · ${tipo}`;
+    return Contas.identidadeDoMeio(meio, Lancar.contas);
   },
 
   meioEscolhido() {

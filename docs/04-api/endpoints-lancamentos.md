@@ -185,12 +185,35 @@ PATCH /api/v1/ambientes/1/lancamentos/7
 { "itens": [ { "id": 7, "valor": 35000, "situacao": "PREVISTO", ... } ] }
 ```
 
-A resposta é uma **lista** porque um lado de uma transferência corrige o par inteiro — não
-existe metade de transferência. Nesse caso `contaId`, `categoriaId` e `sentido` são ignorados:
-mudar um lado do par sozinho quebraria a soma zero.
+```
+PATCH /api/v1/ambientes/1/lancamentos/7
+{ "meioId": 9, "dataEvento": "2026-09-14" }
 
-Campos aceitos: `contaId`, `categoriaId`, `sentido`, `valor`, `dataEvento`, `dataEfeito`,
-`descricao`, `situacao`.
+200 OK
+{ "itens": [ { "id": 7, "meioId": 9, "contaId": 4, "dataEvento": "2026-09-14",
+              "dataEfeito": "2026-09-14", ... } ] }
+```
+
+A resposta é uma **lista** porque um lado de uma transferência corrige o par inteiro — não
+existe metade de transferência. Nesse caso `contaId`, `meioId`, `categoriaId`, `sentido` e
+`dataEfeito` são ignorados: mudar um lado do par sozinho quebraria a soma zero, e a
+transferência não tem vencimento — **`dataEvento` move as duas datas dos dois lados**.
+
+Campos aceitos: `contaId`, `meioId`, `categoriaId`, `sentido`, `valor`, `dataEvento`,
+`dataEfeito`, `descricao`, `situacao`.
+
+**Quem manda na conta é o `meioId`, exatamente como no `POST`.** O meio já aponta para uma
+conta, e é dela que o lançamento passa a ser — mandar `contaId` junto só serve para confirmar
+o que o meio já diz. `contaId` divergente do meio é recusado em vez de separar os dois: um
+lançamento na conta A pago por um meio da conta B não descreve nada que possa ter acontecido.
+
+**A `dataEfeito` é recalculada pelo meio resultante** (`docs/02-dominio/meio-de-pagamento.md`).
+Em meio à vista as duas datas são a mesma, então corrigir só a `dataEvento` move as duas; e
+trocar um boleto por um meio à vista junta as duas no dia do evento. Só meio que separa as
+duas datas aceita `dataEfeito` própria.
+
+**Meio e conta só precisam estar ativos quando o `meioId` muda.** Corrigir a descrição de um
+lançamento antigo não ressuscita a discussão sobre a conta que foi inativada desde então.
 
 **`situacao` anda nos dois sentidos aqui, e é de propósito.** A automação só anda para frente;
 a correção do usuário volta, porque ela descreve o registro, não o dinheiro — devolver a
@@ -199,10 +222,13 @@ inventaria um dinheiro que voltou.
 
 | Erro | Quando |
 |---|---|
-| `LANCAMENTO_DO_CICLO` (409) | É lançamento que o sistema criou. O saldo de abertura se corrige **editando o valor**, e é exatamente isso que este endpoint faz — a recusa é para o resto |
+| `LANCAMENTO_DO_CICLO` (409) | É lançamento que o sistema criou e a correção mandou **algo além do `valor`**. Só `{ "valor": ... }` passa: é assim que o saldo de abertura se corrige. O `DELETE` continua recusando o lançamento inteiro |
 | `VALIDACAO` (422) | O resultado da correção violaria valor positivo, datas ou descrição |
 | `CATEGORIA_NAO_ESCOLHIVEL` (409) | A categoria nova não é destino de lançamento |
 | `CATEGORIA_DE_OUTRO_SENTIDO` (409) | A categoria nova é do outro sentido. Vale contra o sentido **resultante** da correção, não o antigo |
+| `MEIO_INCOMPATIVEL_COM_CONTA` (409) | O `contaId` enviado não é a conta do meio resultante |
+| `MEIO_INATIVO` (409) | O `meioId` **novo** está inativo |
+| `CONTA_INATIVA` (409) | A conta do `meioId` **novo** está inativa |
 | `NAO_ENCONTRADO` (404) | Lançamento inexistente ou de outro ambiente |
 
 ## `POST /api/v1/ambientes/{ambienteId}/lancamentos/{lancamentoId}/estorno`

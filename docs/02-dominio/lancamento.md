@@ -279,6 +279,37 @@ discussão entre duas pessoas sem resposta.
 lançamento** (`docs/06-interface/extrato.md`): o histórico não é uma segunda estrutura, é a
 mesma lida por alvo.
 
+**Quem manda na conta é o meio**, na correção como no nascimento. O meio já aponta para uma
+conta, e trocar de meio leva o lançamento junto: o gasto que foi pago pelo Pix do Itaú é gasto
+do Itaú, e não há como ser das duas coisas. Conta e meio divergentes são **recusados** em vez
+de gravados — um lançamento na conta A pago por um meio da conta B não descreve nada que possa
+ter acontecido. É por isso que "trocar de banco" e "trocar de meio" são **um campo só** na
+tela.
+
+Transferência não tem meio, e nela a conta de cada lado não se corrige: **editar um lado age no
+par inteiro**, e mudar a conta de um lado sozinho quebraria a soma zero. Quem errou a conta de
+uma transferência exclui o par e transfere de novo.
+
+**A `dataEfeito` não é campo livre: ela é consequência do meio**
+(`docs/02-dominio/meio-de-pagamento.md`), e a correção a recalcula. Em meio à vista as duas
+datas são a mesma, então corrigir a `dataEvento` move as duas — e trocar um boleto por um meio
+à vista junta as duas no dia do evento. Guardar a data de vencimento de um boleto que virou Pix
+seria guardar a memória de uma regra que não vale mais. Na transferência vale o mesmo por outro
+motivo: mover dinheiro entre contas não tem vencimento, e a `dataEvento` move as duas datas dos
+dois lados.
+
+**Do lançamento que o ciclo criou, só o `valor` é do usuário.** É o que torna verdadeira a
+frase que a tabela de exclusão já dizia — *o saldo de abertura se corrige editando o valor* —,
+e a recusa vale para todo o resto: conta, meio, categoria, sentido, as duas datas, descrição e
+situação. Eles descrevem a abertura da conta, não uma escolha de ninguém. **Corrigir o valor é
+permitido; excluir continua não sendo**, e as duas coisas não se contradizem: a linha descreve
+um fato que aconteceu, e é só o número que estava errado.
+
+**A situação é do usuário e o sistema não a re-deriva.** Ele decide se o boleto adiado volta a
+`PREVISTO` ou continua `REALIZADO` — mexer nisso por conta própria seria extrapolar valor
+informado, que é o que a regra 7 do `CLAUDE.md` proíbe. Quem move a situação sozinho é só a
+rotina, e só para frente.
+
 **Nenhum estado de fatura trava a edição.** Lançamento de fatura fechada se edita como
 qualquer outro, e o campo `fatura` aponta para qualquer fatura do cartão, aberta ou não.
 Fatura fechada não congela nada — o sistema não tem a palavra final sobre o dinheiro do
@@ -298,6 +329,8 @@ Nada precisa ser recalculado: como saldo é sempre a soma dos lançamentos
 - Estorno aponta para o lançamento que estorna (`estornoDe`) e nunca o apaga.
 - `parcelamento` e `recorrencia` nunca aparecem preenchidos no mesmo lançamento.
 - Lançamento de abertura de conta e lançamento de rendimento nascem `REALIZADO`.
+- Do lançamento que o ciclo criou, a correção aceita **só o `valor`**; todo outro campo é
+  recusado, e ele continua não se excluindo.
 - Todo lançamento tem exatamente um ambiente e uma conta.
 - Todo lançamento tem `autor`, inclusive os que o ciclo cria sozinho — nesses, o dono do
   ambiente da conta.
@@ -338,6 +371,8 @@ Nada precisa ser recalculado: como saldo é sempre a soma dos lançamentos
 | **`evento`** | Nada é gravado: nem `LANCAMENTO_EXCLUIDO`, nem o de/para de uma correção. O *histórico de alteração* que este doc entrega pelo evento não existe, e o preço da automação acima fica invisível quando ela chegar |
 | **`fatura`, `parcelamento`, `recorrencia`** | Os campos não existem nem na tabela. Sem eles não há crédito, `PROVISIONADO` nunca é usado, e o eixo *por compra* do relatório não tem o que separar |
 | **Estorno de lançamento do ciclo** | Não é recusado explicitamente; não há caso que o produza enquanto a rolagem não existir |
+| **A rolagem dentro da regra do ciclo** | *Só o `valor` é corrigível* vale hoje para o único lançamento do ciclo que existe, a **abertura**. A rolagem é um **par que soma zero**, e corrigir o valor de um lado sozinho o quebraria — quando ela nascer, entra com guarda própria, como a transferência já tem |
+| **Tirar a categoria de um lançamento já categorizado** | A correção lê campo ausente e campo nulo como a mesma coisa — *não mude* —, então categoria preenchida não volta a vazia. A tela não oferece a opção, em vez de oferecer e não fazer nada. Um lançamento categorizado por engano se corrige **para outra categoria** |
 
 ## Fronteiras com outros docs
 
