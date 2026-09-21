@@ -134,7 +134,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 |---|---|---|
 | [`backup-restore.md`](07-operacao/backup-restore.md) | o que e salvo, com que frequencia e como restaurar | stub |
 | [`build-e-run.md`](07-operacao/build-e-run.md) | pre-requisitos, comandos exatos, como subir o banco local e as variaveis de ambiente | ativo |
-| [`deploy.md`](07-operacao/deploy.md) | como uma versao chega em producao | stub |
+| [`deploy.md`](07-operacao/deploy.md) | como uma versao chega em producao, e os parametros do Argon2id calibrados por host | rascunho |
 | [`runbook.md`](07-operacao/runbook.md) | sintomas conhecidos e o procedimento de resposta | stub |
 | [`testes.md`](07-operacao/testes.md) | as quatro suites, o que e obrigatorio testar, e como rodar cada uma | ativo |
 
@@ -152,5 +152,5 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 
 ---
 
-**87 documentos · 16 ainda em stub.**
+**87 documentos · 15 ainda em stub.**
 Stub = conteudo inexistente: pergunte, nao deduza.

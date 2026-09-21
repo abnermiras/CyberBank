@@ -96,7 +96,7 @@ de fora, e localmente de um `.env` que o `.gitignore` mantém fora do git.
 |---|---|
 | `DB_URL`, `DB_APP_USER`, `DB_APP_PASSWORD` | A conexão da aplicação — o papel **não-dono** |
 | `DB_OWNER_USER`, `DB_OWNER_PASSWORD` | O papel que roda as migrations |
-| `ARGON2_MEMORIA`, `ARGON2_ITERACOES`, `ARGON2_PARALELISMO` | Os parâmetros calibrados por host (`docs/01-arquitetura/seguranca.md`) |
+| `ARGON2_MEMORIA`, `ARGON2_ITERACOES`, `ARGON2_PARALELISMO` | Os parâmetros calibrados por host (`docs/07-operacao/deploy.md`) |
 | `SMTP_USUARIO`, `SMTP_SENHA_DE_APP` | A senha de app do Gmail, e só para recuperar senha (`ADR-0007`) |
 | `CYBERBANK_URL_BASE` | O que entra no link de recuperação de senha |
 | `POSTGRES_SENHA_ADMIN` | O superusuário de bootstrap do contêiner, que cria os dois papéis e some da história. Não é o dono e não é a aplicação |
