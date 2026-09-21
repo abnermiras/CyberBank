@@ -32,6 +32,18 @@ melhor a quebra com GPU, porque custa **memória** além de tempo. É justamente
 obriga a calibrar: o Pi tem pouca, e parâmetro copiado de tutorial ou trava o login ou não
 protege nada. O número calibrado vive em `docs/07-operacao/deploy.md`, não aqui.
 
+**O login regrava o hash que está abaixo do parâmetro atual.** Sem isso, calibrar um host
+novo protegeria só quem se cadastrasse depois: o Argon2id guarda `m`, `t` e `p` dentro do
+próprio hash e confere por eles, então a conta antiga continuaria no número antigo para
+sempre. A regravação acontece **só no login que deu certo** — é o único instante em que o
+sistema tem a senha em claro e já provou que ela é a da conta — e na mesma transação que abre
+a sessão. Senha errada, conta bloqueada e e-mail inexistente não regravam nada: regravar antes
+de conferir seria gravar o hash de uma senha que ninguém provou ser a certa.
+
+Ela não abre oráculo de tempo: o custo extra só aparece **depois** de a senha conferir, e quem
+não tem conta nunca chega ali. Quem nunca mais entrar fica no parâmetro antigo, e é o preço
+aceito — a alternativa seria pedir troca de senha a todo mundo a cada recalibração.
+
 No código é o `Argon2PasswordEncoder` do Spring Security, e ele **exige o BouncyCastle**
 (`bcprov-jdk18on`) — a JDK não traz Argon2. É a única razão de a dependência existir no
 `pom.xml`: ela é consequência desta decisão, não escolha de biblioteca de criptografia
@@ -177,6 +189,7 @@ o que ela diz.
 - O cookie de sessão é sempre `HttpOnly`, `Secure` e `SameSite=Lax`, e o que ele carrega é
   **opaco**.
 - Trocar a senha derruba **todas** as sessões do usuário.
+- Hash abaixo do parâmetro atual é regravado no login que deu certo, e só nele.
 - O token de recuperação **nunca** autentica: ele só autoriza a troca de senha, uma vez.
 - Nenhum segredo é versionado, e nenhum valor monetário ou descrição de lançamento vai para
   log.

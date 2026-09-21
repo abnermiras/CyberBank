@@ -73,11 +73,20 @@ public class AutenticarUsuarioUseCase {
         tentativas.limpar(chaveDaConta);
         tentativas.limpar(chaveDaOrigem);
 
+        Usuario usuario = encontrado.orElseThrow();
+        regravarSeAbaixoDoPadrao(usuario, senha);
+
         String identificador = identificadores.gerar();
         Sessao sessao = sessoes.salvar(Sessao.abrir(
-                encontrado.orElseThrow().id(), identificadores.hash(identificador), origem, agora));
+                usuario.id(), identificadores.hash(identificador), origem, agora));
 
         return new SessaoAberta(identificador, sessao.expiraEm());
+    }
+
+    private void regravarSeAbaixoDoPadrao(Usuario usuario, String senha) {
+        if (senhas.estaAbaixoDoPadrao(usuario.senhaHash())) {
+            usuarios.salvar(usuario.comSenhaHash(senhas.hash(senha)));
+        }
     }
 
     private void recusarSeBloqueado(String chave, Instant agora) {

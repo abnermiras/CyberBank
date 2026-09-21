@@ -34,6 +34,9 @@ class AutenticarUsuarioUseCaseTest {
 
     private final List<String> trabalhoDeSenha = new ArrayList<>();
     private final Map<String, Tentativas> tentativas = new HashMap<>();
+    private final List<Usuario> regravados = new ArrayList<>();
+
+    private boolean hashAbaixoDoPadrao;
 
     private Usuario ana;
 
@@ -108,11 +111,61 @@ class AutenticarUsuarioUseCaseTest {
         assertThat(tentativas).isEmpty();
     }
 
+    @Test
+    void login_certo_com_hash_abaixo_do_padrao_regrava_a_senha_com_o_parametro_atual() {
+        hashAbaixoDoPadrao = true;
+        var autenticar = useCase(new Usuario(1L, "ana@exemplo.com", "Ana", "hash-velho", Avatar.GATO, null, AGORA));
+
+        autenticar.executar("ana@exemplo.com", "certa", ORIGEM);
+
+        assertThat(regravados)
+                .as("o parametro novo so alcanca quem ja tem conta se o login regravar")
+                .singleElement()
+                .satisfies(usuario -> {
+                    assertThat(usuario.id()).isEqualTo(1L);
+                    assertThat(usuario.senhaHash()).isEqualTo("hash-certa");
+                });
+    }
+
+    @Test
+    void login_certo_com_hash_no_padrao_nao_regrava_nada() {
+        var autenticar = useCase(new Usuario(1L, "ana@exemplo.com", "Ana", "hash-certa", Avatar.GATO, null, AGORA));
+
+        autenticar.executar("ana@exemplo.com", "certa", ORIGEM);
+
+        assertThat(regravados).isEmpty();
+    }
+
+    @Test
+    void senha_errada_nao_regrava_hash_nenhum_mesmo_abaixo_do_padrao() {
+        hashAbaixoDoPadrao = true;
+        var autenticar = useCase(new Usuario(1L, "ana@exemplo.com", "Ana", "hash-velho", Avatar.GATO, null, AGORA));
+
+        assertThatThrownBy(() -> autenticar.executar("ana@exemplo.com", "errada", ORIGEM))
+                .isInstanceOf(RegraDeDominioException.class);
+
+        assertThat(regravados)
+                .as("regravar sem conferir a senha seria escrever o hash de uma senha qualquer")
+                .isEmpty();
+    }
+
+    @Test
+    void usuario_inexistente_nao_regrava_nada() {
+        hashAbaixoDoPadrao = true;
+        var autenticar = useCase(null);
+
+        assertThatThrownBy(() -> autenticar.executar("ninguem@exemplo.com", "certa", ORIGEM))
+                .isInstanceOf(RegraDeDominioException.class);
+
+        assertThat(regravados).isEmpty();
+    }
+
     private UsuarioRepository usuarios() {
         return new UsuarioRepository() {
             @Override
             public Usuario salvar(Usuario usuario) {
-                throw new UnsupportedOperationException();
+                regravados.add(usuario);
+                return usuario;
             }
 
             @Override
@@ -174,6 +227,11 @@ class AutenticarUsuarioUseCaseTest {
             public boolean conferirEmVao(String senha) {
                 trabalhoDeSenha.add("em-vao");
                 return false;
+            }
+
+            @Override
+            public boolean estaAbaixoDoPadrao(String hash) {
+                return hashAbaixoDoPadrao;
             }
         };
     }

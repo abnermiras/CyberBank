@@ -22,7 +22,7 @@ tem** e do que ele pode mudar em si mesmo.
 |---|---|---|
 | `email` | Identificador de login, único no sistema inteiro, sempre minúsculo. **O formato é validado; a existência, não** — quem provaria que ele existe é a recuperação de senha (`ADR-0007`), que não está construída | **Não** — ver abaixo |
 | `nome` | Exibição. É o `autor` que o lançamento mostra em ambiente compartilhado. 1 a 120 caracteres | Sim, livremente |
-| `senhaHash` | Argon2id (`docs/01-arquitetura/seguranca.md`) | Sim, pela troca de senha |
+| `senhaHash` | Argon2id (`docs/01-arquitetura/seguranca.md`) | Sim, pela troca de senha — e sozinho, no login, quando o parâmetro do hash está abaixo do atual (`docs/01-arquitetura/seguranca.md`) |
 | `avatar` | O **nome** de um dos dez desta página. Nunca nulo | Sim, livremente |
 | `telegramChatId` | Declarado pela pessoa, opcional, único. **Não é verificado** | Sim, e pode ser apagado |
 | `criadoEm` | Instante do cadastro, em UTC | Nunca |
