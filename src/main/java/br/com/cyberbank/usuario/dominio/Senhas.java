@@ -7,4 +7,6 @@ public interface Senhas {
     boolean confere(String senha, String hash);
 
     boolean conferirEmVao(String senha);
+
+    boolean estaAbaixoDoPadrao(String hash);
 }

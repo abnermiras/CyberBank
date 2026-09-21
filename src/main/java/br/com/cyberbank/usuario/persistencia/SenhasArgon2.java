@@ -46,4 +46,9 @@ public class SenhasArgon2 implements Senhas {
         codificador.matches(senha, hashDeMentira);
         return false;
     }
+
+    @Override
+    public boolean estaAbaixoDoPadrao(String hash) {
+        return codificador.upgradeEncoding(hash);
+    }
 }

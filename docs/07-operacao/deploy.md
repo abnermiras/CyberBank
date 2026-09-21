@@ -34,11 +34,14 @@ até bater o alvo.
 | Desenvolvimento (4 núcleos, 7,4 GB) | 65536 | 3 | 1 | 154 ms · 20/09/2026 |
 | Produção (Raspberry Pi) | — | — | — | **não medido** |
 
-**Enquanto o login não regravar o hash antigo, o parâmetro só vale para senha nova.** O
-`Argon2PasswordEncoder` guarda `m`, `t` e `p` dentro do próprio hash e confere por eles, então
-subir o número protege quem se cadastrar depois e ninguém mais. É por isso que a linha de
-desenvolvimento é `t=3` e não `t=4`, que mediu 226 ms: o `t=4` deixaria a base partida em dois
-regimes, e a tabela anunciaria o que a maioria das senhas não tem.
+**O número novo alcança quem já tem conta pelo login, um a um.** O hash guarda os próprios
+`m`, `t` e `p`; quem entra com hash abaixo do parâmetro atual tem a senha regravada ali mesmo
+(`docs/01-arquitetura/seguranca.md`). Recalibrar, portanto, não é só editar a variável: a base
+converge no ritmo em que as pessoas entram, e quem não voltar fica no número antigo.
+
+A linha de desenvolvimento é `t=3` porque é o que os hashes existentes já traziam quando a
+regravação passou a existir. `t=4` mediu 226 ms e é uma troca defensável — só não é de graça,
+e a tabela é o lugar onde ela se registra.
 
 **A linha do Pi está vazia porque ninguém mediu ainda, e número copiado da linha de cima é
 exatamente o erro que esta tabela existe para impedir.** Medir é passo de instalação, antes
