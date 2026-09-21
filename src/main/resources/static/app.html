@@ -394,6 +394,7 @@
       <div class="abas" id="abasCadastro">
         <button class="aba on" type="button" data-aba="categorias">Categorias</button>
         <button class="aba" type="button" data-aba="contas">Contas e meios</button>
+        <button class="aba" type="button" data-aba="cartoes">Cartão de crédito</button>
       </div>
 
       <div id="aviso"></div>
@@ -485,36 +486,9 @@
               <button class="btn primary" type="submit" id="btnConta">Abrir conta</button>
             </div>
 
-            <div class="formraiz mt10 hidden" id="cicloDoCartao">
-              <div class="field" style="margin:0">
-                <label for="contaDiaVencimento">Vence dia</label>
-                <input id="contaDiaVencimento" type="number" min="1" max="31" placeholder="5">
-              </div>
-              <div class="field" style="margin:0">
-                <label for="contaDiasAntes">Fecha quantos dias antes</label>
-                <input id="contaDiasAntes" type="number" min="1" max="28" placeholder="8">
-              </div>
-              <div class="field" style="margin:0">
-                <label for="contaLimite">Limite</label>
-                <input id="contaLimite" type="text" inputmode="decimal" placeholder="15000,00">
-              </div>
-              <div class="field" style="margin:0">
-                <label for="contaPagadora">Paga normalmente pela</label>
-                <select id="contaPagadora"></select>
-              </div>
-            </div>
-
             <div class="field mt10" style="margin-bottom:0" id="campoDosMeios">
               <label>Como se paga com ela</label>
               <div class="opcoes" id="meiosDaConta"></div>
-            </div>
-
-            <div class="field mt10 hidden" style="margin-bottom:0" id="campoDosCartoes">
-              <label for="contaCartoes">Cartões deste contrato</label>
-              <input id="contaCartoes" type="text" maxlength="200"
-                     placeholder="FÍSICO ****1234, FREELANCE ****0987">
-              <span class="tele">UM NOME POR CARTÃO, SEPARADOS POR VÍRGULA — FÍSICO, VIRTUAL E
-                ADICIONAL DIVIDEM O MESMO CONTRATO</span>
             </div>
 
             <p class="dica mt10" id="contaExplica"></p>
@@ -533,12 +507,80 @@
           </div>
           <div id="listaContas"></div>
           <p class="rodape-regra">O meio não tem nome: uma conta tem no máximo um Pix, um
-            débito, um boleto, e o par <b>conta + tipo</b> já diz como o dinheiro saiu. Só o
-            cartão de crédito tem nome, porque ali o nome é a identidade — físico, virtual e
-            adicional dividem o mesmo contrato. Inativar uma conta <b>descarta os lançamentos
-            previstos</b> dela; o histórico e o saldo ficam. Excluir só funciona em conta que
-            nunca teve lançamento. <b>Cartão de crédito ainda não entra aqui</b>: ele nasce com
-            a fatura aberta do ciclo, e a fatura é a fatia seguinte.</p>
+            débito, um boleto, e o par <b>conta + tipo</b> já diz como o dinheiro saiu.
+            Inativar uma conta <b>descarta os lançamentos previstos</b> dela; o histórico e o
+            saldo ficam. Excluir só funciona em conta que nunca teve lançamento. <b>O cartão de
+            crédito tem aba própria</b>: ele também é conta, mas é a única com ciclo, limite e
+            fatura — e misturá-lo aqui fazia o formulário mudar de forma conforme o tipo.</p>
+        </section>
+      </div>
+
+      <div class="paineis stack gap20 hidden" data-painel="cartoes">
+        <div id="avisoCartoes"></div>
+
+        <section class="panel hot">
+          <span class="corner tr"></span><span class="corner bl"></span>
+          <div class="panel-head">
+            <h3>Novo cartão de crédito</h3>
+            <span class="tele">O CONTRATO É A CONTA · A DÍVIDA DELE É UM CONJUNTO DE FATURAS</span>
+          </div>
+          <form id="fCartao" autocomplete="off">
+            <div class="formraiz">
+              <div class="field" style="margin:0">
+                <label for="cartaoNome">Nome do contrato</label>
+                <input id="cartaoNome" type="text" placeholder="ULTRAVIOLETA" maxlength="80" required>
+              </div>
+              <div class="field" style="margin:0">
+                <label for="cartaoDiaVencimento">Vence dia</label>
+                <input id="cartaoDiaVencimento" type="number" min="1" max="31" placeholder="5" required>
+              </div>
+              <div class="field" style="margin:0">
+                <label for="cartaoDiasAntes">Fecha quantos dias antes</label>
+                <input id="cartaoDiasAntes" type="number" min="1" max="28" placeholder="8" required>
+              </div>
+              <button class="btn primary" type="submit" id="btnCartao">Abrir contrato</button>
+            </div>
+
+            <div class="formraiz mt10">
+              <div class="field" style="margin:0">
+                <label for="cartaoLimite">Limite</label>
+                <input id="cartaoLimite" type="text" inputmode="decimal" placeholder="15000,00">
+              </div>
+              <div class="field" style="margin:0">
+                <label for="cartaoPagadora">Paga normalmente pela</label>
+                <select id="cartaoPagadora"></select>
+              </div>
+            </div>
+
+            <div class="field mt10" style="margin-bottom:0">
+              <label for="cartaoCartoes">Cartões deste contrato</label>
+              <input id="cartaoCartoes" type="text" maxlength="200"
+                     placeholder="FÍSICO ****1234, FREELANCE ****0987">
+              <span class="tele">UM NOME POR CARTÃO, SEPARADOS POR VÍRGULA — FÍSICO, VIRTUAL E
+                ADICIONAL DIVIDEM O MESMO CONTRATO</span>
+            </div>
+
+            <p class="dica mt10" id="cartaoExplica"></p>
+          </form>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h3>Seus cartões</h3>
+            <div class="hstack gap14 wrap">
+              <span class="contagem" id="contagemCartoes">—</span>
+              <button class="interruptor" id="btnCartoesInativos" type="button" aria-pressed="false">
+                <span class="luz"></span> Mostrar inativos
+              </button>
+            </div>
+          </div>
+          <div id="listaCartoes"></div>
+          <p class="rodape-regra">Aqui o <b>nome é a identidade</b>: físico, virtual e adicional
+            dividem o mesmo contrato, e é por isso que só o cartão de crédito tem meio com nome.
+            O contrato nasce <b>zerado</b> — dívida de cartão não é um número, é um conjunto de
+            faturas — e já com a <b>fatura ABERTA do ciclo corrente</b>. A conta pagadora é só o
+            que vem preenchido na hora de pagar: <b>nada sai dela sozinho</b>. O ciclo, o
+            pagamento e a rolagem vivem na tela <b>Fatura</b>.</p>
         </section>
       </div>
     </section>
