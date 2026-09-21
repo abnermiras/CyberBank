@@ -115,8 +115,13 @@ WSL, e parâmetro copiado de tutorial ou trava o login ou não protege nada.
 ## Ordem numa máquina limpa
 
 1. `docker compose up -d`
-2. Copiar o `.env.exemplo` para `.env` e preencher — **o `.env.exemplo` é versionado; o `.env`,
-   nunca.**
+2. `cp -n .env.exemplo .env` e preencher. **O `-n` não é zelo: `cp` sem ele substitui em
+   silêncio um `.env` que já existe, e esse arquivo é a cópia única dos segredos — fora do git
+   por decisão, e por consequência sem backup.** O `.env.exemplo` é versionado; o `.env`, nunca.
+
+   *(Foi assim que as senhas do banco sumiram em 20/09: a receita de máquina limpa rodada numa
+   máquina que não estava limpa. Os papéis do Postgres continuaram com a senha antiga, e a
+   aplicação subiu contra `password authentication failed`.)*
 3. `./mvnw verify` — se a suíte de integração passa, Docker e banco estão certos.
 4. `./mvnw spring-boot:run`
 
@@ -127,6 +132,7 @@ WSL, e parâmetro copiado de tutorial ou trava o login ou não protege nada.
 - A aplicação nunca conecta com o papel dono das tabelas.
 - Nenhum segredo é versionado; o `.env.exemplo` tem os nomes e nenhum valor.
 - Variável obrigatória ausente derruba a subida, e a mensagem diz qual é.
+- Nenhum passo de instalação sobrescreve um `.env` existente.
 - Migrations são aplicadas pelo Flyway na subida, com o papel dono. Nunca à mão.
 - Nenhum arquivo do front é servido sem `Cache-Control` — sem ele o navegador mistura versões.
 
