@@ -19,6 +19,10 @@ public interface LancamentoRepository {
 
     List<Lancamento> listarDoParcelamento(Long parcelamentoId, Long ambienteId);
 
+    List<Lancamento> listarDaRecorrencia(Long recorrenciaId, Long ambienteId);
+
+    boolean temOcorrenciaNaFatura(Long recorrenciaId, Long faturaId);
+
     void excluirDoParcelamento(Long parcelamentoId, Long ambienteId);
 
     Optional<Lancamento> buscarEstornoDe(Long lancamentoId, Long ambienteId);

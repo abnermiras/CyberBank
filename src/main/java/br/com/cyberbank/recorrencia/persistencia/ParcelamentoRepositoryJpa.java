@@ -1,5 +1,6 @@
 package br.com.cyberbank.recorrencia.persistencia;
 
+import java.util.List;
 import java.util.Optional;
 
 import br.com.cyberbank.recorrencia.dominio.Parcelamento;
@@ -25,6 +26,13 @@ public class ParcelamentoRepositoryJpa implements ParcelamentoRepository {
     public Optional<Parcelamento> buscarDoAmbiente(Long id, Long ambienteId) {
         return jpa.findByIdAndAmbienteId(id, ambienteId)
                 .map(ParcelamentoRepositoryJpa::paraDominio);
+    }
+
+    @Override
+    public List<Parcelamento> listarDoAmbiente(Long ambienteId) {
+        return jpa.findByAmbienteIdOrderByIdDesc(ambienteId).stream()
+                .map(ParcelamentoRepositoryJpa::paraDominio)
+                .toList();
     }
 
     @Override

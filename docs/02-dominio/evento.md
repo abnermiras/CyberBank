@@ -107,7 +107,7 @@ critério do resto do projeto.
 | `FATURA_ABERTA_PELO_CICLO` | A seguinte foi aberta no mesmo passo |
 | `FATURA_ROLADA` | Venceu sem quitar e o que faltou rolou (`ADR-0005`) |
 | `FATURA_ENCERRADA` | Quitada, ou vencida e rolada — e só aqui os lançamentos dela saem de `PROVISIONADO` |
-| `OCORRENCIA_DE_RECORRENCIA` | O ciclo lançou a ocorrência (entra com a recorrência) |
+| `OCORRENCIA_DE_RECORRENCIA` | O fechamento abriu a fatura seguinte e lançou nela a ocorrência de uma recorrência ativa do cartão (`docs/02-dominio/recorrencia.md`) |
 
 **Origem `USUARIO`:**
 

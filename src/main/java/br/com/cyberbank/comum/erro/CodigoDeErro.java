@@ -32,6 +32,7 @@ public enum CodigoDeErro {
     MEIO_DUPLICADO_NA_CONTA(409, "Esta conta já tem um meio desse tipo"),
     MEIO_INATIVO(409, "Este meio está inativo"),
     MEIO_NAO_PARCELA(409, "Só o cartão de crédito parcela"),
+    MEIO_NAO_RECORRE(409, "Só o cartão de crédito tem recorrência hoje"),
     LANCAMENTO_DO_CICLO(409, "Este lançamento foi criado pelo sistema"),
     LANCAMENTO_COM_ESTORNO(409, "Este lançamento tem um estorno apontando para ele"),
     PARCELA_ISOLADA(409, "Parcela não se exclui sozinha: quem se arrepende exclui o parcelamento"),

@@ -25,6 +25,7 @@ class FrontEstaticoIT {
             "/app.html",
             "/assets/js/telas/contas.js",
             "/assets/js/telas/detalhe.js",
+            "/assets/js/telas/series.js",
             "/assets/js/lancar.js",
             "/assets/css/app.css");
 

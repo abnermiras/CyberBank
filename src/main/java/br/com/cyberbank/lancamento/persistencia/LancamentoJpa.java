@@ -24,6 +24,11 @@ interface LancamentoJpa extends JpaRepository<LancamentoEntity, Long> {
     List<LancamentoEntity> findByFaturaIdAndAmbienteIdOrderByDataEventoAscIdAsc(Long faturaId,
             Long ambienteId);
 
+    List<LancamentoEntity> findByRecorrenciaIdAndAmbienteIdOrderByIdAsc(Long recorrenciaId,
+            Long ambienteId);
+
+    boolean existsByRecorrenciaIdAndFaturaId(Long recorrenciaId, Long faturaId);
+
     List<LancamentoEntity> findByParcelamentoIdAndAmbienteIdOrderByIdAsc(Long parcelamentoId,
             Long ambienteId);
 

@@ -1,14 +1,14 @@
 ---
 id: 03-dados/catalogo-tabelas-do-cartao
 titulo: Catalogo de tabelas do cartao
-dono: definicao coluna a coluna de fatura e parcelamento, com constraints, indices e politicas
+dono: definicao coluna a coluna de fatura, parcelamento e recorrencia, com constraints, indices e politicas
 ler-junto: [03-dados/catalogo-tabelas-do-ambiente, 02-dominio/fatura-cartao]
 status: ativo
 ---
 
 # Catálogo de tabelas do cartão
 
-`fatura` e `parcelamento`. As duas são **da família do ambiente** — têm `ambiente_id` e política
+`fatura`, `parcelamento` e `recorrencia`. As três são **da família do ambiente** — têm `ambiente_id` e política
 de RLS por ambiente, como as de `docs/03-dados/catalogo-tabelas-do-ambiente.md` —, e saíram para
 cá quando aquele doc passou das 300 linhas do `CONVENTIONS`.
 
@@ -64,8 +64,8 @@ compartilhamento, que é quando a regra dele existir.
 
 ## `parcelamento` — família do ambiente (`V011`)
 
-**Uma compra só, dividida em N.** A `recorrencia` — N eventos independentes — é outra tabela, e
-é Fase 2: quando **todas** as regras mudam por tipo, não é um tipo, são duas coisas
+**Uma compra só, dividida em N.** A `recorrencia` — N eventos independentes — é outra tabela,
+logo abaixo: quando **todas** as regras mudam por tipo, não é um tipo, são duas coisas
 (`docs/02-dominio/recorrencia.md`).
 
 | Coluna | Tipo | Nulo | Default | Nota |
@@ -97,3 +97,47 @@ acaba quando a última parcela é paga.
 `ENABLE` + `FORCE ROW LEVEL SECURITY`, com uma política `ALL` por `ambiente_id` — **sem o `OR`
 do `ADR-0004`**, como `fatura` e `evento`: o que o destino de um cartão compartilhado enxerga da
 série alheia é decisão do compartilhamento, e ela está em aberto.
+
+## `recorrencia` — família do ambiente (`V012`)
+
+**N eventos independentes que se repetem por regra de tempo.** Não é a tabela de cima com um
+`tipo`: nada aqui tem equivalente lá, a começar pela ausência de total.
+
+| Coluna | Tipo | Nulo | Default | Nota |
+|---|---|---|---|---|
+| `id` | `bigint` identity | não | — | PK |
+| `ambiente_id` | `bigint` | não | — | FK → `ambiente`, `ON DELETE CASCADE` |
+| `conta_id` · `meio_id` · `categoria_id` | `bigint` | não / não / sim | — | A conta `CARTAO`, o cartão e a categoria que a ocorrência **herda ao nascer** |
+| `valor_centavos` | `bigint` | não | — | O valor **da ocorrência**. Não é total de nada |
+| `periodicidade` | `varchar(20)` | não | — | Lista fechada, e hoje ela tem **um** valor: `MENSAL` |
+| `dia` | `smallint` | não | — | 1 a 31. Mês que não tem o dia cobra no **último** |
+| `inicio` | `date` | não | — | A partir de quando a regra vale |
+| `ativa` | `boolean` | não | `true` | Cancelar **desliga**; o passado fica |
+| `descricao` | `varchar(200)` | não | — | |
+| `criado_em` | `timestamptz` | não | `now()` | |
+
+**Não há `valor_total`, e a ausência é a regra:** perguntar *"quanto custa a Netflix"* só faz
+sentido por ocorrência. É a diferença que separa esta tabela da de cima, onde o total é
+guardado justamente para ser verificável.
+
+**`ativa` existe aqui e não existe no `parcelamento`**, e a assimetria é a mesma diferença:
+uma regra se liga e se desliga; uma compra aconteceu.
+
+| Constraint | Protege |
+|---|---|
+| `fk_recorrencia_conta` · `fk_recorrencia_meio` · `fk_recorrencia_categoria` | Chaves **compostas** com `ambiente_id`: os três são do mesmo ambiente da série |
+| `ck_recorrencia_periodicidade` | `IN ('MENSAL')`. Vocabulário do domínio é lista fechada no schema |
+| `ck_recorrencia_dia` | `BETWEEN 1 AND 31` |
+| `ck_recorrencia_valor_positivo` | `> 0` |
+| `ix_recorrencia_ativa_da_conta` | Índice parcial `WHERE ativa`: é a varredura do fechamento. Por **conta**, não por meio — quem fecha é a fatura do contrato, e um contrato tem vários cartões |
+
+Em `lancamento`, a `V012` acrescenta **`recorrencia_id`** e duas travas que são invariantes do
+doc virando schema:
+
+| Constraint | Protege |
+|---|---|
+| `ck_lancamento_uma_serie_so` | `parcelamento_id IS NULL OR recorrencia_id IS NULL`. Um lançamento é **parcela ou ocorrência**, nunca os dois |
+| `uq_lancamento_recorrencia_por_fatura` | Índice único parcial `(recorrencia_id, fatura_id)`. É ele que cumpre *o fechamento nunca lança a mesma recorrência duas vezes na mesma fatura* quando duas rodadas da rotina correm juntas — a checagem em Java sozinha perderia a corrida |
+
+`ENABLE` + `FORCE ROW LEVEL SECURITY`, com uma política `ALL` por `ambiente_id` — **sem o `OR`
+do `ADR-0004`**, pela mesma razão do `parcelamento`.

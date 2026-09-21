@@ -76,6 +76,9 @@ public class LancamentoEntity {
     @Column(name = "parcelamento_id")
     private Long parcelamentoId;
 
+    @Column(name = "recorrencia_id")
+    private Long recorrenciaId;
+
     @Column(name = "do_ciclo", nullable = false)
     private boolean doCiclo;
 
@@ -92,7 +95,8 @@ public class LancamentoEntity {
             Long autorId, Sentido sentido, long valorCentavos, LocalDate dataEvento,
             LocalDate dataEfeito, String descricao, Situacao situacao, Long transferenciaId,
             Long estornoDeId, Long faturaId, Long pagamentoDeFaturaId, Long rolagemDeFatura,
-            Long parcelamentoId, boolean doCiclo, String estabelecimento, Instant criadoEm) {
+            Long parcelamentoId, Long recorrenciaId, boolean doCiclo, String estabelecimento,
+            Instant criadoEm) {
         this.id = id;
         this.ambienteId = ambienteId;
         this.contaId = contaId;
@@ -111,6 +115,7 @@ public class LancamentoEntity {
         this.pagamentoDeFaturaId = pagamentoDeFaturaId;
         this.rolagemDeFatura = rolagemDeFatura;
         this.parcelamentoId = parcelamentoId;
+        this.recorrenciaId = recorrenciaId;
         this.doCiclo = doCiclo;
         this.estabelecimento = estabelecimento;
         this.criadoEm = criadoEm;
@@ -186,6 +191,10 @@ public class LancamentoEntity {
 
     public Long getParcelamentoId() {
         return parcelamentoId;
+    }
+
+    public Long getRecorrenciaId() {
+        return recorrenciaId;
     }
 
     public boolean isDoCiclo() {

@@ -172,7 +172,16 @@
         liquida é o encerramento, quitada ou vencida e rolada. E <b>fatura fechada não congela
         lançamento nenhum</b> — para corrigir o passado, edita-se a linha no Extrato.</p>
     </section>
-    <section class="tela hidden" data-tela="series"></section>
+    <section class="tela hidden" data-tela="series">
+      <div class="telahead">
+        <div>
+          <div class="eyebrow">SÉRIES // O QUE SE REPETE</div>
+          <h2 class="th"><span class="glitch" data-t="Séries">Séries</span></h2>
+        </div>
+        <div class="tele">RECORRÊNCIA PERGUNTA · PARCELAMENTO NÃO</div>
+      </div>
+      <div id="seriesCorpo"></div>
+    </section>
     <section class="tela hidden" data-tela="reserva">
       <div class="telahead">
         <div>
@@ -644,10 +653,25 @@
         </div>
       </div>
 
+      <div class="field hidden" id="campoCompModo">
+        <label>O que é esta cobrança</label>
+        <div class="seg wide" id="compModo">
+          <button type="button" class="on" data-modo="AVISTA">À VISTA</button>
+          <button type="button" data-modo="PARCELADO">PARCELADO</button>
+          <button type="button" data-modo="RECORRENTE">RECORRENTE</button>
+        </div>
+      </div>
+
       <div class="field hidden" id="campoCompParcelas">
         <label for="compParcelas">Em quantas vezes</label>
-        <input id="compParcelas" type="number" min="1" max="99" step="1" value="1">
-        <span class="tele">1 É À VISTA · A PARTIR DE 2, AS PARCELAS NASCEM TODAS JUNTAS</span>
+        <input id="compParcelas" type="number" min="2" max="99" step="1" value="2">
+        <span class="tele">UMA COMPRA SÓ, DIVIDIDA EM N — AS PARCELAS NASCEM TODAS JUNTAS</span>
+      </div>
+
+      <div class="field hidden" id="campoCompDia">
+        <label for="compDia">Repete todo dia</label>
+        <input id="compDia" type="number" min="1" max="31" step="1" value="1">
+        <span class="tele">N COBRANÇAS INDEPENDENTES, SEM FIM · 29, 30 E 31 CAEM NO ÚLTIMO DIA DO MÊS</span>
       </div>
 
       <div class="explica" id="compExplica"></div>
@@ -668,6 +692,7 @@
 <script src="assets/js/lancar.js"></script>
 <script src="assets/js/telas/extrato.js"></script>
 <script src="assets/js/telas/fatura.js"></script>
+<script src="assets/js/telas/series.js"></script>
 <script src="assets/js/telas/reserva.js"></script>
 <script src="assets/js/telas/diario.js"></script>
 <script src="assets/js/telas/detalhe.js"></script>

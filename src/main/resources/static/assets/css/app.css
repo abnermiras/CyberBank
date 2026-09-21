@@ -528,6 +528,39 @@ details.painel-sistema:not([open]) summary .abrir::after{content:' ▼'}
   color:var(--cyan);font:10px var(--mono);letter-spacing:.12em;cursor:pointer}
 .cal-hoje:hover{background:rgba(0,240,255,.1);border-style:solid}
 
+.grupo-de-series{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+  margin:26px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.grupo-de-series .eyebrow{color:var(--acid)}
+.grupo-de-series.parcelada .eyebrow{color:var(--cyan)}
+
+.seriegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(288px,1fr));gap:14px;
+  align-items:start}
+
+.serie{border-left:2px solid var(--acid);padding:16px 18px;transition:border-color .12s,
+  box-shadow .12s}
+.serie:hover{box-shadow:0 0 0 1px rgba(247,241,60,.1),0 14px 44px rgba(0,0,0,.55)}
+.serie.parcelada{border-left-color:var(--cyan)}
+.serie.parcelada:hover{box-shadow:0 0 0 1px rgba(0,240,255,.1),0 14px 44px rgba(0,0,0,.55)}
+.serie.encerrada{border-left-color:var(--dim);opacity:.58}
+.serie.encerrada:hover{box-shadow:none}
+
+.serie-tipo{font:9px var(--mono);letter-spacing:.16em;text-transform:uppercase;
+  padding:3px 7px;border:1px solid var(--line);color:var(--muted)}
+.serie-nome{font:600 16px/1.25 var(--disp);letter-spacing:.01em;margin-top:12px;color:var(--ink);
+  overflow-wrap:anywhere}
+.serie .metric{margin-top:12px}
+.serie .metric .val{font-size:clamp(23px,2.3vw,30px)}
+.serie-dados{font:10px/1.7 var(--mono);letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);margin-top:12px}
+.serie-dados b{color:var(--ink);font-weight:400}
+.serie-proxima{font:10px/1.7 var(--mono);letter-spacing:.12em;text-transform:uppercase;
+  color:var(--acid);margin-top:4px}
+.serie.parcelada .serie-proxima{color:var(--cyan)}
+.serie .bar{margin-top:14px}
+.serie.parcelada .bar>i{background:linear-gradient(90deg,var(--cyan),var(--lime))}
+
+@media(max-width:700px){.seriegrid{grid-template-columns:1fr}}
+
 @media(max-width:1100px){.grid4{grid-template-columns:1fr 1fr}.grid-2-1{grid-template-columns:1fr}}
 @media(max-width:700px){.grid3{grid-template-columns:1fr}}
 @media(max-width:700px){

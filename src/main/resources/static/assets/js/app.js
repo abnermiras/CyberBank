@@ -11,14 +11,7 @@ const TELAS = [
   { id: 'perfil', rotulo: 'PERFIL', icone: '◉', foraDoRail: true },
 ];
 
-const EM_ESPERA = {
-  series: {
-    olho: 'SÉRIES // O QUE SE REPETE',
-    titulo: 'Séries',
-    responde: 'Os parcelamentos e as recorrências vivos, e o que muda ao alterar cada um. Parcelamento altera todas as parcelas sempre; recorrência pergunta se é só o futuro ou o passado também.',
-    falta: ['parcelamento', 'recorrência'],
-  },
-};
+const EM_ESPERA = {};
 
 const seletor = (id) => document.querySelector(`[data-tela="${id}"]`);
 
@@ -53,6 +46,7 @@ const AO_ENTRAR = {
   home: () => Home.montar(),
   extrato: (lancamentoId) => Extrato.montar(lancamentoId),
   fatura: (cartaoId) => Fatura.montar(cartaoId),
+  series: () => Series.montar(),
   reserva: () => Reserva.montar(),
   diario: () => Diario.montar(),
   cadastro: () => abrirAba(document.querySelector('#abasCadastro .aba.on').dataset.aba),

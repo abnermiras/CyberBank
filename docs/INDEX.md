@@ -81,7 +81,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | Documento | Dono do fato | Status |
 |---|---|---|
 | [`catalogo-tabelas-do-ambiente.md`](03-dados/catalogo-tabelas-do-ambiente.md) | definicao coluna a coluna das tabelas com ambiente_id, com constraints, indices e politicas | ativo |
-| [`catalogo-tabelas-do-cartao.md`](03-dados/catalogo-tabelas-do-cartao.md) | definicao coluna a coluna de fatura e parcelamento, com constraints, indices e politicas | ativo |
+| [`catalogo-tabelas-do-cartao.md`](03-dados/catalogo-tabelas-do-cartao.md) | definicao coluna a coluna de fatura, parcelamento e recorrencia, com constraints, indices e politicas | ativo |
 | [`catalogo-tabelas.md`](03-dados/catalogo-tabelas.md) | indice das tabelas e definicao coluna a coluna das familias do usuario e de ligacao | ativo |
 | [`migrations.md`](03-dados/migrations.md) | ferramenta, numeracao e nomes, o que nunca muda depois de aplicado, e como fazer mudanca destrutiva | ativo |
 | [`modelo-de-dados.md`](03-dados/modelo-de-dados.md) | entidades, relacionamentos, estrategia de chaves, como valor e data sao guardados, e o padrao de RLS | ativo |
@@ -99,7 +99,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | [`endpoints-lancamentos.md`](04-api/endpoints-lancamentos.md) | contrato dos endpoints de lancamento, extrato, transferencia e estorno | ativo |
 | [`endpoints-meios-pagamento.md`](04-api/endpoints-meios-pagamento.md) | contrato dos endpoints de meio de pagamento | ativo |
 | [`endpoints-relatorios.md`](04-api/endpoints-relatorios.md) | contrato dos endpoints de agregacao e relatorio | ativo |
-| [`endpoints-series.md`](04-api/endpoints-series.md) | contrato dos endpoints de parcelamento | ativo |
+| [`endpoints-series.md`](04-api/endpoints-series.md) | contrato dos endpoints de parcelamento, de recorrencia e da lista de series | ativo |
 | [`endpoints-usuario.md`](04-api/endpoints-usuario.md) | cadastro, login, logout e o proprio perfil — rota, payload e erros | ativo |
 | [`erros.md`](04-api/erros.md) | o corpo de resposta de erro, o catalogo de codigos e a regra do que o erro nao conta | ativo |
 
@@ -127,6 +127,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | [`navegacao.md`](06-interface/navegacao.md) | estrutura de navegacao, onde o ambiente vive na tela e como se lanca | rascunho |
 | [`perfil.md`](06-interface/perfil.md) | a tela do proprio usuario: onde se entra, as secoes, o seletor de avatar e os espacos reservados | ativo |
 | [`reserva.md`](06-interface/reserva.md) | a tela do patrimonio: as aplicacoes, a idade do valor informado e a distincao entre fluxo de caixa e patrimonio | ativo |
+| [`series.md`](06-interface/series.md) | a tela das duas series e o lugar onde se diz, ao lancar no credito, que a cobranca e recorrente e nao parcelada | ativo |
 
 ## Operacao — build, deploy e incidentes
 
@@ -152,5 +153,5 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 
 ---
 
-**87 documentos · 15 ainda em stub.**
+**88 documentos · 15 ainda em stub.**
 Stub = conteudo inexistente: pergunte, nao deduza.

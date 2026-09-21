@@ -91,7 +91,7 @@ esperando, senão ensina que o app está quebrado.
 | **Extrato** | Todo movimento do ambiente, filtrável por conta e por pendência. A linha abre o **detalhe** do lançamento (`docs/06-interface/extrato.md`) |
 | **Fatura** | O ciclo do cartão e as ações de fechar, pagar e abrir (só na última fechada) — `docs/06-interface/fatura.md` |
 | **Reserva** | Contas, aplicações e a diferença entre fluxo de caixa e patrimônio |
-| **Séries** | Os parcelamentos e as recorrências vivos, e o que muda ao alterar cada um |
+| **Séries** | Os parcelamentos e as recorrências vivos, e o que cada série ainda vai cobrar — `docs/06-interface/series.md` |
 | **Cadastro** | As árvores de categoria do usuário: criar, inativar, reativar e excluir |
 | **Diário** | O que aconteceu num dia: o que o sistema fez sozinho e o que a pessoa fez |
 | **Perfil** | Quem eu sou no sistema: avatar, nome, senha, Telegram e os convites |

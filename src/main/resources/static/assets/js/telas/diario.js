@@ -56,6 +56,9 @@ const Diario = {
       + `não recebeu rolaram para a de <b>${Formato.mes(d.competenciaDestino)}</b>`,
     FATURA_ENCERRADA: (d) =>
       `a fatura de <b>${Formato.mes(d.competencia)}</b> encerrou: o que estava provisionado nela virou realizado`,
+    OCORRENCIA_DE_RECORRENCIA: (d) =>
+      `lançou <b>${Formato.texto(d.descricao)}</b> de ${Formato.dinheiro(d.valor)} na fatura de `
+      + `<b>${Formato.mes(d.competencia)}</b> — a ocorrência deste ciclo, ainda não cobrada`,
 
     FATURA_PAGA: (d) =>
       `pagou <b>${Formato.dinheiro(d.valor)}</b> da fatura de ${Formato.mes(d.competencia)}`
