@@ -8,11 +8,12 @@ status: rascunho
 
 # Recorrência e parcelamento
 
-> **Quando.** O **parcelamento existe**, desde o cartão: entra por
-> `docs/04-api/endpoints-series.md`, e o pacote de código é `recorrencia/`, pelo nome deste doc
-> (`ADR-0008`). A **recorrência** é Fase 2 (`docs/00-produto/roadmap.md`) — ela está escrita
-> aqui porque a regra foi decidida junto com a fatura, e porque o passo do fechamento que a
-> lança depende dela.
+> **Quando.** As duas existem, e entram por `docs/04-api/endpoints-series.md`; o pacote de
+> código é `recorrencia/`, pelo nome deste doc (`ADR-0008`). O **parcelamento** existe desde o
+> cartão. A **recorrência** existe **só no crédito**: quem dispara a ocorrência é o fechamento
+> da fatura, e fora do cartão o ciclo é o mês — a rotina de virada que faria isso ainda não
+> existe, e `MEIO_NAO_RECORRE` recusa enquanto não existir. Falta **editar e cancelar** série
+> pela tela.
 
 São **duas coisas diferentes** que geram várias linhas no extrato. Tratar as duas com a
 mesma regra é o erro que este doc existe para impedir.
@@ -56,7 +57,7 @@ acaba quando a última parcela é paga.
 |---|---|
 | `ambiente` | O de quem criou |
 | `valor` | O da ocorrência. **Não existe valor total** |
-| `periodicidade` e `dia` | A regra de tempo |
+| `periodicidade` e `dia` | A regra de tempo. **Só `MENSAL` existe**, escolhido ao implementar: o ciclo do cartão é mensal, e semanal cairia várias vezes na mesma fatura — o que quebraria a invariante de *no máximo uma ocorrência não acontecida*. O `dia` vai de 1 a 31, e **29, 30 e 31 caem no último dia** dos meses que não os têm: a cobrança não pode sumir em fevereiro |
 | `inicio` | A partir de quando vale |
 | `ativa` | Cancelar desliga; o passado fica |
 | `conta` ou `cartao`, `meio`, `descricao`, `categoria` | O que a ocorrência herda ao nascer |
@@ -156,6 +157,16 @@ A geração segue o **ciclo**, uma ocorrência por vez, com dois gatilhos:
 O resultado é a invariante que importa: **existe no máximo uma ocorrência ainda não
 acontecida por recorrência** — a do ciclo que está aberto agora.
 
+**Por isso a ocorrência do ciclo aberto nasce junto com a regra**, e não no fechamento
+seguinte: a invariante diz *a do ciclo que está aberto agora*, e uma recorrência cadastrada
+hoje que não lançasse nada deixaria o ciclo corrente sem a sua. Cadastrar em ciclo anterior ao
+`inicio` não lança nada.
+
+**A ocorrência é `PREVISTO` e já conta no total da fatura aberta.** Não é contradição com *o
+teste de entrar no saldo é `situacao !== PREVISTO`*: aquilo é do **saldo da conta**, e o total
+da fatura é outro número — o que o cartão vai cobrar. É o mesmo motivo pelo qual um previsto
+segura limite.
+
 Isso não custa a promessa do produto. "Quanto sobra até o fim do mês" continua respondida,
 porque a ocorrência do ciclo corrente existe. Projeção mais longa (Fase 3) se calcula a
 partir da **regra** da recorrência, não de lançamentos pré-criados.
@@ -220,7 +231,9 @@ do que o caso comum, e o caso comum não deve pagar o preço do raro.
   aberto agora. Nunca um horizonte.
 - Cancelar série nunca apaga ocorrência `REALIZADO`.
 - Editar série nunca muda o valor de uma fatura paga **sem mostrar quais** antes de confirmar.
-- O fechamento nunca lança a mesma recorrência duas vezes na mesma fatura.
+- O fechamento nunca lança a mesma recorrência duas vezes na mesma fatura — e quem garante
+  isso, quando duas rodadas da rotina correm juntas, é um índice único `(recorrencia, fatura)`.
+- Toda recorrência é `MENSAL` e cai num dia de 1 a 31, com 29–31 no último dia do mês curto.
 
 ## Fronteiras com outros docs
 
@@ -238,9 +251,10 @@ do que o caso comum, e o caso comum não deve pagar o preço do raro.
 
 | O que falta | Consequência hoje |
 |---|---|
-| **A `Recorrencia` inteira** | Não há tabela, não há coluna `recorrencia_id` no lançamento e o fechamento tem dois passos, não três. Assinatura se lança à mão, todo mês |
-| **A tela de Séries** | O parcelamento aparece no **detalhe de cada parcela** (`docs/06-interface/extrato.md`), e não há lista dos parcelamentos vivos |
-| **Mostrar quais faturas mudam antes de confirmar** | A regra está escrita — *editar série nunca muda o valor de uma fatura paga sem mostrar quais* —, e a borda ainda devolve só as parcelas redistribuídas. A tela de Séries é onde esse aviso cabe |
+| **Editar e cancelar recorrência** | A regra está escrita — editar **pergunta** o escopo, cancelar desliga e o passado fica —, e não há caminho na API nem na tela. Quem errou o valor cadastra outra e convive com a antiga |
+| **Recorrência fora do cartão** | Débito e boleto não têm fatura que dispare a ocorrência, e a rotina de virada do mês não existe. `MEIO_NAO_RECORRE` (409) recusa, em vez de aceitar uma regra que nunca lançaria nada |
+| **A ocorrência prevista de um ciclo que fechou** | Fechar não muda situação nenhuma, então a ocorrência não cobrada continua `PREVISTO` na fatura fechada. Quem resolve isso é a conciliação (`docs/02-dominio/importacao-conciliacao.md`), casando a ocorrência com o que veio do emissor |
+| **Mostrar quais faturas mudam antes de confirmar** | A regra está escrita — *editar série nunca muda o valor de uma fatura paga sem mostrar quais* —, e a borda ainda devolve só as parcelas redistribuídas. A tela de Séries é onde esse aviso cabe, e ela ainda não edita nada |
 | **Antecipar parcelas** | Fase 2 (`docs/00-produto/roadmap.md`) |
 
 **Decidido:** todas as parcelas continuam com `dataEvento` **da compra**, e quem espalha os

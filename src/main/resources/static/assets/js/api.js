@@ -40,6 +40,9 @@ const API = {
     MEIO_INCOMPATIVEL_COM_CONTA: 'Este meio de pagamento não serve para esta conta.',
     MEIO_COM_LANCAMENTO: 'Este meio já tem lançamento. O caminho é inativar.',
     MEIO_INATIVO: 'Este meio está inativo e não recebe lançamento novo.',
+    MEIO_NAO_PARCELA: 'Só o cartão de crédito parcela uma compra.',
+    MEIO_NAO_RECORRE:
+      'Só o cartão de crédito tem cobrança recorrente hoje: quem dispara a ocorrência é o fechamento da fatura.',
     LANCAMENTO_DO_CICLO:
       'Este lançamento foi criado pelo sistema. O saldo de abertura se corrige editando o valor.',
     LANCAMENTO_COM_ESTORNO: 'Exclua primeiro o estorno, senão ele fica órfão.',
@@ -117,6 +120,11 @@ const API = {
 
   parcelar: (ambienteId, corpo) =>
     API.post(API.doAmbiente(ambienteId, '/parcelamentos'), corpo),
+
+  criarRecorrencia: (ambienteId, corpo) =>
+    API.post(API.doAmbiente(ambienteId, '/recorrencias'), corpo),
+
+  series: (ambienteId) => API.get(API.doAmbiente(ambienteId, '/series')),
 
   excluirParcelamento: (ambienteId, id) =>
     API.remover(API.doAmbiente(ambienteId, `/parcelamentos/${id}`)),

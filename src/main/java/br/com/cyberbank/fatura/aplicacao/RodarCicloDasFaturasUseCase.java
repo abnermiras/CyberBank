@@ -25,6 +25,7 @@ import br.com.cyberbank.fatura.dominio.PassoDoCiclo;
 import br.com.cyberbank.fatura.dominio.StatusDaFatura;
 import br.com.cyberbank.lancamento.dominio.Lancamento;
 import br.com.cyberbank.lancamento.dominio.LancamentoRepository;
+import br.com.cyberbank.recorrencia.aplicacao.LancarRecorrenciasDoCicloUseCase;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,13 +44,15 @@ public class RodarCicloDasFaturasUseCase {
     private final LancamentoRepository lancamentos;
     private final CategoriaRepository categorias;
     private final EventoRepository eventos;
+    private final LancarRecorrenciasDoCicloUseCase recorrenciasDoCiclo;
     private final DiaLocal diaLocal;
     private final Clock relogio;
 
     public RodarCicloDasFaturasUseCase(ContaRepository contas, FaturaRepository faturas,
             NumerosDasFaturas numerosDasFaturas, EncerramentoDaFatura encerramento,
             LancamentoRepository lancamentos, CategoriaRepository categorias,
-            EventoRepository eventos, DiaLocal diaLocal, Clock relogio) {
+            EventoRepository eventos, LancarRecorrenciasDoCicloUseCase recorrenciasDoCiclo,
+            DiaLocal diaLocal, Clock relogio) {
         this.contas = contas;
         this.faturas = faturas;
         this.numerosDasFaturas = numerosDasFaturas;
@@ -57,6 +60,7 @@ public class RodarCicloDasFaturasUseCase {
         this.lancamentos = lancamentos;
         this.categorias = categorias;
         this.eventos = eventos;
+        this.recorrenciasDoCiclo = recorrenciasDoCiclo;
         this.diaLocal = diaLocal;
         this.relogio = relogio;
     }
@@ -102,7 +106,7 @@ public class RodarCicloDasFaturasUseCase {
         switch (passo.tipo()) {
             case ROLAR -> rolar(passo, ambienteId, autorId, cartao, hoje);
             case ENCERRAR -> encerrar(passo.fatura(), ambienteId, autorId, hoje);
-            case FECHAR -> fechar(passo.fatura(), ambienteId, autorId, ciclo, hoje);
+            case FECHAR -> fechar(passo.fatura(), ambienteId, autorId, cartao, ciclo, hoje);
         }
     }
 
@@ -137,8 +141,8 @@ public class RodarCicloDasFaturasUseCase {
         encerramento.liquidar(ambienteId, autorId, fatura, hoje);
     }
 
-    private void fechar(Fatura aberta, Long ambienteId, Long autorId, CicloDaFatura ciclo,
-            LocalDate hoje) {
+    private void fechar(Fatura aberta, Long ambienteId, Long autorId, Conta cartao,
+            CicloDaFatura ciclo, LocalDate hoje) {
 
         faturas.salvar(aberta.fechada());
 
@@ -164,6 +168,9 @@ public class RodarCicloDasFaturasUseCase {
                         "contaId", gravada.contaId(),
                         "dataFechamento", gravada.dataFechamento().toString()),
                 hoje, relogio.instant()));
+
+        recorrenciasDoCiclo.executar(cartao.id(), autorId, gravada.id(),
+                gravada.competencia());
     }
 
     private Long categoriaDeRolagem(Long ambienteId, Sentido sentido) {

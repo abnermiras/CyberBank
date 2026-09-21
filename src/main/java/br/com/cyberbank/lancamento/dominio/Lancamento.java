@@ -31,6 +31,7 @@ public record Lancamento(
         Long pagamentoDeFaturaId,
         Long rolagemDeFatura,
         Long parcelamentoId,
+        Long recorrenciaId,
         boolean doCiclo,
         String estabelecimento,
         Instant criadoEm) {
@@ -47,7 +48,7 @@ public record Lancamento(
         Sentido sentido = Sentido.de(saldoComSinal);
         return new Lancamento(null, ambienteId, contaId, null, categoriaDeSistemaId, autorId,
                 sentido, Math.abs(saldoComSinal), dia, dia, "Saldo de abertura",
-                Situacao.REALIZADO, null, null, null, null, null, null, true, null, agora);
+                Situacao.REALIZADO, null, null, null, null, null, null, null, true, null, agora);
     }
 
     public static Lancamento deRendimento(Long ambienteId, Long contaId, Long categoriaId,
@@ -59,7 +60,7 @@ public record Lancamento(
         }
         return new Lancamento(null, ambienteId, contaId, null, categoriaId, autorId,
                 Sentido.de(diferencaComSinal), Math.abs(diferencaComSinal), dia, dia,
-                "Rendimento", Situacao.REALIZADO, null, null, null, null, null, null, false, null, agora);
+                "Rendimento", Situacao.REALIZADO, null, null, null, null, null, null, null, false, null, agora);
     }
 
     public static Lancamento doUsuario(Long ambienteId, Long contaId, Long meioId,
@@ -85,7 +86,7 @@ public record Lancamento(
 
         return new Lancamento(null, ambienteId, contaId, meioId, categoriaId, autorId, sentido,
                 valorCentavos, dataEvento, dataEfeito, descricao.trim(), situacao, null, null,
-                faturaId, null, null, null, false, estabelecimento, agora);
+                faturaId, null, null, null, null, false, estabelecimento, agora);
     }
 
     public static List<Lancamento> parcelasDeUmaCompra(Long ambienteId, Long contaDoCartaoId,
@@ -102,9 +103,25 @@ public record Lancamento(
             parcelas.add(new Lancamento(null, ambienteId, contaDoCartaoId, meioId, categoriaId,
                     autorId, Sentido.SAIDA, valores.get(parcela), dataDaCompra, dataDaCompra,
                     descricao, Situacao.PROVISIONADO, null, null, faturasNaOrdem.get(parcela),
-                    null, null, parcelamentoId, false, null, agora));
+                    null, null, parcelamentoId, null, false, null, agora));
         }
         return parcelas;
+    }
+
+    public static Lancamento deOcorrenciaNoCredito(Long ambienteId, Long contaDoCartaoId,
+            Long meioId, Long categoriaId, Long autorId, long valorCentavos, LocalDate dia,
+            String descricao, Long faturaId, Long recorrenciaId, Instant agora) {
+
+        if (faturaId == null || recorrenciaId == null) {
+            throw new RegraDeDominioException(CodigoDeErro.NAO_ENCONTRADO);
+        }
+        return new Lancamento(null, ambienteId, contaDoCartaoId, meioId, categoriaId, autorId,
+                Sentido.SAIDA, valorCentavos, dia, dia, descricao, Situacao.PREVISTO, null, null,
+                faturaId, null, null, null, recorrenciaId, true, null, agora);
+    }
+
+    public boolean ehOcorrenciaDeRecorrencia() {
+        return recorrenciaId != null;
     }
 
     public boolean ehParcela() {
@@ -118,7 +135,7 @@ public record Lancamento(
                 novaCategoriaId == null ? categoriaId : novaCategoriaId, autorId, sentido,
                 novoValorCentavos, dataEvento, dataEfeito,
                 novaDescricao == null ? descricao : novaDescricao, situacao, transferenciaId,
-                estornoDeId, faturaId, pagamentoDeFaturaId, rolagemDeFatura, parcelamentoId,
+                estornoDeId, faturaId, pagamentoDeFaturaId, rolagemDeFatura, parcelamentoId, recorrenciaId,
                 doCiclo, estabelecimento, criadoEm);
     }
 
@@ -153,12 +170,12 @@ public record Lancamento(
         Lancamento saida = new Lancamento(null, ambienteId, contaDeOrigemId, null,
                 categoriaDaSaidaId, autorId, Sentido.SAIDA, valorCentavos, dataEvento,
                 dataEfeito, descricao.trim(), situacao, transferenciaId, null, null, null, null,
-                null, false, null, agora);
+                null, null, false, null, agora);
 
         Lancamento entrada = new Lancamento(null, ambienteId, contaDeDestinoId, null,
                 categoriaDaEntradaId, autorId, Sentido.ENTRADA, valorCentavos, dataEvento,
                 dataEfeito, descricao.trim(), situacao, transferenciaId, null, null, null, null,
-                null, false, null, agora);
+                null, null, false, null, agora);
 
         return List.of(saida, entrada);
     }
@@ -171,12 +188,12 @@ public record Lancamento(
         Lancamento credito = new Lancamento(null, ambienteId, contaDoCartaoId, null,
                 categoriaDoCreditoId, autorId, Sentido.ENTRADA, valorCentavos, dia, dia,
                 "Rolado para a fatura seguinte", Situacao.REALIZADO, null, null,
-                faturaQueVenceuId, null, rolagemDeFatura, null, true, null, agora);
+                faturaQueVenceuId, null, rolagemDeFatura, null, null, true, null, agora);
 
         Lancamento debito = new Lancamento(null, ambienteId, contaDoCartaoId, null,
                 categoriaDoDebitoId, autorId, Sentido.SAIDA, valorCentavos, dia, dia,
                 "Saldo da fatura anterior", Situacao.PROVISIONADO, null, null,
-                faturaAbertaId, null, rolagemDeFatura, null, true, null, agora);
+                faturaAbertaId, null, rolagemDeFatura, null, null, true, null, agora);
 
         return List.of(credito, debito);
     }
@@ -196,7 +213,7 @@ public record Lancamento(
     public Lancamento quitando(Long faturaQuitadaId) {
         return new Lancamento(id, ambienteId, contaId, meioId, categoriaId, autorId, sentido,
                 valorCentavos, dataEvento, dataEfeito, descricao, situacao, transferenciaId,
-                estornoDeId, faturaId, faturaQuitadaId, rolagemDeFatura, parcelamentoId, doCiclo,
+                estornoDeId, faturaId, faturaQuitadaId, rolagemDeFatura, parcelamentoId, recorrenciaId, doCiclo,
                 estabelecimento, criadoEm);
     }
 
@@ -212,7 +229,7 @@ public record Lancamento(
         }
         return new Lancamento(null, ambienteId, contaId, meioId, categoriaId, autorDoEstornoId,
                 sentido.invertido(), valorCentavos, dia, dia, "Estorno de " + descricao,
-                situacaoDoEstorno, null, id, faturaDoEstornoId, null, null, null, false,
+                situacaoDoEstorno, null, id, faturaDoEstornoId, null, null, null, null, false,
                 estabelecimento, agora);
     }
 
@@ -245,7 +262,7 @@ public record Lancamento(
                 valor, evento, efeito, texto.trim(),
                 novaSituacao == null ? situacao : novaSituacao,
                 transferenciaId, estornoDeId, faturaId, pagamentoDeFaturaId, rolagemDeFatura,
-                parcelamentoId, doCiclo, estabelecimento, criadoEm);
+                parcelamentoId, recorrenciaId, doCiclo, estabelecimento, criadoEm);
     }
 
     public Lancamento corrigidoNaTransferencia(Long novoValorCentavos,
@@ -270,14 +287,14 @@ public record Lancamento(
 
         return new Lancamento(id, ambienteId, contaId, meioId, categoriaId, autorId, sentido,
                 valorCentavos, dataEvento, dataEfeito, descricao, situacao, transferenciaId,
-                estornoDeId, novaFaturaId, pagamentoDeFaturaId, rolagemDeFatura, parcelamentoId,
+                estornoDeId, novaFaturaId, pagamentoDeFaturaId, rolagemDeFatura, parcelamentoId, recorrenciaId,
                 doCiclo, estabelecimento, criadoEm);
     }
 
     public Lancamento comSituacao(Situacao nova) {
         return new Lancamento(id, ambienteId, contaId, meioId, categoriaId, autorId, sentido,
                 valorCentavos, dataEvento, dataEfeito, descricao, nova, transferenciaId,
-                estornoDeId, faturaId, pagamentoDeFaturaId, rolagemDeFatura, parcelamentoId,
+                estornoDeId, faturaId, pagamentoDeFaturaId, rolagemDeFatura, parcelamentoId, recorrenciaId,
                 doCiclo, estabelecimento, criadoEm);
     }
 

@@ -7,6 +7,7 @@ public enum TipoDeEvento {
     FATURA_ABERTA_PELO_CICLO(OrigemDeEvento.SISTEMA),
     FATURA_ROLADA(OrigemDeEvento.SISTEMA),
     FATURA_ENCERRADA(OrigemDeEvento.SISTEMA),
+    OCORRENCIA_DE_RECORRENCIA(OrigemDeEvento.SISTEMA),
 
     FATURA_PAGA(OrigemDeEvento.USUARIO),
     FATURA_FECHADA_PELO_USUARIO(OrigemDeEvento.USUARIO),

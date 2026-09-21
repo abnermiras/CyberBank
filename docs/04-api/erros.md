@@ -112,6 +112,7 @@ Erro previsível tem código, e **o código entra aqui antes de existir no códi
 | `MEIO_DUPLICADO_NA_CONTA` | 409 | A conta já tem um meio desse tipo. O par `(conta, tipo)` identifica o meio, e só `CREDITO` se repete — um contrato tem vários cartões (`docs/02-dominio/meio-de-pagamento.md`) |
 | `MEIO_INATIVO` | 409 | Lançamento **do usuário** num meio inativo, nem por captura |
 | `MEIO_NAO_PARCELA` | 409 | Parcelar uma compra num meio que não é `CREDITO`. **Só o cartão tem fatura e só ele parcela** — o que espalha a cobrança pelos meses é a fatura de cada parcela, e fora do crédito não há fatura nenhuma (`docs/02-dominio/meio-de-pagamento.md`) |
+| `MEIO_NAO_RECORRE` | 409 | Criar recorrência num meio que não é `CREDITO`. Hoje o gatilho da ocorrência é o **fechamento da fatura**, e fora do cartão não há fatura que dispare nada — a recorrência de débito e boleto espera a rotina de virada do mês (`docs/02-dominio/recorrencia.md`) |
 | `AMBIENTE_INVALIDO` | 409 | Categoria de outro ambiente, ou conta sem vínculo (`ADR-0004`) |
 
 **Cada linha aponta para uma invariante já escrita no domínio.** Código novo sem invariante

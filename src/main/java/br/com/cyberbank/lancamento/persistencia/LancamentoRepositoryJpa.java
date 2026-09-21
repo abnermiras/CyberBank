@@ -96,6 +96,19 @@ public class LancamentoRepositoryJpa implements LancamentoRepository {
     }
 
     @Override
+    public List<Lancamento> listarDaRecorrencia(Long recorrenciaId, Long ambienteId) {
+        return jpa.findByRecorrenciaIdAndAmbienteIdOrderByIdAsc(recorrenciaId, ambienteId)
+                .stream()
+                .map(LancamentoRepositoryJpa::paraDominio)
+                .toList();
+    }
+
+    @Override
+    public boolean temOcorrenciaNaFatura(Long recorrenciaId, Long faturaId) {
+        return jpa.existsByRecorrenciaIdAndFaturaId(recorrenciaId, faturaId);
+    }
+
+    @Override
     public void excluirDoParcelamento(Long parcelamentoId, Long ambienteId) {
         jpa.deleteByParcelamentoIdAndAmbienteId(parcelamentoId, ambienteId);
     }
@@ -273,6 +286,7 @@ public class LancamentoRepositoryJpa implements LancamentoRepository {
                 l.categoriaId(), l.autorId(), l.sentido(), l.valorCentavos(), l.dataEvento(),
                 l.dataEfeito(), l.descricao(), l.situacao(), l.transferenciaId(), l.estornoDeId(),
                 l.faturaId(), l.pagamentoDeFaturaId(), l.rolagemDeFatura(), l.parcelamentoId(),
+                l.recorrenciaId(),
                 l.doCiclo(), l.estabelecimento(), l.criadoEm());
     }
 
@@ -282,6 +296,6 @@ public class LancamentoRepositoryJpa implements LancamentoRepository {
                 e.getDataEvento(), e.getDataEfeito(), e.getDescricao(), e.getSituacao(),
                 e.getTransferenciaId(), e.getEstornoDeId(), e.getFaturaId(),
                 e.getPagamentoDeFaturaId(), e.getRolagemDeFatura(), e.getParcelamentoId(),
-                e.isDoCiclo(), e.getEstabelecimento(), e.getCriadoEm());
+                e.getRecorrenciaId(), e.isDoCiclo(), e.getEstabelecimento(), e.getCriadoEm());
     }
 }

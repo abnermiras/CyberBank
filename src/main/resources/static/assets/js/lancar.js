@@ -3,6 +3,7 @@ const Lancar = {
   meios: [],
   arvore: [],
   aba: 'GASTO',
+  modoDoCredito: 'AVISTA',
   sentidoRapido: 'SAIDA',
 
   SENTIDO_DA_ABA: { GASTO: 'SAIDA', RECEITA: 'ENTRADA', CREDITO: 'SAIDA' },
@@ -37,7 +38,9 @@ const Lancar = {
 
     document.getElementById('compValor').value = '';
     document.getElementById('compDescricao').value = '';
-    document.getElementById('compParcelas').value = '1';
+    document.getElementById('compParcelas').value = '2';
+    document.getElementById('compDia').value = '1';
+    Lancar.trocarModoDoCredito('AVISTA');
     CampoDeData.definir('compVencimento', Formato.hoje());
     document.getElementById('compVencimento').value = '';
   },
@@ -96,13 +99,18 @@ const Lancar = {
       if (botao) Lancar.trocarAba(botao.dataset.aba);
     });
 
+    document.getElementById('compModo').addEventListener('click', (evento) => {
+      const botao = evento.target.closest('[data-modo]');
+      if (botao) Lancar.trocarModoDoCredito(botao.dataset.modo);
+    });
+
     document.getElementById('qaMeio').addEventListener('change', Lancar.montarRapido);
     document.getElementById('compMeio').addEventListener('change', Lancar.explicarCompleto);
     document.getElementById('compCategoria').addEventListener('change',
       () => Lancar.montarSubcategorias('comp'));
     ['compDe', 'compPara'].forEach((id) =>
       document.getElementById(id).addEventListener('change', Lancar.explicarCompleto));
-    ['compParcelas', 'compValor'].forEach((id) =>
+    ['compParcelas', 'compDia', 'compValor'].forEach((id) =>
       document.getElementById(id).addEventListener('input', Lancar.explicarCompleto));
 
     document.getElementById('fRapido').addEventListener('submit', async (evento) => {
@@ -188,7 +196,9 @@ const Lancar = {
     });
 
     const transferencia = aba === 'TRANSFERENCIA';
-    document.getElementById('campoCompParcelas').classList.toggle('hidden', aba !== 'CREDITO');
+    document.getElementById('campoCompModo').classList.toggle('hidden', aba !== 'CREDITO');
+    if (aba !== 'CREDITO') Lancar.modoDoCredito = 'AVISTA';
+    Lancar.mostrarCamposDoModo();
     document.getElementById('linhaMeioCategoria').classList.toggle('hidden', transferencia);
     document.getElementById('linhaTransferencia').classList.toggle('hidden', !transferencia);
     document.getElementById('campoCompSubcategoria').classList.toggle('hidden', transferencia);
@@ -245,9 +255,45 @@ const Lancar = {
     return Contas.identidadeDoMeio(meio, Lancar.contas);
   },
 
+  trocarModoDoCredito(modo) {
+    Lancar.modoDoCredito = modo;
+    document.querySelectorAll('#compModo [data-modo]').forEach((botao) => {
+      botao.classList.toggle('on', botao.dataset.modo === modo);
+    });
+    Lancar.mostrarCamposDoModo();
+    Lancar.explicarCompleto();
+  },
+
+  mostrarCamposDoModo() {
+    const noCredito = Lancar.aba === 'CREDITO';
+    document.getElementById('campoCompParcelas').classList
+      .toggle('hidden', !noCredito || Lancar.modoDoCredito !== 'PARCELADO');
+    document.getElementById('campoCompDia').classList
+      .toggle('hidden', !noCredito || Lancar.modoDoCredito !== 'RECORRENTE');
+  },
+
   parcelasEscolhidas() {
     const bruto = Number(document.getElementById('compParcelas').value);
     return Number.isInteger(bruto) && bruto >= 2 ? bruto : 1;
+  },
+
+  diaEscolhido() {
+    const bruto = Number(document.getElementById('compDia').value);
+    return Number.isInteger(bruto) && bruto >= 1 && bruto <= 31 ? bruto : null;
+  },
+
+  explicarRecorrencia() {
+    const dia = Lancar.diaEscolhido();
+    if (!dia) return '<br><br>Escolha o dia do mês em que a cobrança cai, de 1 a 31.';
+
+    const ultimo = dia > 28
+      ? ` Em mês que não tem dia ${dia}, a cobrança cai no <b>último dia</b>.` : '';
+
+    return `<br><br><b>Assinatura, não compra parcelada.</b> Nasce a ocorrência
+      <b>deste ciclo</b> na fatura aberta, e nunca um horizonte de meses: cada fechamento
+      lança a do ciclo seguinte. Assinatura não acaba, e doze meses de previsto comeriam
+      doze mensalidades do limite. A ocorrência entra como <b>PREVISTO</b> — ainda não foi
+      cobrada —, e a do próximo mês só existe quando esta fatura fechar.${ultimo}`;
   },
 
   explicarParcelas() {
@@ -317,7 +363,8 @@ const Lancar = {
          data —, e nasce <b>PROVISIONADO</b>: comprou, deve. A dívida do cartão sobe na hora, e
          a conta corrente só se move no dia em que você pagar a fatura. <b>O limite não trava
          nada</b>: recusar uma compra que o emissor já aprovou seria o app discordando do banco.
-         ${Lancar.explicarParcelas()}`;
+         ${Lancar.modoDoCredito === 'RECORRENTE'
+           ? Lancar.explicarRecorrencia() : Lancar.explicarParcelas()}`;
       return;
     }
 
@@ -384,7 +431,21 @@ const Lancar = {
       : null;
 
     const vencimento = CampoDeData.valor('compVencimento');
-    const parcelas = Lancar.aba === 'CREDITO' ? Lancar.parcelasEscolhidas() : 1;
+
+    if (Lancar.aba === 'CREDITO' && Lancar.modoDoCredito === 'RECORRENTE') {
+      await Lancar.enviar('compAviso', () => API.criarRecorrencia(Contexto.ambiente.id, {
+        meioId: meio.id,
+        categoriaId,
+        valor,
+        dia: Lancar.diaEscolhido(),
+        inicio: dataEvento,
+        descricao,
+      }), Lancar.fecharCompleto);
+      return;
+    }
+
+    const parcelas = Lancar.aba === 'CREDITO' && Lancar.modoDoCredito === 'PARCELADO'
+      ? Lancar.parcelasEscolhidas() : 1;
 
     if (parcelas >= 2) {
       await Lancar.enviar('compAviso', () => API.parcelar(Contexto.ambiente.id, {
