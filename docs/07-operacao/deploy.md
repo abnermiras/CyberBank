@@ -31,8 +31,14 @@ até bater o alvo.
 
 | Host | `ARGON2_MEMORIA` (KB) | `ARGON2_ITERACOES` | `ARGON2_PARALELISMO` | Medido |
 |---|---|---|---|---|
-| Desenvolvimento (4 núcleos, 7,4 GB) | 65536 | 4 | 1 | 226 ms · 20/09/2026 |
+| Desenvolvimento (4 núcleos, 7,4 GB) | 65536 | 3 | 1 | 154 ms · 20/09/2026 |
 | Produção (Raspberry Pi) | — | — | — | **não medido** |
+
+**Enquanto o login não regravar o hash antigo, o parâmetro só vale para senha nova.** O
+`Argon2PasswordEncoder` guarda `m`, `t` e `p` dentro do próprio hash e confere por eles, então
+subir o número protege quem se cadastrar depois e ninguém mais. É por isso que a linha de
+desenvolvimento é `t=3` e não `t=4`, que mediu 226 ms: o `t=4` deixaria a base partida em dois
+regimes, e a tabela anunciaria o que a maioria das senhas não tem.
 
 **A linha do Pi está vazia porque ninguém mediu ainda, e número copiado da linha de cima é
 exatamente o erro que esta tabela existe para impedir.** Medir é passo de instalação, antes
