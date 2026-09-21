@@ -40,7 +40,11 @@ function montarEmEspera() {
   });
 }
 
-const ABA_DO_CADASTRO = { categorias: () => Cadastro.montar(), contas: () => Contas.montar() };
+const ABA_DO_CADASTRO = {
+  categorias: () => Cadastro.montar(),
+  contas: () => Contas.montar(),
+  cartoes: () => Contas.montar(),
+};
 
 const AO_ENTRAR = {
   home: () => Home.montar(),

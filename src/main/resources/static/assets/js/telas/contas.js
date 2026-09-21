@@ -70,13 +70,19 @@ const Contas = {
 
   tipoEscolhido() {
     const valor = document.getElementById('contaTipo').value;
-    return Contas.tipos.find((t) => t.tipo === valor) || Contas.tipos[0];
+    const oferecidos = Contas.tiposSemCartao();
+    return oferecidos.find((t) => t.tipo === valor) || oferecidos[0];
+  },
+
+  tiposSemCartao() {
+    return Contas.tipos.filter((t) => t.tipo !== 'CARTAO');
   },
 
   montarTipos() {
     const seletor = document.getElementById('contaTipo');
-    if (seletor.options.length !== Contas.tipos.length) {
-      seletor.innerHTML = Contas.tipos
+    const oferecidos = Contas.tiposSemCartao();
+    if (seletor.options.length !== oferecidos.length) {
+      seletor.innerHTML = oferecidos
         .map((t) => `<option value="${t.tipo}">${Contas.ROTULO_DE_TIPO[t.tipo] || t.tipo}</option>`)
         .join('');
       Contas.aoTrocarTipo();
@@ -85,21 +91,16 @@ const Contas = {
 
   aoTrocarTipo() {
     const tipo = Contas.tipoEscolhido();
-    const cartao = tipo.tipo === 'CARTAO';
 
-    Contas.meiosEscolhidos = new Set(!cartao && tipo.meios.length === 1 ? tipo.meios : []);
+    Contas.meiosEscolhidos = new Set(tipo.meios.length === 1 ? tipo.meios : []);
     document.getElementById('contaSaldo').closest('.field')
       .classList.toggle('hidden', !tipo.aceitaSaldoInicial);
-    document.getElementById('cicloDoCartao').classList.toggle('hidden', !cartao);
-    document.getElementById('campoDosMeios').classList.toggle('hidden', cartao);
-    document.getElementById('campoDosCartoes').classList.toggle('hidden', !cartao);
 
-    if (cartao) Contas.montarContasPagadoras();
     Contas.desenharMeiosDaAbertura();
   },
 
   montarContasPagadoras() {
-    const seletor = document.getElementById('contaPagadora');
+    const seletor = document.getElementById('cartaoPagadora');
     const pagadoras = Contas.contas.filter((c) => c.entraEmCaixa && !c.inativa);
 
     seletor.innerHTML = ['<option value="">— escolher na hora de pagar —</option>']
@@ -108,19 +109,14 @@ const Contas = {
   },
 
   cicloDoCartao() {
-    const dia = Number(document.getElementById('contaDiaVencimento').value);
-    const antes = Number(document.getElementById('contaDiasAntes').value);
+    const dia = Number(document.getElementById('cartaoDiaVencimento').value);
+    const antes = Number(document.getElementById('cartaoDiasAntes').value);
     return dia && antes ? { dia, antes } : null;
   },
 
   desenharMeiosDaAbertura() {
     const tipo = Contas.tipoEscolhido();
     const alvo = document.getElementById('meiosDaConta');
-
-    if (tipo.tipo === 'CARTAO') {
-      Contas.explicar();
-      return;
-    }
 
     if (!tipo.meios.length) {
       alvo.innerHTML = '<span class="tele">NÃO SE PAGA COM UMA APLICAÇÃO — RESGATA-SE ANTES</span>';
@@ -143,9 +139,12 @@ const Contas = {
     const tipo = Contas.tipoEscolhido();
 
     document.getElementById('contaExplica').innerHTML =
-      `${Contas.EXPLICA_TIPO[tipo.tipo] || ''} ${tipo.tipo === 'CARTAO'
-        ? Contas.explicarCartao()
-        : Contas.explicarAbertura(tipo)}`;
+      `${Contas.EXPLICA_TIPO[tipo.tipo] || ''} ${Contas.explicarAbertura(tipo)}`;
+  },
+
+  explicarOContrato() {
+    document.getElementById('cartaoExplica').innerHTML =
+      `${Contas.EXPLICA_TIPO.CARTAO} ${Contas.explicarCartao()}`;
   },
 
   explicarAbertura(tipo) {
@@ -174,8 +173,8 @@ const Contas = {
   ligarOuvintes() {
     document.getElementById('contaTipo').addEventListener('change', Contas.aoTrocarTipo);
     document.getElementById('contaSaldo').addEventListener('input', Contas.explicar);
-    document.getElementById('contaDiaVencimento').addEventListener('input', Contas.explicar);
-    document.getElementById('contaDiasAntes').addEventListener('input', Contas.explicar);
+    ['cartaoDiaVencimento', 'cartaoDiasAntes'].forEach((id) =>
+      document.getElementById(id).addEventListener('input', Contas.explicarOContrato));
 
     document.getElementById('meiosDaConta').addEventListener('change', (evento) => {
       const caixa = evento.target.closest('[data-meio]');
@@ -190,12 +189,22 @@ const Contas = {
       await Contas.abrir();
     });
 
-    document.getElementById('btnContasInativas').addEventListener('click', () => {
-      Contas.mostrarInativas = !Contas.mostrarInativas;
-      Contas.desenhar();
+    document.getElementById('fCartao').addEventListener('submit', async (evento) => {
+      evento.preventDefault();
+      await Contas.abrirContrato();
     });
 
-    document.getElementById('listaContas').addEventListener('click', async (evento) => {
+    ['btnContasInativas', 'btnCartoesInativos'].forEach((id) =>
+      document.getElementById(id).addEventListener('click', () => {
+        Contas.mostrarInativas = !Contas.mostrarInativas;
+        Contas.desenhar();
+      }));
+
+    ['listaContas', 'listaCartoes'].forEach((id) =>
+      document.getElementById(id).addEventListener('click', Contas.aoClicarNaLista));
+  },
+
+  async aoClicarNaLista(evento) {
       const botao = evento.target.closest('[data-acao]');
       if (!botao) return;
       const id = Number(botao.dataset.id);
@@ -215,22 +224,44 @@ const Contas = {
         'excluir-meio': () => Contas.excluirMeio(id),
       };
       await acoes[botao.dataset.acao]();
-    });
   },
 
   desenhar() {
-    const visiveis = Contas.contas.filter((c) => Contas.mostrarInativas || !c.inativa);
-    const inativas = Contas.contas.filter((c) => c.inativa).length;
+    Contas.montarContasPagadoras();
+    Contas.explicarOContrato();
+    Contas.desenharLista({
+      todas: Contas.contas.filter((c) => c.tipo !== 'CARTAO'),
+      lista: 'listaContas',
+      contagem: 'contagemContas',
+      interruptor: 'btnContasInativas',
+      vazio: 'Nenhuma conta ainda.',
+      femininoPlural: 'INATIVAS',
+    });
+    Contas.desenharLista({
+      todas: Contas.contas.filter((c) => c.tipo === 'CARTAO'),
+      lista: 'listaCartoes',
+      contagem: 'contagemCartoes',
+      interruptor: 'btnCartoesInativos',
+      vazio: 'Nenhum cartão de crédito ainda. O contrato é a conta, e é dele que sai a fatura.',
+      femininoPlural: 'INATIVOS',
+    });
+  },
 
-    document.getElementById('contagemContas').textContent = Contas.contas.length
-      ? `${Contas.contas.length} NO TOTAL${inativas ? ` · ${inativas} INATIVA${inativas > 1 ? 'S' : ''}` : ''}`
-      : 'NENHUMA AINDA';
+  desenharLista(vista) {
+    const visiveis = vista.todas.filter((c) => Contas.mostrarInativas || !c.inativa);
+    const inativas = vista.todas.filter((c) => c.inativa).length;
 
-    document.getElementById('btnContasInativas').setAttribute('aria-pressed', String(Contas.mostrarInativas));
+    document.getElementById(vista.contagem).textContent = vista.todas.length
+      ? `${vista.todas.length} NO TOTAL${inativas ? ` · ${inativas} ${vista.femininoPlural}` : ''}`
+      : 'NENHUM AINDA';
 
-    document.getElementById('listaContas').innerHTML = visiveis.length
+    document.getElementById(vista.interruptor)
+      .setAttribute('aria-pressed', String(Contas.mostrarInativas));
+
+    document.getElementById(vista.lista).innerHTML = visiveis.length
       ? visiveis.map(Contas.cartao).join('')
-      : `<div class="vazio">Nenhuma conta ainda.${inativas ? ' Há inativas escondidas — use o interruptor.' : ''}</div>`;
+      : `<div class="vazio">${vista.vazio}${inativas
+          ? ' Há escondidos — use o interruptor.' : ''}</div>`;
   },
 
   cartao(conta) {
@@ -318,10 +349,6 @@ const Contas = {
   async abrir() {
     const tipo = Contas.tipoEscolhido();
     const bruto = document.getElementById('contaSaldo').value;
-    const limite = document.getElementById('contaLimite').value;
-    const pagadora = document.getElementById('contaPagadora').value;
-    const ciclo = Contas.cicloDoCartao();
-    const cartao = tipo.tipo === 'CARTAO';
 
     await Contas.tentar(() => API.abrirConta(Contexto.ambiente.id, {
       nome: document.getElementById('contaNome').value,
@@ -329,12 +356,8 @@ const Contas = {
       saldoInicial: !tipo.aceitaSaldoInicial || bruto.trim() === ''
         ? null
         : Formato.centavos(bruto),
-      meios: cartao ? [] : [...Contas.meiosEscolhidos],
-      cartoes: cartao ? Contas.cartoesInformados() : [],
-      diaVencimento: cartao && ciclo ? ciclo.dia : null,
-      diasAntesFechamento: cartao && ciclo ? ciclo.antes : null,
-      limite: cartao && limite.trim() !== '' ? Formato.centavos(limite) : null,
-      contaPagadoraPadraoId: cartao && pagadora ? Number(pagadora) : null,
+      meios: [...Contas.meiosEscolhidos],
+      cartoes: [],
     }), () => {
       document.getElementById('fConta').reset();
       Contas.aoTrocarTipo();
@@ -342,8 +365,30 @@ const Contas = {
     });
   },
 
+  async abrirContrato() {
+    const limite = document.getElementById('cartaoLimite').value;
+    const pagadora = document.getElementById('cartaoPagadora').value;
+    const ciclo = Contas.cicloDoCartao();
+
+    await Contas.tentar(() => API.abrirConta(Contexto.ambiente.id, {
+      nome: document.getElementById('cartaoNome').value,
+      tipo: 'CARTAO',
+      saldoInicial: null,
+      meios: [],
+      cartoes: Contas.cartoesInformados(),
+      diaVencimento: ciclo ? ciclo.dia : null,
+      diasAntesFechamento: ciclo ? ciclo.antes : null,
+      limite: limite.trim() !== '' ? Formato.centavos(limite) : null,
+      contaPagadoraPadraoId: pagadora ? Number(pagadora) : null,
+    }), () => {
+      document.getElementById('fCartao').reset();
+      Contas.explicarOContrato();
+      document.getElementById('cartaoNome').focus();
+    });
+  },
+
   cartoesInformados() {
-    return document.getElementById('contaCartoes').value
+    return document.getElementById('cartaoCartoes').value
       .split(',')
       .map((nome) => nome.trim())
       .filter(Boolean);
@@ -428,7 +473,9 @@ const Contas = {
   },
 
   avisar(mensagem) {
-    const alvo = document.getElementById('avisoContas');
-    alvo.innerHTML = mensagem ? `<div class="aviso err">${Formato.texto(mensagem)}</div>` : '';
+    ['avisoContas', 'avisoCartoes'].forEach((id) => {
+      document.getElementById(id).innerHTML = mensagem
+        ? `<div class="aviso err">${Formato.texto(mensagem)}</div>` : '';
+    });
   },
 };

@@ -92,7 +92,7 @@ esperando, senão ensina que o app está quebrado.
 | **Fatura** | O ciclo do cartão e as ações de fechar, pagar e abrir (só na última fechada) — `docs/06-interface/fatura.md` |
 | **Reserva** | Contas, aplicações e a diferença entre fluxo de caixa e patrimônio |
 | **Séries** | Os parcelamentos e as recorrências vivos, e o que cada série ainda vai cobrar — `docs/06-interface/series.md` |
-| **Cadastro** | As árvores de categoria do usuário: criar, inativar, reativar e excluir |
+| **Cadastro** | O que precisa existir antes de lançar, em três abas: **categorias**, **contas e meios** e **cartão de crédito**. O cartão tem aba própria porque é a única conta com ciclo, limite e fatura — junto das outras, o formulário mudava de forma conforme o tipo escolhido |
 | **Diário** | O que aconteceu num dia: o que o sistema fez sozinho e o que a pessoa fez |
 | **Perfil** | Quem eu sou no sistema: avatar, nome, senha, Telegram e os convites |
 
