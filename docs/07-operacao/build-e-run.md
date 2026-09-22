@@ -112,18 +112,41 @@ desenvolvimento chega em produção.
 **Calibrar o Argon2id é passo de instalação**, não de código. Os números do Pi não são os do
 WSL, e parâmetro copiado de tutorial ou trava o login ou não protege nada.
 
+## Todo dia
+
+Depois de tomar o seu café, rode, no terminal, dentro de `~/CyberBank`:
+
+1. `docker compose up -d` — sobe o Postgres. Se já estiver de pé, não faz nada.
+2. `set -a; . ./.env; set +a` — carrega o `.env` no terminal.
+3. `./mvnw spring-boot:run` — sobe a aplicação. As migrations pendentes rodam sozinhas.
+4. Abra `http://localhost:8080` e aproveite sua aplicação no ar.
+
+**O #2 e o #3 rodam no mesmo terminal.** A aplicação só enxerga as variáveis do terminal onde
+foi carregado o `.env`; num terminal novo, o #3 cai na subida reclamando da variável que falta.
+
+Para desligar: `Ctrl+C` no terminal da aplicação. O Postgres pode ficar de pé; se quiser
+derrubar, `docker compose down` — **nunca** com `-v` no dia a dia, que apaga o banco.
+
 ## Ordem numa máquina limpa
 
-1. `docker compose up -d`
-2. `cp -n .env.exemplo .env` e preencher. **O `-n` não é zelo: `cp` sem ele substitui em
-   silêncio um `.env` que já existe, e esse arquivo é a cópia única dos segredos — fora do git
-   por decisão, e por consequência sem backup.** O `.env.exemplo` é versionado; o `.env`, nunca.
+1. `[ -e .env ] || cp .env.exemplo .env` e preencher. **A guarda não é zelo: `cp` sozinho
+   substitui em silêncio um `.env` que já existe, e esse arquivo é a cópia única dos segredos —
+   fora do git por decisão, e por consequência sem backup.** O `.env.exemplo` é versionado; o
+   `.env`, nunca. A guarda é o teste do shell, e não o `cp -n`, porque o `-n` muda de
+   comportamento entre versões do GNU coreutils e as recentes já avisam que ele não é portável.
 
    *(Foi assim que as senhas do banco sumiram em 20/09: a receita de máquina limpa rodada numa
    máquina que não estava limpa. Os papéis do Postgres continuaram com a senha antiga, e a
    aplicação subiu contra `password authentication failed`.)*
-3. `./mvnw verify` — se a suíte de integração passa, Docker e banco estão certos.
-4. `./mvnw spring-boot:run`
+2. `docker compose up -d` — **só depois do `.env` preenchido**, e ele recusa subir sem as
+   senhas. O script de papéis roda uma vez só, na criação do volume: a senha que estava no
+   `.env` nessa hora é a que os papéis guardam, e mudar o `.env` depois não muda o banco — só um
+   `docker compose down -v` recomeça.
+3. `set -a; . ./.env; set +a`
+4. `./mvnw verify` — se a suíte de integração passa, Docker e banco estão certos.
+5. `./mvnw spring-boot:run`
+
+Daí em diante, a rotina é a de **Todo dia**.
 
 ## Invariantes
 
