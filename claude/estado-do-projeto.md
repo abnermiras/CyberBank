@@ -25,8 +25,8 @@ Extrato — e "em caixa", "guardado" e "patrimônio" saem do banco, somados dos 
 **O esqueleto está commitado e no GitHub:** `4be103d` na branch `esqueleto-do-projeto`,
 mergeado em `main` por `9e015a2`. O bloqueio do push acabou.
 `./mvnw verify` verde — **137 testes de unidade e 76 de integração** —, check de docs em 0
-erros e 0 avisos. **`main` está à frente de `origin/main`**, do `51edd8e` para cá: o push é
-comando entregue ao Abner, e o de 17/09 ainda não saiu.
+erros e 0 avisos. **O push de 22/09 saiu**: `origin/main` está em `0f91c67`, com as três
+entregas do dia. O push continua sendo comando entregue ao Abner.
 
 | Sessão | O que saiu |
 |---|---|
