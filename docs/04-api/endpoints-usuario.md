@@ -16,6 +16,9 @@ forma é de lá; a regra é de `docs/02-dominio/usuario.md` e `docs/01-arquitetu
 | `POST /api/v1/usuarios` | Cadastro. **Um ato, três efeitos** | não exige |
 | `POST /api/v1/sessoes` | Login | não exige |
 | `DELETE /api/v1/sessoes/atual` | Logout | idempotente |
+| `GET /api/v1/sessoes` | As sessões abertas da pessoa | exige |
+| `DELETE /api/v1/sessoes/{sessaoId}` | Encerra uma sessão, esta ou outra | exige |
+| `DELETE /api/v1/sessoes` | Encerra todas, **inclusive esta** | exige |
 | `GET /api/v1/usuarios/atual` | O próprio perfil | exige |
 | `PATCH /api/v1/usuarios/atual` | Nome e avatar | exige |
 | `PUT /api/v1/usuarios/atual/telegram` | Vincula o chat do Telegram | exige |
@@ -67,6 +70,9 @@ Set-Cookie: cyberbank_sessao=<opaco>; HttpOnly; Secure; SameSite=Lax; Path=/; Ma
 **Não há corpo na resposta, e o identificador não aparece nela** — ele vive só no cookie
 `HttpOnly` (`ADR-0009`).
 
+A sessão guarda a **origem** (o endereço de quem pediu) e o **navegador** (o `User-Agent`,
+cortado em 200 caracteres). Os dois existem para a lista de sessões, e nenhum autentica nada.
+
 | Erro | Quando |
 |---|---|
 | `CREDENCIAIS_INVALIDAS` (401) | **E-mail inexistente e senha errada, sem distinção** — mesmo código, mesma mensagem e **mesmo tempo** |
@@ -79,6 +85,37 @@ Apaga a linha da sessão e expira o cookie. `204 No Content`.
 **Idempotente:** sem cookie, com cookie inválido ou com sessão já apagada, a resposta é a
 mesma `204`. Sair não é operação que possa falhar — e um `401` aqui contaria ao cliente que
 aquele identificador não vale mais, que é informação que ele não precisa.
+
+## `GET /api/v1/sessoes` — onde a conta está aberta
+
+```
+GET /api/v1/sessoes
+
+200 OK
+{ "itens": [ { "id": 12, "criadaEm": "2026-09-22T16:37:02Z", "ultimoUsoEm": "2026-09-22T16:38:40Z",
+               "origem": "192.168.0.14", "navegador": "Mozilla/5.0 (X11; Linux x86_64) ...",
+               "atual": true } ] }
+```
+
+Só as sessões **de quem pergunta**, e só as **válidas** — a que expirou e ainda não foi limpa
+não aparece. Ordem: último uso, mais recente primeiro. `atual` marca a sessão do cookie que fez
+a requisição. `navegador` é `null` nas sessões abertas antes de a coluna existir. **O hash do
+identificador não sai**, nem nada que reconstitua o cookie.
+
+## `DELETE /api/v1/sessoes/{sessaoId}` — encerrar uma
+
+Apaga a linha: **aquele aparelho sai no clique seguinte** (`docs/01-arquitetura/seguranca.md`).
+`204 No Content`. Se a sessão encerrada é a do próprio cookie, a resposta também expira o
+cookie — é um logout pela lista.
+
+| Erro | Quando |
+|---|---|
+| `NAO_ENCONTRADO` (404) | A sessão não existe, **ou é de outra pessoa** — mesma resposta, pela mesma razão do `{ambienteId}` |
+
+## `DELETE /api/v1/sessoes` — encerrar todas
+
+Apaga **todas** as sessões da pessoa, a que pediu inclusive, e expira o cookie. `204`. É o
+mesmo efeito que a troca de senha tem sobre as sessões, sem trocar a senha.
 
 ## `GET /api/v1/usuarios/atual` — o próprio perfil
 
@@ -177,5 +214,5 @@ errado é um valor do corpo, e é isso que o `422` diz (`04-api/erros.md`).
 ## O que ainda não existe
 
 Recuperação de senha (`ADR-0007` decidiu, e ninguém construiu), troca de e-mail, exclusão de
-conta, upload de foto, listar e encerrar sessões, e os convites recebidos — estes dois últimos
-têm espaço reservado na tela (`docs/06-interface/perfil.md`) e entram com o convite.
+conta, upload de foto, e os convites recebidos — este com espaço reservado na tela
+(`docs/06-interface/perfil.md`), e entra com o convite.

@@ -35,11 +35,14 @@ public class SessaoEntity {
     @Column(name = "origem")
     private String origem;
 
+    @Column(name = "navegador")
+    private String navegador;
+
     protected SessaoEntity() {
     }
 
     public SessaoEntity(Long id, Long usuarioId, String identificadorHash, Instant criadaEm,
-            Instant ultimoUsoEm, Instant expiraEm, String origem) {
+            Instant ultimoUsoEm, Instant expiraEm, String origem, String navegador) {
         this.id = id;
         this.usuarioId = usuarioId;
         this.identificadorHash = identificadorHash;
@@ -47,6 +50,7 @@ public class SessaoEntity {
         this.ultimoUsoEm = ultimoUsoEm;
         this.expiraEm = expiraEm;
         this.origem = origem;
+        this.navegador = navegador;
     }
 
     public Long getId() {
@@ -75,5 +79,9 @@ public class SessaoEntity {
 
     public String getOrigem() {
         return origem;
+    }
+
+    public String getNavegador() {
+        return navegador;
     }
 }

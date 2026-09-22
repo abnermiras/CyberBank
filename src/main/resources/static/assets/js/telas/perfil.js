@@ -3,6 +3,7 @@ const Perfil = {
   avatarEscolhido: null,
   ambientes: [],
   renomeando: null,
+  sessoes: [],
   ligado: false,
 
   async montar() {
@@ -16,7 +17,92 @@ const Perfil = {
     }
     Perfil.avatarEscolhido = Perfil.usuario.avatar;
     Perfil.pintar();
-    await Perfil.carregarAmbientes();
+    await Promise.all([Perfil.carregarAmbientes(), Perfil.carregarSessoes()]);
+  },
+
+  async carregarSessoes() {
+    try {
+      Perfil.sessoes = (await API.listarSessoes()).itens;
+    } catch (erro) {
+      if (tratarFalha(erro)) return;
+      Perfil.avisar('avisoSessoes', erro.paraGente(), 'err');
+      return;
+    }
+    Perfil.pintarSessoes();
+  },
+
+  pintarSessoes() {
+    const total = Perfil.sessoes.length;
+    document.getElementById('perfilSessoesConta').textContent =
+      `${total} ${total === 1 ? 'ABERTA' : 'ABERTAS'}`;
+
+    document.getElementById('perfilSessoes').innerHTML = Perfil.sessoes
+      .map((sessao) => `
+        <article class="conta">
+          <div class="conta-head">
+            <div class="conta-nome">
+              <strong title="${Formato.texto(sessao.navegador || '')}">${Formato.texto(Perfil.aparelho(sessao.navegador))}</strong>
+              ${sessao.atual ? '<span class="tag real">ESTA SESSÃO</span>' : ''}
+            </div>
+            <button class="btn sm ${sessao.atual ? 'ghost' : 'danger'}" type="button"
+                    data-sessao="${sessao.id}" data-atual="${sessao.atual}">${sessao.atual ? 'Sair' : 'Encerrar'}</button>
+          </div>
+          <div class="conta-ciclo">
+            <span class="tele">DE ${Formato.texto(sessao.origem || 'ORIGEM DESCONHECIDA')}</span>
+            <span class="tele">ENTROU ${Perfil.instante(sessao.criadaEm)}</span>
+            <span class="tele">ÚLTIMO USO ${Perfil.instante(sessao.ultimoUsoEm)}</span>
+          </div>
+        </article>`)
+      .join('');
+  },
+
+  aparelho(navegador) {
+    if (!navegador) return 'Navegador desconhecido';
+    const qual = [
+      [/Edg\//, 'Edge'], [/OPR\//, 'Opera'], [/Firefox\//, 'Firefox'],
+      [/Chrome\//, 'Chrome'], [/Safari\//, 'Safari'],
+    ].find(([padrao]) => padrao.test(navegador));
+    const onde = [
+      [/Android/, 'Android'], [/iPhone|iPad/, 'iOS'], [/CrOS/, 'ChromeOS'],
+      [/Windows/, 'Windows'], [/Mac OS X/, 'macOS'], [/Linux/, 'Linux'],
+    ].find(([padrao]) => padrao.test(navegador));
+    if (!qual && !onde) return 'Navegador desconhecido';
+    return [qual ? qual[1] : 'Navegador', onde ? onde[1] : null].filter(Boolean).join(' · ');
+  },
+
+  instante(iso) {
+    const quando = new Date(iso);
+    const dia = quando.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+    const hora = quando.toLocaleTimeString('pt-BR',
+      { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
+    return `${dia} ${hora}`;
+  },
+
+  async encerrarSessao(id, atual) {
+    try {
+      await API.encerrarSessao(id);
+    } catch (erro) {
+      if (tratarFalha(erro)) return;
+      Perfil.avisar('avisoSessoes', erro.paraGente(), 'err');
+      return;
+    }
+    if (atual) {
+      window.location.href = 'login.html';
+      return;
+    }
+    Perfil.avisar('avisoSessoes', 'Sessão encerrada. Aquele aparelho sai no próximo clique.', 'ok');
+    await Perfil.carregarSessoes();
+  },
+
+  async encerrarTodasAsSessoes() {
+    try {
+      await API.encerrarTodasAsSessoes();
+    } catch (erro) {
+      if (tratarFalha(erro)) return;
+      Perfil.avisar('avisoSessoes', erro.paraGente(), 'err');
+      return;
+    }
+    window.location.href = 'login.html?sessoesEncerradas=1';
   },
 
   async carregarAmbientes() {
@@ -127,6 +213,11 @@ const Perfil = {
     document.getElementById('perfilSenhaTrocar').addEventListener('click', Perfil.trocarSenha);
 
     document.getElementById('perfilAmbienteCriar').addEventListener('click', Perfil.criarAmbiente);
+    document.getElementById('perfilSessoesTodas').addEventListener('click', Perfil.encerrarTodasAsSessoes);
+    document.getElementById('perfilSessoes').addEventListener('click', (evento) => {
+      const botao = evento.target.closest('[data-sessao]');
+      if (botao) Perfil.encerrarSessao(Number(botao.dataset.sessao), botao.dataset.atual === 'true');
+    });
     document.getElementById('perfilAmbienteNovo').addEventListener('keydown', (evento) => {
       if (evento.key === 'Enter') Perfil.criarAmbiente();
     });

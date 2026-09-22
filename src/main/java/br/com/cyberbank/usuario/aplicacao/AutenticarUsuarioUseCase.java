@@ -49,7 +49,7 @@ public class AutenticarUsuarioUseCase {
     }
 
     @Transactional
-    public SessaoAberta executar(String email, String senha, String origem) {
+    public SessaoAberta executar(String email, String senha, String origem, String navegador) {
         Instant agora = relogio.instant();
         String chaveDaConta = PoliticaDeLogin.chaveDaConta(Usuario.normalizarEmail(email));
         String chaveDaOrigem = PoliticaDeLogin.chaveDaOrigem(origem);
@@ -78,7 +78,7 @@ public class AutenticarUsuarioUseCase {
 
         String identificador = identificadores.gerar();
         Sessao sessao = sessoes.salvar(Sessao.abrir(
-                usuario.id(), identificadores.hash(identificador), origem, agora));
+                usuario.id(), identificadores.hash(identificador), origem, navegador, agora));
 
         return new SessaoAberta(identificador, sessao.expiraEm());
     }

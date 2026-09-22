@@ -1,9 +1,14 @@
 package br.com.cyberbank.usuario.dominio;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Duration;
 import java.time.Instant;
+
+import br.com.cyberbank.comum.erro.CodigoDeErro;
+import br.com.cyberbank.comum.erro.RegraDeDominioException;
 
 import org.junit.jupiter.api.Test;
 
@@ -12,7 +17,7 @@ class SessaoTest {
     private static final Instant NASCIMENTO = Instant.parse("2026-09-07T12:00:00Z");
 
     private Sessao sessao() {
-        return Sessao.abrir(1L, "hash", "127.0.0.1", NASCIMENTO);
+        return Sessao.abrir(1L, "hash", "127.0.0.1", "Firefox", NASCIMENTO);
     }
 
     @Test
@@ -44,5 +49,24 @@ class SessaoTest {
 
         assertThat(usada.ultimoUsoEm()).isEqualTo(maisTarde);
         assertThat(usada.expiraEm()).isEqualTo(sessao().expiraEm());
+    }
+
+    @Test
+    void so_a_dona_alcanca_a_sessao_e_a_de_outro_responde_como_inexistente() {
+        assertThatCode(() -> sessao().exigirDo(1L)).doesNotThrowAnyException();
+        assertThatThrownBy(() -> sessao().exigirDo(2L))
+                .isInstanceOf(RegraDeDominioException.class)
+                .satisfies(e -> assertThat(((RegraDeDominioException) e).codigo())
+                        .isEqualTo(CodigoDeErro.NAO_ENCONTRADO));
+    }
+
+    @Test
+    void o_navegador_cabe_na_coluna_e_vazio_vira_ausente() {
+        String longo = "x".repeat(Sessao.TAMANHO_MAXIMO_DO_NAVEGADOR + 50);
+
+        assertThat(Sessao.abrir(1L, "h", "o", longo, NASCIMENTO).navegador())
+                .hasSize(Sessao.TAMANHO_MAXIMO_DO_NAVEGADOR);
+        assertThat(Sessao.abrir(1L, "h", "o", "  ", NASCIMENTO).navegador()).isNull();
+        assertThat(Sessao.abrir(1L, "h", "o", null, NASCIMENTO).navegador()).isNull();
     }
 }

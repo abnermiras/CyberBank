@@ -9,7 +9,8 @@
 
 Última sessão: **2026-09-22**, na máquina Linux, com o Claude Code no terminal — **o Perfil
 ganhou a seção Ambientes**: listar, criar e renomear — e **o seletor de ambiente do header
-saiu do papel**, então o ambiente criado se usa (linhas abaixo).
+saiu do papel**, então o ambiente criado se usa — e **as sessões ativas do Perfil funcionam**:
+ver, encerrar uma, encerrar todas (linhas abaixo).
 
 Sessão anterior: **2026-09-18**.
 **O cartão de crédito está de pé, e com ele a Fase 1 fecha o que faltava de dinheiro:** dá para
@@ -29,6 +30,7 @@ comando entregue ao Abner, e o de 17/09 ainda não saiu.
 
 | Sessão | O que saiu |
 |---|---|
+| **22/09 (sessões ativas)** | O bloco reservado do Perfil virou lista, e o Abner pediu os dois botões: **encerrar uma** e **encerrar todas**. As regras já estavam no `ADR-0009` — revogar é apagar a linha, com efeito no clique seguinte —, e o que faltava era a lista ser **reconhecível**: a `origem` era só o IP, e numa rede de casa toda linha diria a mesma coisa. **`V014`** dá à `sessao` a coluna `navegador` (o `User-Agent`, anulável), e a tela lê *Chrome · Android*. `GET /sessoes`, `DELETE /sessoes/{id}` e `DELETE /sessoes` · **encerrar todas inclui esta**, como a troca de senha · sessão de outra pessoa responde **404**, a mesma razão do `{ambienteId}` · navegador dirigido com **dois contextos** (notebook e celular na mesma conta): o celular encerrado caiu no login no clique seguinte · **215 de unidade e 134 de integração** |
 | **22/09 (o seletor de ambiente)** | Pedido do Abner logo em seguida: *"quero conseguir usar o ambiente novo"*. O chip `AMBIENTE ATIVO` virou botão com a lista dos ambientes; escolher **recarrega a página** — é o *"a tela inteira recarrega"* do `navegacao.md`, e limpa filtro sem cada tela saber limpar o dela. A escolha fica no **`localStorage`**, com queda para o primeiro da lista; a tela se mantém e o argumento do hash cai (`#/extrato/88` → `#/extrato`). **Só front, nenhum endpoint.** A **cor por ambiente** não existe no modelo e virou `☐` no `navegacao.md`. Navegador dirigido: toda chamada depois da troca foi para **um** `{ambienteId}` só |
 | **22/09 (ambientes no Perfil)** | Pedido do Abner: ver os ambientes, criar e renomear. **Nenhuma regra nova de fundo** — criar livre e *renomear é do dono e do editor* já estavam no `ambiente-financeiro.md`, e o RLS da `V001` já tinha as políticas de `INSERT` e `UPDATE`: **sem migration**. Nasce `POST /ambientes` e `PATCH /ambientes/{id}`, e o `GET` ganha `criadoEm` · o `CriarAmbientePessoalUseCase` virou **`CriarAmbienteUseCase(usuarioId, nome)`**, que já cria as categorias de sistema: o cadastro e a tela passam pelo **mesmo** caminho, e um ambiente novo não nasce sem o jogo de sistema · **o primeiro lugar do código que consulta papel**: `Ambiente.renomeadoPor(papel, nome)` recusa o leitor com `SEM_PERMISSAO` · **o "ativo/inativo" foi pedido e adiado pelo Abner** — a ideia é *desligar* ou excluir um ambiente, e virou `☐` no `ambiente-financeiro.md` · **criar e renomear ambiente não gravam evento**: a lista fechada não tem o tipo, e virou `☐` no `evento.md` · navegador dirigido a 1400 e a 380px · **213 testes de unidade e 128 de integração** |
 | **18/09 (o cartão e a fatura — a fatia grande)** | O item 10 inteiro, em **quatro commits** na branch `cartao-e-fatura`. **`V009`** traz o contrato de cartão na `conta` (limite, ciclo, conta pagadora), a tabela **`fatura`** e as três colunas adiadas do `lancamento`; a **`ABERTA` única** e **uma fatura por competência** viraram índice, e não confiança na aplicação · o pacote é **`fatura/`**, como o `ADR-0008` já tinha respondido, e os três números **não moram na `Fatura`** — vêm de uma consulta em `lancamento`, e o teste de fronteira continua verde · **`AgendaDoCiclo`** devolve **um passo por vez** e o caso de uso relê o estado: daí saem de graça o *dia a dia em ordem cronológica* e o *encerrar antes de fechar*, sem exceção escrita · **pagar, fechar e abrir à mão**, a **tela Fatura** e o bloco da Home · o **parcelamento**, com o centavo na primeira parcela e o **cenário do Abner** virando teste · **`docs.py check` em 0 erros**, e o `catalogo-tabelas-do-ambiente` quebrou por assunto, como o `ADR-0008` manda. **189 testes de unidade e 111 de integração** |
@@ -441,8 +443,8 @@ ordem está fixada no `lacunas-para-codigo.md`:
    ainda vale**: o que ele tem e o app não tem é o `conferir()` e o `verificar.js` — e esses
    dois é que mereciam nascer do lado de cá.
 12. ~~**Tela de Perfil**~~ ✅ **Fechada em 17/09**, nos três commits combinados. Ficaram
-    reservados na tela, dizendo o que esperam: **convites recebidos**, **convidar alguém** e
-    **sessões ativas** — os três entram com o convite. **Renomear categoria** na tela continua
+    reservados na tela, dizendo o que esperam: **convites recebidos** e **convidar alguém** —
+    os dois entram com o convite. **Sessões ativas saiu do reservado em 22/09.** **Renomear categoria** na tela continua
     aberto.
 13. ~~**A tela do Diário**~~ ✅ **Fechada em 17/09**, antecipada da Fase 2 — e o **link para o
     objeto exato** fechou junto no fim do dia: `#/extrato/{id}` abre o detalhe. Conta, meio e

@@ -48,6 +48,10 @@ if (new URLSearchParams(window.location.search).has('senhaTrocada')) {
   dizer('msgLogin', 'Senha trocada. Entre de novo — a troca encerra todas as sessões.', 'ok');
 }
 
+if (new URLSearchParams(window.location.search).has('sessoesEncerradas')) {
+  dizer('msgLogin', 'Todas as sessões foram encerradas, inclusive a sua. Entre de novo.', 'ok');
+}
+
 document.getElementById('fLogin').addEventListener('submit', (evento) => {
   evento.preventDefault();
   limparMensagens();

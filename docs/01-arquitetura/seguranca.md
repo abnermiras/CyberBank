@@ -70,6 +70,8 @@ autentica é uma segunda porta de entrada, e uma porta a mais é uma porta a mai
 | Expiração | Duas, e as duas valem: **absoluta** desde a criação, e por **inatividade** |
 | Revogação | Apagar a linha. **Tem efeito no clique seguinte**, sem esperar token nenhum expirar |
 | Trocar a senha | **Derruba todas as sessões** daquele usuário, inclusive a que trocou |
+| Ver e encerrar | A pessoa vê as **próprias** sessões válidas e encerra qualquer uma, ou **todas — inclusive a que pediu**. Sessão de outra pessoa responde como inexistente |
+| Como se reconhece uma | Origem (endereço) e navegador (`User-Agent`), guardados na abertura. **Nenhum dos dois autentica** — são para a pessoa reconhecer o aparelho e encerrar o que não reconhece |
 | Quanto dura | **30 dias** de expiração absoluta, **7 dias** de inatividade |
 | O que fica no banco | O **hash** do identificador, nunca ele — cópia do banco não vira sessão viva de ninguém |
 
