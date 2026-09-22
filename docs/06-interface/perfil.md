@@ -30,6 +30,7 @@ botão** e abre o Perfil; o `Sair`, ao lado, continua sendo um botão solto.
 | 1 | **IDENTIDADE** | Avatar, nome, e-mail e a data de cadastro | funciona |
 | 2 | **SENHA** | Senha atual, nova senha, e o aviso do que vai acontecer | funciona |
 | 3 | **TELEGRAM** | O `chat id` declarado, e o botão de desvincular | funciona, e **nada o consome ainda** |
+| — | **AMBIENTES** | Os ambientes a que a pessoa tem acesso, criar e renomear | funciona; fica no **topo da coluna da direita** |
 | 4 | **CONVITES** | Recebidos, e os que a pessoa faz | **espaço reservado** |
 | 5 | **SESSÕES** | Onde a conta está aberta | **espaço reservado** |
 
@@ -84,6 +85,23 @@ Com o campo preenchido, aparece **DESVINCULAR**, que apaga o número — é o `D
 sub-recurso (`docs/04-api/endpoints-usuario.md`), e ele não passa pelo botão de salvar do
 nome e do avatar: são duas decisões diferentes, e juntá-las faria trocar de avatar mexer no
 chat.
+
+## AMBIENTES
+
+Um cartão por ambiente a que a pessoa tem acesso, na ordem do `GET /ambientes` — o *Ambiente
+Pessoal* primeiro. Cada um mostra o **nome**, o **papel** dela ali e o **dia em que foi
+criado**, no horário de Brasília.
+
+- **Renomear** abre o campo no lugar do nome, como a conta faz no Cadastro. `Enter` salva, `Esc`
+  cancela. **O leitor não vê o botão**: é a regra do botão que só existe quando funciona. Se o
+  ambiente renomeado é o que está em uso, o header acompanha na hora.
+- **Criar** é um campo e um botão abaixo da lista. A linha de rodapé diz o que o ato faz: quem
+  cria é o **dono**, e o ambiente nasce **vazio**, só com as categorias de sistema.
+- **Não há ativo/inativo, desligar nem excluir** — não foram decididos
+  (`docs/02-dominio/ambiente-financeiro.md`), e a tela não finge que existem.
+
+O bloco fica na coluna da direita, acima dos convites, porque é dali que o convite vai
+depender: convida-se para **um** ambiente.
 
 ## CONVITES e SESSÕES — o espaço reservado
 

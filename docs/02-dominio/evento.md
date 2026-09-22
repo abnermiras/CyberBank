@@ -130,6 +130,12 @@ sempre esteve na lista e não mexe em saldo nenhum. O Diário responde *"por que
 mudou"* **e** *"quem mexeu"* — num ambiente com mais de uma pessoa, a conta que trocou de nome
 é exatamente o tipo de mudança que ninguém consegue explicar depois.
 
+> ☐ **A definir:** **criar e renomear ambiente não gravam evento.** A lista acima não tem o
+> tipo, e a simetria com `CONTA_RENOMEADA` diz que deveria ter — num ambiente com mais de uma
+> pessoa, o nome que mudou é o tipo de coisa que ninguém explica depois. Entra com o convite,
+> que é quando existe uma segunda pessoa para perguntar; e o tipo novo pede migration no
+> `CHECK` de `evento.tipo`.
+
 ### O evento de exclusão carrega a linha inteira
 
 `LANCAMENTO_EXCLUIDO` é a única exceção à regra *"`dados` não é um espelho do objeto"*, e por

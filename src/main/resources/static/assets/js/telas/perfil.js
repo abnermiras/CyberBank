@@ -1,6 +1,8 @@
 const Perfil = {
   usuario: null,
   avatarEscolhido: null,
+  ambientes: [],
+  renomeando: null,
   ligado: false,
 
   async montar() {
@@ -14,6 +16,76 @@ const Perfil = {
     }
     Perfil.avatarEscolhido = Perfil.usuario.avatar;
     Perfil.pintar();
+    await Perfil.carregarAmbientes();
+  },
+
+  async carregarAmbientes() {
+    try {
+      Perfil.ambientes = (await API.listarAmbientes()).itens;
+    } catch (erro) {
+      if (tratarFalha(erro)) return;
+      Perfil.avisar('avisoAmbientes', erro.paraGente(), 'err');
+      return;
+    }
+    Perfil.pintarAmbientes();
+  },
+
+  pintarAmbientes() {
+    const total = Perfil.ambientes.length;
+    document.getElementById('perfilAmbientesConta').textContent =
+      `${total} ${total === 1 ? 'AMBIENTE' : 'AMBIENTES'}`;
+
+    document.getElementById('perfilAmbientes').innerHTML = Perfil.ambientes
+      .map((ambiente) => `
+        <article class="conta">
+          <div class="conta-head">
+            ${Perfil.renomeando === ambiente.id ? `
+              <div class="conta-edicao">
+                <input id="ambienteNome${ambiente.id}" type="text" maxlength="80"
+                       value="${Formato.texto(ambiente.nome)}">
+                <button class="btn sm primary" type="button" data-acao="salvar" data-id="${ambiente.id}">Salvar</button>
+                <button class="btn sm ghost" type="button" data-acao="cancelar" data-id="${ambiente.id}">Cancelar</button>
+              </div>`
+            : `
+              <div class="conta-nome">
+                <strong>${Formato.texto(ambiente.nome)}</strong>
+                <span class="tag">${ambiente.papel}</span>
+              </div>
+              ${ambiente.papel === 'LEITOR' ? ''
+                : `<button class="btn sm ghost" type="button" data-acao="renomear" data-id="${ambiente.id}">Renomear</button>`}`}
+          </div>
+          <div class="conta-ciclo">
+            <span class="tele">CRIADO EM ${new Date(ambiente.criadoEm).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</span>
+          </div>
+        </article>`)
+      .join('');
+
+    if (Perfil.renomeando) {
+      document.getElementById(`ambienteNome${Perfil.renomeando}`)?.focus();
+    }
+  },
+
+  async criarAmbiente() {
+    const campo = document.getElementById('perfilAmbienteNovo');
+    const nome = campo.value.trim();
+    await Perfil.tentar('avisoAmbientes', 'Ambiente criado.', async () => {
+      await API.criarAmbiente(nome);
+      campo.value = '';
+      await Perfil.carregarAmbientes();
+    });
+  },
+
+  async renomearAmbiente(id) {
+    const nome = document.getElementById(`ambienteNome${id}`).value.trim();
+    await Perfil.tentar('avisoAmbientes', 'Ambiente renomeado.', async () => {
+      const renomeado = await API.renomearAmbiente(id, nome);
+      Perfil.renomeando = null;
+      if (Contexto.ambiente && Contexto.ambiente.id === renomeado.id) {
+        Contexto.ambiente.nome = renomeado.nome;
+        document.getElementById('ambienteNome').textContent = renomeado.nome;
+      }
+      await Perfil.carregarAmbientes();
+    });
   },
 
   pintar() {
@@ -53,6 +125,33 @@ const Perfil = {
     document.getElementById('perfilTelegramSalvar').addEventListener('click', Perfil.vincular);
     document.getElementById('perfilTelegramTirar').addEventListener('click', Perfil.desvincular);
     document.getElementById('perfilSenhaTrocar').addEventListener('click', Perfil.trocarSenha);
+
+    document.getElementById('perfilAmbienteCriar').addEventListener('click', Perfil.criarAmbiente);
+    document.getElementById('perfilAmbienteNovo').addEventListener('keydown', (evento) => {
+      if (evento.key === 'Enter') Perfil.criarAmbiente();
+    });
+    document.getElementById('perfilAmbientes').addEventListener('click', (evento) => {
+      const botao = evento.target.closest('[data-acao]');
+      if (!botao) return;
+      const id = Number(botao.dataset.id);
+      if (botao.dataset.acao === 'renomear') {
+        Perfil.renomeando = id;
+        Perfil.pintarAmbientes();
+      } else if (botao.dataset.acao === 'cancelar') {
+        Perfil.renomeando = null;
+        Perfil.pintarAmbientes();
+      } else if (botao.dataset.acao === 'salvar') {
+        Perfil.renomearAmbiente(id);
+      }
+    });
+    document.getElementById('perfilAmbientes').addEventListener('keydown', (evento) => {
+      if (evento.key === 'Enter' && evento.target.id.startsWith('ambienteNome')) {
+        Perfil.renomearAmbiente(Perfil.renomeando);
+      } else if (evento.key === 'Escape') {
+        Perfil.renomeando = null;
+        Perfil.pintarAmbientes();
+      }
+    });
   },
 
   async salvarIdentidade() {

@@ -1,6 +1,7 @@
 package br.com.cyberbank.ambiente.persistencia;
 
 import java.util.List;
+import java.util.Optional;
 
 import br.com.cyberbank.ambiente.dominio.AcessoAoAmbiente;
 import br.com.cyberbank.ambiente.dominio.Ambiente;
@@ -24,6 +25,11 @@ public class AmbienteRepositoryJpa implements AmbienteRepository {
         AmbienteEntity entidade = jpa.save(new AmbienteEntity(ambiente.id(), ambiente.nome(),
                 ambiente.criadoPor(), ambiente.criadoEm()));
         return paraDominio(entidade);
+    }
+
+    @Override
+    public Optional<Ambiente> buscar(Long ambienteId) {
+        return jpa.findById(ambienteId).map(AmbienteRepositoryJpa::paraDominio);
     }
 
     @Override

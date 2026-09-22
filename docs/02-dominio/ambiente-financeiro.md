@@ -84,9 +84,14 @@ ele"*.
 | Momento | O que acontece |
 |---|---|
 | Cadastro de usuário | É ato do **usuário**, e a regra mora em `docs/02-dominio/usuario.md`. O que interessa aqui: ele cria o **"Ambiente Pessoal"** (nome padrão, renomeável) de quem se cadastrou — o único ambiente que nasce sem ninguém pedir |
-| Criar mais ambientes | Livre. "Pessoal", "Casa", "Empresa" |
-| Renomear | Dono e editor |
+| Criar mais ambientes | Livre. "Pessoal", "Casa", "Empresa". **Quem cria é o dono**, e o ambiente nasce com as categorias de sistema dele e mais nada (`docs/02-dominio/categoria.md`) — o mesmo ato que o cadastro faz com o *Ambiente Pessoal* |
+| Nome | De 1 a 80 caracteres, sem os espaços das bordas. **Não é único**: dois ambientes chamados "Casa" são permitidos, porque quem os distingue é a pessoa, e o `id` é quem os distingue para o sistema |
+| Renomear | Dono e editor. O leitor não renomeia |
 | Exclusão | Ver tabela de convite e saída. Apaga todo o dado do ambiente |
+
+> ☐ **A definir:** **desligar** um ambiente sem excluir — tirá-lo do caminho sem apagar nada.
+> O Abner quer, e adiou em 22/09. Falta decidir quem desliga, se a rotina diária continua
+> rodando nele e se ainda se lança nele.
 
 > ☐ **A definir:** exclusão é imediata ou tem janela de arrependimento? Amarrar com a
 > política de backup em `docs/07-operacao/` na Fase 4.

@@ -91,7 +91,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | Documento | Dono do fato | Status |
 |---|---|---|
 | [`convencoes.md`](04-api/convencoes.md) | forma da URL, versionamento, nomes, formatos no JSON, paginacao e compatibilidade | ativo |
-| [`endpoints-ambientes.md`](04-api/endpoints-ambientes.md) | a lista de ambientes do usuario e a regra do {ambienteId} nas outras rotas | ativo |
+| [`endpoints-ambientes.md`](04-api/endpoints-ambientes.md) | a lista de ambientes do usuario, criar e renomear ambiente, e a regra do {ambienteId} nas outras rotas | ativo |
 | [`endpoints-categorias.md`](04-api/endpoints-categorias.md) | contrato dos endpoints de categoria e regras de categorizacao | ativo |
 | [`endpoints-contas.md`](04-api/endpoints-contas.md) | contrato dos endpoints de conta e saldo | ativo |
 | [`endpoints-eventos.md`](04-api/endpoints-eventos.md) | contrato do Diario — os eventos de um dia de um ambiente | ativo |

@@ -83,6 +83,8 @@ const API = {
   entrar: (email, senha) => API.post('/api/v1/sessoes', { email, senha }),
   sair: () => API.remover('/api/v1/sessoes/atual'),
   listarAmbientes: () => API.get('/api/v1/ambientes'),
+  criarAmbiente: (nome) => API.post('/api/v1/ambientes', { nome }),
+  renomearAmbiente: (id, nome) => API.patch(`/api/v1/ambientes/${id}`, { nome }),
 
   verPerfil: () => API.get('/api/v1/usuarios/atual'),
   alterarPerfil: (corpo) => API.patch('/api/v1/usuarios/atual', corpo),
