@@ -90,6 +90,7 @@ A proteção é a sessão — a consulta é sempre pelo usuário autenticado.
 | `ultimo_uso_em` | `timestamptz` | não | `now()` | Base da expiração por **inatividade** |
 | `expira_em` | `timestamptz` | não | — | Expiração absoluta, já calculada |
 | `origem` | `varchar(200)` | sim | — | Por onde entrou. Inspecionar sessão é metade do valor do `ADR-0009` |
+| `navegador` | `varchar(200)` | sim | — | O `User-Agent` da abertura, cortado. Nulo nas sessões anteriores à `V014`. É o que torna a lista de sessões reconhecível |
 
 | Índice / constraint | Para quê |
 |---|---|

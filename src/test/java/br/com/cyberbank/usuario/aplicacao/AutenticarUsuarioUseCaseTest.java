@@ -31,6 +31,7 @@ class AutenticarUsuarioUseCaseTest {
 
     private static final Instant AGORA = Instant.parse("2026-09-07T12:00:00Z");
     private static final String ORIGEM = "10.0.0.7";
+    private static final String NAVEGADOR = "Mozilla/5.0 (X11; Linux x86_64) Firefox/131.0";
 
     private final List<String> trabalhoDeSenha = new ArrayList<>();
     private final Map<String, Tentativas> tentativas = new HashMap<>();
@@ -50,7 +51,7 @@ class AutenticarUsuarioUseCaseTest {
     void usuario_inexistente_gasta_o_mesmo_argon2_de_uma_conferencia_de_verdade() {
         var autenticar = useCase(null);
 
-        assertThatThrownBy(() -> autenticar.executar("ninguem@exemplo.com", "senha", ORIGEM))
+        assertThatThrownBy(() -> autenticar.executar("ninguem@exemplo.com", "senha", ORIGEM, NAVEGADOR))
                 .isInstanceOf(RegraDeDominioException.class)
                 .satisfies(e -> assertThat(((RegraDeDominioException) e).codigo())
                         .isEqualTo(CodigoDeErro.CREDENCIAIS_INVALIDAS));
@@ -64,7 +65,7 @@ class AutenticarUsuarioUseCaseTest {
     void senha_errada_de_usuario_existente_da_o_mesmo_codigo() {
         var autenticar = useCase(new Usuario(1L, "ana@exemplo.com", "Ana", "hash-certo", Avatar.GATO, null, AGORA));
 
-        assertThatThrownBy(() -> autenticar.executar("ana@exemplo.com", "errada", ORIGEM))
+        assertThatThrownBy(() -> autenticar.executar("ana@exemplo.com", "errada", ORIGEM, NAVEGADOR))
                 .isInstanceOf(RegraDeDominioException.class)
                 .satisfies(e -> assertThat(((RegraDeDominioException) e).codigo())
                         .isEqualTo(CodigoDeErro.CREDENCIAIS_INVALIDAS));
@@ -76,7 +77,7 @@ class AutenticarUsuarioUseCaseTest {
     void a_falha_e_contada_por_conta_e_por_origem_inclusive_para_email_inexistente() {
         var autenticar = useCase(null);
 
-        assertThatThrownBy(() -> autenticar.executar("ninguem@exemplo.com", "senha", ORIGEM))
+        assertThatThrownBy(() -> autenticar.executar("ninguem@exemplo.com", "senha", ORIGEM, NAVEGADOR))
                 .isInstanceOf(RegraDeDominioException.class);
 
         assertThat(tentativas.keySet())
@@ -90,7 +91,7 @@ class AutenticarUsuarioUseCaseTest {
         tentativas.put("conta:ana@exemplo.com",
                 new Tentativas(PoliticaDeLogin.FALHAS_ATE_BLOQUEIO, AGORA));
 
-        assertThatThrownBy(() -> autenticar.executar("ana@exemplo.com", "certa", ORIGEM))
+        assertThatThrownBy(() -> autenticar.executar("ana@exemplo.com", "certa", ORIGEM, NAVEGADOR))
                 .isInstanceOf(RegraDeDominioException.class)
                 .satisfies(e -> assertThat(((RegraDeDominioException) e).codigo())
                         .isEqualTo(CodigoDeErro.MUITAS_TENTATIVAS));
@@ -104,7 +105,7 @@ class AutenticarUsuarioUseCaseTest {
         tentativas.put("conta:ana@exemplo.com", new Tentativas(1, AGORA));
         tentativas.put("origem:" + ORIGEM, new Tentativas(1, AGORA));
 
-        var sessao = autenticar.executar("Ana@Exemplo.com", "certa", ORIGEM);
+        var sessao = autenticar.executar("Ana@Exemplo.com", "certa", ORIGEM, NAVEGADOR);
 
         assertThat(sessao.identificador()).isEqualTo("opaco");
         assertThat(sessao.expiraEm()).isEqualTo(AGORA.plus(Sessao.DURACAO_ABSOLUTA));
@@ -116,7 +117,7 @@ class AutenticarUsuarioUseCaseTest {
         hashAbaixoDoPadrao = true;
         var autenticar = useCase(new Usuario(1L, "ana@exemplo.com", "Ana", "hash-velho", Avatar.GATO, null, AGORA));
 
-        autenticar.executar("ana@exemplo.com", "certa", ORIGEM);
+        autenticar.executar("ana@exemplo.com", "certa", ORIGEM, NAVEGADOR);
 
         assertThat(regravados)
                 .as("o parametro novo so alcanca quem ja tem conta se o login regravar")
@@ -131,7 +132,7 @@ class AutenticarUsuarioUseCaseTest {
     void login_certo_com_hash_no_padrao_nao_regrava_nada() {
         var autenticar = useCase(new Usuario(1L, "ana@exemplo.com", "Ana", "hash-certa", Avatar.GATO, null, AGORA));
 
-        autenticar.executar("ana@exemplo.com", "certa", ORIGEM);
+        autenticar.executar("ana@exemplo.com", "certa", ORIGEM, NAVEGADOR);
 
         assertThat(regravados).isEmpty();
     }
@@ -141,7 +142,7 @@ class AutenticarUsuarioUseCaseTest {
         hashAbaixoDoPadrao = true;
         var autenticar = useCase(new Usuario(1L, "ana@exemplo.com", "Ana", "hash-velho", Avatar.GATO, null, AGORA));
 
-        assertThatThrownBy(() -> autenticar.executar("ana@exemplo.com", "errada", ORIGEM))
+        assertThatThrownBy(() -> autenticar.executar("ana@exemplo.com", "errada", ORIGEM, NAVEGADOR))
                 .isInstanceOf(RegraDeDominioException.class);
 
         assertThat(regravados)
@@ -154,7 +155,7 @@ class AutenticarUsuarioUseCaseTest {
         hashAbaixoDoPadrao = true;
         var autenticar = useCase(null);
 
-        assertThatThrownBy(() -> autenticar.executar("ninguem@exemplo.com", "certa", ORIGEM))
+        assertThatThrownBy(() -> autenticar.executar("ninguem@exemplo.com", "certa", ORIGEM, NAVEGADOR))
                 .isInstanceOf(RegraDeDominioException.class);
 
         assertThat(regravados).isEmpty();
@@ -190,7 +191,18 @@ class AutenticarUsuarioUseCaseTest {
             @Override
             public Sessao salvar(Sessao sessao) {
                 return new Sessao(1L, sessao.usuarioId(), sessao.identificadorHash(),
-                        sessao.criadaEm(), sessao.ultimoUsoEm(), sessao.expiraEm(), sessao.origem());
+                        sessao.criadaEm(), sessao.ultimoUsoEm(), sessao.expiraEm(), sessao.origem(),
+                        sessao.navegador());
+            }
+
+            @Override
+            public Optional<Sessao> buscar(Long sessaoId) {
+                return Optional.empty();
+            }
+
+            @Override
+            public List<Sessao> listarDoUsuario(Long usuarioId) {
+                return List.of();
             }
 
             @Override

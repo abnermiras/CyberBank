@@ -1,5 +1,6 @@
 package br.com.cyberbank.usuario.persistencia;
 
+import java.util.List;
 import java.util.Optional;
 
 import br.com.cyberbank.usuario.dominio.Sessao;
@@ -20,8 +21,20 @@ public class SessaoRepositoryJpa implements SessaoRepository {
     public Sessao salvar(Sessao sessao) {
         SessaoEntity entidade = jpa.save(new SessaoEntity(sessao.id(), sessao.usuarioId(),
                 sessao.identificadorHash(), sessao.criadaEm(), sessao.ultimoUsoEm(),
-                sessao.expiraEm(), sessao.origem()));
+                sessao.expiraEm(), sessao.origem(), sessao.navegador()));
         return paraDominio(entidade);
+    }
+
+    @Override
+    public Optional<Sessao> buscar(Long sessaoId) {
+        return jpa.findById(sessaoId).map(SessaoRepositoryJpa::paraDominio);
+    }
+
+    @Override
+    public List<Sessao> listarDoUsuario(Long usuarioId) {
+        return jpa.findByUsuarioIdOrderByUltimoUsoEmDesc(usuarioId).stream()
+                .map(SessaoRepositoryJpa::paraDominio)
+                .toList();
     }
 
     @Override
@@ -41,6 +54,6 @@ public class SessaoRepositoryJpa implements SessaoRepository {
 
     private static Sessao paraDominio(SessaoEntity e) {
         return new Sessao(e.getId(), e.getUsuarioId(), e.getIdentificadorHash(), e.getCriadaEm(),
-                e.getUltimoUsoEm(), e.getExpiraEm(), e.getOrigem());
+                e.getUltimoUsoEm(), e.getExpiraEm(), e.getOrigem(), e.getNavegador());
     }
 }

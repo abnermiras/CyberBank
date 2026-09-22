@@ -394,14 +394,21 @@
           <section class="panel">
             <div class="panel-head">
               <h3>Sessões ativas</h3>
-              <span class="tele">AINDA NÃO EXISTE</span>
+              <span class="tele" id="perfilSessoesConta">—</span>
             </div>
-            <div class="emespera">
-              <h4>Onde a sua conta está aberta</h4>
-              <p>A sessão vive no servidor, e por isso dá para <b>ver e encerrar</b> uma a uma —
-                com efeito no clique seguinte. A lista entra depois.</p>
-              <div class="falta">FALTA PARA ELA EXISTIR: <b>lista de sessões</b></div>
+
+            <div id="avisoSessoes"></div>
+
+            <div id="perfilSessoes"></div>
+
+            <div class="explica mt10"><b>Encerrar todas inclui esta.</b> Todo aparelho em que a
+              sua conta está aberta sai no clique seguinte, e você volta para o login.</div>
+            <div class="hstack gap10">
+              <button class="btn danger" type="button" id="perfilSessoesTodas">Encerrar todas</button>
             </div>
+
+            <p class="rodape-regra">Não reconhece uma sessão? Encerre-a e <b>troque a senha</b> —
+              encerrar tira o acesso daquele aparelho, mas quem entrou uma vez sabe a senha.</p>
           </section>
         </div>
       </div>

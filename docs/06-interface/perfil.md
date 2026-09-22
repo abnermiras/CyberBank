@@ -32,7 +32,7 @@ botão** e abre o Perfil; o `Sair`, ao lado, continua sendo um botão solto.
 | 3 | **TELEGRAM** | O `chat id` declarado, e o botão de desvincular | funciona, e **nada o consome ainda** |
 | — | **AMBIENTES** | Os ambientes a que a pessoa tem acesso, criar e renomear | funciona; fica no **topo da coluna da direita** |
 | 4 | **CONVITES** | Recebidos, e os que a pessoa faz | **espaço reservado** |
-| 5 | **SESSÕES** | Onde a conta está aberta | **espaço reservado** |
+| 5 | **SESSÕES** | Onde a conta está aberta, encerrar uma e encerrar todas | funciona |
 
 A ordem é a frequência: o que se mexe de vez em quando vem antes do que é raro, e o que ainda
 não funciona vem por último. **Quando o convite existir, ele sobe para logo abaixo da
@@ -103,19 +103,34 @@ criado**, no horário de Brasília.
 O bloco fica na coluna da direita, acima dos convites, porque é dali que o convite vai
 depender: convida-se para **um** ambiente.
 
-## CONVITES e SESSÕES — o espaço reservado
+## SESSÕES ATIVAS
 
-Os dois blocos existem na tela, **com moldura e com título**, e cada um diz o que está
-esperando. Nenhum dos dois mostra botão travado: *botão travado obriga a tela a explicar sete
+Um cartão por sessão válida, o último uso mais recente primeiro. O título é o **aparelho**,
+lido do navegador — *Chrome · Android*, *Firefox · Linux* —, com o texto inteiro no `title`
+para quem quiser conferir; sessão sem navegador guardado diz *Navegador desconhecido*. Embaixo:
+de onde entrou, quando entrou e o último uso, no horário de Brasília.
+
+- **A sessão desta tela vem marcada** `ESTA SESSÃO`, e o botão dela é **Sair**, não
+  *Encerrar*: é um logout, e leva ao login.
+- **Encerrar outra** é um clique, sem confirmação — errar custa só entrar de novo naquele
+  aparelho. A lista se refaz e o aviso diz que aquele aparelho sai no próximo clique.
+- **Encerrar todas** tem o aviso **antes** do botão, como a troca de senha: inclui esta, e a
+  pessoa volta para o login — que explica por que ela voltou.
+- O rodapé diz o que encerrar **não** resolve: quem entrou uma vez sabe a senha. Sessão que a
+  pessoa não reconhece pede **troca de senha**, não só encerrar.
+
+## CONVITES — o espaço reservado
+
+Os blocos existem na tela, **com moldura e com título**, e cada um diz o que está
+esperando. Nenhum mostra botão travado: *botão travado obriga a tela a explicar sete
 vezes; botão ausente explica uma vez* (`docs/06-interface/navegacao.md`).
 
 | Bloco | O que o texto diz |
 |---|---|
 | **CONVITES RECEBIDOS** | Que é aqui que o convite chega — dentro do sistema, nunca por e-mail (`docs/02-dominio/ambiente-financeiro.md`) — e que o convite ainda não existe |
 | **CONVIDAR ALGUÉM** | Que convidar é do **dono** do ambiente, e que o endpoint ainda não existe |
-| **SESSÕES ATIVAS** | Que a sessão vive no servidor e pode ser encerrada uma a uma (`ADR-0009`), e que a lista entra depois |
 
-**Por que reservar em vez de omitir:** as três são decisões já tomadas e escritas, e a tela
+**Por que reservar em vez de omitir:** são decisões já tomadas e escritas, e a tela
 vazia sem explicação é a que ensina que o app está quebrado. O bloco reservado é o contrário:
 ele diz que o lugar é aqui.
 
