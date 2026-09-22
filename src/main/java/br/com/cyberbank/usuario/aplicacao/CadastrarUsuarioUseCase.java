@@ -4,8 +4,8 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.random.RandomGenerator;
 
-import br.com.cyberbank.ambiente.aplicacao.CriarAmbientePessoalUseCase;
-import br.com.cyberbank.categoria.aplicacao.CriarCategoriasDeSistemaUseCase;
+import br.com.cyberbank.ambiente.aplicacao.CriarAmbienteUseCase;
+import br.com.cyberbank.ambiente.dominio.Ambiente;
 import br.com.cyberbank.comum.contexto.ContextoDoBanco;
 import br.com.cyberbank.comum.erro.CodigoDeErro;
 import br.com.cyberbank.comum.erro.RegraDeDominioException;
@@ -21,8 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class CadastrarUsuarioUseCase {
 
     private final UsuarioRepository usuarios;
-    private final CriarAmbientePessoalUseCase criarAmbientePessoal;
-    private final CriarCategoriasDeSistemaUseCase criarCategoriasDeSistema;
+    private final CriarAmbienteUseCase criarAmbiente;
     private final ContextoDoBanco contextoDoBanco;
     private final Senhas senhas;
     private final RandomGenerator sorteio;
@@ -30,15 +29,13 @@ public class CadastrarUsuarioUseCase {
 
     public CadastrarUsuarioUseCase(
             UsuarioRepository usuarios,
-            CriarAmbientePessoalUseCase criarAmbientePessoal,
-            CriarCategoriasDeSistemaUseCase criarCategoriasDeSistema,
+            CriarAmbienteUseCase criarAmbiente,
             ContextoDoBanco contextoDoBanco,
             Senhas senhas,
             RandomGenerator sorteio,
             Clock relogio) {
         this.usuarios = usuarios;
-        this.criarAmbientePessoal = criarAmbientePessoal;
-        this.criarCategoriasDeSistema = criarCategoriasDeSistema;
+        this.criarAmbiente = criarAmbiente;
         this.contextoDoBanco = contextoDoBanco;
         this.senhas = senhas;
         this.sorteio = sorteio;
@@ -60,10 +57,7 @@ public class CadastrarUsuarioUseCase {
 
         contextoDoBanco.definirUsuario(usuario.id());
 
-        Long ambienteId = criarAmbientePessoal.executar(usuario.id());
-
-        contextoDoBanco.definirAmbiente(ambienteId);
-        criarCategoriasDeSistema.executar(ambienteId);
+        criarAmbiente.executar(usuario.id(), Ambiente.NOME_PADRAO);
 
         return usuario;
     }
