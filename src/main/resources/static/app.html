@@ -16,14 +16,16 @@
 <header class="hdr">
   <div class="hstack gap14">
     <b class="mark">CYBER<i>BANK</i></b>
-    <div class="amb" id="chipAmbiente" title="Ambiente ativo">
+    <button type="button" class="amb" id="chipAmbiente" title="Trocar de ambiente"
+            aria-haspopup="listbox" aria-expanded="false">
       <span class="dot"></span>
-      <div class="stack">
+      <span class="stack">
         <span class="tele" style="letter-spacing:.18em">AMBIENTE ATIVO</span>
         <strong id="ambienteNome">—</strong>
-      </div>
+      </span>
       <span class="papel" id="ambientePapel"></span>
-    </div>
+      <span class="amb-seta">▾</span>
+    </button>
   </div>
 
   <div class="hstack gap10">
@@ -749,6 +751,7 @@
 <script src="assets/js/api.js"></script>
 <script src="assets/js/formato.js"></script>
 <script src="assets/js/calendario.js"></script>
+<script src="assets/js/seletor-ambiente.js"></script>
 <script src="assets/js/data.js"></script>
 <script src="assets/js/avatares.js"></script>
 <script src="assets/js/telas/home.js"></script>
