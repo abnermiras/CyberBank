@@ -28,6 +28,22 @@ fechamento do mês, quando já tem uma semana de dado torto.
 | Trocar de ambiente **limpa filtros e seleções** da tela anterior | Filtro herdado de outro contexto é resultado errado com cara de certo |
 | Nunca existe tela que some dados de dois ambientes | O isolamento é do modelo, não só do banco |
 
+**Como a troca funciona.** O chip `AMBIENTE ATIVO` é o botão: abre a lista dos ambientes da
+pessoa (relida a cada abertura, para o recém-criado aparecer), com o atual marcado e um rodapé
+que leva ao Perfil, onde se cria e se renomeia (`docs/06-interface/perfil.md`). Escolher outro
+**recarrega a página**, e é isso que cumpre o *"limpa filtros e seleções"* sem que cada tela
+precise saber limpar o próprio estado. A tela em que a pessoa estava se mantém; o **argumento**
+dela não — `#/extrato/88` vira `#/extrato`, porque o lançamento 88 é do ambiente anterior.
+
+**A escolha fica no navegador**, e só nele: o servidor não guarda "último ambiente usado", e
+cada rota já carrega o `{ambienteId}` no caminho. Guardado que não está mais na lista da pessoa
+(outro usuário no mesmo navegador, acesso removido) cai no primeiro da lista, o *Ambiente
+Pessoal*. Preço aceito: em outro aparelho, a pessoa começa no Pessoal.
+
+> ☐ **A definir:** a **cor própria** de cada ambiente. O modelo não tem esse campo; até ele
+> existir, todo chip usa o ciano padrão. Pede coluna em `ambiente` e escolher de qual paleta
+> ela sai (`docs/06-interface/direcao-visual.md`).
+
 ## Lançar: dois caminhos, um deles é o padrão
 
 **Quick-add** é o caminho principal. Um botão presente em qualquer tela (e a tecla `N`)

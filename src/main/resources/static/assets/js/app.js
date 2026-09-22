@@ -119,7 +119,8 @@ async function iniciar() {
     return;
   }
 
-  Contexto.ambiente = ambientes.itens[0];
+  Contexto.ambiente = SeletorDeAmbiente.escolher(ambientes.itens);
+  SeletorDeAmbiente.ligar();
   document.getElementById('ambienteNome').textContent = Contexto.ambiente.nome;
   document.getElementById('ambientePapel').textContent = Contexto.ambiente.papel;
 

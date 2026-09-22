@@ -8,7 +8,8 @@
 > de tarefa, e não deve entrar no custo de rota nenhuma.
 
 Última sessão: **2026-09-22**, na máquina Linux, com o Claude Code no terminal — **o Perfil
-ganhou a seção Ambientes**: listar, criar e renomear (linha abaixo).
+ganhou a seção Ambientes**: listar, criar e renomear — e **o seletor de ambiente do header
+saiu do papel**, então o ambiente criado se usa (linhas abaixo).
 
 Sessão anterior: **2026-09-18**.
 **O cartão de crédito está de pé, e com ele a Fase 1 fecha o que faltava de dinheiro:** dá para
@@ -28,6 +29,7 @@ comando entregue ao Abner, e o de 17/09 ainda não saiu.
 
 | Sessão | O que saiu |
 |---|---|
+| **22/09 (o seletor de ambiente)** | Pedido do Abner logo em seguida: *"quero conseguir usar o ambiente novo"*. O chip `AMBIENTE ATIVO` virou botão com a lista dos ambientes; escolher **recarrega a página** — é o *"a tela inteira recarrega"* do `navegacao.md`, e limpa filtro sem cada tela saber limpar o dela. A escolha fica no **`localStorage`**, com queda para o primeiro da lista; a tela se mantém e o argumento do hash cai (`#/extrato/88` → `#/extrato`). **Só front, nenhum endpoint.** A **cor por ambiente** não existe no modelo e virou `☐` no `navegacao.md`. Navegador dirigido: toda chamada depois da troca foi para **um** `{ambienteId}` só |
 | **22/09 (ambientes no Perfil)** | Pedido do Abner: ver os ambientes, criar e renomear. **Nenhuma regra nova de fundo** — criar livre e *renomear é do dono e do editor* já estavam no `ambiente-financeiro.md`, e o RLS da `V001` já tinha as políticas de `INSERT` e `UPDATE`: **sem migration**. Nasce `POST /ambientes` e `PATCH /ambientes/{id}`, e o `GET` ganha `criadoEm` · o `CriarAmbientePessoalUseCase` virou **`CriarAmbienteUseCase(usuarioId, nome)`**, que já cria as categorias de sistema: o cadastro e a tela passam pelo **mesmo** caminho, e um ambiente novo não nasce sem o jogo de sistema · **o primeiro lugar do código que consulta papel**: `Ambiente.renomeadoPor(papel, nome)` recusa o leitor com `SEM_PERMISSAO` · **o "ativo/inativo" foi pedido e adiado pelo Abner** — a ideia é *desligar* ou excluir um ambiente, e virou `☐` no `ambiente-financeiro.md` · **criar e renomear ambiente não gravam evento**: a lista fechada não tem o tipo, e virou `☐` no `evento.md` · navegador dirigido a 1400 e a 380px · **213 testes de unidade e 128 de integração** |
 | **18/09 (o cartão e a fatura — a fatia grande)** | O item 10 inteiro, em **quatro commits** na branch `cartao-e-fatura`. **`V009`** traz o contrato de cartão na `conta` (limite, ciclo, conta pagadora), a tabela **`fatura`** e as três colunas adiadas do `lancamento`; a **`ABERTA` única** e **uma fatura por competência** viraram índice, e não confiança na aplicação · o pacote é **`fatura/`**, como o `ADR-0008` já tinha respondido, e os três números **não moram na `Fatura`** — vêm de uma consulta em `lancamento`, e o teste de fronteira continua verde · **`AgendaDoCiclo`** devolve **um passo por vez** e o caso de uso relê o estado: daí saem de graça o *dia a dia em ordem cronológica* e o *encerrar antes de fechar*, sem exceção escrita · **pagar, fechar e abrir à mão**, a **tela Fatura** e o bloco da Home · o **parcelamento**, com o centavo na primeira parcela e o **cenário do Abner** virando teste · **`docs.py check` em 0 erros**, e o `catalogo-tabelas-do-ambiente` quebrou por assunto, como o `ADR-0008` manda. **189 testes de unidade e 111 de integração** |
 | **17/09 (os botões ganham cor)** | Pedido do Abner, e ele já pediu na semântica certa: amarelo informar, verde aportar, vermelho resgatar. As três casam com a paleta — *ação*, *entrada*, *saída*. A única correção foi de vocabulário: **não existe "vermelho"**, o rosa acumula *saída* **e** *ação destrutiva*. Resgate é saída, então a cor é essa mesma — mas as classes passam a ser nomeadas **pelo significado** (`acao`, `entra`, `sai`, `danger`), e `sai` e `danger` pintam igual de propósito, com nomes diferentes para quem lê o código saber qual leitura vale. Contraste conferido no navegador: 15.5, 14.3 e 5.2 — o mínimo do doc é 4.5 |
@@ -634,10 +636,7 @@ Extrato funcionando abre o app, não ele.
   `parcelamento_id` na `V011`, e as três migrations repetem a mesma frase da `V004`: coluna com
   `REFERENCES` para tabela que não existe não é schema
 - **O `LD_LIBRARY_PATH` do navegador dirigido é `~/.cache/cyberbank-driver/libs/raiz/usr/lib/x86_64-linux-gnu`** — com o `raiz/` no meio, que a nota de 17/09 tinha omitido. E `spring-boot:run` serve o front de `target/classes`: mexeu em `static/`, roda `./mvnw resources:resources` antes de recarregar, senão o navegador mostra a versão velha e a conclusão sai errada
-- **O ambiente criado no Perfil ainda não se abre.** O `navegacao.md` e o `perfil.md` falam de
-  um **seletor de ambiente no header**, e ele não existe: o `app.js` usa sempre `itens[0]`, o
-  *Ambiente Pessoal*. Criar um segundo ambiente funciona e ele aparece na lista, mas nenhuma
-  tela de dinheiro chega nele. **É o próximo passo natural** depois de 22/09
+- **O chip de ambiente não tem cor própria** — o `navegacao.md` pede, o modelo não tem o campo
 - **Quase ninguém verifica papel.** Dono, editor e leitor estão no modelo e no banco; o único
   caso de uso que os consulta é o renomear ambiente (22/09). Não é buraco de segurança hoje — sem convite, todo ambiente
   tem exatamente um acesso, o do dono — mas **entra junto com o convite**, e não depois
