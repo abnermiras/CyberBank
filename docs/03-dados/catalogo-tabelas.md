@@ -161,9 +161,11 @@ e política que lê a tabela que ela protege recursiona. A saída é uma funçã
 
 ## `vinculo` — família de ligação (`V004`)
 
-**Nasce vazia.** Ela existe agora porque a política de `conta` e a de `meio` precisam do `OR`
-do `ADR-0004` desde a primeira migration. Criar e revogar vínculo é a **funcionalidade** do
-compartilhamento, liberada com a Fase 1 concluída.
+Nasceu vazia na `V004`, porque a política de `conta` e a de `meio` precisam do `OR` do
+`ADR-0004` desde a primeira migration. Criar e revogar vínculo é a **funcionalidade** do
+compartilhamento, e a `V015` a liberou: políticas de escrita, e as de leitura separadas das de
+escrita (`docs/03-dados/catalogo-tabelas-do-ambiente.md`). Hoje só há vínculo de `CONTA`; o de
+`MEIO` existe no schema para o compartilhamento de **um cartão**, que ainda não saiu.
 
 | Coluna | Tipo | Nulo | Default | Nota |
 |---|---|---|---|---|

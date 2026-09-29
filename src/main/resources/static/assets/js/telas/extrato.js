@@ -165,9 +165,11 @@ const Extrato = {
           <div class="hstack gap6 wrap">
             <span class="tele">${Formato.texto(conta ? conta.nome : '—')}</span>
             <span class="tag ${marca}">${l.situacao}</span>
-            ${l.categoriaId == null
-              ? '<span class="tag pend">SEM CATEGORIA</span>'
-              : `<span class="tele">${Formato.texto(categoria)}</span>`}
+            ${l.deOutroAmbiente
+              ? `<span class="tag">DE ${Formato.texto(l.ambienteNome || 'OUTRO AMBIENTE').toUpperCase()}</span>`
+              : l.categoriaId == null
+                ? '<span class="tag pend">SEM CATEGORIA</span>'
+                : `<span class="tele">${Formato.texto(categoria)}</span>`}
             ${l.transferenciaId ? '<span class="tag transf">TRANSFERÊNCIA</span>' : ''}
             ${l.estornoDeId ? '<span class="tag transf">ESTORNO</span>' : ''}
             ${l.doCiclo ? '<span class="tag">DO SISTEMA</span>' : ''}

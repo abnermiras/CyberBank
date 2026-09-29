@@ -4,18 +4,19 @@ import java.net.URI;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import br.com.cyberbank.comum.contexto.ContextoDaRequisicao;
 import br.com.cyberbank.lancamento.aplicacao.EditarLancamentoUseCase;
 import br.com.cyberbank.lancamento.aplicacao.EstornarLancamentoUseCase;
 import br.com.cyberbank.lancamento.aplicacao.ExcluirLancamentoUseCase;
+import br.com.cyberbank.lancamento.aplicacao.ExtratoLido;
 import br.com.cyberbank.lancamento.aplicacao.LancarUseCase;
 import br.com.cyberbank.lancamento.aplicacao.ListarExtratoUseCase;
 import br.com.cyberbank.lancamento.aplicacao.DetalheDoLancamento;
 import br.com.cyberbank.lancamento.aplicacao.TransferirUseCase;
 import br.com.cyberbank.lancamento.aplicacao.VerLancamentoUseCase;
 import br.com.cyberbank.lancamento.dominio.Lancamento;
-import br.com.cyberbank.lancamento.dominio.Pagina;
 import br.com.cyberbank.lancamento.dominio.Sentido;
 import br.com.cyberbank.lancamento.dominio.Situacao;
 
@@ -53,7 +54,10 @@ public class LancamentoController {
             @JsonInclude(JsonInclude.Include.NON_NULL) Long estornoDeId,
             @JsonInclude(JsonInclude.Include.NON_NULL) Long faturaId,
             @JsonInclude(JsonInclude.Include.NON_NULL) Long parcelamentoId,
-            @JsonInclude(JsonInclude.Include.NON_NULL) String estabelecimento) {
+            @JsonInclude(JsonInclude.Include.NON_NULL) String estabelecimento,
+            Long ambienteId,
+            boolean deOutroAmbiente,
+            @JsonInclude(JsonInclude.Include.NON_NULL) String ambienteNome) {
     }
 
     public record DetalheResponse(
@@ -75,7 +79,9 @@ public class LancamentoController {
             @JsonInclude(JsonInclude.Include.NON_NULL) AutorResponse autor,
             @JsonInclude(JsonInclude.Include.NON_NULL) TransferenciaResponse transferencia,
             @JsonInclude(JsonInclude.Include.NON_NULL) Long estornoDeId,
-            @JsonInclude(JsonInclude.Include.NON_NULL) Long estornadoPorId) {
+            @JsonInclude(JsonInclude.Include.NON_NULL) Long estornadoPorId,
+            boolean deOutroAmbiente,
+            @JsonInclude(JsonInclude.Include.NON_NULL) String ambienteNome) {
     }
 
     public record AutorResponse(Long id, String nome) {
@@ -133,11 +139,13 @@ public class LancamentoController {
             @RequestParam(required = false) String apos,
             @RequestParam(required = false) Integer limite) {
 
-        Pagina pagina = listarExtrato.executar(ambienteId, contaId, pendentes, apos, limite);
+        ExtratoLido lido = listarExtrato.executar(ambienteId, contaId, pendentes, apos, limite);
 
         return new ExtratoResponse(
-                pagina.itens().stream().map(LancamentoController::paraResposta).toList(),
-                pagina.proximo() == null ? null : pagina.proximo().codificado());
+                lido.pagina().itens().stream()
+                        .map(l -> paraResposta(l, ambienteId, lido.ambientesDeFora()))
+                        .toList(),
+                lido.pagina().proximo() == null ? null : lido.pagina().proximo().codificado());
     }
 
     @GetMapping("/{lancamentoId}")
@@ -156,7 +164,8 @@ public class LancamentoController {
                 l.transferenciaId() == null ? null
                         : new TransferenciaResponse(l.transferenciaId(),
                                 detalhe.outroLadoDaTransferenciaId()),
-                l.estornoDeId(), detalhe.estornadoPorId());
+                l.estornoDeId(), detalhe.estornadoPorId(),
+                detalhe.ambienteDeFora() != null, detalhe.ambienteDeFora());
     }
 
     @PostMapping
@@ -171,7 +180,7 @@ public class LancamentoController {
         return ResponseEntity
                 .created(URI.create("/api/v1/ambientes/" + ambienteId
                         + "/lancamentos/" + criado.id()))
-                .body(paraResposta(criado));
+                .body(paraResposta(criado, ambienteId, Map.of()));
     }
 
     @PostMapping("/transferencias")
@@ -185,7 +194,8 @@ public class LancamentoController {
         return ResponseEntity.created(URI.create("/api/v1/ambientes/" + ambienteId
                         + "/lancamentos?contaId=" + requisicao.contaDeOrigemId()))
                 .body(new ExtratoResponse(
-                        par.stream().map(LancamentoController::paraResposta).toList(), null));
+                        par.stream().map(l -> paraResposta(l, ambienteId, Map.of())).toList(),
+                        null));
     }
 
     @PatchMapping("/{lancamentoId}")
@@ -199,7 +209,8 @@ public class LancamentoController {
                 requisicao.descricao(), requisicao.situacao(), requisicao.faturaId());
 
         return new ExtratoResponse(
-                alterados.stream().map(LancamentoController::paraResposta).toList(), null);
+                alterados.stream().map(l -> paraResposta(l, ambienteId, Map.of())).toList(),
+                null);
     }
 
     @PostMapping("/{lancamentoId}/estorno")
@@ -213,7 +224,7 @@ public class LancamentoController {
         return ResponseEntity
                 .created(URI.create("/api/v1/ambientes/" + ambienteId
                         + "/lancamentos/" + estorno.id()))
-                .body(paraResposta(estorno));
+                .body(paraResposta(estorno, ambienteId, Map.of()));
     }
 
     @DeleteMapping("/{lancamentoId}")
@@ -224,10 +235,15 @@ public class LancamentoController {
         return ResponseEntity.noContent().build();
     }
 
-    private static LancamentoResponse paraResposta(Lancamento l) {
-        return new LancamentoResponse(l.id(), l.contaId(), l.meioId(), l.categoriaId(),
+    private static LancamentoResponse paraResposta(Lancamento l, Long ambienteAtual,
+            Map<Long, String> ambientesDeFora) {
+        boolean deOutroAmbiente = !l.ambienteId().equals(ambienteAtual);
+        return new LancamentoResponse(l.id(), l.contaId(), l.meioId(),
+                deOutroAmbiente ? null : l.categoriaId(),
                 l.autorId(), l.sentido(), l.valorCentavos(), l.dataEvento(), l.dataEfeito(),
                 l.descricao(), l.situacao(), l.doCiclo(), l.transferenciaId(), l.estornoDeId(),
-                l.faturaId(), l.parcelamentoId(), l.estabelecimento());
+                l.faturaId(), l.parcelamentoId(), l.estabelecimento(),
+                l.ambienteId(), deOutroAmbiente,
+                deOutroAmbiente ? ambientesDeFora.get(l.ambienteId()) : null);
     }
 }

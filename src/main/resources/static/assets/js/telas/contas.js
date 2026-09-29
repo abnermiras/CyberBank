@@ -29,7 +29,9 @@ const Contas = {
   identidadeDoMeio(meio, contas) {
     const conta = (contas || []).find((c) => c.id === meio.contaId);
     const tipo = Contas.ROTULO_DE_MEIO[meio.tipo] || meio.tipo;
-    return `${conta ? conta.nome : '—'} · ${meio.nome || tipo}`;
+    const emprestada = conta && conta.compartilhadaDe
+      ? ` — compartilhado de ${conta.compartilhadaDe.nome}` : '';
+    return `${conta ? conta.nome : '—'} · ${meio.nome || tipo}${emprestada}`;
   },
 
   contas: [],
@@ -40,6 +42,9 @@ const Contas = {
   editando: null,
   confirmando: null,
   abrindoMeioEm: null,
+  compartilhandoEm: null,
+  ambientes: [],
+  destinosDaConta: [],
   ligado: false,
 
   async montar() {
@@ -217,6 +222,9 @@ const Contas = {
         confirmar: () => Contas.confirmar(id),
         excluir: () => Contas.excluir(id),
         'abrir-meio': () => Contas.abrirMeio(id),
+        compartilhar: () => Contas.abrirCompartilhamento(id),
+        'alternar-compartilhamento': () =>
+          Contas.alternarCompartilhamento(id, Number(botao.dataset.destino)),
         'somar-cartao': () => Contas.somarCartao(id),
         'somar-meio': () => Contas.somarMeio(id, botao.dataset.meio),
         'inativar-meio': () => Contas.alterarAtivacaoMeio(id, true),
@@ -270,6 +278,8 @@ const Contas = {
     const editando = Contas.editando === conta.id;
     const confirmando = Contas.confirmando === conta.id;
     const somandoMeio = Contas.abrindoMeioEm === conta.id;
+    const emprestada = Boolean(conta.compartilhadaDe);
+    const compartilhando = Contas.compartilhandoEm === conta.id;
 
     return `
       <article class="conta${conta.inativa ? ' inativa' : ''}">
@@ -288,6 +298,8 @@ const Contas = {
               ${conta.entraEmCaixa ? '<span class="tag real">EM CAIXA</span>' : ''}
               ${conta.entraNoFluxoDeCaixa ? '' : '<span class="tag transf">FORA DO FLUXO</span>'}
               ${conta.inativa ? '<span class="tag">INATIVA</span>' : ''}
+              ${emprestada ? `<span class="tag">COMPARTILHADA DE
+                ${Formato.texto(conta.compartilhadaDe.nome)}</span>` : ''}
             </div>
             <div class="conta-saldo ${conta.saldoRealizadoCentavos < 0 ? 'neg' : ''}">
               ${Formato.dinheiro(conta.saldoRealizadoCentavos)}
@@ -308,10 +320,11 @@ const Contas = {
           ${meus.map((m) => `
             <span class="sub-chip${m.inativo ? ' ina' : ''}">
               ${Formato.texto(m.nome) || Contas.ROTULO_DE_MEIO[m.tipo] || m.tipo}
+              ${emprestada ? '' : `
               <button class="chip-b" type="button"
                       data-acao="${m.inativo ? 'reativar-meio' : 'inativar-meio'}"
                       data-id="${m.id}">${m.inativo ? 'reativar' : 'inativar'}</button>
-              <button class="chip-b perigo" type="button" data-acao="excluir-meio" data-id="${m.id}">excluir</button>
+              <button class="chip-b perigo" type="button" data-acao="excluir-meio" data-id="${m.id}">excluir</button>`}
             </span>`).join('')}
           ${!meus.length && !conta.tiposDeMeioDisponiveis.length
             ? '<span class="tele">APLICAÇÃO NÃO TEM MEIO — PARA GASTAR, RESGATA-SE ANTES</span>' : ''}
@@ -319,7 +332,7 @@ const Contas = {
             ? '<span class="tele">SEM MEIO — ESTA CONTA AINDA NÃO LANÇA NADA</span>' : ''}
           ${conta.tipo === 'CARTAO'
             ? `<button class="chip-mais" type="button" data-acao="somar-cartao" data-id="${conta.id}">+ cartão</button>` : ''}
-          ${conta.tipo !== 'CARTAO' && faltando.length && !somandoMeio
+          ${conta.tipo !== 'CARTAO' && !emprestada && faltando.length && !somandoMeio
             ? `<button class="chip-mais" type="button" data-acao="abrir-meio" data-id="${conta.id}">+ meio</button>` : ''}
         </div>
 
@@ -331,6 +344,13 @@ const Contas = {
             <button class="btn sm ghost" type="button" data-acao="cancelar" data-id="${conta.id}">Fechar</button>
           </div>` : ''}
 
+        ${compartilhando ? Contas.painelDeCompartilhamento(conta) : ''}
+
+        ${emprestada ? `
+        <div class="conta-acoes">
+          <span class="tele">EMPRESTADA POR ${Formato.texto(conta.compartilhadaDe.nome).toUpperCase()}
+            — VOCÊ USA E LANÇA NELA; QUEM MEXE NA CONTA É QUEM A CRIOU</span>
+        </div>` : `
         <div class="conta-acoes">
           ${confirmando ? `
             <span class="tele" style="color:var(--pink)">EXCLUIR APAGA A CONTA E OS MEIOS DELA. SÓ FUNCIONA SEM LANÇAMENTO.</span>
@@ -341,9 +361,57 @@ const Contas = {
             <button class="btn sm ghost" type="button"
                     data-acao="${conta.inativa ? 'reativar' : 'inativar'}"
                     data-id="${conta.id}">${conta.inativa ? 'Reativar' : 'Inativar'}</button>
+            ${conta.tipo === 'CARTAO' ? '' : `<button class="btn sm ghost" type="button" data-acao="compartilhar" data-id="${conta.id}">Compartilhar</button>`}
             <button class="btn sm danger" type="button" data-acao="confirmar" data-id="${conta.id}">Excluir</button>`}
-        </div>
+        </div>`}
       </article>`;
+  },
+
+  painelDeCompartilhamento(conta) {
+    const outros = Contas.ambientes.filter((a) => a.id !== Contexto.ambiente.id);
+    if (!outros.length) {
+      return `<div class="conta-somar">
+        <span class="tele">VOCÊ SÓ TEM ESTE AMBIENTE — CRIE OUTRO NO PERFIL PARA COMPARTILHAR</span>
+        <button class="btn sm ghost" type="button" data-acao="cancelar" data-id="${conta.id}">Fechar</button>
+      </div>`;
+    }
+
+    return `<div class="conta-somar">
+      <span class="tele">COMPARTILHAR COM — CADA AMBIENTE LANÇA COM AS CATEGORIAS DELE, E O SALDO É UM SÓ</span>
+      ${outros.map((ambiente) => {
+        const ativo = Contas.destinosDaConta.some((d) => d.ambienteDestinoId === ambiente.id);
+        return `<button class="btn sm ${ativo ? 'acao' : 'ghost'}" type="button"
+                        data-acao="alternar-compartilhamento" data-id="${conta.id}"
+                        data-destino="${ambiente.id}" aria-pressed="${ativo}">
+                  ${ativo ? '✓ ' : ''}${Formato.texto(ambiente.nome)}</button>`;
+      }).join('')}
+      <button class="btn sm ghost" type="button" data-acao="cancelar" data-id="${conta.id}">Fechar</button>
+    </div>`;
+  },
+
+  async abrirCompartilhamento(contaId) {
+    Contas.editando = null;
+    Contas.confirmando = null;
+    Contas.abrindoMeioEm = null;
+    Contas.compartilhandoEm = contaId;
+    await Contas.tentar(async () => {
+      const [ambientes, destinos] = await Promise.all([
+        API.listarAmbientes(),
+        API.listarCompartilhamentos(Contexto.ambiente.id, contaId),
+      ]);
+      Contas.ambientes = ambientes.itens;
+      Contas.destinosDaConta = destinos.itens;
+    });
+  },
+
+  async alternarCompartilhamento(contaId, destinoId) {
+    const ativo = Contas.destinosDaConta.some((d) => d.ambienteDestinoId === destinoId);
+    await Contas.tentar(async () => {
+      if (ativo) await API.revogarCompartilhamento(Contexto.ambiente.id, contaId, destinoId);
+      else await API.compartilharConta(Contexto.ambiente.id, contaId, destinoId);
+      Contas.destinosDaConta =
+        (await API.listarCompartilhamentos(Contexto.ambiente.id, contaId)).itens;
+    });
   },
 
   async abrir() {
@@ -395,6 +463,7 @@ const Contas = {
   },
 
   abrirMeio(contaId) {
+    Contas.compartilhandoEm = null;
     Contas.abrindoMeioEm = contaId;
     Contas.editando = null;
     Contas.confirmando = null;
@@ -415,6 +484,7 @@ const Contas = {
   },
 
   abrirEdicao(id) {
+    Contas.compartilhandoEm = null;
     Contas.editando = id;
     Contas.confirmando = null;
     Contas.abrindoMeioEm = null;
@@ -424,6 +494,7 @@ const Contas = {
   },
 
   fechar() {
+    Contas.compartilhandoEm = null;
     Contas.editando = null;
     Contas.confirmando = null;
     Contas.abrindoMeioEm = null;
@@ -431,6 +502,7 @@ const Contas = {
   },
 
   confirmar(id) {
+    Contas.compartilhandoEm = null;
     Contas.confirmando = id;
     Contas.editando = null;
     Contas.abrindoMeioEm = null;

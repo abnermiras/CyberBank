@@ -7,12 +7,14 @@
 > **Ele está fora do roteador de propósito** (`ADR-0008`): é doc de passagem entre sessões, não
 > de tarefa, e não deve entrar no custo de rota nenhuma.
 
-Última sessão: **2026-09-22**, na máquina Linux, com o Claude Code no terminal — **o Perfil
-ganhou a seção Ambientes**: listar, criar e renomear — e **o seletor de ambiente do header
-saiu do papel**, então o ambiente criado se usa — e **as sessões ativas do Perfil funcionam**:
-ver, encerrar uma, encerrar todas (linhas abaixo).
+Última sessão: **2026-09-28**, na máquina Linux, com o Claude Code no terminal — **a conta se
+compartilha entre ambientes** (`V015`, o pacote `compartilhamento/`, tela e testes; linha abaixo).
+**Está na branch `compartilhamento-de-conta`, sem commit**: o Abner ainda não pediu.
 
-Sessão anterior: **2026-09-18**.
+Sessão anterior: **2026-09-22** — o Perfil ganhou a seção Ambientes (listar, criar e renomear),
+o seletor de ambiente do header saiu do papel, e as sessões ativas funcionam.
+
+Antes dela: **2026-09-18**.
 **O cartão de crédito está de pé, e com ele a Fase 1 fecha o que faltava de dinheiro:** dá para
 abrir uma conta `CARTAO` com ciclo e limite, comprar no crédito, parcelar, ver a fatura fechar e
 abrir sozinha, pagar (hoje ou agendado), e assistir ao que não foi pago **rolar** para a
@@ -30,6 +32,7 @@ entregas do dia. O push continua sendo comando entregue ao Abner.
 
 | Sessão | O que saiu |
 |---|---|
+| **28/09 (compartilhar conta)** | Pedido do Abner: *"a conta e o meio que criei no ambiente A, quero compartilhar com o B; a lista de lançamentos não se mistura, mas o extrato da conta mostra os dois; as árvores de categoria não se compartilham"*. **O modelo já estava decidido** (`ADR-0004`, `compartilhamento.md`) e a `vinculo` existia vazia desde a `V004`; faltava tudo em cima dela · **`V015`** e **dois buracos de RLS que os docs não previam**: a política de cada tabela era `ALL` com o `OR` no `USING`, e **`DELETE` só avalia `USING`** — o destino apagaria lançamento da origem no banco. As políticas foram **separadas por comando** (`OR` só no `SELECT`). E a origem **não enxergava o que o destino lançou na conta dela**, então o saldo dos dois divergiria: `lancamento` ganhou o ramo *"a conta é do meu ambiente"* · pacote **`compartilhamento/`** (`POST`/`GET`/`DELETE .../contas/{id}/compartilhamentos`), só o **dono da origem** compartilha (`Papel.podeCompartilhar`), destino só **ambiente do próprio usuário**, **conta `CARTAO` recusada** · **`ContaRepository`/`MeioRepository` ganham `buscarAcessivel`/`listarAcessiveis`** (própria ou emprestada); lançar, transferir e editar passam a usá-los, e as operações de dono (renomear, inativar, excluir) continuam em `buscarDoAmbiente` · **o saldo por conta soma por `conta_id`**, de todos os ambientes: conta conjunta tem um saldo só · o extrato por `contaId` deixou de filtrar por ambiente; **o geral continua filtrando**, e é por isso que não mistura · **a máscara é do servidor**: lançamento de outro ambiente sai sem `categoriaId`, com `deOutroAmbiente` e `ambienteNome`, e a tela mostra `DE <ambiente>` no lugar da categoria · os tipos de evento seguiram o doc, que já reservava `VINCULO_CRIADO`/`VINCULO_REVOGADO` (a lição de 17/09) · três decisões do Abner: máscara com o nome do ambiente, só ambiente do próprio usuário, cartão fora, e cada ambiente edita só o que lançou · navegador dirigido contra um Postgres **descartável** (o de desenvolvimento não foi tocado), a 1400 e a 380px · **219 de unidade e 146 de integração** · `endpoints-compartilhamentos.md` nasceu, porque o `endpoints-contas.md` passou de 300 linhas |
 | **22/09 (sessões ativas)** | O bloco reservado do Perfil virou lista, e o Abner pediu os dois botões: **encerrar uma** e **encerrar todas**. As regras já estavam no `ADR-0009` — revogar é apagar a linha, com efeito no clique seguinte —, e o que faltava era a lista ser **reconhecível**: a `origem` era só o IP, e numa rede de casa toda linha diria a mesma coisa. **`V014`** dá à `sessao` a coluna `navegador` (o `User-Agent`, anulável), e a tela lê *Chrome · Android*. `GET /sessoes`, `DELETE /sessoes/{id}` e `DELETE /sessoes` · **encerrar todas inclui esta**, como a troca de senha · sessão de outra pessoa responde **404**, a mesma razão do `{ambienteId}` · navegador dirigido com **dois contextos** (notebook e celular na mesma conta): o celular encerrado caiu no login no clique seguinte · **215 de unidade e 134 de integração** |
 | **22/09 (o seletor de ambiente)** | Pedido do Abner logo em seguida: *"quero conseguir usar o ambiente novo"*. O chip `AMBIENTE ATIVO` virou botão com a lista dos ambientes; escolher **recarrega a página** — é o *"a tela inteira recarrega"* do `navegacao.md`, e limpa filtro sem cada tela saber limpar o dela. A escolha fica no **`localStorage`**, com queda para o primeiro da lista; a tela se mantém e o argumento do hash cai (`#/extrato/88` → `#/extrato`). **Só front, nenhum endpoint.** A **cor por ambiente** não existe no modelo e virou `☐` no `navegacao.md`. Navegador dirigido: toda chamada depois da troca foi para **um** `{ambienteId}` só |
 | **22/09 (ambientes no Perfil)** | Pedido do Abner: ver os ambientes, criar e renomear. **Nenhuma regra nova de fundo** — criar livre e *renomear é do dono e do editor* já estavam no `ambiente-financeiro.md`, e o RLS da `V001` já tinha as políticas de `INSERT` e `UPDATE`: **sem migration**. Nasce `POST /ambientes` e `PATCH /ambientes/{id}`, e o `GET` ganha `criadoEm` · o `CriarAmbientePessoalUseCase` virou **`CriarAmbienteUseCase(usuarioId, nome)`**, que já cria as categorias de sistema: o cadastro e a tela passam pelo **mesmo** caminho, e um ambiente novo não nasce sem o jogo de sistema · **o primeiro lugar do código que consulta papel**: `Ambiente.renomeadoPor(papel, nome)` recusa o leitor com `SEM_PERMISSAO` · **o "ativo/inativo" foi pedido e adiado pelo Abner** — a ideia é *desligar* ou excluir um ambiente, e virou `☐` no `ambiente-financeiro.md` · **criar e renomear ambiente não gravam evento**: a lista fechada não tem o tipo, e virou `☐` no `evento.md` · navegador dirigido a 1400 e a 380px · **213 testes de unidade e 128 de integração** |
@@ -470,8 +473,9 @@ ordem está fixada no `lacunas-para-codigo.md`:
 4. **Agregado atravessa sem a linha**: o destino vê limite e consumo sem ler os lançamentos
 5. **Quem fecha e abre a fatura** de um cartão compartilhado
 6. **Herança de acesso**: quem entra no ambiente de destino passa a usar a conta de fora
-7. **O destino pode editar lançamento que a origem fez?** · **compartilhamento se repassa?** ·
-   **compartilhar `APLICACAO` na v1?** · **cartão adicional exige cadastro?**
+7. ~~O destino pode editar lançamento que a origem fez?~~ **Não** · ~~compartilhamento se repassa?~~
+   **Não** (as duas fechadas em 28/09) · **compartilhar `APLICACAO` na v1?** — hoje compartilha, e a
+   Reserva do destino não a lista · **cartão adicional exige cadastro?**
 8. **Categoria inativa num ambiente compartilhado** — provavelmente sem regra nova; confirmar
 9. **O que o destino vê no Diário do ambiente dele?**
 

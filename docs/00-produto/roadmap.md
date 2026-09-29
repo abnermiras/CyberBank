@@ -124,7 +124,7 @@ correspondente abaixo diz isso.
 | App mobile nativo | Sem fase. Web responsiva + bot resolvem |
 | Multi-moeda | Sem fase. Real inteiro em centavos, e ponto |
 | Relatório customizável pelo usuário | Sem fase. Dashboard fixo até alguém reclamar |
-| **Compartilhar conta ou cartão entre ambientes** — a funcionalidade: criar o vínculo, categoria mascarada, partes da fatura | **Fase 1 concluída.** O modelo (`ADR-0004`) entra na Fase 1; o que fica congelado é a tela |
+| **Compartilhar um cartão** entre ambientes — partes da fatura, patrimônio parcial, quem fecha a fatura | **Fase 1 concluída.** A **conta** já se compartilha (2026-09-28); o cartão continua congelado |
 
 "Sem fase" não é "nunca" — é: ninguém abre isso sem antes mover a linha aqui.
 

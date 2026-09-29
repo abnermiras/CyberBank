@@ -11,7 +11,8 @@ public record DetalheDoLancamento(
         SerieDoLancamento serie,
         String autor,
         Long outroLadoDaTransferenciaId,
-        Long estornadoPorId) {
+        Long estornadoPorId,
+        String ambienteDeFora) {
 
     public record ContaDoLancamento(Long id, String nome, String tipo) {
     }

@@ -52,6 +52,11 @@ public class LancamentoRepositoryJpa implements LancamentoRepository {
     }
 
     @Override
+    public Optional<Lancamento> buscarVisivel(Long id) {
+        return jpa.findById(id).map(LancamentoRepositoryJpa::paraDominio);
+    }
+
+    @Override
     public List<Lancamento> listarDaTransferencia(Long transferenciaId, Long ambienteId) {
         return jpa.findByTransferenciaIdAndAmbienteIdOrderByIdAsc(transferenciaId, ambienteId)
                 .stream()
@@ -205,19 +210,22 @@ public class LancamentoRepositoryJpa implements LancamentoRepository {
     }
 
     @Override
-    public List<SaldoDeConta> saldoRealizadoPorConta(Long ambienteId, LocalDate ate) {
-        return jpa.somarRealizadoPorConta(ambienteId, ate, Sentido.ENTRADA, Situacao.PREVISTO)
+    public List<SaldoDeConta> saldoRealizadoDasContas(Collection<Long> contas, LocalDate ate) {
+        if (contas.isEmpty()) {
+            return List.of();
+        }
+        return jpa.somarRealizadoPorConta(contas, ate, Sentido.ENTRADA, Situacao.PREVISTO)
                 .stream()
                 .map(linha -> new SaldoDeConta((Long) linha[0], ((Number) linha[1]).longValue()))
                 .toList();
     }
 
     @Override
-    public List<SaldoDeConta> previstoPorConta(Long ambienteId, JanelaDoPrevisto janela) {
-        if (janela.vazia()) {
+    public List<SaldoDeConta> previstoDasContas(Collection<Long> contas, JanelaDoPrevisto janela) {
+        if (janela.vazia() || contas.isEmpty()) {
             return List.of();
         }
-        return jpa.somarPrevistoPorConta(ambienteId, janela.de(), janela.ate(),
+        return jpa.somarPrevistoPorConta(contas, janela.de(), janela.ate(),
                         Sentido.ENTRADA, Situacao.PREVISTO)
                 .stream()
                 .map(linha -> new SaldoDeConta((Long) linha[0], ((Number) linha[1]).longValue()))

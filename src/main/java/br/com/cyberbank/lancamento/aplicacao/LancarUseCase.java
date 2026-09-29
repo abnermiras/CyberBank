@@ -55,11 +55,11 @@ public class LancarUseCase {
             Sentido sentido, Long valorCentavos, LocalDate dataEvento,
             LocalDate dataEfeitoInformada, String descricao, String estabelecimento) {
 
-        Meio meio = meios.buscarDoAmbiente(meioId, ambienteId)
+        Meio meio = meios.buscarAcessivel(meioId, ambienteId)
                 .orElseThrow(() -> new RegraDeDominioException(CodigoDeErro.NAO_ENCONTRADO));
         meio.exigirAtivoParaLancar();
 
-        Conta conta = contas.buscarDoAmbiente(meio.contaId(), ambienteId)
+        Conta conta = contas.buscarAcessivel(meio.contaId(), ambienteId)
                 .orElseThrow(() -> new RegraDeDominioException(CodigoDeErro.NAO_ENCONTRADO));
         conta.exigirAtivaParaLancar();
 

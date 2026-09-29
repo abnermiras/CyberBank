@@ -58,8 +58,9 @@ interface LancamentoJpa extends JpaRepository<LancamentoEntity, Long> {
 
     @Query("""
             select l from LancamentoEntity l
-             where l.ambienteId = :ambienteId
-               and (:contaId is null or l.contaId = :contaId)
+             where ((:contaId is null and l.ambienteId = :ambienteId)
+                    or (:contaId is not null and l.contaId = :contaId
+                        and (:somentePendentes = false or l.ambienteId = :ambienteId)))
                and (:somentePendentes = false or l.categoriaId is null)
              order by l.dataEvento desc, l.id desc
             """)
@@ -70,8 +71,9 @@ interface LancamentoJpa extends JpaRepository<LancamentoEntity, Long> {
 
     @Query("""
             select l from LancamentoEntity l
-             where l.ambienteId = :ambienteId
-               and (:contaId is null or l.contaId = :contaId)
+             where ((:contaId is null and l.ambienteId = :ambienteId)
+                    or (:contaId is not null and l.contaId = :contaId
+                        and (:somentePendentes = false or l.ambienteId = :ambienteId)))
                and (:somentePendentes = false or l.categoriaId is null)
                and (l.dataEvento < :dataEvento
                     or (l.dataEvento = :dataEvento and l.id < :id))
@@ -101,12 +103,12 @@ interface LancamentoJpa extends JpaRepository<LancamentoEntity, Long> {
             select l.contaId, coalesce(sum(case when l.sentido = :entrada
                                                 then l.valorCentavos else -l.valorCentavos end), 0)
               from LancamentoEntity l
-             where l.ambienteId = :ambienteId
+             where l.contaId in :contas
                and l.situacao <> :previsto
                and l.dataEfeito <= :ate
              group by l.contaId
             """)
-    List<Object[]> somarRealizadoPorConta(@Param("ambienteId") Long ambienteId,
+    List<Object[]> somarRealizadoPorConta(@Param("contas") Collection<Long> contas,
             @Param("ate") LocalDate ate,
             @Param("entrada") Sentido entrada,
             @Param("previsto") Situacao previsto);
@@ -168,12 +170,12 @@ interface LancamentoJpa extends JpaRepository<LancamentoEntity, Long> {
             select l.contaId, coalesce(sum(case when l.sentido = :entrada
                                                 then l.valorCentavos else -l.valorCentavos end), 0)
               from LancamentoEntity l
-             where l.ambienteId = :ambienteId
+             where l.contaId in :contas
                and l.situacao = :previsto
                and l.dataEfeito between :de and :ate
              group by l.contaId
             """)
-    List<Object[]> somarPrevistoPorConta(@Param("ambienteId") Long ambienteId,
+    List<Object[]> somarPrevistoPorConta(@Param("contas") Collection<Long> contas,
             @Param("de") LocalDate de,
             @Param("ate") LocalDate ate,
             @Param("entrada") Sentido entrada,

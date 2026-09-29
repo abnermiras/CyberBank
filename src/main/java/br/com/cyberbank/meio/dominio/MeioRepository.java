@@ -11,6 +11,10 @@ public interface MeioRepository {
 
     List<Meio> listarDoAmbiente(Long ambienteId);
 
+    Optional<Meio> buscarAcessivel(Long id, Long ambienteId);
+
+    List<Meio> listarAcessiveis(Long ambienteId);
+
     List<Meio> listarDaConta(Long contaId, Long ambienteId);
 
     boolean existeNaConta(Long contaId, TipoDeMeio tipo, Long ambienteId);

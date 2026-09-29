@@ -114,6 +114,9 @@ Erro previsível tem código, e **o código entra aqui antes de existir no códi
 | `MEIO_NAO_PARCELA` | 409 | Parcelar uma compra num meio que não é `CREDITO`. **Só o cartão tem fatura e só ele parcela** — o que espalha a cobrança pelos meses é a fatura de cada parcela, e fora do crédito não há fatura nenhuma (`docs/02-dominio/meio-de-pagamento.md`) |
 | `MEIO_NAO_RECORRE` | 409 | Criar recorrência num meio que não é `CREDITO`. Hoje o gatilho da ocorrência é o **fechamento da fatura**, e fora do cartão não há fatura que dispare nada — a recorrência de débito e boleto espera a rotina de virada do mês (`docs/02-dominio/recorrencia.md`) |
 | `AMBIENTE_INVALIDO` | 409 | Categoria de outro ambiente, ou conta sem vínculo (`ADR-0004`) |
+| `COMPARTILHAMENTO_JA_EXISTE` | 409 | A conta já está compartilhada com aquele ambiente. Um objeto tem no máximo um vínculo por destino (`docs/02-dominio/compartilhamento.md`) |
+| `CONTA_CARTAO_NAO_SE_COMPARTILHA` | 409 | Compartilhar uma conta `CARTAO`. Dar a conta inteira entregaria todos os cartões do contrato; compartilha-se **um** cartão dela, e isso ainda não existe |
+| `AMBIENTE_DESTINO_INVALIDO` | 422 | O destino não é um ambiente do próprio usuário, ou é o ambiente de origem. **Não distingue os dois casos**: dizer que o id existe e é de outra pessoa seria contar o que o erro não pode contar |
 
 **Cada linha aponta para uma invariante já escrita no domínio.** Código novo sem invariante
 por trás é sinal de regra inventada no controller — e regra no controller é proibida
