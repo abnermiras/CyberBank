@@ -161,7 +161,7 @@ public class EditarLancamentoUseCase {
         if (meioId == null) {
             return null;
         }
-        return meios.buscarDoAmbiente(meioId, ambienteId)
+        return meios.buscarAcessivel(meioId, ambienteId)
                 .orElseThrow(() -> new RegraDeDominioException(CodigoDeErro.NAO_ENCONTRADO));
     }
 
@@ -169,7 +169,7 @@ public class EditarLancamentoUseCase {
         if (contaId == null) {
             return;
         }
-        Conta conta = contas.buscarDoAmbiente(contaId, ambienteId)
+        Conta conta = contas.buscarAcessivel(contaId, ambienteId)
                 .orElseThrow(() -> new RegraDeDominioException(CodigoDeErro.NAO_ENCONTRADO));
         conta.exigirAtivaParaLancar();
     }

@@ -180,6 +180,11 @@ const Detalhe = {
 
   classificacao() {
     const d = Detalhe.dados;
+    if (d.deOutroAmbiente) {
+      return Detalhe.par('Categoria',
+        `<span class="tag">DE ${Formato.texto(d.ambienteNome || 'OUTRO AMBIENTE').toUpperCase()}</span>
+         <i class="det-fraco">a categoria é do ambiente que lançou</i>`);
+    }
     if (!d.categoria) {
       return Detalhe.par('Categoria', `
         <div class="det-pendente">
@@ -634,6 +639,12 @@ const Detalhe = {
 
   acoes() {
     const d = Detalhe.dados;
+    if (d.deOutroAmbiente) {
+      return `<section class="det-acoes">
+          <span class="tele">LANÇADO POR ${Formato.texto(d.ambienteNome || 'OUTRO AMBIENTE').toUpperCase()}
+            NUMA CONTA COMPARTILHADA — SÓ ELE CORRIGE OU EXCLUI</span>
+        </section>`;
+    }
     if (d.doCiclo && !Detalhe.editando) {
       return `<section class="det-acoes">
           <span class="tele">ESTE LANÇAMENTO É DO SISTEMA — SÓ O VALOR SE CORRIGE,

@@ -3,6 +3,8 @@ package br.com.cyberbank.lancamento.aplicacao;
 import java.util.List;
 import java.util.Optional;
 
+import br.com.cyberbank.ambiente.dominio.Ambiente;
+import br.com.cyberbank.ambiente.dominio.AmbienteRepository;
 import br.com.cyberbank.categoria.dominio.Categoria;
 import br.com.cyberbank.categoria.dominio.CategoriaRepository;
 import br.com.cyberbank.comum.erro.CodigoDeErro;
@@ -29,10 +31,12 @@ public class VerLancamentoUseCase {
     private final FaturaRepository faturas;
     private final ParcelamentoRepository parcelamentos;
     private final UsuarioRepository usuarios;
+    private final AmbienteRepository ambientes;
 
     public VerLancamentoUseCase(LancamentoRepository lancamentos, ContaRepository contas,
             MeioRepository meios, CategoriaRepository categorias, FaturaRepository faturas,
-            ParcelamentoRepository parcelamentos, UsuarioRepository usuarios) {
+            ParcelamentoRepository parcelamentos, UsuarioRepository usuarios,
+            AmbienteRepository ambientes) {
         this.lancamentos = lancamentos;
         this.contas = contas;
         this.meios = meios;
@@ -40,12 +44,43 @@ public class VerLancamentoUseCase {
         this.faturas = faturas;
         this.parcelamentos = parcelamentos;
         this.usuarios = usuarios;
+        this.ambientes = ambientes;
     }
 
     @Transactional(readOnly = true)
     public DetalheDoLancamento executar(Long ambienteId, Long lancamentoId) {
-        Lancamento lancamento = lancamentos.buscarDoAmbiente(lancamentoId, ambienteId)
+        Optional<Lancamento> propria = lancamentos.buscarDoAmbiente(lancamentoId, ambienteId);
+        if (propria.isEmpty()) {
+            return deOutroAmbiente(ambienteId, lancamentoId);
+        }
+        return doAmbiente(ambienteId, propria.get());
+    }
+
+    private DetalheDoLancamento deOutroAmbiente(Long ambienteId, Long lancamentoId) {
+        Lancamento lancamento = lancamentos.buscarVisivel(lancamentoId)
                 .orElseThrow(() -> new RegraDeDominioException(CodigoDeErro.NAO_ENCONTRADO));
+
+        DetalheDoLancamento.ContaDoLancamento conta = contaDe(lancamento, ambienteId);
+        if (conta == null) {
+            throw new RegraDeDominioException(CodigoDeErro.NAO_ENCONTRADO);
+        }
+
+        return new DetalheDoLancamento(
+                lancamento,
+                conta,
+                meioDe(lancamento, ambienteId),
+                null,
+                null,
+                null,
+                usuarios.buscarPorId(lancamento.autorId())
+                        .map(usuario -> usuario.nome()).orElse(null),
+                null,
+                null,
+                ambientes.buscar(lancamento.ambienteId()).map(Ambiente::nome).orElse(""));
+    }
+
+    private DetalheDoLancamento doAmbiente(Long ambienteId, Lancamento lancamento) {
+        Long lancamentoId = lancamento.id();
 
         return new DetalheDoLancamento(
                 lancamento,
@@ -58,11 +93,12 @@ public class VerLancamentoUseCase {
                         .map(usuario -> usuario.nome()).orElse(null),
                 outroLadoDe(lancamento, ambienteId),
                 lancamentos.buscarEstornoDe(lancamentoId, ambienteId)
-                        .map(Lancamento::id).orElse(null));
+                        .map(Lancamento::id).orElse(null),
+                null);
     }
 
     private DetalheDoLancamento.ContaDoLancamento contaDe(Lancamento lancamento, Long ambienteId) {
-        return contas.buscarDoAmbiente(lancamento.contaId(), ambienteId)
+        return contas.buscarAcessivel(lancamento.contaId(), ambienteId)
                 .map(conta -> new DetalheDoLancamento.ContaDoLancamento(
                         conta.id(), conta.nome(), conta.tipo().name()))
                 .orElse(null);
@@ -72,7 +108,7 @@ public class VerLancamentoUseCase {
         if (lancamento.meioId() == null) {
             return null;
         }
-        return meios.buscarDoAmbiente(lancamento.meioId(), ambienteId)
+        return meios.buscarAcessivel(lancamento.meioId(), ambienteId)
                 .map(meio -> new DetalheDoLancamento.MeioDoLancamento(
                         meio.id(), meio.tipo().name(), meio.nome()))
                 .orElse(null);

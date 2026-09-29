@@ -93,6 +93,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | [`convencoes.md`](04-api/convencoes.md) | forma da URL, versionamento, nomes, formatos no JSON, paginacao e compatibilidade | ativo |
 | [`endpoints-ambientes.md`](04-api/endpoints-ambientes.md) | a lista de ambientes do usuario, criar e renomear ambiente, e a regra do {ambienteId} nas outras rotas | ativo |
 | [`endpoints-categorias.md`](04-api/endpoints-categorias.md) | contrato dos endpoints de categoria e regras de categorizacao | ativo |
+| [`endpoints-compartilhamentos.md`](04-api/endpoints-compartilhamentos.md) | contrato dos endpoints que compartilham e revogam o uso de uma conta com outro ambiente | ativo |
 | [`endpoints-contas.md`](04-api/endpoints-contas.md) | contrato dos endpoints de conta e saldo | ativo |
 | [`endpoints-eventos.md`](04-api/endpoints-eventos.md) | contrato do Diario — os eventos de um dia de um ambiente | ativo |
 | [`endpoints-faturas.md`](04-api/endpoints-faturas.md) | contrato dos endpoints de fatura de cartao | ativo |
@@ -153,5 +154,5 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 
 ---
 
-**88 documentos · 15 ainda em stub.**
+**89 documentos · 15 ainda em stub.**
 Stub = conteudo inexistente: pergunte, nao deduza.

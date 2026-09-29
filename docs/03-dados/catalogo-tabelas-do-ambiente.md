@@ -170,28 +170,36 @@ tabela inexistente não é schema — é a frase da `V004`, repetida pela `V009`
 
 ## RLS das tabelas da `V004`
 
-As três do ambiente levam `ENABLE` + `FORCE`, com uma política `ALL` cada, **já com o `OR` do
-`ADR-0004`** — mesmo com `vinculo` vazia.
+As três do ambiente levam `ENABLE` + `FORCE`. A `V004` nasceu com uma política `ALL` cada, com o
+`OR` do `ADR-0004` no `USING`. **A `V015` as separou por comando**, porque `DELETE` só avalia
+o `USING`: com o `OR` num `ALL`, o destino de um compartilhamento **apagaria** o lançamento da
+origem no banco, mesmo que a aplicação nunca o deixasse.
 
-| Política | `USING` | `WITH CHECK` |
-|---|---|---|
-| `conta_do_ambiente` | `ambiente_id = app_ambiente_id()` **ou** existe `vinculo` daquela conta para o ambiente ativo | `ambiente_id = app_ambiente_id()` |
-| `meio_do_ambiente` | idem, pelo `meio_id` do vínculo | idem |
-| `lancamento_do_ambiente` | `ambiente_id = app_ambiente_id()` **ou** existe vínculo da **conta ou do meio** do lançamento | idem |
+| Comando | `conta` | `meio` | `lancamento` |
+|---|---|---|---|
+| `SELECT` | `ambiente_id = app_ambiente_id()` **ou** existe `vinculo` da conta para o ambiente ativo | idem, pela **conta** do meio (ou pelo `meio_id`) | `ambiente_id = app_ambiente_id()` **ou** a conta é **do ambiente ativo** **ou** existe vínculo da conta/meio para ele |
+| `INSERT` · `UPDATE` · `DELETE` | `ambiente_id = app_ambiente_id()` | idem | idem |
 
-**O `WITH CHECK` não leva o `OR`, e é a metade que importa:** o destino de um compartilhamento
-**usa** a conta e nunca a altera, e lançamento nenhum nasce fora do ambiente de quem lançou.
+**Escrita nunca leva o `OR`, e é a metade que importa:** o destino **usa** a conta e nunca a
+altera, e lançamento nenhum nasce, muda ou some fora do ambiente de quem lançou.
+
+**O ramo *"a conta é do ambiente ativo"* é o que faz o saldo da origem fechar:** sem ele, o dono
+da conta não enxergaria o que o destino lançou nela. É seguro porque, sem vínculo, ninguém mais
+lança na conta de um ambiente — o ramo só devolve algo a mais quando existe compartilhamento.
 
 `vinculo` é de ligação e pergunta *qual usuário*, como `acesso`:
 
 | Política | Comando | Regra |
 |---|---|---|
 | `vinculo_das_duas_pontas` | `SELECT` | O usuário tem acesso ao ambiente de origem **ou** ao de destino |
+| `vinculo_criado_pelo_dono_da_origem` | `INSERT` | `criado_por` é o usuário, ele é **`DONO`** do ambiente de origem **e** tem acesso ao de destino (`V015`) |
+| `vinculo_revogado_pelo_dono_da_origem` | `DELETE` | O usuário é **`DONO`** do ambiente de origem (`V015`) |
 
-Ela lê **só `acesso`**. Ler `conta` aqui recursionaria, porque a política de `conta` lê
-`vinculo` — e é por isso que `ambiente_origem_id` é coluna. **Sem política de escrita**, de
-propósito: ela entra com o caso de uso do compartilhamento, junto com a regra de quem pode
-compartilhar.
+Elas leem **só `acesso`**. Ler `conta` aqui recursionaria, porque a política de `conta` lê
+`vinculo` — e é por isso que `ambiente_origem_id` é coluna. **Não há `UPDATE`**: vínculo não se
+edita, cria-se ou revoga-se. A condição de o usuário ter acesso ao destino é a defesa em
+profundidade da decisão *"só outro ambiente meu"*: a aplicação a checa antes, e o banco a
+repete.
 
 ## `evento` — família do ambiente (`V006`)
 

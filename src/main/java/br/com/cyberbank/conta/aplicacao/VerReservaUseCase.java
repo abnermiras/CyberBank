@@ -50,6 +50,7 @@ public class VerReservaUseCase {
 
         List<AplicacaoNaReserva> aplicacoes = contas.stream()
                 .filter(comSaldo -> comSaldo.conta().tipo() == TipoDeConta.APLICACAO)
+                .filter(comSaldo -> comSaldo.compartilhadaDe() == null)
                 .map(comSaldo -> paraReserva(comSaldo, informados, hoje))
                 .toList();
 

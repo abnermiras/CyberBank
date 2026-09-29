@@ -142,5 +142,6 @@ DELETE /api/v1/ambientes/1/meios-de-pagamento/3
 - **Meio `CREDITO`**, e com ele os cartões de um contrato: físico, virtual e adicional. Depende
   da conta `CARTAO` e da fatura. O `CHECK` da coluna `tipo` já aceita `CREDITO`.
 - **Limite** — é da conta `CARTAO`, nunca do cartão, e por isso não aparece nesta página.
-- **Compartilhar um cartão** com outro ambiente: a tabela `vinculo` existe e nasce vazia; a
-  funcionalidade é liberada com a Fase 1 concluída (`ADR-0004`).
+- **Compartilhar um cartão** com outro ambiente. Os meios de uma **conta compartilhada** já
+  aparecem em `GET /meios-de-pagamento` do destino e servem para lançar
+  (`docs/02-dominio/compartilhamento.md`); o cartão `CREDITO` é o que falta.

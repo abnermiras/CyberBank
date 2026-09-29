@@ -123,7 +123,8 @@ critério do resto do projeto.
 | `CONTA_CRIADA` · `CONTA_RENOMEADA` · `CONTA_INATIVADA` · `CONTA_REATIVADA` · `CONTA_EXCLUIDA` | Idem para conta |
 | `MEIO_CRIADO` · `MEIO_RENOMEADO` · `MEIO_INATIVADO` · `MEIO_REATIVADO` · `MEIO_EXCLUIDO` | Idem para meio de pagamento |
 | `SERIE_CRIADA` · `SERIE_ALTERADA` · `SERIE_CANCELADA` | Parcelamento ou recorrência |
-| `ACESSO_CONCEDIDO` · `ACESSO_REVOGADO` · `VINCULO_CRIADO` · `VINCULO_REVOGADO` | Quem entrou e quem saiu do ambiente, e o compartilhamento (`ADR-0004`) |
+| `ACESSO_CONCEDIDO` · `ACESSO_REVOGADO` | Quem entrou e quem saiu do ambiente. **Entram com o convite** |
+| `VINCULO_CRIADO` · `VINCULO_REVOGADO` | A conta foi compartilhada com outro ambiente, ou deixou de ser (`ADR-0004`). Gravam no ambiente de **origem**, com a conta como alvo e `conta`, `destinoId` e `destino` em `dados`. **O Diário do destino não os mostra**: o que o destino vê do Diário é decisão em aberto |
 
 **Renomear e recolorir também entram**, e a simetria é o argumento: `CATEGORIA_RENOMEADA`
 sempre esteve na lista e não mexe em saldo nenhum. O Diário responde *"por que meu saldo

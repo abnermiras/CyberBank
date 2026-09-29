@@ -28,6 +28,8 @@ public enum TipoDeEvento {
     CONTA_REATIVADA(OrigemDeEvento.USUARIO),
     CONTA_EXCLUIDA(OrigemDeEvento.USUARIO),
     VALOR_DE_APLICACAO_INFORMADO(OrigemDeEvento.USUARIO),
+    VINCULO_CRIADO(OrigemDeEvento.USUARIO),
+    VINCULO_REVOGADO(OrigemDeEvento.USUARIO),
 
     MEIO_CRIADO(OrigemDeEvento.USUARIO),
     MEIO_RENOMEADO(OrigemDeEvento.USUARIO),

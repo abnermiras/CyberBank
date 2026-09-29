@@ -21,7 +21,7 @@ O Extrato. **Pagina por cursor, não por página numerada.**
 
 | Parâmetro | Valor | Para quê |
 |---|---|---|
-| `contaId` | id | Filtra por conta. Ausente: todo o ambiente |
+| `contaId` | id | Filtra por conta. Ausente: **só o que o ambiente lançou**. Numa conta **compartilhada** traz os lançamentos de **todos** os ambientes — a única forma de o extrato cruzar ambientes. Conta sem acesso: lista vazia |
 | `pendentes` | `true`, `false` (padrão: `false`) | A fila de pendências, que é exatamente `categoria IS NULL` |
 | `limite` | 1 a 200 (padrão: 50) | Quantos por página |
 | `apos` | cursor opaco | Continua a listagem. Veio no `proximo` da página anterior |
@@ -54,7 +54,7 @@ chave de ordenação, e isso é detalhe do servidor.
 | Campo | Nota |
 |---|---|
 | `valor` | Inteiro em centavos e **sempre positivo**. O sinal vem do `sentido` |
-| `categoriaId` | Sempre presente; `null` **é** a pendência. Campo que se aplica e está vazio vem `null` |
+| `categoriaId` | Sempre presente; `null` **é** a pendência. Campo que se aplica e está vazio vem `null`. **Exceção: no lançamento de outro ambiente ele vem `null` de propósito** (máscara), e quem distingue as duas coisas é `deOutroAmbiente`, e então `ambienteNome` ocupa o lugar da categoria. Esse lançamento **não se altera, estorna nem exclui** daqui: `404` (`ambienteId` traz o ambiente que lançou) |
 | `meioId` | **Não vem** em transferência nem no lançamento de abertura: ali ninguém pagou nada. Campo que não se aplica não vem |
 | `transferenciaId`, `estornoDeId`, `estabelecimento` | Só vêm quando existem |
 | `faturaId` · `parcelamentoId` | Em qual fatura a compra **entra** e de que compra dividida ela é parte. Só no crédito, e lá a situação é sempre `PROVISIONADO`: comprou, deve (`docs/04-api/endpoints-faturas.md`) |

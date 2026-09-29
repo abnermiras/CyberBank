@@ -13,6 +13,8 @@ public interface LancamentoRepository {
 
     Optional<Lancamento> buscarDoAmbiente(Long id, Long ambienteId);
 
+    Optional<Lancamento> buscarVisivel(Long id);
+
     List<Lancamento> listarDaTransferencia(Long transferenciaId, Long ambienteId);
 
     List<Lancamento> listarDaFatura(Long faturaId, Long ambienteId);
@@ -48,9 +50,9 @@ public interface LancamentoRepository {
 
     long saldoRealizadoDaConta(Long contaId, LocalDate ate);
 
-    List<SaldoDeConta> saldoRealizadoPorConta(Long ambienteId, LocalDate ate);
+    List<SaldoDeConta> saldoRealizadoDasContas(Collection<Long> contas, LocalDate ate);
 
-    List<SaldoDeConta> previstoPorConta(Long ambienteId, JanelaDoPrevisto janela);
+    List<SaldoDeConta> previstoDasContas(Collection<Long> contas, JanelaDoPrevisto janela);
 
     List<DiaDeConta> ultimoValorInformadoPorConta(Long ambienteId, Collection<Long> categorias);
 

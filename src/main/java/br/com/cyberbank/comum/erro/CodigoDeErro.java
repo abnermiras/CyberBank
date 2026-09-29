@@ -38,7 +38,10 @@ public enum CodigoDeErro {
     PARCELA_ISOLADA(409, "Parcela não se exclui sozinha: quem se arrepende exclui o parcelamento"),
     TRANSFERENCIA_MESMA_CONTA(409, "Origem e destino são a mesma conta"),
     BENEFICIO_NAO_TRANSFERE(409, "Conta de benefício não entra em transferência"),
-    AMBIENTE_INVALIDO(409, "Este dado é de outro ambiente");
+    AMBIENTE_INVALIDO(409, "Este dado é de outro ambiente"),
+    COMPARTILHAMENTO_JA_EXISTE(409, "Esta conta já está compartilhada com este ambiente"),
+    CONTA_CARTAO_NAO_SE_COMPARTILHA(409, "Conta de cartão de crédito não se compartilha inteira"),
+    AMBIENTE_DESTINO_INVALIDO(422, "Este ambiente não pode receber o compartilhamento");
 
     private final int status;
     private final String titulo;

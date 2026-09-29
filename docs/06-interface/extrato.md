@@ -27,6 +27,12 @@ estorno e do sistema.
 
 **A linha inteira é clicável**, e abrir é a única coisa que ela faz.
 
+**Linha de outro ambiente.** Filtrando uma conta compartilhada, a lista traz também o que os outros
+ambientes lançaram nela. No lugar da categoria a linha mostra **`DE <ambiente>`** — nunca "sem
+categoria", que é pendência e é do ambiente de quem lançou. Ela abre o detalhe em **modo leitura**:
+sem editar, estornar nem excluir, e a frase diz que só quem lançou corrige
+(`docs/02-dominio/compartilhamento.md`).
+
 ## O detalhe abre tudo
 
 Um modal, e nele o lançamento inteiro. A ordem é a de quem chegou perguntando *"o que é

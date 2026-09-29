@@ -36,6 +36,18 @@ public class ContaRepositoryJpa implements ContaRepository {
     }
 
     @Override
+    public Optional<Conta> buscarAcessivel(Long id, Long ambienteId) {
+        return jpa.findAcessivel(id, ambienteId).map(ContaRepositoryJpa::paraDominio);
+    }
+
+    @Override
+    public List<Conta> listarAcessiveis(Long ambienteId) {
+        return jpa.findAcessiveis(ambienteId).stream()
+                .map(ContaRepositoryJpa::paraDominio)
+                .toList();
+    }
+
+    @Override
     public void excluir(Long id, Long ambienteId) {
         jpa.deleteByIdAndAmbienteId(id, ambienteId);
     }

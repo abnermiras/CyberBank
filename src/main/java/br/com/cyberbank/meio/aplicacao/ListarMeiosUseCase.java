@@ -19,7 +19,7 @@ public class ListarMeiosUseCase {
 
     @Transactional(readOnly = true)
     public List<Meio> executar(Long ambienteId, boolean inativos) {
-        return meios.listarDoAmbiente(ambienteId).stream()
+        return meios.listarAcessiveis(ambienteId).stream()
                 .filter(meio -> inativos || !meio.inativo())
                 .toList();
     }

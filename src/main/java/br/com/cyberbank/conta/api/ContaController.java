@@ -58,7 +58,11 @@ public class ContaController {
             @JsonInclude(JsonInclude.Include.NON_NULL) Integer diasAntesFechamento,
             @JsonInclude(JsonInclude.Include.NON_NULL) Long limiteCentavos,
             @JsonInclude(JsonInclude.Include.NON_NULL) LocalDate limiteInformadoEm,
-            @JsonInclude(JsonInclude.Include.NON_NULL) Long contaPagadoraPadraoId) {
+            @JsonInclude(JsonInclude.Include.NON_NULL) Long contaPagadoraPadraoId,
+            @JsonInclude(JsonInclude.Include.NON_NULL) CompartilhadaDeResponse compartilhadaDe) {
+    }
+
+    public record CompartilhadaDeResponse(Long ambienteId, String nome) {
     }
 
     public record ListaResponse(List<ContaResponse> itens, long emCaixaCentavos,
@@ -247,7 +251,10 @@ public class ContaController {
                 contrato == null ? null : contrato.diasAntesFechamento(),
                 contrato == null ? null : contrato.limiteCentavos(),
                 contrato == null ? null : contrato.limiteInformadoEm(),
-                contrato == null ? null : contrato.contaPagadoraPadraoId());
+                contrato == null ? null : contrato.contaPagadoraPadraoId(),
+                comSaldo.compartilhadaDe() == null ? null
+                        : new CompartilhadaDeResponse(comSaldo.compartilhadaDe().ambienteId(),
+                                comSaldo.compartilhadaDe().nome()));
     }
 
     private static ContaGravadaResponse paraRespostaGravada(Conta conta) {

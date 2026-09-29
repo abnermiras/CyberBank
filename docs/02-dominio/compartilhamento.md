@@ -8,10 +8,10 @@ status: ativo
 
 # Compartilhamento de conta e cartão
 
-> **Quando.** O **modelo** deste doc entra na Fase 1 — ele contamina schema e política de
-> acesso. A **funcionalidade** (criar o vínculo, categoria mascarada, partes da fatura) é
-> liberada com a Fase 1 concluída (`docs/00-produto/roadmap.md`). O doc está ativo porque o
-> schema depende dele desde a primeira migration.
+> **Quando.** O **modelo** deste doc entrou na Fase 1 — ele contamina schema e política de
+> acesso. A **funcionalidade da conta** (criar e revogar o vínculo, categoria mascarada) saiu em
+> 2026-09-28. O que continua congelado é o **cartão**: partes da fatura, patrimônio parcial e
+> quem fecha a fatura (`docs/00-produto/roadmap.md`).
 
 Três coisas diferentes usam a palavra "compartilhar" e **não são a mesma**:
 
@@ -27,6 +27,10 @@ Este doc é dono do segundo. O terceiro é caso de `docs/02-dominio/meio-de-paga
 
 A conta compartilhada continua sendo do ambiente que a criou, para sempre. O que o vínculo
 dá é **uso**: o outro ambiente pode lançar nela, ver o extrato e o saldo.
+
+**A origem também vê o que outros lançaram na conta dela.** Sem isso o saldo da conta não
+fecharia para quem a criou: o `Nubank` do CLT tem os lançamentos do PJ, e o dono precisa
+enxergá-los para conferir o que o banco diz. É leitura, como no destino.
 
 E a regra que sustenta tudo o resto, sem exceção:
 
@@ -47,6 +51,14 @@ saldo da conta continua sendo um só. Ver `ADR-0004`.
 Quem compartilha e quem revoga: **só o dono do ambiente de origem** — a mesma regra de
 quem convida.
 
+### O que a funcionalidade entrega hoje
+
+| Recorte | Valor | Por quê |
+|---|---|---|
+| Objeto | **Conta**, com os meios dela. Conta `CARTAO` é recusada (`CONTA_CARTAO_NAO_SE_COMPARTILHA`) | O vínculo é da conta e os meios vão junto — não há vínculo de meio. Cartão traz partes da fatura e patrimônio parcial, em aberto |
+| Destino | **Só outro ambiente do próprio usuário** (`AMBIENTE_DESTINO_INVALIDO` para qualquer outro) | Achar e autorizar o ambiente de outra pessoa é o convite, que ainda não existe. O erro não distingue "é de outra pessoa" de "é o mesmo ambiente" |
+| `APLICACAO` | Pode ser compartilhada, mas **só a origem a vê na Reserva** | Informar o valor de uma aplicação é ato do dono; a Reserva do destino não teria o que oferecer. O saldo dela entra no patrimônio dos dois |
+
 ## Conta compartilhada
 
 Exemplo literal. Usuário A tem os ambientes **CLT**, **PJ** e **CASA**. A conta `Nubank`
@@ -57,7 +69,8 @@ nasce no CLT e é compartilhada com o PJ.
 | Lista de contas | `Nubank` aparece marcada **"compartilhada de CLT"** |
 | Meios de pagamento | Os meios da `Nubank` (débito, Pix, boleto) ficam disponíveis para lançar |
 | Categoria do que ele lançar | **Do PJ.** O ambiente de origem não empresta categoria |
-| Extrato | **Completo**: todos os lançamentos da conta, de qualquer ambiente |
+| Extrato da conta | **Completo**: todos os lançamentos da conta, de qualquer ambiente |
+| Extrato geral (`TODAS AS CONTAS`) | **Só o que o PJ lançou.** O que vem de outro ambiente aparece só quando se filtra a conta |
 | Saldo | O mesmo saldo, para os dois. Conta conjunta tem um saldo só |
 | Patrimônio | A conta entra no patrimônio **dos dois** ambientes |
 | Transferência | Pode transferir entre a `C6` do PJ e a `Nubank` do CLT |
@@ -98,7 +111,12 @@ ninguém — e a soma da fatura é a mesma de qualquer jeito.
 | Onde | Categoria |
 |---|---|
 | Lançamento do próprio ambiente | Cheia, normal |
-| Lançamento de outro ambiente, na conta ou fatura compartilhada | **Mascarada** |
+| Lançamento de outro ambiente, na conta ou fatura compartilhada | **Mascarada**: no lugar dela a tela mostra **o nome do ambiente que lançou** |
+
+A máscara é feita **no servidor**: o `categoriaId` de outro ambiente nunca sai na resposta, e
+a resposta traz `deOutroAmbiente` e `ambienteNome`. O RLS de `categoria` já esconde a árvore de
+fora, e a máscara é o que impede a tela de confundir *"categoria que não posso ver"* com
+*"pendência"*.
 
 Mascarado não some da soma: o valor conta no saldo, na fatura e no limite. Só a etiqueta
 não aparece.
@@ -155,6 +173,10 @@ emprestou a conta.** Apagar quebraria o saldo de todo mundo que ficou.
 - Um objeto não é compartilhado com o próprio ambiente de origem.
 - Revogar vínculo nunca apaga, move ou recategoriza lançamento.
 - Só o dono do ambiente de origem compartilha e revoga.
+- **Cada ambiente altera e exclui só o que lançou.** O destino lê o lançamento da origem — e a
+  origem lê o do destino —, mas nenhum dos dois o corrige, estorna ou exclui. É o RLS que
+  garante: o `OR` da leitura não chega ao `UPDATE` nem ao `DELETE`.
+- O destino **não repassa**: a conta não é dele, e só o dono da origem compartilha.
 
 ## Fronteiras com outros docs
 
@@ -169,10 +191,7 @@ emprestou a conta.** Apagar quebraria o saldo de todo mundo que ficou.
 
 ## Ainda em aberto
 
-- [ ] Um ambiente de destino pode **repassar** o compartilhamento adiante? A resposta
-      provável é não: quem empresta é quem tem a posse
-- [ ] O destino pode **editar** lançamento que a origem fez na conta compartilhada, ou só o
-      seu próprio? Conta conjunta sugere que sim; auditoria sugere que não
-- [ ] O que aparece no lugar da categoria mascarada — traço, o nome do ambiente de origem,
-      ou nada. É decisão de `docs/06-interface/`
-- [ ] Compartilhar conta `APLICACAO` faz sentido na v1, ou é Fase 3 junto com metas?
+- [ ] Compartilhar conta `APLICACAO` faz sentido na v1, ou é Fase 3 junto com metas? Hoje ela
+      compartilha, e a Reserva do destino não a lista
+- [ ] Pagar fatura **de uma conta emprestada**: hoje a conta pagadora é só do próprio ambiente
+- [ ] O destino de **outro usuário**: exige o convite, e a decisão de quem vê o nome do autor

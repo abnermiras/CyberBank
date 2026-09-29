@@ -120,6 +120,17 @@ const API = {
 
   excluirConta: (ambienteId, id) => API.remover(API.doAmbiente(ambienteId, `/contas/${id}`)),
 
+  listarCompartilhamentos: (ambienteId, contaId) =>
+    API.get(API.doAmbiente(ambienteId, `/contas/${contaId}/compartilhamentos`)),
+
+  compartilharConta: (ambienteId, contaId, ambienteDestinoId) =>
+    API.post(API.doAmbiente(ambienteId, `/contas/${contaId}/compartilhamentos`),
+      { ambienteDestinoId }),
+
+  revogarCompartilhamento: (ambienteId, contaId, ambienteDestinoId) =>
+    API.remover(API.doAmbiente(ambienteId,
+      `/contas/${contaId}/compartilhamentos/${ambienteDestinoId}`)),
+
   informarLimite: (ambienteId, contaId, limite) =>
     API.put(API.doAmbiente(ambienteId, `/contas/${contaId}/limite`), { limite }),
 

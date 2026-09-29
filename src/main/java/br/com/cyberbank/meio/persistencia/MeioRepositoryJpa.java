@@ -36,6 +36,18 @@ public class MeioRepositoryJpa implements MeioRepository {
     }
 
     @Override
+    public Optional<Meio> buscarAcessivel(Long id, Long ambienteId) {
+        return jpa.findAcessivel(id, ambienteId).map(MeioRepositoryJpa::paraDominio);
+    }
+
+    @Override
+    public List<Meio> listarAcessiveis(Long ambienteId) {
+        return jpa.findAcessiveis(ambienteId).stream()
+                .map(MeioRepositoryJpa::paraDominio)
+                .toList();
+    }
+
+    @Override
     public List<Meio> listarDaConta(Long contaId, Long ambienteId) {
         return jpa.findByContaIdAndAmbienteIdOrderByNomeAsc(contaId, ambienteId).stream()
                 .map(MeioRepositoryJpa::paraDominio)

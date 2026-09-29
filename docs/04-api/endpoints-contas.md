@@ -79,8 +79,13 @@ em si está em `docs/04-api/endpoints-faturas.md`.
 | `entraNoFluxoDeCaixa` | O movimento é gasto da vida? É **este campo**, e não o tipo, que o relatório de gasto consulta |
 | `entraEmCaixa` | O saldo paga **qualquer coisa**? Os dois são campo e não derivação do tipo, de propósito: tipo novo no futuro só precisa responder a estas duas perguntas |
 | `tiposDeMeioDisponiveis` | Quais meios cabem nesta conta. `CARTEIRA` devolve só `DINHEIRO` — **é isso que torna o dinheiro exclusivo**, sem precisar de regra própria; `APLICACAO` devolve vazio |
+| `compartilhadaDe` | `{ ambienteId, nome }` do ambiente **de origem**, **só** nas contas emprestadas ao ambiente atual. Ausente nas próprias. É o que a tela usa para marcar a conta e tirar dela as ações que só o dono tem |
 | `emCaixaCentavos` | Soma das contas com `entraEmCaixa = true`. O vale-refeição fica **fora**: aquele saldo só compra uma coisa |
-| `patrimonioCentavos` | Soma do saldo realizado de **todas** as contas, sem exceção nenhuma |
+| `patrimonioCentavos` | Soma do saldo realizado de **todas** as contas, sem exceção nenhuma — **as emprestadas incluídas**: conta conjunta entra no patrimônio dos dois ambientes |
+
+**A lista traz as contas do ambiente e as emprestadas a ele**, e o saldo de cada uma é a soma dos
+lançamentos **de todos os ambientes** naquela conta: conta conjunta tem um saldo só. Compartilhar
+e revogar são de `docs/04-api/endpoints-compartilhamentos.md`.
 
 Contas inativas entram nos dois agregados: histórico e saldo continuam existindo.
 

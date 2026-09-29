@@ -11,5 +11,9 @@ public interface ContaRepository {
 
     List<Conta> listarDoAmbiente(Long ambienteId);
 
+    Optional<Conta> buscarAcessivel(Long id, Long ambienteId);
+
+    List<Conta> listarAcessiveis(Long ambienteId);
+
     void excluir(Long id, Long ambienteId);
 }

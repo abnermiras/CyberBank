@@ -102,7 +102,7 @@ public class TransferirUseCase {
     }
 
     private Conta buscar(Long contaId, Long ambienteId) {
-        return contas.buscarDoAmbiente(contaId, ambienteId)
+        return contas.buscarAcessivel(contaId, ambienteId)
                 .orElseThrow(() -> new RegraDeDominioException(CodigoDeErro.NAO_ENCONTRADO));
     }
 }

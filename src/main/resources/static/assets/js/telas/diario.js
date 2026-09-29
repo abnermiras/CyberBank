@@ -30,6 +30,10 @@ const Diario = {
     CONTA_INATIVADA: (d) => `inativou a conta <b>${Formato.texto(d.nome)}</b>`,
     CONTA_REATIVADA: (d) => `reativou a conta <b>${Formato.texto(d.nome)}</b>`,
     CONTA_EXCLUIDA: (d) => `excluiu a conta <b>${Formato.texto(d.nome)}</b>`,
+    VINCULO_CRIADO: (d) =>
+      `compartilhou a conta <b>${Formato.texto(d.conta)}</b> com <b>${Formato.texto(d.destino)}</b>`,
+    VINCULO_REVOGADO: (d) =>
+      `parou de compartilhar a conta <b>${Formato.texto(d.conta)}</b> com <b>${Formato.texto(d.destino)}</b>`,
     VALOR_DE_APLICACAO_INFORMADO: (d) =>
       `informou quanto <b>${Formato.texto(d.nome)}</b> vale hoje${Diario.deParas(d)}`,
 

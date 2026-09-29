@@ -16,4 +16,8 @@ public enum Papel {
     public boolean podeConvidar() {
         return this == DONO;
     }
+
+    public boolean podeCompartilhar() {
+        return this == DONO;
+    }
 }
