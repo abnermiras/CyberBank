@@ -460,9 +460,8 @@ ordem está fixada no `lacunas-para-codigo.md`:
 
 ## Decisões em aberto
 
-**Da Fase 1: uma, e é de conteúdo, não de regra.**
-
-0. **A poda da lista de 11 raízes de categoria**, que espera o corte do Abner.
+**Da Fase 1: nenhuma.** A poda da lista de 11 raízes de categoria saiu em 29/09: o Cyberbank
+não cria categoria de usuário, e o Abner cadastra as dele quando quiser.
 
 **Pós-Fase 1 (compartilhamento — `B15` a `B20`):**
 
