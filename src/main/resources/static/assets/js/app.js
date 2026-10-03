@@ -122,7 +122,8 @@ async function iniciar() {
   Contexto.ambiente = SeletorDeAmbiente.escolher(ambientes.itens);
   SeletorDeAmbiente.ligar();
   document.getElementById('ambienteNome').textContent = Contexto.ambiente.nome;
-  document.getElementById('ambientePapel').textContent = Contexto.ambiente.papel;
+  document.getElementById('ambientePapel').textContent = Formato.papel(Contexto.ambiente.papel);
+  document.body.classList.toggle('so-leitura', Contexto.ambiente.papel === 'LEITOR');
 
   try {
     atualizarIdentidade(await API.verPerfil());

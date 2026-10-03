@@ -51,6 +51,11 @@ const API = {
       'O saldo de um benefício não é fungível: entra por receita e sai por gasto no meio dele.',
     SENHA_ATUAL_INVALIDA: 'A senha atual não confere.',
     TELEGRAM_JA_VINCULADO: 'Este chat do Telegram já está vinculado a outro usuário.',
+    CONVITE_JA_PENDENTE:
+      'Este e-mail já tem um convite esperando neste ambiente. Para trocar a autorização, cancele o pendente e convide de novo.',
+    JA_TEM_ACESSO: 'Este e-mail já tem acesso a este ambiente.',
+    CONVITE_NAO_PENDENTE: 'Este convite já foi respondido ou cancelado.',
+    DONO_NAO_SAI: 'O dono não sai do ambiente: o ambiente não fica sem dono.',
     CORPO_INVALIDO: 'Requisição malformada.',
     ERRO_INTERNO: 'Falha nossa. Tente de novo.',
   },
@@ -88,6 +93,20 @@ const API = {
   listarAmbientes: () => API.get('/api/v1/ambientes'),
   criarAmbiente: (nome) => API.post('/api/v1/ambientes', { nome }),
   renomearAmbiente: (id, nome) => API.patch(`/api/v1/ambientes/${id}`, { nome }),
+
+  convitesRecebidos: () => API.get('/api/v1/convites'),
+  aceitarConvite: (id) => API.post(`/api/v1/convites/${id}/aceite`),
+  recusarConvite: (id) => API.post(`/api/v1/convites/${id}/recusa`),
+
+  convitesDoAmbiente: (ambienteId) => API.get(API.doAmbiente(ambienteId, '/convites')),
+  convidar: (ambienteId, email, papel) =>
+    API.post(API.doAmbiente(ambienteId, '/convites'), { email, papel }),
+  cancelarConvite: (ambienteId, id) =>
+    API.remover(API.doAmbiente(ambienteId, `/convites/${id}`)),
+
+  membros: (ambienteId) => API.get(API.doAmbiente(ambienteId, '/membros')),
+  removerMembro: (ambienteId, usuarioId) =>
+    API.remover(API.doAmbiente(ambienteId, `/membros/${usuarioId}`)),
 
   verPerfil: () => API.get('/api/v1/usuarios/atual'),
   alterarPerfil: (corpo) => API.patch('/api/v1/usuarios/atual', corpo),

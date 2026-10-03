@@ -256,7 +256,7 @@ lista de ambientes por onde começar.
 | Objeto | O que é |
 |---|---|
 | `ambientes_para_rotina()` | Função `SECURITY DEFINER`, `STABLE`, com `search_path` fixo. Devolve `(ambiente_id, dono_id)` e **nada mais** |
-| `acesso_visivel_para_a_rotina` | Política de `SELECT` em `acesso` escrita **para o papel dono** (`TO`), limitada a `papel = 'DONO'` |
+| `acesso_visivel_para_as_funcoes` | Política de `SELECT` em `acesso` escrita **para o papel dono** (`TO`), **sem filtro** desde a `V016` — a função é que filtra `papel = 'DONO'`. Substituiu a `acesso_visivel_para_a_rotina` (`ADR-0015`, `docs/03-dados/catalogo-tabelas.md`) |
 
 São **duas** coisas porque `SECURITY DEFINER` sozinho não bastaria: `acesso` tem
 `FORCE ROW LEVEL SECURITY`, que sujeita o próprio dono às políticas, e o dono é `NOBYPASSRLS`.

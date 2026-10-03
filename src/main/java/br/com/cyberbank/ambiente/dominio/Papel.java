@@ -5,7 +5,7 @@ public enum Papel {
     EDITOR,
     LEITOR;
 
-    public boolean podeLancar() {
+    public boolean podeAlterarODado() {
         return this != LEITOR;
     }
 
@@ -17,7 +17,15 @@ public enum Papel {
         return this == DONO;
     }
 
+    public boolean podeRemoverPessoas() {
+        return this == DONO;
+    }
+
     public boolean podeCompartilhar() {
         return this == DONO;
+    }
+
+    public boolean cabeEmConvite() {
+        return this != DONO;
     }
 }

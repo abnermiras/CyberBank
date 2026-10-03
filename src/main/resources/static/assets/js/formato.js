@@ -34,6 +34,12 @@ const Formato = {
     return Math.round(Number(limpo) * 100);
   },
 
+  PAPEIS: { DONO: 'DONO', EDITOR: 'COMPLETA', LEITOR: 'SÓ LEITURA' },
+
+  papel(papel) {
+    return Formato.PAPEIS[papel] || papel;
+  },
+
   tom(cor) {
     return `var(--cat-${String(cor || 'ardosia').toLowerCase()})`;
   },

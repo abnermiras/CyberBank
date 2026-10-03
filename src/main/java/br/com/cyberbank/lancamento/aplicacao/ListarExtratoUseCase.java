@@ -7,11 +7,13 @@ import java.util.Map;
 import br.com.cyberbank.ambiente.dominio.Ambiente;
 import br.com.cyberbank.ambiente.dominio.AmbienteRepository;
 import br.com.cyberbank.conta.dominio.ContaRepository;
+import br.com.cyberbank.lancamento.aplicacao.ExtratoLido.AutorDoLancamento;
 import br.com.cyberbank.lancamento.dominio.Cursor;
 import br.com.cyberbank.lancamento.dominio.FiltroDeExtrato;
 import br.com.cyberbank.lancamento.dominio.Lancamento;
 import br.com.cyberbank.lancamento.dominio.LancamentoRepository;
 import br.com.cyberbank.lancamento.dominio.Pagina;
+import br.com.cyberbank.usuario.dominio.UsuarioRepository;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,12 +27,14 @@ public class ListarExtratoUseCase {
     private final LancamentoRepository lancamentos;
     private final ContaRepository contas;
     private final AmbienteRepository ambientes;
+    private final UsuarioRepository usuarios;
 
     public ListarExtratoUseCase(LancamentoRepository lancamentos, ContaRepository contas,
-            AmbienteRepository ambientes) {
+            AmbienteRepository ambientes, UsuarioRepository usuarios) {
         this.lancamentos = lancamentos;
         this.contas = contas;
         this.ambientes = ambientes;
+        this.usuarios = usuarios;
     }
 
     @Transactional(readOnly = true)
@@ -42,7 +46,7 @@ public class ListarExtratoUseCase {
                 : Math.clamp(limiteRecebido, 1, LIMITE_MAXIMO);
 
         if (contaId != null && contas.buscarAcessivel(contaId, ambienteId).isEmpty()) {
-            return new ExtratoLido(Pagina.de(List.of(), limite), Map.of());
+            return new ExtratoLido(Pagina.de(List.of(), limite), Map.of(), Map.of());
         }
 
         Pagina pagina = lancamentos.listarDoAmbiente(ambienteId,
@@ -50,7 +54,18 @@ public class ListarExtratoUseCase {
                 Cursor.decodificar(cursorRecebido),
                 limite);
 
-        return new ExtratoLido(pagina, nomesDosAmbientesDeFora(pagina.itens(), ambienteId));
+        return new ExtratoLido(pagina, nomesDosAmbientesDeFora(pagina.itens(), ambienteId),
+                autores(pagina.itens()));
+    }
+
+    private Map<Long, AutorDoLancamento> autores(List<Lancamento> itens) {
+        Map<Long, AutorDoLancamento> autores = new HashMap<>();
+        for (Lancamento lancamento : itens) {
+            autores.computeIfAbsent(lancamento.autorId(), autorId -> usuarios.buscarPorId(autorId)
+                    .map(usuario -> new AutorDoLancamento(usuario.nome(), usuario.avatar()))
+                    .orElse(null));
+        }
+        return autores;
     }
 
     private Map<Long, String> nomesDosAmbientesDeFora(List<Lancamento> itens, Long ambienteId) {

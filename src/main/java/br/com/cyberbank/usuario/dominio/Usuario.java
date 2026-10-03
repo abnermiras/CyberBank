@@ -41,16 +41,7 @@ public record Usuario(Long id, String email, String nome, String senhaHash, Avat
         List<ErroDeValidacao> erros = new ArrayList<>();
         validarNome(nome, erros);
 
-        String normalizado = normalizarEmail(email);
-        if (vazio(normalizado)) {
-            erros.add(new ErroDeValidacao("email", "OBRIGATORIO", "Informe o e-mail."));
-        } else if (!ehEmail(normalizado)) {
-            erros.add(new ErroDeValidacao("email", "FORMATO", "E-mail inválido."));
-        } else if (normalizado.length() > TAMANHO_MAXIMO_DO_EMAIL) {
-            erros.add(new ErroDeValidacao("email", "TAMANHO",
-                    "O e-mail tem no máximo " + TAMANHO_MAXIMO_DO_EMAIL + " caracteres."));
-        }
-
+        validarEmail(normalizarEmail(email), erros);
         validarSenha(senha, erros);
 
         if (!erros.isEmpty()) {
@@ -74,6 +65,14 @@ public record Usuario(Long id, String email, String nome, String senhaHash, Avat
                     "O e-mail é o seu login e a chave dos convites: ele não muda."));
         }
 
+        if (!erros.isEmpty()) {
+            throw new ValidacaoException(erros);
+        }
+    }
+
+    public static void exigirEmailValido(String email) {
+        List<ErroDeValidacao> erros = new ArrayList<>();
+        validarEmail(normalizarEmail(email), erros);
         if (!erros.isEmpty()) {
             throw new ValidacaoException(erros);
         }
@@ -109,6 +108,17 @@ public record Usuario(Long id, String email, String nome, String senhaHash, Avat
         } else if (nome.trim().length() > TAMANHO_MAXIMO_DO_NOME) {
             erros.add(new ErroDeValidacao("nome", "TAMANHO",
                     "O nome tem no máximo " + TAMANHO_MAXIMO_DO_NOME + " caracteres."));
+        }
+    }
+
+    private static void validarEmail(String normalizado, List<ErroDeValidacao> erros) {
+        if (vazio(normalizado)) {
+            erros.add(new ErroDeValidacao("email", "OBRIGATORIO", "Informe o e-mail."));
+        } else if (!ehEmail(normalizado)) {
+            erros.add(new ErroDeValidacao("email", "FORMATO", "E-mail inválido."));
+        } else if (normalizado.length() > TAMANHO_MAXIMO_DO_EMAIL) {
+            erros.add(new ErroDeValidacao("email", "TAMANHO",
+                    "O e-mail tem no máximo " + TAMANHO_MAXIMO_DO_EMAIL + " caracteres."));
         }
     }
 

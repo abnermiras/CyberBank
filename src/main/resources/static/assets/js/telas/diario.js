@@ -34,6 +34,11 @@ const Diario = {
       `compartilhou a conta <b>${Formato.texto(d.conta)}</b> com <b>${Formato.texto(d.destino)}</b>`,
     VINCULO_REVOGADO: (d) =>
       `parou de compartilhar a conta <b>${Formato.texto(d.conta)}</b> com <b>${Formato.texto(d.destino)}</b>`,
+    ACESSO_CONCEDIDO: (d) =>
+      `aceitou o convite e entrou no ambiente com <b>${Diario.papel(d.papel)}</b>`,
+    ACESSO_REVOGADO: (d) => (d.saiu
+      ? 'saiu do ambiente'
+      : `tirou <b>${Formato.texto(d.pessoa)}</b> do ambiente`),
     VALOR_DE_APLICACAO_INFORMADO: (d) =>
       `informou quanto <b>${Formato.texto(d.nome)}</b> vale hoje${Diario.deParas(d)}`,
 
@@ -173,6 +178,10 @@ const Diario = {
           ? eventos.map(Diario.linha).join('')
           : `<div class="vazio">${vazio}</div>`}
       </div>`;
+  },
+
+  papel(papel) {
+    return { EDITOR: 'autorização completa', LEITOR: 'somente leitura' }[papel] || papel;
   },
 
   linha(e) {

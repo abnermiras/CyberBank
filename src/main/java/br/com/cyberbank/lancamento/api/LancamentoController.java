@@ -11,6 +11,7 @@ import br.com.cyberbank.lancamento.aplicacao.EditarLancamentoUseCase;
 import br.com.cyberbank.lancamento.aplicacao.EstornarLancamentoUseCase;
 import br.com.cyberbank.lancamento.aplicacao.ExcluirLancamentoUseCase;
 import br.com.cyberbank.lancamento.aplicacao.ExtratoLido;
+import br.com.cyberbank.lancamento.aplicacao.ExtratoLido.AutorDoLancamento;
 import br.com.cyberbank.lancamento.aplicacao.LancarUseCase;
 import br.com.cyberbank.lancamento.aplicacao.ListarExtratoUseCase;
 import br.com.cyberbank.lancamento.aplicacao.DetalheDoLancamento;
@@ -19,6 +20,7 @@ import br.com.cyberbank.lancamento.aplicacao.VerLancamentoUseCase;
 import br.com.cyberbank.lancamento.dominio.Lancamento;
 import br.com.cyberbank.lancamento.dominio.Sentido;
 import br.com.cyberbank.lancamento.dominio.Situacao;
+import br.com.cyberbank.usuario.dominio.Avatar;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -57,7 +59,8 @@ public class LancamentoController {
             @JsonInclude(JsonInclude.Include.NON_NULL) String estabelecimento,
             Long ambienteId,
             boolean deOutroAmbiente,
-            @JsonInclude(JsonInclude.Include.NON_NULL) String ambienteNome) {
+            @JsonInclude(JsonInclude.Include.NON_NULL) String ambienteNome,
+            @JsonInclude(JsonInclude.Include.NON_NULL) AutorResponse autor) {
     }
 
     public record DetalheResponse(
@@ -84,7 +87,8 @@ public class LancamentoController {
             @JsonInclude(JsonInclude.Include.NON_NULL) String ambienteNome) {
     }
 
-    public record AutorResponse(Long id, String nome) {
+    public record AutorResponse(Long id, String nome,
+            @JsonInclude(JsonInclude.Include.NON_NULL) Avatar avatar) {
     }
 
     public record TransferenciaResponse(Long id, Long outroLadoId) {
@@ -143,7 +147,8 @@ public class LancamentoController {
 
         return new ExtratoResponse(
                 lido.pagina().itens().stream()
-                        .map(l -> paraResposta(l, ambienteId, lido.ambientesDeFora()))
+                        .map(l -> paraResposta(l, ambienteId, lido.ambientesDeFora(),
+                                lido.autores()))
                         .toList(),
                 lido.pagina().proximo() == null ? null : lido.pagina().proximo().codificado());
     }
@@ -160,7 +165,7 @@ public class LancamentoController {
                 l.estabelecimento(), detalhe.conta(), detalhe.meio(), detalhe.categoria(),
                 detalhe.fatura(), detalhe.serie(),
                 detalhe.autor() == null ? null
-                        : new AutorResponse(l.autorId(), detalhe.autor()),
+                        : new AutorResponse(l.autorId(), detalhe.autor(), null),
                 l.transferenciaId() == null ? null
                         : new TransferenciaResponse(l.transferenciaId(),
                                 detalhe.outroLadoDaTransferenciaId()),
@@ -237,6 +242,12 @@ public class LancamentoController {
 
     private static LancamentoResponse paraResposta(Lancamento l, Long ambienteAtual,
             Map<Long, String> ambientesDeFora) {
+        return paraResposta(l, ambienteAtual, ambientesDeFora, Map.of());
+    }
+
+    private static LancamentoResponse paraResposta(Lancamento l, Long ambienteAtual,
+            Map<Long, String> ambientesDeFora, Map<Long, AutorDoLancamento> autores) {
+        AutorDoLancamento autor = autores.get(l.autorId());
         boolean deOutroAmbiente = !l.ambienteId().equals(ambienteAtual);
         return new LancamentoResponse(l.id(), l.contaId(), l.meioId(),
                 deOutroAmbiente ? null : l.categoriaId(),
@@ -244,6 +255,7 @@ public class LancamentoController {
                 l.descricao(), l.situacao(), l.doCiclo(), l.transferenciaId(), l.estornoDeId(),
                 l.faturaId(), l.parcelamentoId(), l.estabelecimento(),
                 l.ambienteId(), deOutroAmbiente,
-                deOutroAmbiente ? ambientesDeFora.get(l.ambienteId()) : null);
+                deOutroAmbiente ? ambientesDeFora.get(l.ambienteId()) : null,
+                autor == null ? null : new AutorResponse(l.autorId(), autor.nome(), autor.avatar()));
     }
 }

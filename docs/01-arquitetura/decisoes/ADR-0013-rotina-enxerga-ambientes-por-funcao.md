@@ -8,7 +8,7 @@ status: ativo
 
 # ADR-0013: a rotina diária enxerga os ambientes por função `SECURITY DEFINER`
 
-- **Status:** aceita
+- **Status:** aceita · a política estreita do papel dono foi substituída pelo `ADR-0015`
 - **Data:** 2026-09-17
 - **Afeta:** `02-dominio/evento`, `03-dados/catalogo-tabelas-do-ambiente`, `01-arquitetura/seguranca`, toda rotina futura
 

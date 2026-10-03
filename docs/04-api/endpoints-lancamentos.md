@@ -36,13 +36,12 @@ GET /api/v1/ambientes/1/lancamentos?limite=2
 {
   "itens": [
     { "id": 7, "contaId": 1, "meioId": 1, "categoriaId": 15, "autorId": 1,
-      "sentido": "SAIDA", "valor": 30000,
-      "dataEvento": "2026-09-14", "dataEfeito": "2026-09-14",
-      "descricao": "Feira", "situacao": "REALIZADO", "doCiclo": false },
+      "sentido": "SAIDA", "valor": 30000, "dataEvento": "2026-09-14", "dataEfeito": "2026-09-14",
+      "descricao": "Feira", "situacao": "REALIZADO", "doCiclo": false,
+      "autor": { "id": 1, "nome": "Abner", "avatar": "OLHO" } },
     { "id": 4, "contaId": 1, "categoriaId": 2, "autorId": 1,
-      "sentido": "ENTRADA", "valor": 1123600,
-      "dataEvento": "2026-09-16", "dataEfeito": "2026-09-16",
-      "descricao": "Saldo de abertura", "situacao": "REALIZADO", "doCiclo": true }
+      "sentido": "ENTRADA", "valor": 1123600, "dataEvento": "2026-09-16", "dataEfeito": "2026-09-16",
+      "descricao": "Saldo de abertura", "situacao": "REALIZADO", "doCiclo": true, "autor": { … } }
   ],
   "proximo": "MjAyNi0wOS0xNjo0"
 }
@@ -57,6 +56,7 @@ chave de ordenação, e isso é detalhe do servidor.
 | `categoriaId` | Sempre presente; `null` **é** a pendência. Campo que se aplica e está vazio vem `null`. **Exceção: no lançamento de outro ambiente ele vem `null` de propósito** (máscara), e quem distingue as duas coisas é `deOutroAmbiente`, e então `ambienteNome` ocupa o lugar da categoria. Esse lançamento **não se altera, estorna nem exclui** daqui: `404` (`ambienteId` traz o ambiente que lançou) |
 | `meioId` | **Não vem** em transferência nem no lançamento de abertura: ali ninguém pagou nada. Campo que não se aplica não vem |
 | `transferenciaId`, `estornoDeId`, `estabelecimento` | Só vêm quando existem |
+| `autor` | Quem lançou: `id`, `nome` e `avatar`. **É o único nome que o extrato resolve**, e a razão é que a tela não o tem em memória — conta e categoria ela já carregou, mas quem lançou pode ser alguém que **saiu** do ambiente e não está mais na lista de pessoas. São tantas consultas quantos autores distintos na página, não uma por linha. Vem só no `GET` da lista; as respostas de `POST` e `PATCH` não o trazem |
 | `faturaId` · `parcelamentoId` | Em qual fatura a compra **entra** e de que compra dividida ela é parte. Só no crédito, e lá a situação é sempre `PROVISIONADO`: comprou, deve (`docs/04-api/endpoints-faturas.md`) |
 | `doCiclo` | `true` no que o sistema criou sozinho. É o que a tela usa para não oferecer o botão de excluir |
 | `dataEvento`, `dataEfeito` | Data de domínio: `"AAAA-MM-DD"`, dia local, **sem fuso** |
@@ -92,7 +92,7 @@ GET /api/v1/ambientes/1/lancamentos/88
 | Campo | Nota |
 |---|---|
 | `criadoEm` | **Instante**, em UTC — a hora em que o lançamento foi cadastrado. É o único campo com hora, e o extrato não o devolve |
-| `conta`, `meio`, `categoria`, `autor` | Resolvidos aqui, e **só aqui**. O extrato continua com id cru: ele pagina cinquenta linhas, e cinquenta junções para mostrar o que a tela já tem em memória seria caro à toa |
+| `conta`, `meio`, `categoria` | Resolvidos aqui, e **só aqui**. O extrato continua com id cru: ele pagina cinquenta linhas, e cinquenta junções para mostrar o que a tela já tem em memória seria caro à toa. O `autor` é a exceção, e vem nos dois (ver o extrato acima) |
 | `meio.nome` | `null` fora do crédito — **só o cartão tem nome** (`docs/02-dominio/meio-de-pagamento.md`). O rótulo `Nubank · Pix` é montado pela tela, com a conta que já veio ao lado |
 | `categoria.raiz` | Sempre presente quando há categoria. Numa raiz, `raiz` é ela mesma — assim a tela não precisa de dois caminhos |
 | `transferencia` | `{ "id": ..., "outroLadoId": ... }`. **Só em transferência**, e nela `meio` não vem: ninguém pagou nada |

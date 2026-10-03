@@ -36,6 +36,12 @@ Por que três: o **editor** é o casal que divide as contas de casa; o **leitor*
 acompanha sem mexer (um contador, um filho, você olhando o ambiente de outra pessoa).
 Sem o leitor, todo convite vira permissão de escrita — e aí compartilhar assusta.
 
+**O leitor é barrado na entrada**, não em cada caso de uso: toda requisição de escrita numa rota
+do ambiente passa pela resolução do acesso, e o papel que não pode alterar o dado recebe
+`SEM_PERMISSAO` ali. A exceção é declarada na rota — hoje, só a de sair do ambiente. O motivo é
+o mesmo do filtro de isolamento: **regra que cada caso de uso precisa lembrar é regra que um
+deles esquece**, e escrita é a maioria das rotas.
+
 Na tela isso aparece como duas opções, não três: **autorização completa** e **somente
 leitura**. Autorização completa é o **editor** — faz tudo com o dinheiro e não convida
 ninguém nem exclui o ambiente. Convidar e excluir ficam só com o dono, que é o que impede o
@@ -52,11 +58,17 @@ sem dono nem com dois.
 | Como | O dono digita o **e-mail** do convidado — que é o identificador de login — e o papel |
 | Por onde chega | **Dentro do sistema**, na área de perfil da pessoa: aceitar ou recusar (`docs/06-interface/perfil.md`) |
 | O sistema manda e-mail? | **Não — e não é por falta de e-mail.** O sistema tem e-mail, e ele serve a **uma** coisa: recuperar senha (`ADR-0007`). Convite, compartilhamento, vínculo e qualquer aviso a quem já está dentro chegam **pelo sistema**. A razão é de produto, não de infraestrutura: **informação que é do sistema chega pelo sistema** — e isso continua valendo onde quer que o Cyberbank rode |
-| Convidado sem cadastro | O convite fica pendente; ao se cadastrar com aquele e-mail, ele aparece |
-| Antes do aceite | O convidado **não vê nada** do ambiente. Convite pendente não é acesso |
-| Trocar o papel de alguém | Só o dono, a qualquer momento, com efeito imediato |
-| Editor ou leitor sai | Remove o acesso. O dado que ele criou **permanece** no ambiente |
-| Dono quer sair | Tem que **transferir a propriedade** para outro membro antes. Não há saída que deixe o ambiente órfão |
+| Convidado sem cadastro | O convite fica pendente; ao se cadastrar com aquele e-mail, ele aparece. **A resposta ao convidar é a mesma** com ou sem cadastro: convidar não serve para descobrir quem usa o sistema |
+| Quantos convites | **Um pendente** por e-mail e ambiente. Para trocar a autorização de um convite que ninguém respondeu, o dono cancela e convida de novo |
+| Quem já está dentro | Não se convida: o e-mail que já tem acesso — o do próprio dono incluído — é recusado (`JA_TEM_ACESSO`) |
+| Antes do aceite | O convidado **não vê nada** do ambiente. Convite pendente não é acesso. O que ele lê é o que precisa para decidir: o **nome** do ambiente, a autorização oferecida e **quem** convidou |
+| Resposta | **Uma só.** O convite sai de `PENDENTE` para `ACEITO` ou `RECUSADO` (pelo convidado) ou `CANCELADO` (pelo dono), e não volta. A linha fica — é o histórico de quem foi chamado |
+| Aceitar | Cria o acesso com o papel do convite, no mesmo ato, e grava `ACESSO_CONCEDIDO` no Diário do ambiente (`docs/02-dominio/evento.md`) |
+| Quem vê quem está dentro | **Todo membro**, dono, editor e leitor: a lista de pessoas é o que responde *"quem mais mexe aqui?"*. Os convites pendentes, só o dono |
+| Trocar o papel de alguém | Só o dono, a qualquer momento, com efeito imediato. **Ainda não existe**: hoje o caminho é remover e convidar de novo |
+| Editor ou leitor sai | Remove o acesso. O dado que ele criou **permanece** no ambiente. **É a única escrita que o leitor faz** |
+| Dono remove alguém | Mesmo efeito da saída. Os dois gravam `ACESSO_REVOGADO`, e o Diário distingue quem saiu de quem foi tirado |
+| Dono quer sair | Tem que **transferir a propriedade** para outro membro antes. Não há saída que deixe o ambiente órfão — sair ou ser removido sendo dono é `DONO_NAO_SAI`. **A transferência ainda não existe** |
 | Dono exclui o ambiente | Só se for o único com acesso. Com outras pessoas dentro, primeiro remove ou transfere |
 
 **Remover acesso nunca apaga lançamento.** O dado é do ambiente, não de quem digitou —
@@ -114,7 +126,9 @@ ele"*.
 
 - `docs/02-dominio/lancamento.md`: o lançamento guarda **quem** o criou. Em ambiente
   compartilhado, "quem lançou isso?" é a primeira pergunta que aparece — e o autor é
-  informação de auditoria, não o dono do dado.
+  informação de auditoria, não o dono do dado. A linha do Extrato o mostra quando o ambiente
+  tem mais de uma pessoa (`docs/06-interface/extrato.md`), e ele continua com nome depois que a
+  pessoa sai.
 - `docs/03-dados/modelo-de-dados.md`: `ambiente_id` em toda tabela de dado financeiro,
   com índice, e a tabela de acesso (usuário, ambiente, papel) com unicidade no par.
 - `docs/01-arquitetura/seguranca.md`: como o ambiente entra no contexto da requisição e

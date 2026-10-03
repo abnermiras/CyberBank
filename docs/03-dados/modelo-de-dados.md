@@ -58,8 +58,8 @@ cai numa delas. **Não há quarta.**
 | Família | Tabelas | Como é protegida |
 |---|---|---|
 | **Do ambiente** | `conta`, `categoria`, `meio`, `lancamento`, `fatura`, `parcelamento`, `recorrencia`, `evento` | Coluna `ambiente_id` **obrigatória** + política de RLS. É o caso normal |
-| **Do usuário** | `usuario`, `sessao`, `convite` | Não têm `ambiente_id`. A proteção é a sessão: a consulta é sempre pelo usuário autenticado |
-| **De ligação** | `ambiente`, `acesso`, `vinculo` | São as tabelas que **definem** quem vê o quê. A política delas é por acesso do usuário, não por `ambiente_id` |
+| **Do usuário** | `usuario`, `sessao` | Não têm `ambiente_id`. A proteção é a sessão: a consulta é sempre pelo usuário autenticado |
+| **De ligação** | `ambiente`, `acesso`, `convite`, `vinculo` | São as tabelas que **definem** quem vê o quê. A política delas é por acesso do usuário, não por `ambiente_id` |
 
 **Dado financeiro sem `ambiente_id` é proibido** (`ADR-0002`). Se uma tabela nova parece não
 precisar, a pergunta certa é em qual das três famílias ela está — e não "posso abrir exceção".

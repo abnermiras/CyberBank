@@ -68,7 +68,6 @@ button.amb:focus-visible{outline:1px solid var(--cyan);outline-offset:2px}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
 .grid2 .metric .val{font-size:clamp(21px,2.1vw,31px);white-space:nowrap}
 
-/* o numero que importa e o maior elemento da tela: o a pagar domina os outros tres */
 .grupo-cartao{margin-bottom:16px}
 .grupo-cartao:last-of-type{margin-bottom:0}
 .grupo-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
@@ -401,6 +400,21 @@ details.painel-sistema:not([open]) summary .abrir::after{content:' ▼'}
 .conta-edicao input{flex:1;min-width:160px;padding:8px 10px;background:#03060b;
   border:1px solid var(--cyan);color:var(--ink);font:13px var(--mono);outline:none}
 .conta-ciclo{display:flex;flex-wrap:wrap;gap:6px 14px;margin:8px 0 0}
+.explica-papel{font:10px/1.7 var(--mono);color:var(--muted);letter-spacing:.06em;margin:8px 0 0}
+.pessoas{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.pessoas-titulo{margin:10px 0 8px}
+.pessoa{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 0;
+  border-bottom:1px solid var(--line)}
+.pessoa-av{width:30px;height:30px;flex:none;display:grid;place-items:center;
+  background:var(--panel);border:1px solid var(--line);color:var(--ink)}
+.pessoa-av svg{width:22px;height:22px}
+.pessoa-av.vazio-av{color:var(--dim);font:700 13px var(--disp)}
+.pessoa-id{display:flex;flex-direction:column;gap:2px;flex:1;min-width:140px}
+.pessoa-id strong{font:600 13px var(--disp);letter-spacing:.04em;overflow-wrap:anywhere}
+.pessoa-id strong i{font-style:normal;color:var(--cyan);font-weight:400}
+.pessoa-id .tele{overflow-wrap:anywhere}
+.linha-autor{display:inline-flex;align-items:center;gap:5px}
+.linha-autor svg{width:14px;height:14px}
 .fatura-linha{display:block;padding:10px 0;border-bottom:1px solid var(--linha);text-decoration:none;color:inherit}
 .fatura-linha:last-child{border-bottom:0}
 .fatura-topo{display:flex;align-items:center;gap:8px;justify-content:space-between}
@@ -468,6 +482,7 @@ details.painel-sistema:not([open]) summary .abrir::after{content:' ▼'}
   border:0;clip-path:var(--chamfer-sm);box-shadow:0 0 30px rgba(247,241,60,.35)}
 .fab:hover{background:#fffa5e;box-shadow:0 0 44px rgba(247,241,60,.55)}
 .fab:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+.so-leitura .fab{display:none}
 
 .qa{position:fixed;inset:0;z-index:55;display:flex;align-items:flex-end;justify-content:flex-end;
   padding:22px;background:linear-gradient(to top,rgba(2,4,8,.72),transparent 55%)}

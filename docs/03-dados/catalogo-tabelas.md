@@ -27,14 +27,15 @@ as políticas leem.
 |---|---|---|
 | `usuario` | do usuário | `V001` · `V007` |
 | `sessao` | do usuário | `V001` |
-| `ambiente` | de ligação | `V001` |
-| `acesso` | de ligação | `V001` |
+| `ambiente` | de ligação | `V001` · `V016` |
+| `acesso` | de ligação | `V001` · `V016` |
+| `convite` | de ligação | `V016` |
 | `categoria` | **do ambiente** | `V002` · `V003` |
 | `conta` | **do ambiente** | `V004` · `V009` |
 | `meio` | **do ambiente** | `V004` · `V005` |
 | `lancamento` | **do ambiente** | `V004` · `V009` · `V011` |
 | `vinculo` | de ligação | `V004` |
-| `evento` | **do ambiente** | `V006` · `V008` · `V009` · `V010` · `V011` |
+| `evento` | **do ambiente** | `V006` · `V008` · `V009` · `V010` · `V011` · `V013` · `V015` · `V016` |
 | `fatura` | **do ambiente** (cartão) | `V009` |
 | `parcelamento` | **do ambiente** (cartão) | `V011` |
 
@@ -46,6 +47,7 @@ Postas pelo filtro autenticado com `SET LOCAL`, lidas pelas políticas.
 |---|---|
 | `app_usuario_id()` | `app.usuario_id`, ou **`NULL`** se a variável não foi posta |
 | `app_ambiente_id()` | `app.ambiente_id`, ou **`NULL`** se a variável não foi posta |
+| `app_usuario_email()` | O e-mail do usuário do contexto, lido de `usuario` (`V016`). É a chave do convite |
 
 `NULL` em vez de erro é escolha: sem contexto, toda comparação da política é falsa e **nada é
 visível**. É o lado certo para errar.
@@ -116,6 +118,7 @@ sessão viva de ninguém. Sem RLS, pela mesma razão de `usuario`: a sessão é 
 | Política | Comando | Regra |
 |---|---|---|
 | `ambiente_visivel_por_acesso` | `SELECT` | Tem acesso a ele — **ou** o criou e ele ainda não tem acesso nenhum |
+| `ambiente_visivel_ao_convidado` | `SELECT` | Há convite **pendente** para o e-mail do usuário. É o que deixa o convidado ler o **nome** antes de aceitar; nenhuma tabela do ambiente lê esta política (`V016`) |
 | `ambiente_criado_pelo_usuario` | `INSERT` | `criado_por` é o usuário do contexto |
 | `ambiente_alterado_por_acesso` | `UPDATE` | Tem acesso a ele |
 | `ambiente_excluido_pelo_dono` | `DELETE` | Tem acesso com papel `DONO` |
@@ -151,13 +154,57 @@ O par (usuário, ambiente) mais o papel. É a tabela que **define quem vê o qu�
 | Política | Comando | Regra |
 |---|---|---|
 | `acesso_do_usuario` | `SELECT` | Os próprios acessos |
-| `acesso_criado_pelo_usuario` | `INSERT` | Só para si mesmo — que é o que o cadastro faz |
+| `acesso_criado_pelo_usuario` | `INSERT` | Só para si mesmo, e só em dois casos: papel `DONO` num ambiente que a pessoa criou e que **ainda não tem acesso nenhum** (`ambiente_sem_dono_criado_pelo_usuario`), ou o papel de um convite **pendente** para o e-mail dela naquele ambiente (`convite_pendente_do_usuario`). As duas condições são funções `SECURITY DEFINER`: lidas direto, `ambiente` e `convite` leem `acesso`, e a política recursionaria (`V016`) |
 | `acesso_removido_pelo_usuario` | `DELETE` | Sair de um ambiente é apagar o próprio acesso |
+| `acesso_visivel_para_as_funcoes` | `SELECT` | **Só o papel dono** (`TO`), sem filtro. Quem filtra é a função que o assume (`ADR-0015`) |
+| `acesso_removido_pelas_funcoes` | `DELETE` | **Só o papel dono** (`TO`), e nunca linha de `DONO` |
 
-**Não há política de `UPDATE`, e falta a de convite.** Criar acesso para *outro* usuário e
-trocar papel exigem a condição *"sou dono deste ambiente"*, que lê a própria tabela `acesso` —
-e política que lê a tabela que ela protege recursiona. A saída é uma função
-`SECURITY DEFINER`, e ela entra **com o convite**. Até lá, o banco nega os dois.
+**O acesso de outra pessoa se lê e se remove por função**, nunca por política da aplicação — a
+condição *"sou dono deste ambiente"* lê a própria tabela `acesso`, e política que lê a tabela
+que protege recursiona (`ADR-0015`):
+
+| Função | Faz |
+|---|---|
+| `membros_do_ambiente(ambiente)` | Os acessos do ambiente, **só se** quem chama tem acesso a ele. Senão, vazio |
+| `remover_acesso(ambiente, usuario)` | Apaga um acesso que não seja de dono, **só se** quem chama é o próprio usuário (sair) ou o dono do ambiente. Devolve quantas linhas apagou |
+
+**Não há política de `UPDATE`:** trocar papel e transferir propriedade ainda não existem, e o
+banco nega os dois.
+
+## `convite` — família de ligação (`V016`)
+
+O e-mail de quem foi chamado, para qual ambiente, com qual papel, e o que a pessoa respondeu.
+Guarda o **e-mail**, não o usuário: quem ainda não tem cadastro também é convidado, e o convite
+aparece quando a pessoa se cadastra com aquele e-mail. **Não tem `ambiente_id` de dono do
+dado** — é ligação, como `acesso`, e a política é por papel e por e-mail.
+
+| Coluna | Tipo | Nulo | Default | Nota |
+|---|---|---|---|---|
+| `id` | `bigint` identity | não | — | PK |
+| `ambiente_id` | `bigint` | não | — | FK → `ambiente`, `ON DELETE CASCADE` |
+| `email` | `varchar(255)` | não | — | Minúsculo, como o de `usuario` |
+| `papel` | `varchar(20)` | não | — | `EDITOR` ou `LEITOR`. **Ninguém é convidado para dono** |
+| `situacao` | `varchar(20)` | não | — | `PENDENTE`, `ACEITO`, `RECUSADO`, `CANCELADO` |
+| `convidado_por` | `bigint` | não | — | FK → `usuario`. O dono que convidou |
+| `criado_em` | `timestamptz` | não | `now()` | |
+| `respondido_em` | `timestamptz` | sim | — | Preenchido exatamente quando deixa de ser `PENDENTE` |
+
+| Índice / constraint | Protege |
+|---|---|
+| `ck_convite_email_minusculo` | A comparação com o e-mail do usuário, que também é minúsculo |
+| `ck_convite_papel` · `ck_convite_situacao` | As listas fechadas |
+| `ck_convite_respondido` | `respondido_em` nulo se e só se `PENDENTE` |
+| `uq_convite_pendente` | Único parcial `(ambiente_id, email) WHERE situacao = 'PENDENTE'`: **um pendente** por e-mail e ambiente |
+| `ix_convite_email_pendente` | "Que convites estão esperando por mim?", a lista do Perfil |
+
+`ENABLE` + `FORCE ROW LEVEL SECURITY`. **Não há política de `DELETE`**: convite respondido é
+histórico.
+
+| Política | Comando | Regra |
+|---|---|---|
+| `convite_visivel` | `SELECT` | O dono do ambiente, **ou** o dono do e-mail |
+| `convite_criado_pelo_dono` | `INSERT` | `convidado_por` é o usuário, ele é `DONO` do ambiente, e o convite nasce `PENDENTE` |
+| `convite_respondido` | `UPDATE` | Só convite `PENDENTE`. O dono o leva a `CANCELADO`; o dono do e-mail, a `ACEITO` ou `RECUSADO` — e nenhum dos dois faz o papel do outro |
 
 ## `vinculo` — família de ligação (`V004`)
 
