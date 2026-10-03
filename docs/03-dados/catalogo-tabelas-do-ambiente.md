@@ -192,8 +192,8 @@ lança na conta de um ambiente — o ramo só devolve algo a mais quando existe 
 | Política | Comando | Regra |
 |---|---|---|
 | `vinculo_das_duas_pontas` | `SELECT` | O usuário tem acesso ao ambiente de origem **ou** ao de destino |
-| `vinculo_criado_pelo_dono_da_origem` | `INSERT` | `criado_por` é o usuário, ele é **`DONO`** do ambiente de origem **e** tem acesso ao de destino (`V015`) |
-| `vinculo_revogado_pelo_dono_da_origem` | `DELETE` | O usuário é **`DONO`** do ambiente de origem (`V015`) |
+| `vinculo_criado_pelo_dono_da_origem` | `INSERT` | `criado_por` é o usuário, ele é **`DONO`** do ambiente de origem **e** `DONO` ou `EDITOR` do de destino (`V015`, apertada na `V017`) |
+| `vinculo_revogado_por_uma_das_pontas` | `DELETE` | O usuário é **`DONO`** do ambiente de origem **ou** do de destino (`V017`; substituiu a `vinculo_revogado_pelo_dono_da_origem`) |
 
 Elas leem **só `acesso`**. Ler `conta` aqui recursionaria, porque a política de `conta` lê
 `vinculo` — e é por isso que `ambiente_origem_id` é coluna. **Não há `UPDATE`**: vínculo não se

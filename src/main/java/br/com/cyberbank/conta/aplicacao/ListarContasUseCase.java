@@ -8,12 +8,16 @@ import java.util.stream.Collectors;
 
 import br.com.cyberbank.ambiente.dominio.Ambiente;
 import br.com.cyberbank.ambiente.dominio.AmbienteRepository;
+import br.com.cyberbank.compartilhamento.dominio.Compartilhamento;
+import br.com.cyberbank.compartilhamento.dominio.CompartilhamentoRepository;
 import br.com.cyberbank.comum.tempo.DiaLocal;
 import br.com.cyberbank.conta.dominio.Conta;
 import br.com.cyberbank.conta.dominio.ContaRepository;
 import br.com.cyberbank.lancamento.dominio.JanelaDoPrevisto;
 import br.com.cyberbank.lancamento.dominio.LancamentoRepository;
 import br.com.cyberbank.lancamento.dominio.SaldoDeConta;
+import br.com.cyberbank.usuario.dominio.Usuario;
+import br.com.cyberbank.usuario.dominio.UsuarioRepository;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,13 +28,18 @@ public class ListarContasUseCase {
     private final ContaRepository contas;
     private final LancamentoRepository lancamentos;
     private final AmbienteRepository ambientes;
+    private final CompartilhamentoRepository compartilhamentos;
+    private final UsuarioRepository usuarios;
     private final DiaLocal diaLocal;
 
     public ListarContasUseCase(ContaRepository contas, LancamentoRepository lancamentos,
-            AmbienteRepository ambientes, DiaLocal diaLocal) {
+            AmbienteRepository ambientes, CompartilhamentoRepository compartilhamentos,
+            UsuarioRepository usuarios, DiaLocal diaLocal) {
         this.contas = contas;
         this.lancamentos = lancamentos;
         this.ambientes = ambientes;
+        this.compartilhamentos = compartilhamentos;
+        this.usuarios = usuarios;
         this.diaLocal = diaLocal;
     }
 
@@ -66,7 +75,12 @@ public class ListarContasUseCase {
         }
         String nome = nomesDasOrigens.computeIfAbsent(conta.ambienteId(),
                 origem -> ambientes.buscar(origem).map(Ambiente::nome).orElse(""));
-        return new ContaComSaldo.CompartilhadaDe(conta.ambienteId(), nome);
+        Long emprestadaPorId = compartilhamentos.buscar(conta.id(), ambienteId)
+                .map(Compartilhamento::criadoPor).orElse(null);
+        String emprestadaPor = emprestadaPorId == null ? null
+                : usuarios.buscarPorId(emprestadaPorId).map(Usuario::nome).orElse(null);
+        return new ContaComSaldo.CompartilhadaDe(conta.ambienteId(), nome, emprestadaPorId,
+                emprestadaPor);
     }
 
     private static Map<Long, Long> porConta(List<SaldoDeConta> saldos) {

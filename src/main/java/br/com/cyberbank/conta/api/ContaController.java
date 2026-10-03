@@ -62,7 +62,9 @@ public class ContaController {
             @JsonInclude(JsonInclude.Include.NON_NULL) CompartilhadaDeResponse compartilhadaDe) {
     }
 
-    public record CompartilhadaDeResponse(Long ambienteId, String nome) {
+    public record CompartilhadaDeResponse(Long ambienteId, String nome,
+            @JsonInclude(JsonInclude.Include.NON_NULL) Long emprestadaPorId,
+            @JsonInclude(JsonInclude.Include.NON_NULL) String emprestadaPor) {
     }
 
     public record ListaResponse(List<ContaResponse> itens, long emCaixaCentavos,
@@ -254,7 +256,9 @@ public class ContaController {
                 contrato == null ? null : contrato.contaPagadoraPadraoId(),
                 comSaldo.compartilhadaDe() == null ? null
                         : new CompartilhadaDeResponse(comSaldo.compartilhadaDe().ambienteId(),
-                                comSaldo.compartilhadaDe().nome()));
+                                comSaldo.compartilhadaDe().nome(),
+                                comSaldo.compartilhadaDe().emprestadaPorId(),
+                                comSaldo.compartilhadaDe().emprestadaPor()));
     }
 
     private static ContaGravadaResponse paraRespostaGravada(Conta conta) {

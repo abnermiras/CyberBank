@@ -41,6 +41,13 @@ public class CompartilhamentoRepositoryJpa implements CompartilhamentoRepository
     }
 
     @Override
+    public List<Compartilhamento> listarRecebidos(Long ambienteDestinoId) {
+        return jpa.findByAmbienteDestinoIdOrderByIdAsc(ambienteDestinoId).stream()
+                .map(CompartilhamentoRepositoryJpa::paraDominio)
+                .toList();
+    }
+
+    @Override
     public void revogar(Long contaId, Long ambienteDestinoId) {
         jpa.deleteByContaIdAndAmbienteDestinoId(contaId, ambienteDestinoId);
     }

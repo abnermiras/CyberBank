@@ -27,14 +27,14 @@ as políticas leem.
 |---|---|---|
 | `usuario` | do usuário | `V001` · `V007` |
 | `sessao` | do usuário | `V001` |
-| `ambiente` | de ligação | `V001` · `V016` |
+| `ambiente` | de ligação | `V001` · `V016` · `V017` |
 | `acesso` | de ligação | `V001` · `V016` |
 | `convite` | de ligação | `V016` |
 | `categoria` | **do ambiente** | `V002` · `V003` |
 | `conta` | **do ambiente** | `V004` · `V009` |
 | `meio` | **do ambiente** | `V004` · `V005` |
 | `lancamento` | **do ambiente** | `V004` · `V009` · `V011` |
-| `vinculo` | de ligação | `V004` |
+| `vinculo` | de ligação | `V004` · `V015` · `V017` |
 | `evento` | **do ambiente** | `V006` · `V008` · `V009` · `V010` · `V011` · `V013` · `V015` · `V016` |
 | `fatura` | **do ambiente** (cartão) | `V009` |
 | `parcelamento` | **do ambiente** (cartão) | `V011` |
@@ -118,6 +118,7 @@ sessão viva de ninguém. Sem RLS, pela mesma razão de `usuario`: a sessão é 
 | Política | Comando | Regra |
 |---|---|---|
 | `ambiente_visivel_por_acesso` | `SELECT` | Tem acesso a ele — **ou** o criou e ele ainda não tem acesso nenhum |
+| `ambiente_visivel_a_quem_recebe_conta_dele` | `SELECT` | O ambiente empresta uma conta a um ambiente a que o usuário tem acesso. É o que deixa ler o **nome** de onde veio a conta de outra pessoa; nada além da linha de `ambiente` (`V017`) |
 | `ambiente_visivel_ao_convidado` | `SELECT` | Há convite **pendente** para o e-mail do usuário. É o que deixa o convidado ler o **nome** antes de aceitar; nenhuma tabela do ambiente lê esta política (`V016`) |
 | `ambiente_criado_pelo_usuario` | `INSERT` | `criado_por` é o usuário do contexto |
 | `ambiente_alterado_por_acesso` | `UPDATE` | Tem acesso a ele |

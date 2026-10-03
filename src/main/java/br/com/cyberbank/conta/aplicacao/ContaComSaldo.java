@@ -5,7 +5,8 @@ import br.com.cyberbank.conta.dominio.Conta;
 public record ContaComSaldo(Conta conta, long saldoRealizadoCentavos,
         long previstoNoHorizonteCentavos, CompartilhadaDe compartilhadaDe) {
 
-    public record CompartilhadaDe(Long ambienteId, String nome) {
+    public record CompartilhadaDe(Long ambienteId, String nome, Long emprestadaPorId,
+            String emprestadaPor) {
     }
 
     public ContaComSaldo(Conta conta, long saldoRealizadoCentavos,

@@ -124,7 +124,7 @@ critério do resto do projeto.
 | `MEIO_CRIADO` · `MEIO_RENOMEADO` · `MEIO_INATIVADO` · `MEIO_REATIVADO` · `MEIO_EXCLUIDO` | Idem para meio de pagamento |
 | `SERIE_CRIADA` · `SERIE_ALTERADA` · `SERIE_CANCELADA` | Parcelamento ou recorrência |
 | `ACESSO_CONCEDIDO` · `ACESSO_REVOGADO` | Quem entrou e quem saiu do ambiente. O autor do `CONCEDIDO` é quem **aceitou** o convite; o do `REVOGADO` é quem **agiu** — a própria pessoa, se saiu, ou o dono, se a tirou. Sem alvo: a pessoa não é objeto do ambiente. `dados` leva `usuarioId`, `pessoa` (o nome), `papel` e, no `REVOGADO`, `saiu` |
-| `VINCULO_CRIADO` · `VINCULO_REVOGADO` | A conta foi compartilhada com outro ambiente, ou deixou de ser (`ADR-0004`). Gravam no ambiente de **origem**, com a conta como alvo e `conta`, `destinoId` e `destino` em `dados`. **O Diário do destino não os mostra**: o que o destino vê do Diário é decisão em aberto |
+| `VINCULO_CRIADO` · `VINCULO_REVOGADO` | A conta foi compartilhada com outro ambiente, ou deixou de ser (`ADR-0004`). Gravam no ambiente de **quem agiu** — a origem, ao compartilhar e revogar; o destino, ao **devolver** a conta ou quando quem a emprestou sai dele —, com a conta como alvo e `conta`, `destinoId` e `destino` em `dados`; a devolução leva também `devolvida` e `origem`. **O Diário da outra ponta não os mostra**: o que cada ponta vê do Diário da outra é decisão em aberto |
 
 **Renomear e recolorir também entram**, e a simetria é o argumento: `CATEGORIA_RENOMEADA`
 sempre esteve na lista e não mexe em saldo nenhum. O Diário responde *"por que meu saldo

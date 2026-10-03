@@ -68,8 +68,10 @@ class CompartilhamentoDeContaIT {
 
         var noDestino = conta(par.b(), nubank);
         assertThat(noDestino).containsEntry("nome", "Nubank");
-        assertThat(noDestino.get("compartilhadaDe")).isEqualTo(
-                Map.of("ambienteId", par.a().ambienteId(), "nome", "Ambiente Pessoal"));
+        assertThat(mapa(noDestino.get("compartilhadaDe")))
+                .containsEntry("ambienteId", par.a().ambienteId())
+                .containsEntry("nome", "Ambiente Pessoal")
+                .containsEntry("emprestadaPorId", par.a().usuarioId());
 
         assertThat(conta(par.a(), nubank))
                 .as("na origem a conta é dela mesma, sem marca")
@@ -359,6 +361,115 @@ class CompartilhamentoDeContaIT {
                 .doesNotContain("VINCULO_CRIADO", "VINCULO_REVOGADO");
     }
 
+    @Test
+    void o_convidado_traz_a_conta_dele_para_o_ambiente_que_recebeu_e_cada_um_ve_quem_lancou() {
+        Par abner = doisAmbientes("cenario");
+        Integer nubank = criarConta(abner.a(), "Nubank", 100000L);
+        assertThat(compartilhar(abner.a(), nubank, abner.b().ambienteId()).getStatusCode())
+                .isEqualTo(HttpStatus.CREATED);
+
+        Sessao bia = novaSessao("cenario-bia");
+        convidarEAceitar(abner.b(), "cenario-bia@exemplo.com", "EDITOR", bia);
+        Integer itau = criarConta(bia, "Itaú", 50000L);
+
+        assertThat(compartilhar(bia, itau, abner.b().ambienteId()).getStatusCode())
+                .as("a convidada empresta a conta dela para o ambiente que recebeu")
+                .isEqualTo(HttpStatus.CREATED);
+
+        assertThat(itens(get(abner.b(), "/contas")))
+                .extracting(c -> c.get("nome"))
+                .containsExactlyInAnyOrder("Nubank", "Itaú");
+        assertThat(mapa(conta(abner.b(), itau).get("compartilhadaDe")))
+                .as("o ambiente e a pessoa que emprestaram são legíveis para quem recebeu")
+                .containsEntry("ambienteId", bia.ambienteId())
+                .containsEntry("nome", "Ambiente Pessoal")
+                .containsEntry("emprestadaPorId", bia.usuarioId())
+                .containsEntry("emprestadaPor", "cenario-bia");
+
+        Sessao biaNoB = new Sessao(bia.usuarioId(), abner.b().ambienteId(), bia.cookie());
+        assertThat(lancar(abner.b(), meioDa(abner.b(), itau), null, 1500, "Mercado do Abner")
+                .getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(lancar(biaNoB, meioDa(biaNoB, nubank), null, 700, "Padaria da Bia")
+                .getStatusCode())
+                .as("a convidada lança na conta que o Abner trouxe")
+                .isEqualTo(HttpStatus.CREATED);
+
+        var noItauDaBia = linha(itens(get(bia, "/lancamentos?contaId=" + itau)),
+                "Mercado do Abner");
+        assertThat(noItauDaBia).containsEntry("deOutroAmbiente", true)
+                .containsEntry("ambienteNome", "Viagem")
+                .containsEntry("categoriaId", null);
+        assertThat(mapa(noItauDaBia.get("autor"))).containsEntry("nome", "cenario");
+        assertThat(conta(bia, itau)).containsEntry("saldoRealizadoCentavos", 48500);
+    }
+
+    @Test
+    void quem_so_le_o_ambiente_nao_traz_conta_para_ele() {
+        Par abner = doisAmbientes("leitora");
+        Sessao bia = novaSessao("leitora-bia");
+        convidarEAceitar(abner.b(), "leitora-bia@exemplo.com", "LEITOR", bia);
+        Integer itau = criarConta(bia, "Itaú", null);
+
+        assertThat(compartilhar(bia, itau, abner.b().ambienteId()))
+                .satisfies(r -> {
+                    assertThat(r.getStatusCode().value()).isEqualTo(422);
+                    assertThat(r.getBody()).containsEntry("codigo", "AMBIENTE_DESTINO_INVALIDO");
+                });
+    }
+
+    @Test
+    void o_dono_do_destino_devolve_a_conta_emprestada_e_o_editor_nao() {
+        Par abner = doisAmbientes("devolve");
+        Integer nubank = criarConta(abner.a(), "Nubank", null);
+        compartilhar(abner.a(), nubank, abner.b().ambienteId());
+        Sessao bia = novaSessao("devolve-bia");
+        convidarEAceitar(abner.b(), "devolve-bia@exemplo.com", "EDITOR", bia);
+        Integer itau = criarConta(bia, "Itaú", null);
+        compartilhar(bia, itau, abner.b().ambienteId());
+        Sessao biaNoB = new Sessao(bia.usuarioId(), abner.b().ambienteId(), bia.cookie());
+        String hoje = LocalDate.now(ZoneId.of("America/Sao_Paulo")).toString();
+
+        assertThat(devolver(biaNoB, nubank).getStatusCode())
+                .as("o editor do destino não devolve")
+                .isEqualTo(HttpStatus.FORBIDDEN);
+
+        assertThat(devolver(abner.b(), itau).getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        assertThat(itens(get(abner.b(), "/contas")))
+                .extracting(c -> c.get("nome")).containsExactly("Nubank");
+        assertThat(itens(get(bia, "/contas/" + itau + "/compartilhamentos"))).isEmpty();
+
+        assertThat(itens(get(abner.b(), "/eventos?dia=" + hoje)))
+                .filteredOn(e -> "VINCULO_REVOGADO".equals(e.get("tipo")))
+                .singleElement()
+                .satisfies(e -> assertThat(mapa(e.get("dados")))
+                        .containsEntry("conta", "Itaú").containsEntry("devolvida", true));
+    }
+
+    @Test
+    void quem_sai_do_ambiente_leva_a_conta_que_emprestou_e_quem_e_removido_tambem() {
+        Par abner = doisAmbientes("saida");
+        Sessao bia = novaSessao("saida-bia");
+        Sessao caio = novaSessao("saida-caio");
+        convidarEAceitar(abner.b(), "saida-bia@exemplo.com", "EDITOR", bia);
+        convidarEAceitar(abner.b(), "saida-caio@exemplo.com", "EDITOR", caio);
+        Integer itau = criarConta(bia, "Itaú", null);
+        Integer inter = criarConta(caio, "Inter", null);
+        compartilhar(bia, itau, abner.b().ambienteId());
+        compartilhar(caio, inter, abner.b().ambienteId());
+        Sessao biaNoB = new Sessao(bia.usuarioId(), abner.b().ambienteId(), bia.cookie());
+
+        assertThat(troca(http().delete().uri(caminho(biaNoB, "/membros/" + bia.usuarioId())),
+                biaNoB).getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        assertThat(troca(http().delete().uri(caminho(abner.b(), "/membros/" + caio.usuarioId())),
+                abner.b()).getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+
+        assertThat(itens(get(abner.b(), "/contas")))
+                .as("as duas contas saíram com quem as emprestou")
+                .isEmpty();
+        assertThat(itens(get(bia, "/contas")))
+                .extracting(c -> c.get("nome")).containsExactly("Itaú");
+    }
+
     private Par doisAmbientes(String apelido) {
         Sessao a = novaSessao(apelido);
         var criado = troca(http().post().uri("/api/v1/ambientes").body(Map.of("nome", "Viagem")),
@@ -366,6 +477,24 @@ class CompartilhamentoDeContaIT {
         assertThat(criado.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         return new Par(a, new Sessao(a.usuarioId(), (Integer) criado.getBody().get("id"),
                 a.cookie()));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> mapa(Object valor) {
+        return (Map<String, Object>) valor;
+    }
+
+    private void convidarEAceitar(Sessao dono, String email, String papel, Sessao convidado) {
+        var convite = troca(http().post().uri(caminho(dono, "/convites"))
+                .body(Map.of("email", email, "papel", papel)), dono);
+        assertThat(convite.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(troca(http().post().uri("/api/v1/convites/" + convite.getBody().get("id")
+                + "/aceite"), convidado).getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    private ResponseEntity<Map<String, Object>> devolver(Sessao destino, Integer contaId) {
+        return troca(http().delete().uri(caminho(destino, "/contas/" + contaId
+                + "/compartilhamentos/" + destino.ambienteId())), destino);
     }
 
     private ResponseEntity<Map<String, Object>> compartilhar(Sessao origem, Integer contaId,

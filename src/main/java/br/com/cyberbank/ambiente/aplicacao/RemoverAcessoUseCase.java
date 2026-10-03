@@ -5,6 +5,7 @@ import java.time.Instant;
 
 import br.com.cyberbank.ambiente.dominio.Acesso;
 import br.com.cyberbank.ambiente.dominio.AcessoRepository;
+import br.com.cyberbank.compartilhamento.aplicacao.RevogarCompartilhamentoUseCase;
 import br.com.cyberbank.comum.erro.CodigoDeErro;
 import br.com.cyberbank.comum.erro.RegraDeDominioException;
 import br.com.cyberbank.comum.tempo.DiaLocal;
@@ -23,14 +24,17 @@ public class RemoverAcessoUseCase {
     private final AcessoRepository acessos;
     private final UsuarioRepository usuarios;
     private final EventoRepository eventos;
+    private final RevogarCompartilhamentoUseCase revogarCompartilhamento;
     private final DiaLocal diaLocal;
     private final Clock relogio;
 
     public RemoverAcessoUseCase(AcessoRepository acessos, UsuarioRepository usuarios,
-            EventoRepository eventos, DiaLocal diaLocal, Clock relogio) {
+            EventoRepository eventos, RevogarCompartilhamentoUseCase revogarCompartilhamento,
+            DiaLocal diaLocal, Clock relogio) {
         this.acessos = acessos;
         this.usuarios = usuarios;
         this.eventos = eventos;
+        this.revogarCompartilhamento = revogarCompartilhamento;
         this.diaLocal = diaLocal;
         this.relogio = relogio;
     }
@@ -46,6 +50,7 @@ public class RemoverAcessoUseCase {
                 .orElseThrow(() -> new RegraDeDominioException(CodigoDeErro.NAO_ENCONTRADO));
 
         removido.exigirRemovivelPor(quemRemove);
+        revogarCompartilhamento.devolverOsEmprestadosPor(removidoId, ambienteId, usuarioId);
         if (!acessos.remover(removido)) {
             throw new RegraDeDominioException(CodigoDeErro.NAO_ENCONTRADO);
         }

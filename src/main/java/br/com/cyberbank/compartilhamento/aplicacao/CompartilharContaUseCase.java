@@ -57,12 +57,14 @@ public class CompartilharContaUseCase {
         Conta conta = contas.buscarDoAmbiente(contaId, ambienteOrigemId)
                 .orElseThrow(() -> new RegraDeDominioException(CodigoDeErro.NAO_ENCONTRADO));
 
-        Compartilhamento novo = Compartilhamento.novo(contaId, conta.ehContratoDeCartao(),
-                ambienteOrigemId, ambienteDestinoId, usuarioId, relogio.instant());
+        boolean podeAlterarODestino = ambienteDestinoId != null
+                && acessos.buscar(usuarioId, ambienteDestinoId)
+                        .map(acesso -> acesso.papel().podeAlterarODado())
+                        .orElse(false);
 
-        acessos.buscar(usuarioId, ambienteDestinoId)
-                .orElseThrow(() -> new RegraDeDominioException(
-                        CodigoDeErro.AMBIENTE_DESTINO_INVALIDO));
+        Compartilhamento novo = Compartilhamento.novo(contaId, conta.ehContratoDeCartao(),
+                ambienteOrigemId, ambienteDestinoId, podeAlterarODestino, usuarioId,
+                relogio.instant());
 
         if (compartilhamentos.buscar(contaId, ambienteDestinoId).isPresent()) {
             throw new RegraDeDominioException(CodigoDeErro.COMPARTILHAMENTO_JA_EXISTE);

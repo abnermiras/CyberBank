@@ -79,7 +79,7 @@ em si está em `docs/04-api/endpoints-faturas.md`.
 | `entraNoFluxoDeCaixa` | O movimento é gasto da vida? É **este campo**, e não o tipo, que o relatório de gasto consulta |
 | `entraEmCaixa` | O saldo paga **qualquer coisa**? Os dois são campo e não derivação do tipo, de propósito: tipo novo no futuro só precisa responder a estas duas perguntas |
 | `tiposDeMeioDisponiveis` | Quais meios cabem nesta conta. `CARTEIRA` devolve só `DINHEIRO` — **é isso que torna o dinheiro exclusivo**, sem precisar de regra própria; `APLICACAO` devolve vazio |
-| `compartilhadaDe` | `{ ambienteId, nome }` do ambiente **de origem**, **só** nas contas emprestadas ao ambiente atual. Ausente nas próprias. É o que a tela usa para marcar a conta e tirar dela as ações que só o dono tem |
+| `compartilhadaDe` | `{ ambienteId, nome, emprestadaPorId, emprestadaPor }`: o ambiente **de origem** e **quem** emprestou, **só** nas contas emprestadas ao ambiente atual. Ausente nas próprias. Com outra pessoa no meio, dois ambientes se chamam "Ambiente Pessoal", e é o nome de quem emprestou que desfaz a dúvida — a tela o mostra quando não é o próprio usuário. É o que a tela usa para marcar a conta e tirar dela as ações que só o dono tem |
 | `emCaixaCentavos` | Soma das contas com `entraEmCaixa = true`. O vale-refeição fica **fora**: aquele saldo só compra uma coisa |
 | `patrimonioCentavos` | Soma do saldo realizado de **todas** as contas, sem exceção nenhuma — **as emprestadas incluídas**: conta conjunta entra no patrimônio dos dois ambientes |
 
