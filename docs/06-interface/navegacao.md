@@ -49,6 +49,13 @@ Pessoal*. Preço aceito: em outro aparelho, a pessoa começa no Pessoal.
 **Quick-add** é o caminho principal. Um botão presente em qualquer tela (e a tecla `N`)
 abre um painel curto: valor, o que foi, meio, categoria opcional. É desenhado para o caso
 que acontece 30 vezes por mês — um café, um mercado — e some da frente em dois segundos.
+**O leitor não o vê**: no ambiente em que o papel é *somente leitura*, o botão some e a tecla
+não abre nada.
+
+> ☐ **O leitor ainda vê os outros botões de escrita** — cadastro, editar e excluir no detalhe,
+> pagar fatura. O servidor os recusa com `SEM_PERMISSAO` e a tela mostra a frase, mas a regra
+> deste projeto é o botão que só existe quando funciona. Esconder cada um é trabalho tela a
+> tela, e ficou de fora da entrega do convite (03/10).
 
 Categoria é **opcional** no quick-add. Sem ela o lançamento entra e vai para a fila de
 pendências. Isso é a regra do glossário virando tela: o sistema aceita exigir a

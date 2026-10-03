@@ -1,7 +1,7 @@
 ---
 id: 06-interface/perfil
 titulo: Tela de Perfil
-dono: a tela do proprio usuario: onde se entra, as secoes, o seletor de avatar e os espacos reservados
+dono: a tela do proprio usuario: onde se entra, as secoes, o seletor de avatar, os convites e as pessoas de cada ambiente
 ler-junto: [02-dominio/usuario, 06-interface/navegacao, 06-interface/direcao-visual]
 status: ativo
 ---
@@ -28,15 +28,19 @@ botão** e abre o Perfil; o `Sair`, ao lado, continua sendo um botão solto.
 | # | Seção | O que tem | Estado |
 |---|---|---|---|
 | 1 | **IDENTIDADE** | Avatar, nome, e-mail e a data de cadastro | funciona |
-| 2 | **SENHA** | Senha atual, nova senha, e o aviso do que vai acontecer | funciona |
-| 3 | **TELEGRAM** | O `chat id` declarado, e o botão de desvincular | funciona, e **nada o consome ainda** |
-| — | **AMBIENTES** | Os ambientes a que a pessoa tem acesso, criar e renomear | funciona; fica no **topo da coluna da direita** |
-| 4 | **CONVITES** | Recebidos, e os que a pessoa faz | **espaço reservado** |
+| 2 | **CONVITES RECEBIDOS** | Os convites esperando resposta: aceitar ou recusar | funciona |
+| 3 | **SENHA** | Senha atual, nova senha, e o aviso do que vai acontecer | funciona |
+| 4 | **TELEGRAM** | O `chat id` declarado, e o botão de desvincular | funciona, e **nada o consome ainda** |
+| — | **AMBIENTES** | Os ambientes a que a pessoa tem acesso, criar e renomear, e as **pessoas** de cada um — quem está, convidar, remover, sair | funciona; fica no **topo da coluna da direita** |
 | 5 | **SESSÕES** | Onde a conta está aberta, encerrar uma e encerrar todas | funciona |
 
-A ordem é a frequência: o que se mexe de vez em quando vem antes do que é raro, e o que ainda
-não funciona vem por último. **Quando o convite existir, ele sobe para logo abaixo da
-identidade** — aí ele passa a ser o motivo de a pessoa abrir esta tela.
+A ordem é a frequência: o que se mexe de vez em quando vem antes do que é raro. **Os convites
+recebidos ficam logo abaixo da identidade** porque, quando existem, são o motivo de a pessoa
+abrir esta tela.
+
+**Convidar não é uma seção, é um ato do ambiente.** Convida-se para **um** ambiente, então o
+formulário mora dentro do cartão dele, em *Pessoas* — e não num bloco solto que perguntaria
+"para qual?".
 
 ## IDENTIDADE
 
@@ -100,8 +104,43 @@ criado**, no horário de Brasília.
 - **Não há ativo/inativo, desligar nem excluir** — não foram decididos
   (`docs/02-dominio/ambiente-financeiro.md`), e a tela não finge que existem.
 
-O bloco fica na coluna da direita, acima dos convites, porque é dali que o convite vai
-depender: convida-se para **um** ambiente.
+- **O papel aparece com o nome da tela**: `DONO`, `COMPLETA` (o editor) e `SÓ LEITURA` (o
+  leitor). O mesmo rótulo vale no seletor de ambiente e no chip do topo.
+
+### Pessoas
+
+O botão **Pessoas**, em todo cartão de ambiente e para qualquer papel, abre embaixo dele quem
+tem acesso: avatar, nome, e-mail e papel, com `· você` na própria linha.
+
+- **O dono** vê, além disso, os **convites pendentes** — um `?` no lugar do avatar, o e-mail e
+  *CONVITE ESPERANDO RESPOSTA* — com **Cancelar convite**, e embaixo o formulário: e-mail, e
+  **Autorização completa** ou **Somente leitura** num seletor de dois botões. Uma linha diz o
+  que a escolha permite, e ela muda junto com o seletor; trocar a escolha não apaga o e-mail
+  digitado. Depois de convidar, o aviso diz **onde** a pessoa vai ver o convite — inclusive se
+  ela ainda não tiver cadastro.
+- **Remover** (dono, na linha de outra pessoa) e **Sair do ambiente** (qualquer outro papel, na
+  própria linha) pedem **confirmação no lugar**: o botão vira *Confirmar* e *Desistir*, e uma
+  linha diz a consequência — a pessoa deixa de ver o ambiente, e **o que ela lançou fica**.
+  A confirmação existe porque quem sai não consegue voltar sozinho: depende de um convite novo.
+- **Sair do ambiente que está em uso** recarrega a página, e o seletor cai no primeiro da lista,
+  como já fazia com um ambiente que deixou de existir.
+- **O dono não tem botão na própria linha**: ele não sai sem transferir a propriedade, e a
+  transferência não existe (`docs/02-dominio/ambiente-financeiro.md`).
+
+## CONVITES RECEBIDOS
+
+Um cartão por convite pendente, do mais antigo para o mais novo: o **nome do ambiente**, o
+papel oferecido, **quem convidou** e quando, e uma linha que diz o que aquele papel faz —
+*autorização completa: lança, corrige e cadastra; não convida nem exclui o ambiente*, ou
+*somente leitura: vê tudo e não muda nada*. É tudo o que a pessoa lê do ambiente antes de
+aceitar, e é o bastante para decidir.
+
+- **Aceitar** e **Recusar**, sem confirmação — recusar custa só pedir outro convite.
+- Ao aceitar, o aviso diz que o ambiente **já está no seletor do topo**, e a lista de ambientes
+  ao lado ganha o cartão dele. A tela não troca de ambiente sozinha: a pessoa estava no Perfil, e
+  continua nele.
+- Sem convite, o bloco diz *Nenhum convite esperando por você* — e o rodapé diz que é **aqui**
+  que eles chegam, nunca por e-mail.
 
 ## SESSÕES ATIVAS
 
@@ -119,25 +158,9 @@ de onde entrou, quando entrou e o último uso, no horário de Brasília.
 - O rodapé diz o que encerrar **não** resolve: quem entrou uma vez sabe a senha. Sessão que a
   pessoa não reconhece pede **troca de senha**, não só encerrar.
 
-## CONVITES — o espaço reservado
-
-Os blocos existem na tela, **com moldura e com título**, e cada um diz o que está
-esperando. Nenhum mostra botão travado: *botão travado obriga a tela a explicar sete
-vezes; botão ausente explica uma vez* (`docs/06-interface/navegacao.md`).
-
-| Bloco | O que o texto diz |
-|---|---|
-| **CONVITES RECEBIDOS** | Que é aqui que o convite chega — dentro do sistema, nunca por e-mail (`docs/02-dominio/ambiente-financeiro.md`) — e que o convite ainda não existe |
-| **CONVIDAR ALGUÉM** | Que convidar é do **dono** do ambiente, e que o endpoint ainda não existe |
-
-**Por que reservar em vez de omitir:** são decisões já tomadas e escritas, e a tela
-vazia sem explicação é a que ensina que o app está quebrado. O bloco reservado é o contrário:
-ele diz que o lugar é aqui.
-
 ## Fora desta tela, de propósito
 
 | O quê | Onde vai |
 |---|---|
-| O avatar ao lado do `autor` do lançamento | Exige o lançamento carregar o avatar de quem lançou. Entra com o ambiente compartilhado, que é quando a pergunta "quem lançou isso?" existe |
 | Trocar de e-mail, excluir a conta, upload de foto | Não foram decididos (`docs/02-dominio/usuario.md`) |
 | Preferências de exibição, tema, idioma | Não existem. O app tem um tema só |

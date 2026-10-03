@@ -18,12 +18,19 @@ específica.
 `16/09 · Gasolina · Nubank · REALIZADO · Transporte › Gasolina · −R$ 154,50`
 
 A lista existe para **varrer**, não para ler: cinquenta linhas na tela, e o olho procurando
-uma. Tudo que não ajuda a reconhecer a linha fica fora dela — e é por isso que o autor, a hora
-do cadastro, o estabelecimento e o histórico **não estão** ali, mesmo já existindo no servidor.
+uma. Tudo que não ajuda a reconhecer a linha fica fora dela — e é por isso que a hora do
+cadastro, o estabelecimento e o histórico **não estão** ali, mesmo já existindo no servidor.
 
 A linha mostra: as datas (e a de efeito **só quando difere** da de evento), a descrição, a
-conta, a situação, a categoria — ou a marca de pendência —, e as marcas de transferência,
-estorno e do sistema.
+conta, a situação, a categoria — ou a marca de pendência —, as marcas de transferência,
+estorno e do sistema, e **quem lançou**, quando há quem perguntar.
+
+**O autor entra na linha só quando o ambiente tem mais de uma pessoa** — ou quando a linha é de
+alguém que já saiu. Num ambiente de uma pessoa só, `POR ABNER` em cinquenta linhas é ruído; com
+duas, *"quem lançou isso?"* é a primeira pergunta (`docs/02-dominio/ambiente-financeiro.md`), e
+abrir o detalhe para cada linha seria a resposta cara. Ele vem com o avatar, que é o que
+distingue as pessoas pela forma (`docs/06-interface/direcao-visual.md`). **O que o sistema
+lançou sozinho não leva autor** na linha: a marca `DO SISTEMA` já responde.
 
 **A linha inteira é clicável**, e abrir é a única coisa que ela faz.
 

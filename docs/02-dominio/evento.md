@@ -123,7 +123,7 @@ critério do resto do projeto.
 | `CONTA_CRIADA` · `CONTA_RENOMEADA` · `CONTA_INATIVADA` · `CONTA_REATIVADA` · `CONTA_EXCLUIDA` | Idem para conta |
 | `MEIO_CRIADO` · `MEIO_RENOMEADO` · `MEIO_INATIVADO` · `MEIO_REATIVADO` · `MEIO_EXCLUIDO` | Idem para meio de pagamento |
 | `SERIE_CRIADA` · `SERIE_ALTERADA` · `SERIE_CANCELADA` | Parcelamento ou recorrência |
-| `ACESSO_CONCEDIDO` · `ACESSO_REVOGADO` | Quem entrou e quem saiu do ambiente. **Entram com o convite** |
+| `ACESSO_CONCEDIDO` · `ACESSO_REVOGADO` | Quem entrou e quem saiu do ambiente. O autor do `CONCEDIDO` é quem **aceitou** o convite; o do `REVOGADO` é quem **agiu** — a própria pessoa, se saiu, ou o dono, se a tirou. Sem alvo: a pessoa não é objeto do ambiente. `dados` leva `usuarioId`, `pessoa` (o nome), `papel` e, no `REVOGADO`, `saiu` |
 | `VINCULO_CRIADO` · `VINCULO_REVOGADO` | A conta foi compartilhada com outro ambiente, ou deixou de ser (`ADR-0004`). Gravam no ambiente de **origem**, com a conta como alvo e `conta`, `destinoId` e `destino` em `dados`. **O Diário do destino não os mostra**: o que o destino vê do Diário é decisão em aberto |
 
 **Renomear e recolorir também entram**, e a simetria é o argumento: `CATEGORIA_RENOMEADA`
@@ -133,9 +133,9 @@ mudou"* **e** *"quem mexeu"* — num ambiente com mais de uma pessoa, a conta qu
 
 > ☐ **A definir:** **criar e renomear ambiente não gravam evento.** A lista acima não tem o
 > tipo, e a simetria com `CONTA_RENOMEADA` diz que deveria ter — num ambiente com mais de uma
-> pessoa, o nome que mudou é o tipo de coisa que ninguém explica depois. Entra com o convite,
-> que é quando existe uma segunda pessoa para perguntar; e o tipo novo pede migration no
-> `CHECK` de `evento.tipo`.
+> pessoa, o nome que mudou é o tipo de coisa que ninguém explica depois. O convite chegou
+> (03/10) sem ele, porque o pedido foi entrar, sair e lançar; com uma segunda pessoa dentro, é
+> o próximo da fila — e o tipo novo pede migration no `CHECK` de `evento.tipo`.
 
 ### O evento de exclusão carrega a linha inteira
 

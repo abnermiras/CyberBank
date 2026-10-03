@@ -1,5 +1,6 @@
 package br.com.cyberbank.ambiente.api;
 
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -12,20 +13,16 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.stereotype.Component;
+import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-/**
- * O ambiente ativo vem do CAMINHO da URL, e so vira contexto depois de o acesso do usuario ser
- * validado (ADR-0002, docs/01-arquitetura/seguranca.md). Nenhum controlador recebe
- * {@code ambienteId} de corpo ou de query — se recebesse, seria o caminho sem validacao.
- *
- * <p>Ambiente inexistente e ambiente sem acesso respondem a MESMA coisa: 404.
- */
 @Component
 public class InterceptadorDeAmbiente implements HandlerInterceptor {
 
     private static final Pattern SOB_AMBIENTE =
             Pattern.compile("^/api/v1/ambientes/(\\d+)(/.*)?$");
+
+    private static final Set<String> METODOS_DE_LEITURA = Set.of("GET", "HEAD", "OPTIONS");
 
     private final ResolverAmbienteAtivoUseCase resolverAmbiente;
 
@@ -46,9 +43,17 @@ public class InterceptadorDeAmbiente implements HandlerInterceptor {
             throw new RegraDeDominioException(CodigoDeErro.NAO_AUTENTICADO);
         }
 
-        resolverAmbiente.executar(usuarioId, ambienteId);
+        resolverAmbiente.executar(usuarioId, ambienteId, alteraODado(requisicao, handler));
         ContextoDaRequisicao.definirAmbiente(ambienteId);
         return true;
+    }
+
+    private static boolean alteraODado(HttpServletRequest requisicao, Object handler) {
+        if (METODOS_DE_LEITURA.contains(requisicao.getMethod())) {
+            return false;
+        }
+        return !(handler instanceof HandlerMethod metodo
+                && metodo.hasMethodAnnotation(AbertoAoLeitor.class));
     }
 
     private Long lerId(String bruto) {

@@ -132,6 +132,7 @@ const Lancar = {
       return;
     }
     if (evento.key !== 'n' && evento.key !== 'N') return;
+    if (document.body.classList.contains('so-leitura')) return;
     if (evento.metaKey || evento.ctrlKey || evento.altKey) return;
 
     const foco = document.activeElement;

@@ -49,7 +49,7 @@ const SeletorDeAmbiente = {
         <button type="button" role="option" class="menu-amb${ambiente.id === Contexto.ambiente.id ? ' on' : ''}"
                 aria-selected="${ambiente.id === Contexto.ambiente.id}" data-id="${ambiente.id}">
           <strong>${Formato.texto(ambiente.nome)}</strong>
-          <span class="papel">${ambiente.papel}</span>
+          <span class="papel">${Formato.papel(ambiente.papel)}</span>
         </button>`).join('')}
       <a class="menu-gerenciar" href="#/perfil">CRIAR OU RENOMEAR, NO PERFIL →</a>`;
 

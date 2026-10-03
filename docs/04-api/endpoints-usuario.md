@@ -214,5 +214,5 @@ errado é um valor do corpo, e é isso que o `422` diz (`04-api/erros.md`).
 ## O que ainda não existe
 
 Recuperação de senha (`ADR-0007` decidiu, e ninguém construiu), troca de e-mail, exclusão de
-conta, upload de foto, e os convites recebidos — este com espaço reservado na tela
-(`docs/06-interface/perfil.md`), e entra com o convite.
+conta e upload de foto. **Os convites recebidos existem**, mas não moram aqui: a regra é do
+ambiente, e as rotas estão em `docs/04-api/endpoints-ambientes.md`.

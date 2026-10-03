@@ -48,6 +48,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | [`decisoes/ADR-0012-front-estatico-servido-pelo-spring.md`](01-arquitetura/decisoes/ADR-0012-front-estatico-servido-pelo-spring.md) | como o front é construído, onde ele mora e quem o entrega | ativo |
 | [`decisoes/ADR-0013-rotina-enxerga-ambientes-por-funcao.md`](01-arquitetura/decisoes/ADR-0013-rotina-enxerga-ambientes-por-funcao.md) | como uma rotina sem sessao atravessa o RLS sem virar bypass | ativo |
 | [`decisoes/ADR-0014-usuario-e-um-assunto.md`](01-arquitetura/decisoes/ADR-0014-usuario-e-um-assunto.md) | por que usuario, sessao e senha deixam de morar no pacote do ambiente | ativo |
+| [`decisoes/ADR-0015-gestao-de-acesso-por-funcao.md`](01-arquitetura/decisoes/ADR-0015-gestao-de-acesso-por-funcao.md) | como o dono le e remove o acesso de outra pessoa sem que a politica de acesso leia a propria tabela | ativo |
 | [`decisoes/README.md`](01-arquitetura/decisoes/README.md) | índice das ADRs e regra de quando escrever uma | ativo |
 | [`estrutura-de-pastas.md`](01-arquitetura/estrutura-de-pastas.md) | a arvore do projeto, a convencao de pacotes, onde criar cada arquivo novo e o que nao se versiona | ativo |
 | [`modulos.md`](01-arquitetura/modulos.md) | quais assuntos existem, quem pode depender de quem, e como dois assuntos conversam | ativo |
@@ -91,7 +92,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | Documento | Dono do fato | Status |
 |---|---|---|
 | [`convencoes.md`](04-api/convencoes.md) | forma da URL, versionamento, nomes, formatos no JSON, paginacao e compatibilidade | ativo |
-| [`endpoints-ambientes.md`](04-api/endpoints-ambientes.md) | a lista de ambientes do usuario, criar e renomear ambiente, e a regra do {ambienteId} nas outras rotas | ativo |
+| [`endpoints-ambientes.md`](04-api/endpoints-ambientes.md) | a lista de ambientes do usuario, criar e renomear ambiente, convite, pessoas com acesso, e a regra do {ambienteId} nas outras rotas | ativo |
 | [`endpoints-categorias.md`](04-api/endpoints-categorias.md) | contrato dos endpoints de categoria e regras de categorizacao | ativo |
 | [`endpoints-compartilhamentos.md`](04-api/endpoints-compartilhamentos.md) | contrato dos endpoints que compartilham e revogam o uso de uma conta com outro ambiente | ativo |
 | [`endpoints-contas.md`](04-api/endpoints-contas.md) | contrato dos endpoints de conta e saldo | ativo |
@@ -126,7 +127,7 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 | [`extrato.md`](06-interface/extrato.md) | a lista de movimento, a linha resumida e o modal que abre um lancamento inteiro | ativo |
 | [`fatura.md`](06-interface/fatura.md) | a tela do ciclo do cartao: os tres numeros de cada fatura, a janela que importa e as acoes de pagar, fechar e abrir | ativo |
 | [`navegacao.md`](06-interface/navegacao.md) | estrutura de navegacao, onde o ambiente vive na tela e como se lanca | rascunho |
-| [`perfil.md`](06-interface/perfil.md) | a tela do proprio usuario: onde se entra, as secoes, o seletor de avatar e os espacos reservados | ativo |
+| [`perfil.md`](06-interface/perfil.md) | a tela do proprio usuario: onde se entra, as secoes, o seletor de avatar, os convites e as pessoas de cada ambiente | ativo |
 | [`reserva.md`](06-interface/reserva.md) | a tela do patrimonio: as aplicacoes, a idade do valor informado e a distincao entre fluxo de caixa e patrimonio | ativo |
 | [`series.md`](06-interface/series.md) | a tela das duas series e o lugar onde se diz, ao lancar no credito, que a cobranca e recorrente e nao parcelada | ativo |
 
@@ -154,5 +155,5 @@ Regras de escrita: `docs/CONVENTIONS.md`.
 
 ---
 
-**89 documentos · 15 ainda em stub.**
+**90 documentos · 15 ainda em stub.**
 Stub = conteudo inexistente: pergunte, nao deduza.

@@ -9,6 +9,7 @@ const Extrato = {
   proximo: null,
   filtroConta: '',
   somentePendentes: false,
+  maisDeUmaPessoa: false,
   ligado: false,
 
   async montar(lancamentoId) {
@@ -27,11 +28,13 @@ const Extrato = {
 
   async recarregarTudo() {
     try {
-      const [contas, meios, arvore] = await Promise.all([
+      const [contas, meios, arvore, membros] = await Promise.all([
         API.listarContas(Contexto.ambiente.id),
         API.listarMeios(Contexto.ambiente.id),
         API.arvoreDeCategorias(Contexto.ambiente.id),
+        API.membros(Contexto.ambiente.id),
       ]);
+      Extrato.maisDeUmaPessoa = membros.itens.length > 1;
       Extrato.contas = contas.itens;
       Extrato.previstoAte = contas.previstoAte;
       Extrato.meios = meios.itens;
@@ -173,6 +176,7 @@ const Extrato = {
             ${l.transferenciaId ? '<span class="tag transf">TRANSFERÊNCIA</span>' : ''}
             ${l.estornoDeId ? '<span class="tag transf">ESTORNO</span>' : ''}
             ${l.doCiclo ? '<span class="tag">DO SISTEMA</span>' : ''}
+            ${Extrato.autor(l)}
           </div>
         </div>
 
@@ -181,6 +185,14 @@ const Extrato = {
         </div>
 
       </article>`;
+  },
+
+  autor(l) {
+    if (!l.autor || l.doCiclo) return '';
+    const deOutraPessoa = Contexto.usuario && l.autor.id !== Contexto.usuario.id;
+    if (!Extrato.maisDeUmaPessoa && !deOutraPessoa) return '';
+    return `<span class="tele linha-autor" title="Lançado por ${Formato.texto(l.autor.nome)}">${
+      l.autor.avatar ? Avatares.svg(l.autor.avatar) : ''}POR ${Formato.texto(l.autor.nome).toUpperCase()}</span>`;
   },
 
   nomeDaCategoria(categoriaId) {

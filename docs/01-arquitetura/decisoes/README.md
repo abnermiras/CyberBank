@@ -51,8 +51,10 @@ nome de variável, ou coisa que cabe no doc do módulo.
 
 | 0012 | [O front é estático e o próprio Spring Boot o serve](ADR-0012-front-estatico-servido-pelo-spring.md) | aceita | 2026-09-15 |
 
-| 0013 | [A rotina diária enxerga os ambientes por função `SECURITY DEFINER`](ADR-0013-rotina-enxerga-ambientes-por-funcao.md) | aceita | 2026-09-17 |
+| 0013 | [A rotina diária enxerga os ambientes por função `SECURITY DEFINER`](ADR-0013-rotina-enxerga-ambientes-por-funcao.md) | aceita · política do papel dono substituída pela 0015 | 2026-09-17 |
 
 | 0014 | [O usuário é um assunto próprio, e sai de dentro de `ambiente`](ADR-0014-usuario-e-um-assunto.md) | aceita | 2026-09-17 |
+
+| 0015 | [Quem tem acesso a um ambiente se lê e se remove por função `SECURITY DEFINER`](ADR-0015-gestao-de-acesso-por-funcao.md) | aceita · substitui a política estreita da 0013 | 2026-10-03 |
 
 _(adicione uma linha por ADR)_

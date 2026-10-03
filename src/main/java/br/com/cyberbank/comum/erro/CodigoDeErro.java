@@ -41,7 +41,11 @@ public enum CodigoDeErro {
     AMBIENTE_INVALIDO(409, "Este dado é de outro ambiente"),
     COMPARTILHAMENTO_JA_EXISTE(409, "Esta conta já está compartilhada com este ambiente"),
     CONTA_CARTAO_NAO_SE_COMPARTILHA(409, "Conta de cartão de crédito não se compartilha inteira"),
-    AMBIENTE_DESTINO_INVALIDO(422, "Este ambiente não pode receber o compartilhamento");
+    AMBIENTE_DESTINO_INVALIDO(422, "Este ambiente não pode receber o compartilhamento"),
+    CONVITE_JA_PENDENTE(409, "Este e-mail já tem um convite pendente neste ambiente"),
+    JA_TEM_ACESSO(409, "Este e-mail já tem acesso a este ambiente"),
+    CONVITE_NAO_PENDENTE(409, "Este convite já foi respondido ou cancelado"),
+    DONO_NAO_SAI(409, "O dono não sai do ambiente sem transferir a propriedade antes");
 
     private final int status;
     private final String titulo;
