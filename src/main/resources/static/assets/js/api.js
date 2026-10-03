@@ -51,6 +51,9 @@ const API = {
       'O saldo de um benefício não é fungível: entra por receita e sai por gasto no meio dele.',
     SENHA_ATUAL_INVALIDA: 'A senha atual não confere.',
     TELEGRAM_JA_VINCULADO: 'Este chat do Telegram já está vinculado a outro usuário.',
+    AMBIENTE_DESTINO_INVALIDO:
+      'Este ambiente não recebe a conta: escolha outro em que você tenha autorização completa.',
+    COMPARTILHAMENTO_JA_EXISTE: 'Esta conta já está compartilhada com este ambiente.',
     CONVITE_JA_PENDENTE:
       'Este e-mail já tem um convite esperando neste ambiente. Para trocar a autorização, cancele o pendente e convide de novo.',
     JA_TEM_ACESSO: 'Este e-mail já tem acesso a este ambiente.',

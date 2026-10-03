@@ -30,7 +30,7 @@ const Contas = {
     const conta = (contas || []).find((c) => c.id === meio.contaId);
     const tipo = Contas.ROTULO_DE_MEIO[meio.tipo] || meio.tipo;
     const emprestada = conta && conta.compartilhadaDe
-      ? ` — compartilhado de ${conta.compartilhadaDe.nome}` : '';
+      ? ` — compartilhado de ${Contas.origemDoEmprestimo(conta.compartilhadaDe)}` : '';
     return `${conta ? conta.nome : '—'} · ${meio.nome || tipo}${emprestada}`;
   },
 
@@ -223,6 +223,7 @@ const Contas = {
         excluir: () => Contas.excluir(id),
         'abrir-meio': () => Contas.abrirMeio(id),
         compartilhar: () => Contas.abrirCompartilhamento(id),
+        devolver: () => Contas.devolver(id),
         'alternar-compartilhamento': () =>
           Contas.alternarCompartilhamento(id, Number(botao.dataset.destino)),
         'somar-cartao': () => Contas.somarCartao(id),
@@ -299,7 +300,7 @@ const Contas = {
               ${conta.entraNoFluxoDeCaixa ? '' : '<span class="tag transf">FORA DO FLUXO</span>'}
               ${conta.inativa ? '<span class="tag">INATIVA</span>' : ''}
               ${emprestada ? `<span class="tag">COMPARTILHADA DE
-                ${Formato.texto(conta.compartilhadaDe.nome)}</span>` : ''}
+                ${Formato.texto(Contas.origemDoEmprestimo(conta.compartilhadaDe))}</span>` : ''}
             </div>
             <div class="conta-saldo ${conta.saldoRealizadoCentavos < 0 ? 'neg' : ''}">
               ${Formato.dinheiro(conta.saldoRealizadoCentavos)}
@@ -348,8 +349,13 @@ const Contas = {
 
         ${emprestada ? `
         <div class="conta-acoes">
-          <span class="tele">EMPRESTADA POR ${Formato.texto(conta.compartilhadaDe.nome).toUpperCase()}
+          <span class="tele">EMPRESTADA POR ${Formato.texto(Contas.origemDoEmprestimo(conta.compartilhadaDe)).toUpperCase()}
             — VOCÊ USA E LANÇA NELA; QUEM MEXE NA CONTA É QUEM A CRIOU</span>
+          ${Contexto.ambiente.papel !== 'DONO' ? '' : confirmando ? `
+            <span class="tele" style="color:var(--pink)">ESTE AMBIENTE PARA DE USAR A CONTA. O QUE JÁ FOI LANÇADO NELA FICA.</span>
+            <button class="btn sm danger" type="button" data-acao="devolver" data-id="${conta.id}">Confirmar devolução</button>
+            <button class="btn sm ghost" type="button" data-acao="cancelar" data-id="${conta.id}">Cancelar</button>`
+          : `<button class="btn sm ghost" type="button" data-acao="confirmar" data-id="${conta.id}">Devolver</button>`}
         </div>` : `
         <div class="conta-acoes">
           ${confirmando ? `
@@ -367,11 +373,18 @@ const Contas = {
       </article>`;
   },
 
+  origemDoEmprestimo(de) {
+    const deOutraPessoa = de.emprestadaPor && Contexto.usuario
+      && de.emprestadaPorId !== Contexto.usuario.id;
+    return deOutraPessoa ? `${de.nome} · ${de.emprestadaPor}` : de.nome;
+  },
+
   painelDeCompartilhamento(conta) {
-    const outros = Contas.ambientes.filter((a) => a.id !== Contexto.ambiente.id);
+    const outros = Contas.ambientes
+      .filter((a) => a.id !== Contexto.ambiente.id && a.papel !== 'LEITOR');
     if (!outros.length) {
       return `<div class="conta-somar">
-        <span class="tele">VOCÊ SÓ TEM ESTE AMBIENTE — CRIE OUTRO NO PERFIL PARA COMPARTILHAR</span>
+        <span class="tele">NÃO HÁ OUTRO AMBIENTE EM QUE VOCÊ LANCE — CRIE UM NO PERFIL, OU PEÇA A AUTORIZAÇÃO COMPLETA EM UM QUE VOCÊ SÓ LÊ</span>
         <button class="btn sm ghost" type="button" data-acao="cancelar" data-id="${conta.id}">Fechar</button>
       </div>`;
     }
@@ -517,6 +530,12 @@ const Contas = {
 
   async alterarAtivacao(id, inativa) {
     await Contas.tentar(() => API.alterarConta(Contexto.ambiente.id, id, { inativa }));
+  },
+
+  async devolver(id) {
+    await Contas.tentar(
+      () => API.revogarCompartilhamento(Contexto.ambiente.id, id, Contexto.ambiente.id),
+      () => { Contas.confirmando = null; });
   },
 
   async excluir(id) {

@@ -10,7 +10,7 @@ status: ativo
 
 > **Quando.** O **modelo** deste doc entrou na Fase 1 — ele contamina schema e política de
 > acesso. A **funcionalidade da conta** (criar e revogar o vínculo, categoria mascarada) saiu em
-> 2026-09-28. O que continua congelado é o **cartão**: partes da fatura, patrimônio parcial e
+> 2026-09-28, e entre pessoas diferentes em 2026-10-03. O que continua congelado é o **cartão**: partes da fatura, patrimônio parcial e
 > quem fecha a fatura (`docs/00-produto/roadmap.md`).
 
 Três coisas diferentes usam a palavra "compartilhar" e **não são a mesma**:
@@ -48,15 +48,15 @@ saldo da conta continua sendo um só. Ver `ADR-0004`.
 | **Cartão** (um meio `CREDITO`) | Outro ambiente seu, ou de outro usuário | É o mesmo plástico usado por dois — o cartão de gasolina do carro da casa |
 | Conta `CARTAO` inteira | **Não se compartilha** | Compartilha-se um cartão dela. Dar a conta inteira seria entregar todos os cartões do contrato |
 
-Quem compartilha e quem revoga: **só o dono do ambiente de origem** — a mesma regra de
-quem convida.
+Quem compartilha: **só o dono do ambiente de origem** — a mesma regra de quem convida. Quem
+revoga: **o dono de qualquer uma das duas pontas** (ver *Revogar*).
 
 ### O que a funcionalidade entrega hoje
 
 | Recorte | Valor | Por quê |
 |---|---|---|
 | Objeto | **Conta**, com os meios dela. Conta `CARTAO` é recusada (`CONTA_CARTAO_NAO_SE_COMPARTILHA`) | O vínculo é da conta e os meios vão junto — não há vínculo de meio. Cartão traz partes da fatura e patrimônio parcial, em aberto |
-| Destino | **Só outro ambiente do próprio usuário** (`AMBIENTE_DESTINO_INVALIDO` para qualquer outro) | Achar e autorizar o ambiente de outra pessoa é o convite, que ainda não existe. O erro não distingue "é de outra pessoa" de "é o mesmo ambiente" |
+| Destino | **Um ambiente em que quem compartilha altera o dado**: dono ou editor. Pode ser de outra pessoa — é o convite que dá o acesso (`AMBIENTE_DESTINO_INVALIDO` para qualquer outro) | Trazer uma conta muda as contas, o saldo e o patrimônio do destino: é escrita, e quem só lê o ambiente não escreve nele. O erro não distingue "não tenho acesso" de "só leio" nem de "é o mesmo ambiente" |
 | `APLICACAO` | Pode ser compartilhada, mas **só a origem a vê na Reserva** | Informar o valor de uma aplicação é ato do dono; a Reserva do destino não teria o que oferecer. O saldo dela entra no patrimônio dos dois |
 
 ## Conta compartilhada
@@ -78,6 +78,27 @@ nasce no CLT e é compartilhada com o PJ.
 Que o mesmo dinheiro apareça no patrimônio de dois ambientes é **certo, não bug**: é o que
 conta conjunta significa. Somar os patrimônios de todos os ambientes de um usuário conta a
 conta duas vezes — e por isso essa soma não é uma tela que o sistema oferece.
+
+## Entre pessoas
+
+O caso que o convite abriu, em exemplo literal. Abner tem **Pessoal** e **Casa**; empresta a
+`Nubank` do Pessoal à Casa e convida a Bia para a Casa com autorização completa. A Bia tem o
+**Pessoal dela**, com o `Itaú`, e o empresta à Casa.
+
+| Na Casa | O que acontece |
+|---|---|
+| Contas | `Nubank` e `Itaú`, as duas emprestadas. O `Itaú` diz **de onde e de quem**: *compartilhada de Ambiente Pessoal · Bia*. Com duas pessoas, dois ambientes podem ter o mesmo nome, e o nome da pessoa é o que desfaz a dúvida; a conta do próprio usuário não leva o nome dele |
+| Quem lança em quê | Abner e Bia lançam nas duas, com as categorias da Casa |
+| O extrato do `Itaú`, no Pessoal da Bia | Mostra o que o Abner lançou nele pela Casa, com **`DE CASA`** no lugar da categoria e **o nome do Abner** como autor. Quem empresta a conta precisa saber quem gastou nela para fechar o saldo com o banco |
+| A Bia sai da Casa, ou o Abner a tira | **O `Itaú` sai junto**: o vínculo é revogado no mesmo ato. A Casa fica com o que lançou, como em toda revogação, e para de lançar nele |
+| O Abner não quer mais o `Itaú` na Casa | Ele **devolve** a conta: é dono do destino. O editor não devolve |
+
+A herança é real e é de propósito: quem entra num ambiente usa **todas** as contas que ele
+recebeu, inclusive as de quem não é a pessoa que o convidou. A Bia lança na `Nubank` do Pessoal
+do Abner porque ela está na Casa; quando ela sai da Casa, deixa de lançar.
+
+Ninguém lê o ambiente de origem da outra pessoa — só o **nome** dele, para a conta poder dizer
+de onde veio.
 
 ## Cartão compartilhado
 
@@ -154,7 +175,8 @@ usuário de um cartão, e o que ele deve é o que ele gastou.
 
 | Regra | Valor |
 |---|---|
-| Quem revoga | Só o dono do ambiente de origem |
+| Quem revoga | O dono do ambiente de **origem** — parou de emprestar — **ou** o do ambiente de **destino** — **devolveu** a conta. O editor de nenhuma das pontas revoga |
+| Revogação automática | Quem emprestou a conta **sai** do ambiente de destino, ou é removido dele: os vínculos que ele criou para aquele ambiente caem no mesmo ato. Conta de quem não está mais no ambiente não fica nele |
 | O que acontece com o que já foi lançado | **Fica tudo.** Os lançamentos são do ambiente que os fez, e o saldo da conta depende deles |
 | O que o destino perde | O objeto some da lista de meios e contas disponíveis: não recebe lançamento novo |
 | O que o destino mantém | Seus lançamentos, seus relatórios e seu histórico. Nada é apagado nem movido |
@@ -172,7 +194,9 @@ emprestou a conta.** Apagar quebraria o saldo de todo mundo que ficou.
 - Um objeto tem no máximo **um vínculo por ambiente de destino**.
 - Um objeto não é compartilhado com o próprio ambiente de origem.
 - Revogar vínculo nunca apaga, move ou recategoriza lançamento.
-- Só o dono do ambiente de origem compartilha e revoga.
+- Só o dono do ambiente de origem compartilha, e só para um ambiente em que é dono ou editor.
+- Revoga o dono da origem ou o dono do destino; ninguém mais.
+- Quem emprestou e saiu do destino não deixa a conta lá.
 - **Cada ambiente altera e exclui só o que lançou.** O destino lê o lançamento da origem — e a
   origem lê o do destino —, mas nenhum dos dois o corrige, estorna ou exclui. É o RLS que
   garante: o `OR` da leitura não chega ao `UPDATE` nem ao `DELETE`.
@@ -194,4 +218,5 @@ emprestou a conta.** Apagar quebraria o saldo de todo mundo que ficou.
 - [ ] Compartilhar conta `APLICACAO` faz sentido na v1, ou é Fase 3 junto com metas? Hoje ela
       compartilha, e a Reserva do destino não a lista
 - [ ] Pagar fatura **de uma conta emprestada**: hoje a conta pagadora é só do próprio ambiente
-- [ ] O destino de **outro usuário**: exige o convite, e a decisão de quem vê o nome do autor
+- [ ] O que cada ponta vê do **Diário** da outra: hoje o compartilhar fica na origem e o
+      devolver, no destino, e nenhum dos dois aparece do outro lado

@@ -6,6 +6,7 @@ import br.com.cyberbank.ambiente.dominio.Acesso;
 import br.com.cyberbank.ambiente.dominio.AcessoRepository;
 import br.com.cyberbank.ambiente.dominio.Ambiente;
 import br.com.cyberbank.ambiente.dominio.AmbienteRepository;
+import br.com.cyberbank.compartilhamento.dominio.Compartilhamento;
 import br.com.cyberbank.compartilhamento.dominio.CompartilhamentoRepository;
 import br.com.cyberbank.comum.erro.CodigoDeErro;
 import br.com.cyberbank.comum.erro.RegraDeDominioException;
@@ -44,28 +45,48 @@ public class RevogarCompartilhamentoUseCase {
     }
 
     @Transactional
-    public void executar(Long usuarioId, Long ambienteOrigemId, Long contaId,
-            Long ambienteDestinoId) {
-
-        Acesso acessoNaOrigem = acessos.buscar(usuarioId, ambienteOrigemId)
+    public void executar(Long usuarioId, Long ambienteId, Long contaId, Long ambienteDestinoId) {
+        Acesso acesso = acessos.buscar(usuarioId, ambienteId)
                 .orElseThrow(() -> new RegraDeDominioException(CodigoDeErro.NAO_ENCONTRADO));
-        if (!acessoNaOrigem.papel().podeCompartilhar()) {
-            throw new RegraDeDominioException(CodigoDeErro.SEM_PERMISSAO);
-        }
-
-        Conta conta = contas.buscarDoAmbiente(contaId, ambienteOrigemId)
+        Compartilhamento vinculo = compartilhamentos.buscar(contaId, ambienteDestinoId)
                 .orElseThrow(() -> new RegraDeDominioException(CodigoDeErro.NAO_ENCONTRADO));
 
-        compartilhamentos.buscar(contaId, ambienteDestinoId)
+        vinculo.exigirRevogavelPor(ambienteId, acesso.papel().podeCompartilhar());
+        Conta conta = contas.buscarAcessivel(contaId, ambienteId)
                 .orElseThrow(() -> new RegraDeDominioException(CodigoDeErro.NAO_ENCONTRADO));
 
+        registrar(vinculo, conta, ambienteId, usuarioId);
         compartilhamentos.revogar(contaId, ambienteDestinoId);
+    }
 
-        String nomeDoDestino = ambientes.buscar(ambienteDestinoId).map(Ambiente::nome).orElse(null);
-        eventos.registrar(Evento.doUsuario(ambienteOrigemId, usuarioId,
-                TipoDeEvento.VINCULO_REVOGADO, Alvo.conta(contaId),
-                Evento.dados("conta", conta.nome(), "destinoId", ambienteDestinoId,
-                        "destino", nomeDoDestino),
+    @Transactional
+    public void devolverOsEmprestadosPor(Long emprestadorId, Long ambienteDestinoId,
+            Long quemAgiuId) {
+        for (Compartilhamento vinculo : compartilhamentos.listarRecebidos(ambienteDestinoId)) {
+            if (!vinculo.emprestadoPor(emprestadorId)) {
+                continue;
+            }
+            Conta conta = contas.buscarAcessivel(vinculo.contaId(), ambienteDestinoId)
+                    .orElseThrow(() -> new RegraDeDominioException(CodigoDeErro.NAO_ENCONTRADO));
+            registrar(vinculo, conta, ambienteDestinoId, quemAgiuId);
+            compartilhamentos.revogar(vinculo.contaId(), ambienteDestinoId);
+        }
+    }
+
+    private void registrar(Compartilhamento vinculo, Conta conta, Long ambienteId,
+            Long autorId) {
+        boolean devolvida = vinculo.devolvidoPor(ambienteId);
+        eventos.registrar(Evento.doUsuario(ambienteId, autorId, TipoDeEvento.VINCULO_REVOGADO,
+                Alvo.conta(conta.id()),
+                Evento.dados("conta", conta.nome(),
+                        "destinoId", vinculo.ambienteDestinoId(),
+                        "destino", nome(vinculo.ambienteDestinoId()),
+                        "origem", devolvida ? nome(vinculo.ambienteOrigemId()) : null,
+                        "devolvida", devolvida ? true : null),
                 diaLocal.hoje(), relogio.instant()));
+    }
+
+    private String nome(Long ambienteId) {
+        return ambientes.buscar(ambienteId).map(Ambiente::nome).orElse(null);
     }
 }

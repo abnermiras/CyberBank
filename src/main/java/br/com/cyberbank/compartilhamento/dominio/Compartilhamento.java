@@ -17,7 +17,8 @@ public record Compartilhamento(
         Instant criadoEm) {
 
     public static Compartilhamento novo(Long contaId, boolean contaEhContratoDeCartao,
-            Long ambienteOrigemId, Long ambienteDestinoId, Long usuarioId, Instant agora) {
+            Long ambienteOrigemId, Long ambienteDestinoId, boolean podeAlterarODestino,
+            Long usuarioId, Instant agora) {
 
         if (ambienteDestinoId == null) {
             throw new ValidacaoException(List.of(new ErroDeValidacao("ambienteDestinoId",
@@ -26,10 +27,28 @@ public record Compartilhamento(
         if (contaEhContratoDeCartao) {
             throw new RegraDeDominioException(CodigoDeErro.CONTA_CARTAO_NAO_SE_COMPARTILHA);
         }
-        if (ambienteDestinoId.equals(ambienteOrigemId)) {
+        if (ambienteDestinoId.equals(ambienteOrigemId) || !podeAlterarODestino) {
             throw new RegraDeDominioException(CodigoDeErro.AMBIENTE_DESTINO_INVALIDO);
         }
         return new Compartilhamento(null, contaId, ambienteOrigemId, ambienteDestinoId,
                 usuarioId, agora);
+    }
+
+    public boolean devolvidoPor(Long ambienteDeQuemRevoga) {
+        return ambienteDestinoId.equals(ambienteDeQuemRevoga);
+    }
+
+    public void exigirRevogavelPor(Long ambienteDeQuemRevoga, boolean donoDesseAmbiente) {
+        if (!ambienteOrigemId.equals(ambienteDeQuemRevoga)
+                && !ambienteDestinoId.equals(ambienteDeQuemRevoga)) {
+            throw new RegraDeDominioException(CodigoDeErro.NAO_ENCONTRADO);
+        }
+        if (!donoDesseAmbiente) {
+            throw new RegraDeDominioException(CodigoDeErro.SEM_PERMISSAO);
+        }
+    }
+
+    public boolean emprestadoPor(Long usuarioId) {
+        return criadoPor.equals(usuarioId);
     }
 }

@@ -12,5 +12,7 @@ interface VinculoJpa extends JpaRepository<VinculoEntity, Long> {
     List<VinculoEntity> findByContaIdAndAmbienteOrigemIdOrderByIdAsc(Long contaId,
             Long ambienteOrigemId);
 
+    List<VinculoEntity> findByAmbienteDestinoIdOrderByIdAsc(Long ambienteDestinoId);
+
     void deleteByContaIdAndAmbienteDestinoId(Long contaId, Long ambienteDestinoId);
 }

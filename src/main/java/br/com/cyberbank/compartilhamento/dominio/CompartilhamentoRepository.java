@@ -11,5 +11,7 @@ public interface CompartilhamentoRepository {
 
     List<Compartilhamento> listarDaConta(Long contaId, Long ambienteOrigemId);
 
+    List<Compartilhamento> listarRecebidos(Long ambienteDestinoId);
+
     void revogar(Long contaId, Long ambienteDestinoId);
 }

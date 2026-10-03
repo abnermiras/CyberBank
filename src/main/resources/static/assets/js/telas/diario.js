@@ -32,8 +32,9 @@ const Diario = {
     CONTA_EXCLUIDA: (d) => `excluiu a conta <b>${Formato.texto(d.nome)}</b>`,
     VINCULO_CRIADO: (d) =>
       `compartilhou a conta <b>${Formato.texto(d.conta)}</b> com <b>${Formato.texto(d.destino)}</b>`,
-    VINCULO_REVOGADO: (d) =>
-      `parou de compartilhar a conta <b>${Formato.texto(d.conta)}</b> com <b>${Formato.texto(d.destino)}</b>`,
+    VINCULO_REVOGADO: (d) => (d.devolvida
+      ? `devolveu a conta <b>${Formato.texto(d.conta)}</b>, emprestada por <b>${Formato.texto(d.origem || 'outro ambiente')}</b>`
+      : `parou de compartilhar a conta <b>${Formato.texto(d.conta)}</b> com <b>${Formato.texto(d.destino)}</b>`),
     ACESSO_CONCEDIDO: (d) =>
       `aceitou o convite e entrou no ambiente com <b>${Diario.papel(d.papel)}</b>`,
     ACESSO_REVOGADO: (d) => (d.saiu

@@ -116,7 +116,7 @@ Erro previsível tem código, e **o código entra aqui antes de existir no códi
 | `AMBIENTE_INVALIDO` | 409 | Categoria de outro ambiente, ou conta sem vínculo (`ADR-0004`) |
 | `COMPARTILHAMENTO_JA_EXISTE` | 409 | A conta já está compartilhada com aquele ambiente. Um objeto tem no máximo um vínculo por destino (`docs/02-dominio/compartilhamento.md`) |
 | `CONTA_CARTAO_NAO_SE_COMPARTILHA` | 409 | Compartilhar uma conta `CARTAO`. Dar a conta inteira entregaria todos os cartões do contrato; compartilha-se **um** cartão dela, e isso ainda não existe |
-| `AMBIENTE_DESTINO_INVALIDO` | 422 | O destino não é um ambiente do próprio usuário, ou é o ambiente de origem. **Não distingue os dois casos**: dizer que o id existe e é de outra pessoa seria contar o que o erro não pode contar |
+| `AMBIENTE_DESTINO_INVALIDO` | 422 | O destino não é um ambiente em que o usuário altera o dado — sem acesso, ou só de leitura —, ou é o ambiente de origem. **Não distingue os dois casos**: dizer que o id existe e é de outra pessoa seria contar o que o erro não pode contar |
 | `CONVITE_JA_PENDENTE` | 409 | Já há um convite pendente para aquele e-mail naquele ambiente. Um e-mail tem no máximo um convite pendente por ambiente; para trocar o papel, cancela-se o pendente e convida-se de novo (`docs/02-dominio/ambiente-financeiro.md`) |
 | `JA_TEM_ACESSO` | 409 | Convidar quem já tem acesso ao ambiente — o próprio dono incluído —, ou aceitar convite de um ambiente em que já se está. **Só o dono o recebe na hora de convidar**, e o dono já vê a lista de quem tem acesso: o erro não conta nada que a tela dele não mostre |
 | `CONVITE_NAO_PENDENTE` | 409 | Aceitar, recusar ou cancelar um convite que já foi respondido ou cancelado. Convite é resposta única |

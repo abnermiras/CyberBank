@@ -66,8 +66,8 @@ sem dono nem com dois.
 | Aceitar | Cria o acesso com o papel do convite, no mesmo ato, e grava `ACESSO_CONCEDIDO` no Diário do ambiente (`docs/02-dominio/evento.md`) |
 | Quem vê quem está dentro | **Todo membro**, dono, editor e leitor: a lista de pessoas é o que responde *"quem mais mexe aqui?"*. Os convites pendentes, só o dono |
 | Trocar o papel de alguém | Só o dono, a qualquer momento, com efeito imediato. **Ainda não existe**: hoje o caminho é remover e convidar de novo |
-| Editor ou leitor sai | Remove o acesso. O dado que ele criou **permanece** no ambiente. **É a única escrita que o leitor faz** |
-| Dono remove alguém | Mesmo efeito da saída. Os dois gravam `ACESSO_REVOGADO`, e o Diário distingue quem saiu de quem foi tirado |
+| Editor ou leitor sai | Remove o acesso. O dado que ele criou **permanece** no ambiente. **É a única escrita que o leitor faz**. **A conta que ele emprestou ao ambiente sai junto**: o vínculo é revogado no mesmo ato (`docs/02-dominio/compartilhamento.md`) |
+| Dono remove alguém | Mesmo efeito da saída, inclusive a conta emprestada. Os dois gravam `ACESSO_REVOGADO`, e o Diário distingue quem saiu de quem foi tirado |
 | Dono quer sair | Tem que **transferir a propriedade** para outro membro antes. Não há saída que deixe o ambiente órfão — sair ou ser removido sendo dono é `DONO_NAO_SAI`. **A transferência ainda não existe** |
 | Dono exclui o ambiente | Só se for o único com acesso. Com outras pessoas dentro, primeiro remove ou transfere |
 
